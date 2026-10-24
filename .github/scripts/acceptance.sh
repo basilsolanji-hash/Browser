@@ -123,13 +123,6 @@ tap_text "Ось start"; sleep 1
 browser --ei profile 7 --es url https://example.com; sleep 15
 menu_item "Full screen";                                                    shot 32-fullscreen 3
 tap_text "Exit full screen";                                                shot 33-fullscreen-exit 3
-# Много вкладок в профиле: «+» → новая вкладка, обзор по счётчику, закрытие.
-tap_text "New tab"; sleep 6;                                                shot 39-new-tab 1
-tap_text "New tab"; sleep 6
-adb shell run-as "$PKG" cat shared_prefs/open_tabs.xml > "$OUT/open_tabs_2.txt" 2>&1
-tap_text "Tabs"; sleep 2;                                                   shot 40-tabs-overview 1
-tap_text "Close tab"; sleep 3;                                              shot 41-tab-closed 1
-adb shell run-as "$PKG" cat shared_prefs/open_tabs.xml > "$OUT/open_tabs_1.txt" 2>&1
 # Профили: перетаскивание («Personal» → на место «Work»), описание профиля.
 adb shell am force-stop "$PKG"; main; sleep 6
 from=$(find_xy "Personal"); to=$(find_xy "Work")
@@ -232,7 +225,6 @@ check "Первый запуск: примеры профилей"   'grep -q "n
 check "Первый запуск: обучение пройдено"  'grep -q "name=\"done\" value=\"true\"" "$X" && [ "$(grep -c "next .: [0-9]" "$OB")" -ge 5 ] && grep -q "start: [0-9]" "$OB"'
 check "Статистика: страницы посчитаны"   'grep -q "name=\"pages_1\" value=\"[1-9]" "$X"'
 check "Язык: главный экран сразу на русском" 'grep -q "lang ru main: [0-9]" "$X"'
-check "Вкладки: две открыты, одна закрыта" '[ "$(grep -o "tab_[0-9]*" "$OUT/open_tabs_2.txt" | sort -u | wc -l)" = 2 ] && [ "$(grep -o "tab_[0-9]*" "$OUT/open_tabs_1.txt" | sort -u | wc -l)" = 1 ]'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 [ "$ext_fail" = 0 ] || echo "ПРИЁМКА НЕ ПРОЙДЕНА — блоки D/E/F"
 [ "$RC" = 0 ] && [ "$ext_fail" = 0 ]

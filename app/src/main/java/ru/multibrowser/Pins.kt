@@ -46,9 +46,7 @@ object Pins {
         return list.map { if (it.url == START) it.copy(title = Tr.t("start")) else it.copy(title = Tr.local(it.title)!!) }
     }
 
-    /** Вкладка профиля по id — среди закреплённых и открытых (OpenTabs). */
-    fun byId(ctx: Context, id: String?, profile: Int? = null): Pin? =
-        (if (profile == null) all(ctx) else OpenTabs.all(ctx, profile)).firstOrNull { it.id == id }
+    fun byId(ctx: Context, id: String?, profile: Int? = null): Pin? = all(ctx, profile).firstOrNull { it.id == id }
 
     /** Вкладка по id, а если такой больше нет (удалили или у профиля другой набор) — первая закреплённая. */
     fun resolve(ctx: Context, id: String?, profile: Int? = null): Pin = byId(ctx, id, profile) ?: all(ctx, profile).first()

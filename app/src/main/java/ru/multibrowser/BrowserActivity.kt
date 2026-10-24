@@ -21,7 +21,6 @@ import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.ProgressBar
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -62,8 +61,7 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var lockIcon: View
     private val chrome = mutableListOf<View>() // всё, что прячется в полноэкранном режиме
     private var fullScreen = false // полный экран по запросу сайта (видео)
-    private var userFullScreen = false
-    private lateinit var tabCount: TextView // полный экран, включённый пользователем из меню
+    private var userFullScreen = false // полный экран, включённый пользователем из меню
     private lateinit var exitFullButton: View
     private lateinit var forwardButton: View
     private var profileId = 0
@@ -194,96 +192,23 @@ class BrowserActivity : AppCompatActivity() {
     /** Перерисовать полосу закреплённых вкладок (их список настраивается и мог измениться). */
     private fun renderTabs() {
         tabBar.removeAllViews()
-        if (profileId == 0) return
-        val tabs = OpenTabs.all(this, profileId)
-        tabs.forEach { p ->
+        Pins.all(this, profileId).forEach { p ->
             val selected = !incognito && p.id == pin.id
-            val open = OpenTabs.isOpenTab(p)
-            tabBar.addView(LinearLayout(this).apply {
-                gravity = Gravity.CENTER_VERTICAL
+            tabBar.addView(TextView(this).apply {
+                text = p.title
+                textSize = 14f
+                typeface = Typeface.DEFAULT_BOLD
+                gravity = Gravity.CENTER
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+                setPadding(dp(8), 0, dp(8), 0)
                 background = if (selected) Ui.rounded(Ui.ACCENT, dpf(5)) else null
-                setPadding(dp(8), 0, if (open) dp(2) else dp(8), 0)
-                minimumWidth = dp(if (open) 56 else 72)
+                setTextColor(if (selected) Ui.ON_ACCENT else Ui.MUTED)
+                minWidth = dp(72)
                 setOnClickListener { openTab(profileId, p) }
-                addView(TextView(context).apply {
-                    text = p.title
-                    textSize = 14f
-                    typeface = Typeface.DEFAULT_BOLD
-                    gravity = Gravity.CENTER
-                    maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
-                    maxWidth = dp(140)
-                    setTextColor(if (selected) Ui.ON_ACCENT else Ui.MUTED)
-                })
-                // Открытую вкладку можно закрыть, закреплённую — нет (она настраивается в профиле).
-                if (open) addView(TextView(context).apply {
-                    text = "\u2715"
-                    textSize = 12f
-                    gravity = Gravity.CENTER
-                    contentDescription = Tr.t("close_tab")
-                    setTextColor(if (selected) Ui.ON_ACCENT else Ui.MUTED)
-                    setOnClickListener { closeTab(p) }
-                }, LinearLayout.LayoutParams(dp(28), LinearLayout.LayoutParams.MATCH_PARENT))
             }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT)
                 .apply { marginEnd = dp(2) })
         }
-        tabBar.addView(TextView(this).apply {
-            text = "+"
-            textSize = 18f
-            gravity = Gravity.CENTER
-            setTextColor(Ui.MUTED)
-            contentDescription = Tr.t("new_tab")
-            setOnClickListener { newTab(Pins.START) }
-        }, LinearLayout.LayoutParams(dp(40), LinearLayout.LayoutParams.MATCH_PARENT))
-        tabCount.text = tabs.size.toString()
-    }
-
-    /** Новая открытая вкладка профиля (меню, «+», ссылка «в новом окне»). */
-    private fun newTab(url: String) {
-        if (incognito) { openIncognito(url); return }
-        openTab(profileId, OpenTabs.add(this, profileId, url), url)
-    }
-
-    private fun closeTab(p: Pin) {
-        val tabs = OpenTabs.all(this, profileId)
-        val i = tabs.indexOfFirst { it.id == p.id }
-        Gecko.closeTab(profileId, p)
-        Profiles.forgetTab(this, profileId, p)
-        OpenTabs.close(this, profileId, p.id)
-        // Закрыли текущую — переходим на соседнюю слева (их всегда есть хотя бы одна закреплённая).
-        if (p.id == pin.id) openTab(profileId, tabs.getOrNull(i - 1) ?: Pins.all(this, profileId).first())
-        else renderTabs()
-    }
-
-    /** Обзор вкладок профиля: переключиться, закрыть, закрыть все открытые, новая вкладка. */
-    private fun showTabs() {
-        if (incognito || profileId == 0) return
-        val tabs = OpenTabs.all(this, profileId)
-        val box = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(8), dp(16), 0)
-        }
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(Tr.t("tabs_n", tabs.size))
-            .setView(ScrollView(this).apply { addView(box) })
-            .setPositiveButton(Tr.t("new_tab")) { _, _ -> newTab(Pins.START) }
-            .apply {
-                if (OpenTabs.list(this@BrowserActivity, profileId).isNotEmpty()) setNeutralButton(Tr.t("close_all_tabs")) { _, _ ->
-                    OpenTabs.list(this@BrowserActivity, profileId).forEach { closeTab(it) }
-                }
-            }
-            .setNegativeButton(Tr.t("close"), null)
-            .create()
-        tabs.forEach { p ->
-            val url = if (p.id == pin.id) currentUrl else Profiles.lastUrl(this, profileId, p)
-            box.addView(ExtrasUi.card(this, p.title, if (url == Pins.START || url.startsWith("data:")) Tr.t("start_page") else url,
-                onMenu = if (OpenTabs.isOpenTab(p)) ({ dialog.dismiss(); closeTab(p) }) else null,
-                menuSymbol = "\u2715", menuDescription = Tr.t("close_tab")) {
-                dialog.dismiss()
-                openTab(profileId, p)
-            }.apply { if (p.id == pin.id) background = Ui.rounded(Ui.SURFACE, dpf(6), dp(2), Ui.ACCENT) })
-        }
-        dialog.show()
     }
 
     /** В покое — только домен и замок для https, при редактировании — полный адрес. */
@@ -399,9 +324,8 @@ class BrowserActivity : AppCompatActivity() {
             }
 
             // Ссылки «в новом окне» открываем в той же вкладке.
-            // Ссылка «в новом окне» — новая открытая вкладка этого профиля.
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
-                if (id == profileId) runOnUiThread { newTab(uri) } else session.loadUri(uri)
+                session.loadUri(uri)
                 return null
             }
 
@@ -423,10 +347,6 @@ class BrowserActivity : AppCompatActivity() {
                 Profiles.updateFromTitle(this@BrowserActivity, id, title)
                 val url = pageUrls[k]
                 if (url != null && !title.isNullOrBlank()) History.setTitle(this@BrowserActivity, id, url, title)
-                if (OpenTabs.isOpenTab(tab) && !title.isNullOrBlank()) {
-                    OpenTabs.setTitle(this@BrowserActivity, id, tab.id, title)
-                    if (visible()) renderTabs()
-                }
             }
 
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
@@ -585,7 +505,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun showMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
         val items = listOf<Pair<String, () -> Unit>>(
-            Tr.t("new_tab") to { newTab(Pins.START) },
+            Tr.t("new_tab") to { openTab(profileId, Pins.resolve(this, "start", profileId), Pins.START) },
             Tr.t("new_incognito") to { openIncognito(Pins.START) },
             Tr.t("zoom") to { zoomDialog() },
             Tr.t("full_screen") to { setUserFullScreen(true) },
@@ -733,22 +653,11 @@ class BrowserActivity : AppCompatActivity() {
         val more = iconButton(R.drawable.ic_more, Tr.t("menu")) { showMenu(it) }
 
         val h = dp(40)
-        // Счётчик вкладок профиля — по нажатию обзор всех вкладок.
-        tabCount = TextView(this).apply {
-            textSize = 13f
-            typeface = Typeface.DEFAULT_BOLD
-            gravity = Gravity.CENTER
-            setTextColor(Ui.TEXT)
-            contentDescription = Tr.t("tabs")
-            background = Ui.rounded(Ui.SURFACE, dpf(6), dp(2), Ui.TEXT)
-            setOnClickListener { showTabs() }
-        }
         val tabRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             addView(chip, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, h))
             addView(tabScroll, LinearLayout.LayoutParams(0, h, 1f).apply { marginStart = dp(8) })
-            addView(tabCount, LinearLayout.LayoutParams(dp(32), dp(32)).apply { marginStart = dp(8) })
             addView(more, LinearLayout.LayoutParams(h, h).apply { marginStart = dp(8) })
         }
 

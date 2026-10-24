@@ -83,11 +83,8 @@ object ExtrasUi {
         setOnClickListener { onClick() }
     }
 
-    /** Карточка: жирный заголовок и подпись; по нажатию — действие; справа — «⋮» (или [menuSymbol]), если задано меню. */
-    fun card(
-        ctx: Context, title: String, subtitle: String?, onMenu: (() -> Unit)? = null,
-        menuSymbol: String = "⋮", menuDescription: String = Tr.t("menu"), onClick: (() -> Unit)? = null,
-    ): View {
+    /** Карточка: жирный заголовок и подпись; по нажатию — действие; справа — «⋮», если задано меню. */
+    fun card(ctx: Context, title: String, subtitle: String?, onMenu: (() -> Unit)? = null, onClick: (() -> Unit)? = null): View {
         val row = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -119,11 +116,11 @@ object ExtrasUi {
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         onMenu?.let { m ->
             row.addView(TextView(ctx).apply {
-                text = menuSymbol
+                text = "⋮"
                 textSize = 20f
                 gravity = Gravity.CENTER
                 setTextColor(Ui.MUTED)
-                contentDescription = menuDescription
+                contentDescription = Tr.t("menu")
                 setOnClickListener { m() }
             }, LinearLayout.LayoutParams(ctx.dp(40), ctx.dp(40)))
         }
