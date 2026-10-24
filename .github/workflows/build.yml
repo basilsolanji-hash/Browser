@@ -22,7 +22,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build
-        run: ./gradlew assembleDebug --no-daemon --stacktrace --refresh-dependencies
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug --no-daemon --refresh-dependencies 2>&1 | tee build.log
+
+      # Ошибки компиляции — в аннотации, чтобы их было видно без полного лога.
+      - name: Report errors
+        if: failure()
+        run: |
+          grep -E "^e: |error:|What went wrong|Could not|> " build.log | head -40 | while IFS= read -r line; do
+            echo "::error::${line}"
+          done
 
       - name: Publish release
         env:
