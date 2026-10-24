@@ -1,0 +1,107 @@
+Performing Streamed Install
+Success
+shot 01-main
+shot 01b-start
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 02-example
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 03-wikipedia
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 04-p1-gmail
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 05-p1-claude
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 06-p2-claude
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 07-p4-claude
+shot 08-claude-landscape
+shot 20-tabs-empty
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 21-newtab-example
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 22-newtab-start
+tap 'Menu' at 290 52
+shot 23-menu
+tap 'Tabs' at 242 52
+shot 24-tabs-grid
+shot 25-tabs-group
+shot 26-tabs-search
+shot 27-tabs-notfound
+shot 28-tabs-select
+tap 'Example Domain' at 86 263
+shot 29-tab-switched
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 30-new-group-dialog
+== tabs state: before-close
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="groups_7">[{&quot;id&quot;:&quot;g1792851642263&quot;,&quot;name&quot;:&quot;Work&quot;,&quot;color&quot;:-12345273}]</string>
+    <string name="list_7">[{&quot;id&quot;:&quot;tab1792851575019&quot;,&quot;title&quot;:&quot;Example Domain&quot;,&quot;url&quot;:&quot;https:\/\/example.com\/&quot;,&quot;group&quot;:&quot;g1792851642263&quot;},{&quot;id&quot;:&quot;tab1792851600296&quot;,&quot;title&quot;:&quot;Википедия — свободная энциклопедия&quot;,&quot;url&quot;:&quot;https:\/\/ru.wikipedia.org\/wiki\/%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F_%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0&quot;,&quot;group&quot;:&quot;g1792851642263&quot;},{&quot;id&quot;:&quot;tab1792851620325&quot;,&quot;title&quot;:&quot;&quot;,&quot;url&quot;:&quot;os:start&quot;,&quot;group&quot;:&quot;&quot;}]</string>
+</map>
+
+shot 31a-before-close
+tap 'Close tab' at 133 218
+shot 31-tab-closed
+shot 31b-tab-closed-later
+== tabs state: after-close
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="groups_7">[{&quot;id&quot;:&quot;g1792851642263&quot;,&quot;name&quot;:&quot;Work&quot;,&quot;color&quot;:-12345273}]</string>
+    <string name="list_7">[{&quot;id&quot;:&quot;tab1792851600296&quot;,&quot;title&quot;:&quot;Википедия — свободная энциклопедия&quot;,&quot;url&quot;:&quot;https:\/\/ru.wikipedia.org\/wiki\/%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F_%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0&quot;,&quot;group&quot;:&quot;g1792851642263&quot;},{&quot;id&quot;:&quot;tab1792851620325&quot;,&quot;title&quot;:&quot;&quot;,&quot;url&quot;:&quot;os:start&quot;,&quot;group&quot;:&quot;&quot;}]</string>
+</map>
+
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 32-close-all-dialog
+tap 'Close' at 258 383
+shot 33-after-close-all
+== tabs state: after-close-all
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="groups_7">[{&quot;id&quot;:&quot;g1792851642263&quot;,&quot;name&quot;:&quot;Work&quot;,&quot;color&quot;:-12345273}]</string>
+    <string name="list_7">[]</string>
+</map>
+
+shot 34-tabs-after-close
+shot 09-settings
+shot 10-settings-light
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 11-claude-light
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 12-main-light
+shot 13-relaunch
+shot 14-session-restored
+01-main                  white=0.00 uniform=0.00 ok
+01b-start                white=0.00 uniform=0.91 ok
+02-example               white=0.00 uniform=0.86 ok
+03-wikipedia             white=0.01 uniform=0.00 ok
+04-p1-gmail              white=0.00 uniform=0.95 ok
+05-p1-claude             white=0.67 uniform=0.57 ok
+06-p2-claude             white=0.69 uniform=0.59 ok
+07-p4-claude             white=0.71 uniform=0.61 ok
+08-claude-landscape      white=0.00 uniform=0.02 ok
+09-settings              white=0.00 uniform=0.41 ok
+10-settings-light        white=0.00 uniform=0.41 ok
+11-claude-light          white=0.00 uniform=0.49 ok
+12-main-light            white=0.00 uniform=0.49 ok
+13-relaunch              white=0.00 uniform=0.00 ok
+14-session-restored      white=0.82 uniform=0.77 ok
+20-tabs-empty            white=0.00 uniform=0.91 ok
+21-newtab-example        white=0.02 uniform=0.86 ok
+22-newtab-start          white=0.00 uniform=0.91 ok
+23-menu                  white=0.01 uniform=0.27 ok
+24-tabs-grid             white=0.00 uniform=0.00 ok
+25-tabs-group            white=0.00 uniform=0.55 ok
+26-tabs-search           white=0.00 uniform=0.84 ok
+27-tabs-notfound         white=0.00 uniform=0.97 ok
+28-tabs-select           white=0.00 uniform=0.55 ok
+29-tab-switched          white=0.02 uniform=0.86 ok
+30-new-group-dialog      white=0.00 uniform=0.09 ok
+31-tab-closed            white=0.00 uniform=0.84 ok
+31a-before-close         white=0.00 uniform=0.55 ok
+31b-tab-closed-later     white=0.00 uniform=0.84 ok
+32-close-all-dialog      white=0.00 uniform=0.46 ok
+33-after-close-all       white=0.00 uniform=0.91 ok
+34-tabs-after-close      white=0.00 uniform=0.98 ok
+
+Все ключевые страницы отрисованы.
