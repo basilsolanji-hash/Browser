@@ -32,6 +32,7 @@ import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoView
+import org.mozilla.geckoview.WebRequestError
 import org.mozilla.geckoview.WebResponse
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
@@ -182,6 +183,7 @@ class BrowserActivity : AppCompatActivity() {
         val visible = { k == key }
         s.progressDelegate = object : GeckoSession.ProgressDelegate {
             override fun onPageStart(session: GeckoSession, url: String) {
+                Diag.log(k, "начало: $url")
                 if (visible()) {
                     progress.visibility = View.VISIBLE
                     showUrl(url)
@@ -196,6 +198,7 @@ class BrowserActivity : AppCompatActivity() {
             }
 
             override fun onPageStop(session: GeckoSession, success: Boolean) {
+                Diag.log(k, if (success) "загружено" else "загрузка не удалась")
                 if (visible()) progress.visibility = View.GONE
             }
         }
@@ -208,6 +211,16 @@ class BrowserActivity : AppCompatActivity() {
             override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) {
                 Gecko.canGoForward[k] = canGoForward
                 if (visible()) updateNavButtons()
+            }
+
+            // Вместо пустого экрана — понятная страница ошибки.
+            override fun onLoadError(
+                session: GeckoSession,
+                uri: String?,
+                error: WebRequestError,
+            ): GeckoResult<String>? {
+                Diag.log(k, "ошибка ${error.category}/${error.code}: $uri")
+                return GeckoResult.fromValue(errorPage(uri, error))
             }
 
             // Ссылки «в новом окне» открываем в той же вкладке.
@@ -223,6 +236,7 @@ class BrowserActivity : AppCompatActivity() {
             ): GeckoResult<AllowOrDeny>? {
                 val ua = Gecko.userAgentFor(request.uri)
                 if (ua == session.settings.userAgentOverride) return null
+                Diag.log(k, "смена UA (${if (ua == null) "Firefox" else "Chrome"}): ${request.uri}")
                 session.settings.userAgentOverride = ua
                 session.loadUri(request.uri)
                 return GeckoResult.deny()
@@ -237,6 +251,22 @@ class BrowserActivity : AppCompatActivity() {
 
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
                 Downloads.save(this@BrowserActivity, response)
+            }
+
+            // Процесс страницы упал или выгружен системой — без этого остаётся белый экран.
+            override fun onCrash(session: GeckoSession) = recover("сбой процесса страницы")
+
+            override fun onKill(session: GeckoSession) = recover("страница выгружена системой")
+
+            private fun recover(reason: String) {
+                Diag.log(k, reason)
+                attached.remove(s)
+                Gecko.forget(k)
+                if (visible()) {
+                    Toast.makeText(this@BrowserActivity, "Страница перезапущена: $reason", Toast.LENGTH_SHORT).show()
+                    geckoView.releaseSession()
+                    openTab(id, tab)
+                }
             }
 
             // Видео и игры на весь экран: прячем панели браузера и системы.
@@ -292,6 +322,7 @@ class BrowserActivity : AppCompatActivity() {
         val items = listOf<Pair<String, () -> Unit>>(
             "Копировать ссылку" to { copyUrl() },
             "Открыть в другом браузере" to { openExternally() },
+            "Диагностика" to { showDiagnostics() },
             "Настройки" to { startActivity(Intent(this, SettingsActivity::class.java)) },
         )
         items.forEachIndexed { i, (title, _) -> menu.menu.add(0, i, i, title) }
@@ -346,6 +377,41 @@ class BrowserActivity : AppCompatActivity() {
             }
             .setNegativeButton("Отмена", null)
             .show()
+    }
+
+    private fun showDiagnostics() {
+        val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull()
+        val text = "Ось $version\nВкладка: ${Profiles.get(this, profileId).name} / ${site.title}\n" +
+            "Адрес: $currentUrl\n\n${Diag.text()}"
+        AlertDialog.Builder(this)
+            .setTitle("Диагностика")
+            .setMessage(text)
+            .setPositiveButton("Копировать") { _, _ ->
+                getSystemService(ClipboardManager::class.java)
+                    ?.setPrimaryClip(ClipData.newPlainText("diag", text))
+            }
+            .setNegativeButton("Закрыть", null)
+            .show()
+    }
+
+    private fun errorPage(uri: String?, error: WebRequestError): String {
+        val reason = when (error.category) {
+            WebRequestError.ERROR_CATEGORY_NETWORK -> "Нет соединения с сайтом. Проверьте интернет или VPN."
+            WebRequestError.ERROR_CATEGORY_SECURITY -> "Небезопасное соединение: сертификат сайта не прошёл проверку."
+            WebRequestError.ERROR_CATEGORY_URI -> "Не удалось найти сайт. Проверьте адрес."
+            WebRequestError.ERROR_CATEGORY_SAFEBROWSING -> "Сайт помечен как опасный (фишинг или вредоносные программы)."
+            else -> "Страница не загрузилась."
+        }
+        val dark = Ui.dark
+        val html = """<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
+            <body style="margin:0;padding:32px 20px;font-family:sans-serif;
+            background:${if (dark) "#1B1B1D" else "#F5F5F7"};color:${if (dark) "#E8E8EA" else "#1B1B1D"}">
+            <h2 style="margin:0 0 12px">Страница не открылась</h2>
+            <p style="color:${if (dark) "#9A9AA2" else "#6B6B73"};line-height:1.5">$reason</p>
+            <p style="font-size:12px;color:#888;word-break:break-all">${(uri ?: "").replace("<", "&lt;")}<br>
+            Код: ${error.category}/${error.code}</p>
+            <p style="color:#2BA89A">Нажмите «Обновить» внизу, чтобы попробовать снова.</p></body>"""
+        return "data:text/html;charset=utf-8," + Uri.encode(html)
     }
 
     private fun copyUrl() {

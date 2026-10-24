@@ -36,11 +36,17 @@ object Gecko {
             .preferredColorScheme(colorScheme(Settings.theme(ctx)))
             // Масштаб пальцами разрешён на любом сайте.
             .forceUserScalableEnabled(true)
-            // Защита как в Firefox: трекеры блокируются, сторонние cookies изолируются по сайтам
-            // (вход через Google при этом работает), фишинг и вредоносные сайты — с предупреждением.
+            // Защита как в стандартном режиме Firefox: блокируются соцтрекеры, майнеры и сборщики
+            // отпечатков, сторонние cookies изолируются по сайтам (вход через Google работает),
+            // фишинг — с предупреждением. Рекламу и аналитику не режем: на них завязаны
+            // приложения вроде claude.ai, и без них страница может зависнуть на белом экране.
             .contentBlocking(
                 ContentBlocking.Settings.Builder()
-                    .antiTracking(ContentBlocking.AntiTracking.DEFAULT)
+                    .antiTracking(
+                        ContentBlocking.AntiTracking.SOCIAL or
+                            ContentBlocking.AntiTracking.CRYPTOMINING or
+                            ContentBlocking.AntiTracking.FINGERPRINTING
+                    )
                     .safeBrowsing(ContentBlocking.SafeBrowsing.DEFAULT)
                     .cookieBehavior(ContentBlocking.CookieBehavior.ACCEPT_FIRST_PARTY_AND_ISOLATE_OTHERS)
                     .build()
@@ -95,6 +101,9 @@ object Gecko {
         Profiles.forget(ctx, id)
         History.clear(ctx, id)
     }
+
+    /** Вкладка упала или выгружена системой — забываем её, чтобы следующий вызов session() создал новую. */
+    fun forget(key: String) = drop(key)
 
     private fun drop(key: String) {
         sessions.remove(key)?.close()
