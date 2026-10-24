@@ -27,7 +27,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsCompat
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.core.view.WindowInsetsControllerCompat
 import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
@@ -49,7 +48,7 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private lateinit var geckoView: OsGeckoView
-    private lateinit var refresher: SwipeRefreshLayout
+    private lateinit var refresher: OsRefreshLayout
     private var barsHidden = false
     private lateinit var chipDot: View
     private lateinit var chipName: TextView
@@ -132,12 +131,18 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun openTab(intent: Intent) {
         val s = intent.getStringExtra(EXTRA_SITE)?.let { runCatching { Site.valueOf(it) }.getOrNull() }
-        openTab(intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1)), s ?: Profiles.lastSite(this))
-        intent.getStringExtra(EXTRA_URL)?.let { session?.loadUri(it) }
+        openTab(
+            intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1)),
+            s ?: Profiles.lastSite(this),
+            intent.getStringExtra(EXTRA_URL),
+        )
     }
 
-    private fun openTab(id: Int, newSite: Site) {
-        if (id == profileId && newSite == site && session?.isOpen == true) return
+    private fun openTab(id: Int, newSite: Site, url: String? = null) {
+        if (id == profileId && newSite == site && session?.isOpen == true) {
+            url?.let { session?.loadUri(it) }
+            return
+        }
         geckoView.releaseSession()
         profileId = id
         site = newSite
@@ -147,10 +152,12 @@ class BrowserActivity : AppCompatActivity() {
         chipDot.background = Ui.oval(p.color)
         chipName.text = p.name
         tabs.forEach { (s, view) -> styleTab(view, s == newSite) }
-        showUrl(Profiles.lastUrl(this, id, newSite))
+        showUrl(url ?: Profiles.lastUrl(this, id, newSite))
         progress.visibility = View.GONE
+        setBarsHidden(false)
 
-        val s = Gecko.session(this, id, newSite)
+        // Один load: нужный адрес передаём внутрь создания сессии, без гонки с домашней страницей.
+        val s = Gecko.session(this, id, newSite, url)
         attachDelegates(s, id, newSite)
         geckoView.setSession(s)
         session = s
@@ -199,11 +206,8 @@ class BrowserActivity : AppCompatActivity() {
                 Diag.log(k, "начало: $url")
                 if (visible()) {
                     progress.visibility = View.VISIBLE
-                    showUrl(url)
+                    setBarsHidden(false)
                 }
-                Profiles.saveLastUrl(this@BrowserActivity, id, tab, url)
-                History.add(this@BrowserActivity, id, url)
-                pageUrls[k] = url
             }
 
             override fun onProgressChange(session: GeckoSession, value: Int) {
@@ -216,6 +220,15 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
         s.navigationDelegate = object : GeckoSession.NavigationDelegate {
+            // Истинный текущий адрес (после всех редиректов) — отсюда ведём строку, историю и сохранение.
+            override fun onLocationChange(session: GeckoSession, url: String?, perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>) {
+                if (url == null) return
+                if (visible()) showUrl(url)
+                Profiles.saveLastUrl(this@BrowserActivity, id, tab, url)
+                History.add(this@BrowserActivity, id, url)
+                pageUrls[k] = url
+            }
+
             override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
                 Gecko.canGoBack[k] = canGoBack
                 if (visible()) updateNavButtons()
@@ -550,11 +563,12 @@ class BrowserActivity : AppCompatActivity() {
         geckoView = OsGeckoView(this).apply { coverUntilFirstPaint(Ui.BG) }
         // Свайп вниз от верха страницы — обновить. Блок внутри страницы, который ещё
         // может прокрутиться вверх (чат Claude, письма Gmail), свайп не перехватывает.
-        refresher = SwipeRefreshLayout(this).apply {
+        refresher = OsRefreshLayout(this).apply {
             setColorSchemeColors(Ui.ACCENT)
             setProgressBackgroundColorSchemeColor(Ui.SURFACE)
-            setOnChildScrollUpCallback { _, _ -> !geckoView.canPullToRefresh }
+            canScrollContentUp = { !geckoView.canPullToRefresh }
             setOnRefreshListener {
+                setBarsHidden(false)
                 session?.reload()
                 postDelayed({ isRefreshing = false }, 900)
             }
@@ -621,7 +635,8 @@ class BrowserActivity : AppCompatActivity() {
 
         // Листаем вниз — панели прячутся, ведём пальцем вниз — возвращаются.
         if (Settings.autoHideBars(this)) {
-            geckoView.onScrollDirection = { down -> if (!fullScreen && !urlBar.hasFocus()) setBarsHidden(down) }
+            geckoView.onContentScrolledUp = { if (!fullScreen && !urlBar.hasFocus()) setBarsHidden(true) }
+            geckoView.onContentScrolledDown = { if (!fullScreen) setBarsHidden(false) }
         }
 
         // Фокус по умолчанию — на корне, иначе адресная строка захватывает его при открытии экрана.

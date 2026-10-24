@@ -14,6 +14,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
@@ -69,6 +70,9 @@ object AppLock {
         })
     }
 
+    // Идёт ли сейчас запрос биометрии — чтобы на повороте не открыть второй поверх первого.
+    private var authenticating = false
+
     private fun showLock(activity: AppCompatActivity) {
         val content = activity.findViewById<ViewGroup>(android.R.id.content)
         if (content.findViewWithTag<View>(TAG) != null) return
@@ -95,17 +99,37 @@ object AppLock {
             ))
         }
         content.addView(cover, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+
+        // Пока крышка видна, «Назад» не трогает экран под ней, а сворачивает приложение.
+        val back = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                activity.moveTaskToBack(true)
+            }
+        }
+        activity.onBackPressedDispatcher.addCallback(activity, back)
+        cover.setTag(R.id.app_lock_back, back)
+
         cover.post { prompt(activity) }
     }
 
     private fun prompt(activity: AppCompatActivity) {
-        if (activity.isFinishing || activity.isDestroyed) return
+        if (activity.isFinishing || activity.isDestroyed || authenticating) return
+        authenticating = true
         val prompt = BiometricPrompt(activity, ContextCompat.getMainExecutor(activity),
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    authenticating = false
                     unlocked = true
-                    activity.findViewById<ViewGroup>(android.R.id.content).findViewWithTag<View>(TAG)
-                        ?.let { (it.parent as ViewGroup).removeView(it) }
+                    // Снимаем крышку и перехват «Назад» именно с текущего (не уничтоженного поворотом) экрана.
+                    val top = activity.findViewById<ViewGroup>(android.R.id.content)
+                    top.findViewWithTag<View>(TAG)?.let { cover ->
+                        (cover.getTag(R.id.app_lock_back) as? OnBackPressedCallback)?.remove()
+                        top.removeView(cover)
+                    }
+                }
+
+                override fun onAuthenticationError(code: Int, message: CharSequence) {
+                    authenticating = false
                 }
             })
         prompt.authenticate(

@@ -60,7 +60,8 @@ class SettingsActivity : AppCompatActivity() {
             { if (it) "Скрывать содержимое" else "Показывать" }) {
             Settings.setHideContent(this, it)
             recreate()
-        }.apply { (layoutParams as? LinearLayout.LayoutParams)?.topMargin = dp(8) })
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            .apply { topMargin = dp(8) })
         content.addView(hint("«Скрывать содержимое»: в списке недавних приложений не видно страниц, скриншоты запрещены. " +
             "Блокировка запрашивается при запуске и после минуты в фоне."))
         content.addView(sectionTitle("Панели при прокрутке"))
@@ -142,13 +143,18 @@ class SettingsActivity : AppCompatActivity() {
             val selected = option == current
             bar.addView(TextView(this).apply {
                 text = label(option)
-                textSize = 13f
+                textSize = 12.5f
                 typeface = Typeface.DEFAULT_BOLD
                 gravity = Gravity.CENTER
+                maxLines = 2 // длинные подписи («Вход по отпечатку/PIN») переносятся, а не обрезаются
+                minHeight = dp(40)
+                setPadding(dp(4), dp(4), dp(4), dp(4))
                 background = if (selected) Ui.rounded(Ui.ACCENT, dpf(5)) else null
                 setTextColor(if (selected) Ui.ON_ACCENT else Ui.MUTED)
                 setOnClickListener { if (!selected) onPick(option) }
-            }, LinearLayout.LayoutParams(0, dp(38), 1f))
+            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                gravity = Gravity.CENTER_VERTICAL
+            })
         }
         return bar
     }

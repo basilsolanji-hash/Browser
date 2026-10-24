@@ -9,47 +9,61 @@ import org.mozilla.geckoview.PanZoomController
 
 /**
  * GeckoView, который сообщает:
- *  - можно ли сейчас тянуть страницу вниз для обновления (страница или её внутренний блок
- *    уже в самом верху — важно для Claude и Gmail, где прокручивается не вся страница);
- *  - направление жеста пальцем, чтобы прятать и показывать панели браузера.
+ *  - можно ли сейчас тянуть страницу вниз для обновления (содержимое под пальцем уже в самом
+ *    верху и само прокрутку не обрабатывает — важно для Claude/Gmail, где скроллится не вся страница);
+ *  - что содержимое реально прокрутилось вверх (чтобы прятать панели только тогда).
  */
 class OsGeckoView(context: Context) : GeckoView(context) {
 
-    /** true — содержимое под пальцем не может прокрутиться вверх, значит свайп вниз = обновление. */
+    /** true — свайп вниз у верха страницы = обновление (а не прокрутка внутреннего блока). */
     var canPullToRefresh = false
         private set
 
-    /** Вызывается с true, когда палец ведёт вверх (листаем вниз), и с false — когда вниз. */
-    var onScrollDirection: ((down: Boolean) -> Unit)? = null
+    /** Палец ведёт вверх (листаем вниз по странице) — панели прячем. */
+    var onContentScrolledUp: (() -> Unit)? = null
+
+    /** Палец ведёт вниз (листаем к началу) — панели возвращаем. */
+    var onContentScrolledDown: (() -> Unit)? = null
 
     private val slop = ViewConfiguration.get(context).scaledTouchSlop * 3
-    private var lastY = 0f
+    // rawY, а не event.y: при скрытии/показе панелей сам GeckoView сдвигается, и event.y «прыгает».
+    private var lastRawY = 0f
     private var travel = 0f
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                lastY = event.y
+                lastRawY = event.rawY
                 travel = 0f
                 canPullToRefresh = false
-                // Событие отдаём движку один раз — через этот вызов, и узнаём, куда может прокрутиться содержимое.
+                // Событие отдаём движку один раз — через этот вызов, и узнаём состояние прокрутки.
                 onTouchEventForDetailResult(event).accept { detail ->
                     if (detail != null) {
                         val canScrollUp = detail.scrollableDirections() and PanZoomController.SCROLLABLE_FLAG_TOP != 0
                         val overscroll = detail.overscrollDirections() and PanZoomController.OVERSCROLL_FLAG_VERTICAL != 0
-                        canPullToRefresh = !canScrollUp && overscroll
+                        // Тянуть для обновления можно, только если прокрутку ведёт браузер, а не JS страницы
+                        // (иначе потянутый composer Claude перезагрузил бы страницу и стёр набранный текст).
+                        val byBrowser = detail.handledResult() == PanZoomController.INPUT_RESULT_HANDLED
+                        canPullToRefresh = byBrowser && !canScrollUp && overscroll
                     }
                 }
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                val dy = event.y - lastY
-                lastY = event.y
-                // Сбрасываем накопленный путь при смене направления.
+                val dy = event.rawY - lastRawY
+                lastRawY = event.rawY
                 travel = if ((travel > 0) == (dy > 0)) travel + dy else dy
-                if (travel < -slop) { onScrollDirection?.invoke(true); travel = 0f }
-                if (travel > slop) { onScrollDirection?.invoke(false); travel = 0f }
+                // Прячем панели, когда палец ведёт вверх и содержимое ещё может прокрутиться вверх.
+                if (travel < -slop && !canPullToRefresh) {
+                    onContentScrolledUp?.invoke()
+                    travel = 0f
+                }
+                // Возвращаем панели, когда палец уверенно ведёт вниз.
+                if (travel > slop) {
+                    onContentScrolledDown?.invoke()
+                    travel = 0f
+                }
             }
         }
         return super.onTouchEvent(event)

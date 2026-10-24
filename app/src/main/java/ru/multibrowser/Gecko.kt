@@ -74,10 +74,14 @@ object Gecko {
 
     fun isActive(id: Int) = Site.values().any { sessions.containsKey(key(id, it)) }
 
-    fun session(ctx: Context, id: Int, site: Site): GeckoSession {
+    /** @param initialUrl — если задан, открываем его вместо последней/домашней страницы (один load, без гонки). */
+    fun session(ctx: Context, id: Int, site: Site, initialUrl: String? = null): GeckoSession {
         val key = key(id, site)
-        sessions[key]?.let { return it }
-        val url = Profiles.lastUrl(ctx, id, site)
+        sessions[key]?.let { existing ->
+            if (initialUrl != null) existing.loadUri(initialUrl)
+            return existing
+        }
+        val url = initialUrl ?: Profiles.lastUrl(ctx, id, site)
         val settings = GeckoSessionSettings.Builder()
             .contextId("profile_$id")
             .usePrivateMode(false)
