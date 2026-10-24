@@ -31,6 +31,11 @@ object Gecko {
 
     fun key(id: Int, pin: Pin) = "$id:${pin.id}"
 
+    /** Загружает адрес; встроенную стартовую страницу рендерит локализованно. */
+    fun loadUrl(session: GeckoSession, url: String) {
+        if (url == Pins.START) session.loadData(StartPage.html(), "text/html") else session.loadUri(url)
+    }
+
     fun runtime(ctx: Context): GeckoRuntime = runtime ?: GeckoRuntime.create(
         ctx.applicationContext,
         GeckoRuntimeSettings.Builder()
@@ -70,7 +75,7 @@ object Gecko {
             .build()
         val s = GeckoSession(settings)
         s.open(runtime(ctx))
-        s.loadUri(url)
+        loadUrl(s, url)
         return s
     }
 
@@ -106,7 +111,7 @@ object Gecko {
             .build()
         val session = GeckoSession(settings)
         session.open(runtime(ctx))
-        session.loadUri(url)
+        loadUrl(session, url)
         sessions[key] = session
 
         while (sessions.size > Settings.keepAlive(ctx)) {

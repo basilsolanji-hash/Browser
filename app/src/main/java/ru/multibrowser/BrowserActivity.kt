@@ -147,7 +147,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun openTab(id: Int, newPin: Pin, url: String? = null) {
         if (incognito) exitIncognito()
         if (id == profileId && newPin.id == pin.id && session?.isOpen == true) {
-            url?.let { session?.loadUri(it) }
+            url?.let { u -> session?.let { Gecko.loadUrl(it, u) } }
             return
         }
         geckoView.releaseSession()
@@ -197,7 +197,7 @@ class BrowserActivity : AppCompatActivity() {
     /** В покое — только домен и замок для https, при редактировании — полный адрес. */
     private fun showUrl(url: String) {
         currentUrl = url
-        val internal = url.startsWith("data:") || url == Pins.START
+        val internal = url.startsWith("data:") || url.startsWith("os:") || url == Pins.START
         lockIcon.visibility = if (url.startsWith("https://")) View.VISIBLE else View.GONE
         if (!urlBar.hasFocus()) urlBar.setText(if (internal) "" else Uri.parse(url).host ?: url)
     }
@@ -701,7 +701,7 @@ class BrowserActivity : AppCompatActivity() {
         backButton = action(R.drawable.ic_back, Tr.t("back")) { session?.goBack() }
         forwardButton = action(R.drawable.ic_forward, Tr.t("forward")) { session?.goForward() }
         action(R.drawable.ic_home, Tr.t("home")) {
-            if (incognito) { exitIncognito(); openTab(profileId, pin) } else session?.loadUri(pin.url)
+            if (incognito) { exitIncognito(); openTab(profileId, pin) } else session?.let { Gecko.loadUrl(it, pin.url) }
         }
         action(R.drawable.ic_history, Tr.t("history")) { showHistory() }
         action(R.drawable.ic_delete, Tr.t("clear_short")) { showClear() }
