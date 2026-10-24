@@ -1,7 +1,6 @@
 package ru.multibrowser
 
 import android.Manifest
-import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
@@ -18,6 +17,7 @@ import org.mozilla.geckoview.WebResponse
 import java.io.File
 import java.io.InputStream
 import java.net.URLDecoder
+import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
 
 /** Сохраняет скачиваемые файлы (вложения Gmail и т.п.) в «Загрузки/Ось». */
@@ -27,15 +27,59 @@ object Downloads {
 
     /**
      * Скачивание по разрешению сайта (SitePermissions.DOWNLOADS: спросить/разрешить/запретить).
-     * [pageUrl] — страница, с которой скачивают. Отказ — поток ответа закрывается.
+     * Файл сразу качается во временную папку (с прогрессом), пока висит вопрос, — иначе поток
+     * ответа обрывается, если отвечать не сразу. «Разрешить» — переносим в «Загрузки», «Запретить» — удаляем.
      */
     fun request(activity: AppCompatActivity, pageUrl: String?, response: WebResponse, privateMode: Boolean = false) {
+        val body = response.body ?: return
         val name = fileName(response)
-        val size = header(response, "Content-Length")?.toLongOrNull()?.let { " (${Formatter.formatShortFileSize(activity, it)})" }.orEmpty()
+        val mime = header(response, "Content-Type")?.substringBefore(';')?.trim()
+            ?.takeIf { it.isNotEmpty() } ?: "application/octet-stream"
+        val total = header(response, "Content-Length")?.toLongOrNull()?.takeIf { it > 0 } ?: -1L
+        val host = SitePermissions.hostOf(pageUrl)
+        if (host != null && SitePermissions.mode(activity, host, SitePermissions.Kind.DOWNLOADS) == SitePermissions.Mode.BLOCK) {
+            runCatching { body.close() }
+            Toast.makeText(activity, Tr.t("perm_blocked_for", Tr.t("perm_downloads"), host), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val app = activity.applicationContext
+        val task = Task(nextId++, name, total)
+        active += task
+        Toast.makeText(app, Tr.t("downloading", name), Toast.LENGTH_SHORT).show()
+        DownloadProgress.update(app, task)
+        val temp = File(app.cacheDir, "downloads/${task.id}_${System.nanoTime()}").apply { parentFile?.mkdirs() }
+        val buffered = CountDownLatch(1)
+        var error: Throwable? = null
+        thread(name = "download") {
+            runCatching { body.use { input -> temp.outputStream().use { copy(app, input, it, task) } } }.onFailure { error = it }
+            buffered.countDown()
+        }
+        val size = if (total > 0) " (${Formatter.formatShortFileSize(activity, total)})" else ""
         SitePermissions.check(activity, pageUrl, SitePermissions.Kind.DOWNLOADS,
-            { host -> Tr.t("perm_q_downloads", host, name + size) }, privateMode) { ok ->
-            if (!ok) { runCatching { response.body?.close() }; return@check }
-            withStorage(activity) { save(activity, response) }
+            { h -> Tr.t("perm_q_downloads", h, name + size) }, privateMode) { ok ->
+            if (!ok) {
+                task.cancelled = true
+                thread { buffered.await(); temp.delete(); active -= task; DownloadProgress.finish(app, task, false) }
+                return@check
+            }
+            withStorage(activity) {
+                thread(name = "download-save") {
+                    buffered.await()
+                    val uri = if (error == null) runCatching { temp.inputStream().use { write(app, name, mime, it) } }.getOrNull() else null
+                    temp.delete()
+                    active -= task
+                    if (uri != null) DownloadLog.add(app, name, mime, uri.toString())
+                    DownloadProgress.finish(app, task, uri != null)
+                    activity.runOnUiThread {
+                        val msg = when {
+                            uri != null -> Tr.t("saved_to", FOLDER, name)
+                            task.cancelled -> Tr.t("dl_cancelled", name)
+                            else -> Tr.t("download_failed", name)
+                        }
+                        Toast.makeText(app, msg, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
         }
     }
 
@@ -48,34 +92,6 @@ object Downloads {
         launcher = activity.activityResultRegistry.register("os_storage_${permissionSeq++}",
             ActivityResultContracts.RequestPermission()) { launcher.unregister(); then() }
         runCatching { launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) }.onFailure { launcher.unregister(); then() }
-    }
-
-    fun save(activity: Activity, response: WebResponse) {
-        val body = response.body ?: return
-        val name = fileName(response)
-        val mime = header(response, "Content-Type")?.substringBefore(';')?.trim()
-            ?.takeIf { it.isNotEmpty() } ?: "application/octet-stream"
-        val app = activity.applicationContext
-        val total = header(response, "Content-Length")?.toLongOrNull()?.takeIf { it > 0 } ?: -1L
-        val task = Task(nextId++, name, total)
-        active += task
-        Toast.makeText(app, Tr.t("downloading", name), Toast.LENGTH_SHORT).show()
-        DownloadProgress.update(app, task)
-        thread(name = "download") {
-            val result = runCatching { body.use { write(app, name, mime, it, task) } }
-            active -= task
-            val uri = result.getOrNull()
-            if (uri != null) DownloadLog.add(app, name, mime, uri.toString())
-            DownloadProgress.finish(app, task, uri != null)
-            activity.runOnUiThread {
-                val msg = when {
-                    uri != null -> Tr.t("saved_to", FOLDER, name)
-                    task.cancelled -> Tr.t("dl_cancelled", name)
-                    else -> Tr.t("download_failed", name)
-                }
-                Toast.makeText(app, msg, Toast.LENGTH_LONG).show()
-            }
-        }
     }
 
     /** Идущая загрузка: сколько скачано из скольких (total = -1 — сайт не сообщил размер). */
@@ -93,7 +109,7 @@ object Downloads {
         active.firstOrNull { it.id == id }?.cancelled = true
     }
 
-    /** Копирование с подсчётом байтов; отмена — исключение, частичный файл удаляет вызывающий. */
+    /** Скачивание с подсчётом байтов; отмена — исключение. */
     private fun copy(ctx: Context, input: InputStream, out: java.io.OutputStream, task: Task) {
         val buf = ByteArray(64 * 1024)
         var last = 0L
@@ -109,7 +125,7 @@ object Downloads {
     }
 
     /** Записывает файл и возвращает uri для открытия из списка загрузок. */
-    private fun write(ctx: Context, name: String, mime: String, input: InputStream, task: Task): Uri {
+    private fun write(ctx: Context, name: String, mime: String, input: InputStream): Uri {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Downloads.DISPLAY_NAME, name)
@@ -118,7 +134,7 @@ object Downloads {
             }
             val uri = ctx.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
                 ?: error("MediaStore insert failed")
-            runCatching { ctx.contentResolver.openOutputStream(uri)!!.use { copy(ctx, input, it, task) } }
+            runCatching { ctx.contentResolver.openOutputStream(uri)!!.use { input.copyTo(it) } }
                 .onFailure { ctx.contentResolver.delete(uri, null, null); throw it }
             return uri
         } else {
@@ -130,7 +146,7 @@ object Downloads {
                 else ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
             val dir = File(base, FOLDER).apply { mkdirs() }
             val file = File(dir, name)
-            runCatching { file.outputStream().use { copy(ctx, input, it, task) } }
+            runCatching { file.outputStream().use { input.copyTo(it) } }
                 .onFailure { file.delete(); throw it }
             return Uri.fromFile(file)
         }

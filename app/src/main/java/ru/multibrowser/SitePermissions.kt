@@ -212,6 +212,9 @@ object SitePermissions {
     }
 
     /** Решение без диалога: сохранённое для сайта, иначе значение по умолчанию (ASK — нужен диалог). */
+    /** Действующее решение для сайта (своё или по умолчанию). */
+    fun mode(ctx: Context, host: String, kind: Kind): Mode = decided(ctx, host, kind).first
+
     private fun decided(ctx: Context, host: String, kind: Kind): Pair<Mode, Boolean> {
         get(ctx, host, kind)?.let { return it to true }
         return defaultMode(ctx, kind) to false

@@ -121,7 +121,7 @@ case "$SHARD" in
   done
   prefs en scarlet_dark
   start BrowserActivity --ei profile 3 --es url os:start; sleep 8
-  while IFS='|' read -r input expected; do
+  while IFS='|' read -r input expected <&3; do
     [ -z "$input" ] && continue
     adb logcat -c
     # Адресная строка (320×640: под полосой вкладок); при фокусе адрес выделяется — ввод его заменяет.
@@ -131,7 +131,7 @@ case "$SHARD" in
     shot "A-$(printf '%s' "$input" | tr -c 'a-zA-Z0-9.' '_')"
     N=$((N + 1))
     check "A: «$input» → $expected" 'diag | grep -qF "начало: $expected"'
-  done <<'CASES'
+  done 3<<'CASES'
 example.com|https://example.com/
 https://example.org|https://example.org/
 example.org/path|https://example.org/path
@@ -178,13 +178,13 @@ CASES
 4)  # --- Ссылки из других приложений, изоляция профилей, скачивание, поворот, меню ---
   prefs en scarlet_dark
   start BrowserActivity --ei profile 5 --es url os:start; sleep 8
-  while IFS='|' read -r url allowed; do
+  while IFS='|' read -r url allowed <&3; do
     [ -z "$url" ] && continue
     adb logcat -c
     sc "I-$(echo "$url" | tr -c 'a-zA-Z0-9' '_' | cut -c1-40)" "adb shell am start -a android.intent.action.VIEW -d \"$url\" -p $PKG >/dev/null 2>&1; sleep 6"
     if [ "$allowed" = yes ]; then check "I: $url открыта" 'diag | grep -qF "начало: $url"'
     else check "I: $url отклонена" '! diag | grep -qF "начало: $url"'; fi
-  done <<'CASES'
+  done 3<<'CASES'
 https://example.com/|yes
 https://ru.wikipedia.org/|yes
 https://example.org/?a=1|yes
@@ -212,7 +212,10 @@ CASES
   first=1
   for f in report.pdf data.csv photo.png notes.txt archive.zip music.mp3 table.xlsx doc.docx config.json blob.bin; do
     sc "D-$f" "start BrowserActivity --ei profile 6 --es url http://localhost:8770/file/$f; sleep 5"
-    if [ $first = 1 ]; then tap_text "Allow"; first=0; sleep 4; fi
+    if [ $first = 1 ]; then
+      for w in 1 2 3 4 5 6; do xy=$(find_xy "Allow"); [ -n "$xy" ] && { adb shell input tap $xy; break; }; sleep 2; done
+      first=0; sleep 4
+    fi
   done
   sleep 3
   adb shell run-as "$PKG" cat shared_prefs/downloads.xml > "$OUT/downloads.txt" 2>&1
@@ -282,7 +285,10 @@ for path in sorted(glob.glob(os.path.join(outdir, '*.png'))):
     name = os.path.splitext(os.path.basename(path))[0]
     w, h, ch, px = read_png(path)
     same = tot = 0; first = None
-    for y in range(int(h * .25), int(h * .8), 6):
+    site = name.startswith(('S-', 'A-', 'C-', 'D-', 'I-'))
+    # Свои экраны — по всей высоте ниже строки состояния (у пустых списков текст только сверху).
+    top, bottom = (.25, .8) if site else (.06, .97)
+    for y in range(int(h * top), int(h * bottom), 6):
         for x in range(int(w * .1), int(w * .9), 6):
             o = (y * w + x) * ch; v = (px[o], px[o+1], px[o+2])
             first = first or v; same += v == first; tot += 1
