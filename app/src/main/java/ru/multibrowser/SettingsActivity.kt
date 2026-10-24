@@ -54,11 +54,7 @@ class SettingsActivity : AppCompatActivity() {
         content.addView(button(Tr.t("add_tab")) { editPinDialog(null) })
         content.addView(hint(Tr.t("pinned_desc")))
         content.addView(sectionTitle(Tr.t("language")))
-        content.addView(segmented(Tr.CODES, Settings.language(this),
-            { if (it == "system") Tr.t("system") else Tr.NAMES[it] ?: it }) {
-            Settings.setLanguage(this, it)
-            recreate()
-        })
+        content.addView(button(languageLabel(Settings.language(this))) { languageDialog() })
         content.addView(sectionTitle(Tr.t("theme")))
         content.addView(themeSelector())
         content.addView(sectionTitle(Tr.t("protection")))
@@ -135,9 +131,15 @@ class SettingsActivity : AppCompatActivity() {
 
     // Смена темы пересоздаёт экраны с новыми цветами.
     private fun themeSelector() =
-        segmented(Settings.Theme.values().toList(), Settings.theme(this), { it.title }) {
+        segmented(Settings.Theme.values().toList(), Settings.theme(this), { themeLabel(it) }) {
             Settings.setTheme(this, it)
         }
+
+    private fun themeLabel(t: Settings.Theme) = when (t) {
+        Settings.Theme.DARK -> Tr.t("dark")
+        Settings.Theme.LIGHT -> Tr.t("light")
+        Settings.Theme.SYSTEM -> Tr.t("system")
+    }
 
     /** Сегментированный переключатель в стиле вкладок Gmail/Claude. */
     private fun <T> segmented(options: List<T>, current: T, label: (T) -> String, onPick: (T) -> Unit): View {
@@ -353,6 +355,20 @@ class SettingsActivity : AppCompatActivity() {
                 renderPins()
             }
             .setNegativeButton(Tr.t("cancel"), null)
+            .show()
+    }
+
+    private fun languageLabel(code: String) = if (code == "system") Tr.t("system") else Tr.NAMES[code] ?: code
+
+    private fun languageDialog() {
+        val codes = Tr.CODES
+        val labels = codes.map { languageLabel(it) }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle(Tr.t("language"))
+            .setItems(labels) { _, i ->
+                Settings.setLanguage(this, codes[i])
+                recreate()
+            }
             .show()
     }
 
