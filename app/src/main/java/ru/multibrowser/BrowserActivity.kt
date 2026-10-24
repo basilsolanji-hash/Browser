@@ -73,6 +73,9 @@ class BrowserActivity : AppCompatActivity() {
     // Адрес, загружаемый сейчас в каждой вкладке, — чтобы подписать запись истории заголовком страницы.
     private val pageUrls = HashMap<String, String>()
 
+    // Заголовок страницы по вкладке (адрес → заголовок) — для «В избранное».
+    private val pageTitles = HashMap<String, Pair<String, String>>()
+
     // Вкладки, которым этот экран назначил обработчики; при закрытии экрана их отвязываем,
     // чтобы фоновые вкладки не обращались к уничтоженному экрану (диалоги, тосты).
     private val attached = mutableSetOf<GeckoSession>()
@@ -308,6 +311,7 @@ class BrowserActivity : AppCompatActivity() {
                 Profiles.updateFromTitle(this@BrowserActivity, id, title)
                 val url = pageUrls[k]
                 if (url != null && !title.isNullOrBlank()) History.setTitle(this@BrowserActivity, id, url, title)
+                if (url != null && !title.isNullOrBlank()) pageTitles[k] = url to title
             }
 
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
@@ -465,6 +469,10 @@ class BrowserActivity : AppCompatActivity() {
         val items = listOf<Pair<String, () -> Unit>>(
             Tr.t("new_tab") to { openTab(profileId, Pins.resolve(this, "start"), Pins.START) },
             Tr.t("new_incognito") to { openIncognito(Pins.START) },
+            BookmarksActivity.menuLabel(this, currentUrl) to {
+                BookmarksActivity.toggle(this, currentUrl, pageTitles[key]?.takeIf { it.first == currentUrl }?.second.orEmpty())
+            },
+            Tr.t("favorites") to { BookmarksActivity.open(this, profileId) },
             Tr.t("zoom") to { zoomDialog() },
             Tr.t("copy_link") to { copyUrl() },
             Tr.t("open_external") to { openExternally() },
