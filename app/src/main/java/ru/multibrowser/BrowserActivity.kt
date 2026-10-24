@@ -16,6 +16,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
@@ -44,6 +45,17 @@ class BrowserActivity : AppCompatActivity() {
         const val EXTRA_PROFILE = "profile"
         const val EXTRA_SITE = "site"
         const val EXTRA_URL = "url"
+        const val EXTRA_GROUP = "group"
+
+        /** Действие при открытии (из сетки вкладок и для приёмочных тестов через am start --es action ...). */
+        const val EXTRA_ACTION = "action"
+        const val ACTION_NEW_TAB = "new_tab"
+        const val ACTION_TABS = "tabs"
+        const val ACTION_SELECT_TABS = "select_tabs"
+        const val ACTION_NEW_GROUP = "new_group"
+        const val ACTION_INCOGNITO = "incognito"
+        const val ACTION_SEARCH = "search"
+        const val ACTION_CLOSE_ALL = "close_all"
     }
 
     private lateinit var geckoView: OsGeckoView
@@ -52,6 +64,7 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var chipDot: View
     private lateinit var chipName: TextView
     private lateinit var tabBar: LinearLayout
+    private lateinit var tabsCount: TextView
     private lateinit var progress: ProgressBar
     private lateinit var switcher: LinearLayout
     private lateinit var backButton: View
@@ -115,10 +128,20 @@ class BrowserActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         AppLock.onResume(this)
-        // Вкладку могли закрыть, пока экран был в фоне (очистка профиля в списке).
-        if (profileId != 0 && session?.isOpen != true) openTab(profileId, pin)
+        if (profileId != 0 && !incognito && Tabs.isTab(pin.id) && Tabs.byId(this, profileId, pin.id) == null) {
+            // Текущую вкладку закрыли в сетке вкладок — переходим на соседнюю.
+            geckoView.releaseSession()
+            openTab(profileId, fallbackTab())
+        } else if (profileId != 0 && session?.isOpen != true) {
+            // Вкладку могли закрыть, пока экран был в фоне (очистка профиля в списке).
+            openTab(profileId, pin)
+        }
         renderTabs()
     }
+
+    /** Куда перейти, если текущую вкладку закрыли: последняя открытая вкладка или первая закреплённая. */
+    private fun fallbackTab(): Pin =
+        Tabs.list(this, profileId).lastOrNull()?.let { Tabs.pin(this, it) } ?: Pins.all(this).first()
 
     override fun onDestroy() {
         exitIncognito()
@@ -136,12 +159,72 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun openTab(intent: Intent) {
+        val id = intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1))
+        val url = intent.getStringExtra(EXTRA_URL)
+        val action = intent.getStringExtra(EXTRA_ACTION)
+        // Действие выполняем один раз: при пересоздании экрана интент тот же.
+        intent.removeExtra(EXTRA_ACTION)
+        if (action == ACTION_NEW_TAB) {
+            newTab(id, url, intent.getStringExtra(EXTRA_GROUP))
+            return
+        }
         val pinId = intent.getStringExtra(EXTRA_SITE) ?: Profiles.lastPinId(this)
-        openTab(
-            intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1)),
-            Pins.resolve(this, pinId),
-            intent.getStringExtra(EXTRA_URL),
-        )
+        openTab(id, Tabs.resolve(this, id, pinId), if (action == ACTION_INCOGNITO) null else url)
+        when (action) {
+            ACTION_TABS -> showTabs()
+            ACTION_SELECT_TABS -> showTabs(TabsActivity.MODE_SELECT)
+            ACTION_NEW_GROUP -> showTabs(TabsActivity.MODE_NEW_GROUP)
+            ACTION_INCOGNITO -> openIncognito(url ?: Pins.START)
+            ACTION_SEARCH -> focusSearch()
+            ACTION_CLOSE_ALL -> confirmCloseAll()
+        }
+    }
+
+    /** Новая обычная вкладка в профиле (по умолчанию — стартовая страница). */
+    private fun newTab(id: Int = profileId, url: String? = null, group: String? = null) {
+        val tab = Tabs.add(this, id, url ?: Pins.START, group?.takeIf { Tabs.group(this, id, it) != null })
+        openTab(id, Tabs.pin(this, tab))
+    }
+
+    /** Сетка открытых вкладок профиля. */
+    private fun showTabs(mode: String? = null) {
+        startActivity(Intent(this, TabsActivity::class.java)
+            .putExtra(TabsActivity.EXTRA_PROFILE, profileId)
+            .apply {
+                if (!incognito) putExtra(TabsActivity.EXTRA_CURRENT, pin.id)
+                if (mode != null) putExtra(TabsActivity.EXTRA_MODE, mode)
+                if (!incognito && Tabs.isTab(pin.id)) putExtra(TabsActivity.EXTRA_ADD, pin.id)
+            })
+    }
+
+    /** «Поиск»: показать панели и поставить курсор в адресную строку с клавиатурой. */
+    private fun focusSearch() {
+        setBarsHidden(false)
+        urlBar.requestFocus()
+        urlBar.post {
+            getSystemService(InputMethodManager::class.java)?.showSoftInput(urlBar, InputMethodManager.SHOW_IMPLICIT)
+        }
+    }
+
+    private fun confirmCloseAll() {
+        val n = Tabs.count(this, profileId)
+        if (n == 0 && !incognito) {
+            Toast.makeText(this, Tr.t("no_tabs_to_close"), Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(Tr.t("close_all_tabs"))
+            .setMessage(Tr.t("close_all_q", n + if (incognito) 1 else 0))
+            .setPositiveButton(Tr.t("close")) { _, _ ->
+                val onTab = incognito || Tabs.isTab(pin.id)
+                if (onTab) geckoView.releaseSession()
+                if (incognito) exitIncognito()
+                Tabs.closeAll(this, profileId)
+                if (onTab) openTab(profileId, Pins.all(this).first()) else renderTabs()
+                Toast.makeText(this, Tr.t("tabs_closed"), Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(Tr.t("cancel"), null)
+            .show()
     }
 
     private fun openTab(id: Int, newPin: Pin, url: String? = null) {
@@ -192,6 +275,27 @@ class BrowserActivity : AppCompatActivity() {
             }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT)
                 .apply { marginEnd = dp(2) })
         }
+        // Текущая обычная вкладка — подсвеченным ярлыком после закреплённых; нажатие — сетка вкладок.
+        val open = if (incognito) null else Tabs.byId(this, profileId, pin.id)
+        if (open != null) {
+            val group = Tabs.group(this, profileId, open.group)
+            tabBar.addView(TextView(this).apply {
+                text = Tabs.label(this@BrowserActivity, open)
+                textSize = 14f
+                typeface = Typeface.DEFAULT_BOLD
+                gravity = Gravity.CENTER
+                maxLines = 1
+                maxWidth = dp(160)
+                ellipsize = TextUtils.TruncateAt.END
+                setPadding(dp(8), 0, dp(8), 0)
+                background = Ui.rounded(Ui.ACCENT, dpf(5), if (group != null) dp(2) else 0, group?.color ?: Ui.ACCENT)
+                setTextColor(Ui.ON_ACCENT)
+                minWidth = dp(72)
+                setOnClickListener { showTabs() }
+            }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT))
+        }
+        val n = Tabs.count(this, profileId)
+        tabsCount.text = if (n > 99) "∞" else n.toString()
     }
 
     /** В покое — только домен и замок для https, при редактировании — полный адрес. */
@@ -260,6 +364,7 @@ class BrowserActivity : AppCompatActivity() {
                 if (url == null) return
                 if (visible()) showUrl(url)
                 Profiles.saveLastUrl(this@BrowserActivity, id, tab, url)
+                if (Tabs.isTab(tab.id)) Tabs.update(this@BrowserActivity, id, tab.id, url = url)
                 History.add(this@BrowserActivity, id, url)
                 pageUrls[k] = url
             }
@@ -308,6 +413,10 @@ class BrowserActivity : AppCompatActivity() {
         s.contentDelegate = object : GeckoSession.ContentDelegate {
             override fun onTitleChange(session: GeckoSession, title: String?) {
                 Profiles.updateFromTitle(this@BrowserActivity, id, title)
+                if (Tabs.isTab(tab.id) && title != null) {
+                    Tabs.update(this@BrowserActivity, id, tab.id, title = title)
+                    if (visible()) renderTabs()
+                }
                 val url = pageUrls[k]
                 if (url != null && !title.isNullOrBlank()) History.setTitle(this@BrowserActivity, id, url, title)
             }
@@ -468,8 +577,13 @@ class BrowserActivity : AppCompatActivity() {
     private fun showMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
         val items = listOf<Pair<String, () -> Unit>>(
-            Tr.t("new_tab") to { openTab(profileId, Pins.resolve(this, "start"), Pins.START) },
+            Tr.t("new_tab") to { newTab() },
+            Tr.t("search") to { focusSearch() },
             Tr.t("new_incognito") to { openIncognito(Pins.START) },
+            Tr.t("tabs") to { showTabs() },
+            Tr.t("new_tab_group") to { showTabs(TabsActivity.MODE_NEW_GROUP) },
+            Tr.t("select_tabs") to { showTabs(TabsActivity.MODE_SELECT) },
+            Tr.t("close_all_tabs") to { confirmCloseAll() },
             Tr.t("zoom") to { zoomDialog() },
             Tr.t("downloads") to { startActivity(Intent(this, DownloadsActivity::class.java)) },
             Tr.t("copy_link") to { copyUrl() },
@@ -613,12 +727,29 @@ class BrowserActivity : AppCompatActivity() {
 
         val more = iconButton(R.drawable.ic_more, Tr.t("menu")) { showMenu(it) }
 
+        // Кнопка сетки вкладок со счётчиком открытых вкладок профиля.
+        tabsCount = TextView(this).apply {
+            textSize = 11f
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            setTextColor(Ui.TEXT)
+            background = Ui.rounded(Color.TRANSPARENT, dpf(4), dp(2), Ui.TEXT)
+        }
+        val tabsButton = FrameLayout(this).apply {
+            background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
+            contentDescription = Tr.t("tabs")
+            addView(tabsCount, FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER))
+            setOnClickListener { showTabs() }
+        }
+
         val h = dp(40)
         val tabRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             addView(chip, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, h))
             addView(tabScroll, LinearLayout.LayoutParams(0, h, 1f).apply { marginStart = dp(8) })
+            addView(tabsButton, LinearLayout.LayoutParams(h, h).apply { marginStart = dp(8) })
             addView(more, LinearLayout.LayoutParams(h, h).apply { marginStart = dp(8) })
         }
 
@@ -707,7 +838,8 @@ class BrowserActivity : AppCompatActivity() {
         backButton = action(R.drawable.ic_back, Tr.t("back")) { session?.goBack() }
         forwardButton = action(R.drawable.ic_forward, Tr.t("forward")) { session?.goForward() }
         action(R.drawable.ic_home, Tr.t("home")) {
-            if (incognito) { exitIncognito(); openTab(profileId, pin) } else session?.let { Gecko.loadUrl(it, pin.url) }
+            if (incognito) { exitIncognito(); openTab(profileId, pin) }
+            else session?.let { Gecko.loadUrl(it, if (Tabs.isTab(pin.id)) Pins.START else pin.url) }
         }
         action(R.drawable.ic_history, Tr.t("history")) { showHistory() }
         action(R.drawable.ic_delete, Tr.t("clear_short")) { showClear() }

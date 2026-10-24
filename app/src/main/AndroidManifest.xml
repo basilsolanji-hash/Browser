@@ -27,6 +27,10 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".TabsActivity"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".SettingsActivity"
             android:windowSoftInputMode="adjustResize" />
 
