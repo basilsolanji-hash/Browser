@@ -3,4 +3,5 @@
     <external-files-path name="downloads" path="Download/Ось/" />
     <external-path name="ext" path="." />
     <files-path name="saved" path="saved/" />
+    <files-path name="profile_files" path="profile_files/" />
 </paths>

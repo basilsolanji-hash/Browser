@@ -42,8 +42,8 @@ browser --ei profile 1 --es url https://claude.ai/;                       shot 1
 # --- Блоки D/E/F (feat/extras): по умолчанию, главная, чтение, офлайн, фраза, о приложении, справка, заметки ---
 X="$OUT/extras.txt"; : > "$X"
 act() { adb shell am start -n "$PKG/ru.multibrowser.$1" >/dev/null; }
-# Найти на экране элемент по тексту/описанию (uiautomator) и нажать его центр.
-tap_text() {
+# Центр элемента с текстом/описанием (точно или по вхождению); пусто — не найден.
+find_xy() {
   for i in 1 2 3; do
     adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb shell cat /sdcard/ui.xml > "$OUT/ui.xml" 2>/dev/null
     xy=$(python3 - "$OUT/ui.xml" "$1" <<'PY'
@@ -60,9 +60,14 @@ for match in (lambda s: s == want, lambda s: want in s):
         x1, y1, x2, y2 = map(int, b.groups()); print((x1 + x2) // 2, (y1 + y2) // 2); break
 PY
 )
-    if [ -n "$xy" ]; then echo "tap '$1' at $xy" >> "$X"; adb shell input tap $xy; return 0; fi
+    if [ -n "$xy" ]; then echo "$xy"; return 0; fi
     sleep 2
   done
+  return 1
+}
+tap_text() {
+  local xy; xy=$(find_xy "$1")
+  if [ -n "$xy" ]; then echo "tap '$1' at $xy" >> "$X"; adb shell input tap $xy; return 0; fi
   echo "NOT FOUND: '$1'" >> "$X"; return 1
 }
 menu_item() { tap_text "Menu" && sleep 2 && tap_text "$1"; }
@@ -99,6 +104,17 @@ tap_text "Ось start"; sleep 1
 browser --ei profile 7 --es url https://example.com; sleep 15
 menu_item "Full screen";                                                    shot 32-fullscreen 3
 tap_text "Exit full screen";                                                shot 33-fullscreen-exit 3
+# Профили: перетаскивание (Profile 1 → на место Profile 3), описание профиля.
+adb shell am force-stop "$PKG"; main; sleep 6
+from=$(find_xy "Profile 1"); to=$(find_xy "Profile 3")
+echo "drag: '$from' -> '$to'" >> "$X"
+[ -n "$from" ] && [ -n "$to" ] && adb shell input draganddrop $from $to 2500
+                                                                            shot 34-profiles-reordered 3
+adb shell am start -n "$PKG/ru.multibrowser.ProfileActivity" --ei profile 2 >/dev/null; sleep 4
+tap_text "What this profile is for" && adb shell input text "Work%smail"
+                                                                            shot 35-profile-info 2
+adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 2
+adb shell run-as "$PKG" cat shared_prefs/profiles.xml | grep -E "order|desc_" >> "$X" 2>&1
 # №23, №25
 act AboutActivity;                                                          shot 30-about 5
 act HelpActivity;                                                           shot 31-help 5
@@ -176,6 +192,8 @@ check() { if eval "$2"; then echo "ok    $1"; else echo "FAIL  $1"; ext_fail=1; 
 check "№34 режим чтения отрисовал статью" 'grep -q "os-reader: ok" "$OUT/logcat.txt"'
 check "№35 PDF сохранён в files/saved"   'grep -q "page_.*\.pdf" "$X"'
 check "Полный экран: кнопка выхода"       'grep -q "tap .Exit full screen" "$X"'
+check "Профили: порядок изменён"         'grep -q "name=\"order\"" "$X"'
+check "Профили: описание сохранено"      'grep -q "desc_2\">Work mail" "$X"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 [ "$ext_fail" = 0 ] || echo "ПРИЁМКА НЕ ПРОЙДЕНА — блоки D/E/F"
 [ "$RC" = 0 ] && [ "$ext_fail" = 0 ]

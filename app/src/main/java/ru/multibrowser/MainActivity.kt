@@ -5,6 +5,7 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
@@ -15,7 +16,10 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
-/** Главный экран: список из 15 профилей. Нажатие — открыть, долгое нажатие — меню профиля. */
+/**
+ * Главный экран: список профилей. Нажатие — открыть; долгое нажатие и перетаскивание — сменить
+ * порядок; долгое нажатие без перетаскивания — меню профиля.
+ */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var list: LinearLayout
@@ -71,7 +75,54 @@ class MainActivity : AppCompatActivity() {
             setTextColor(Ui.MUTED)
             setPadding(0, 0, 0, dp(12))
         })
+        list.addView(ExtrasUi.hint(this, Tr.t("profiles_reorder_hint")).apply { setPadding(0, 0, 0, dp(4)) })
         Profiles.all(this).forEach { list.addView(row(it)) }
+    }
+
+    // --- Перетаскивание профилей ---
+    private var dragRow: View? = null
+    private var dragStartY = 0f
+    private var dragMoved = false
+
+    /** Долгое нажатие поднимает строку; дальше она едет за пальцем и меняется местами с соседями. */
+    private fun startDrag(row: View, y: Float) {
+        dragRow = row
+        dragStartY = y
+        dragMoved = false
+        row.parent.requestDisallowInterceptTouchEvent(true)
+        row.isPressed = false
+        row.elevation = dpf(8)
+        row.animate().scaleX(1.03f).scaleY(1.03f).setDuration(120).start()
+        row.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+    }
+
+    private fun dragTo(row: View, y: Float) {
+        var dy = y - dragStartY
+        if (kotlin.math.abs(dy) > dp(6)) dragMoved = true
+        val index = list.indexOfChild(row)
+        val neighbor = list.getChildAt(index + if (dy > 0) 1 else -1)
+        // Меняемся местами, когда строка прошла половину соседней (только среди строк профилей).
+        if (neighbor?.getTag(R.id.profile_row) != null && kotlin.math.abs(dy) > neighbor.height / 2f + dp(4)) {
+            val shift = (neighbor.height + dp(8)) * if (dy > 0) 1 else -1
+            // Двигаем соседа, а не саму строку: снятие строки под пальцем отменило бы жест.
+            list.removeView(neighbor)
+            list.addView(neighbor, index)
+            dragStartY += shift
+            dy -= shift
+        }
+        row.translationY = dy
+    }
+
+    private fun endDrag(row: View, p: Profile) {
+        dragRow = null
+        row.elevation = 0f
+        row.animate().translationY(0f).scaleX(1f).scaleY(1f).setDuration(150).start()
+        if (dragMoved) {
+            val ids = (0 until list.childCount).mapNotNull { list.getChildAt(it).getTag(R.id.profile_row) as? Int }
+            Profiles.setOrder(this, ids)
+        } else {
+            profileMenu(p)
+        }
     }
 
     private fun row(p: Profile): View {
@@ -84,8 +135,19 @@ class MainActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
             ).apply { topMargin = dp(8) }
+            setTag(R.id.profile_row, p.id)
             setOnClickListener { openPin(p, Pins.all(this@MainActivity).first()) }
-            setOnLongClickListener { profileMenu(p); true }
+        }
+        var lastY = 0f
+        row.setOnLongClickListener { startDrag(row, lastY); true }
+        row.setOnTouchListener { v, e ->
+            lastY = e.rawY
+            if (dragRow !== v) return@setOnTouchListener false
+            when (e.actionMasked) {
+                MotionEvent.ACTION_MOVE -> dragTo(v, e.rawY)
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> endDrag(v, p)
+            }
+            true
         }
 
         // Цветная полоска слева — как акцентная граница у полей knitERP.
@@ -108,6 +170,17 @@ class MainActivity : AppCompatActivity() {
                 textSize = 13f
                 setTextColor(Ui.MUTED)
                 maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+            })
+            // Описание профиля и число прикреплённых файлов.
+            val files = ProfileFiles.count(this@MainActivity, p.id)
+            val extra = listOfNotNull(p.description.takeIf { it.isNotBlank() },
+                Tr.t("files_n", files).takeIf { files > 0 }).joinToString(" · ")
+            if (extra.isNotEmpty()) addView(TextView(context).apply {
+                text = extra
+                textSize = 12f
+                setTextColor(Ui.MUTED)
+                maxLines = 2
                 ellipsize = TextUtils.TruncateAt.END
             })
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
@@ -154,12 +227,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun profileMenu(p: Profile) {
+        val order = Profiles.order(this)
+        val actions = mutableListOf<Pair<String, () -> Unit>>(
+            Tr.t("profile_info") to { openInfo(p) },
+            Tr.t("rename") to { renameDialog(p) },
+        )
+        if (order.firstOrNull() != p.id) actions += Tr.t("move_up") to { Profiles.move(this, p.id, -1); render() }
+        if (order.lastOrNull() != p.id) actions += Tr.t("move_down") to { Profiles.move(this, p.id, 1); render() }
+        actions += Tr.t("logout_clear") to { clearDialog(p) }
         AlertDialog.Builder(this)
             .setTitle(p.name)
-            .setItems(arrayOf(Tr.t("rename"), Tr.t("logout_clear"))) { _, which ->
-                if (which == 0) renameDialog(p) else clearDialog(p)
-            }
+            .setItems(actions.map { it.first }.toTypedArray()) { _, i -> actions[i].second() }
             .show()
+    }
+
+    private fun openInfo(p: Profile) {
+        startActivity(Intent(this, ProfileActivity::class.java).putExtra(ProfileActivity.EXTRA_PROFILE, p.id))
     }
 
     private fun renameDialog(p: Profile) {
