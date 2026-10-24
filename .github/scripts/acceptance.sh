@@ -16,6 +16,32 @@ shot() { sleep "$2"; adb exec-out screencap -p > "$OUT/$1.png"; echo "shot $1"; 
 main() { adb shell am start -n "$PKG/ru.multibrowser.MainActivity" "$@" >/dev/null; }
 browser() { adb shell am start -n "$PKG/ru.multibrowser.BrowserActivity" "$@" >/dev/null; }
 settings() { adb shell am start -n "$PKG/ru.multibrowser.SettingsActivity" "$@" >/dev/null; }
+bookmarks() { adb shell am start -n "$PKG/ru.multibrowser.BookmarksActivity" "$@" >/dev/null; }
+back() { adb shell input keyevent 4; sleep 1; }
+# Тап по центру элемента с текстом/описанием (первое найденное из вариантов) через uiautomator.
+# Не нашли — пишем FAIL в checks.txt (приёмка падает).
+tap_text() {
+  local xy=""
+  for _ in 1 2 3; do
+    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+    adb exec-out cat /sdcard/ui.xml > "$OUT/ui.xml" 2>/dev/null
+    xy=$(python3 - "$OUT/ui.xml" "$@" <<'PY'
+import sys, re, xml.etree.ElementTree as ET
+try: root = ET.parse(sys.argv[1]).getroot()
+except Exception: sys.exit(0)
+for want in sys.argv[2:]:
+    for n in root.iter('node'):
+        if want in (n.get('text'), n.get('content-desc')):
+            x1, y1, x2, y2 = map(int, re.findall(r'\d+', n.get('bounds')))
+            print((x1 + x2) // 2, (y1 + y2) // 2); sys.exit(0)
+PY
+)
+    [ -n "$xy" ] && break
+    sleep 2
+  done
+  if [ -n "$xy" ]; then adb shell input tap $xy; echo "ok   tap '$1' at $xy" | tee -a "$OUT/checks.txt"
+  else echo "FAIL tap '$1': not found" | tee -a "$OUT/checks.txt"; fi
+}
 rotate() { adb shell settings put system accelerometer_rotation 0; adb shell settings put system user_rotation "$1"; }
 
 # --- Сценарии ---
@@ -37,6 +63,22 @@ main;                                                                     shot 1
 adb shell am force-stop "$PKG"; sleep 2
 main;                                                                     shot 13-relaunch 8
 browser --ei profile 1 --es url https://claude.ai/;                       shot 14-session-restored 35
+
+# --- Избранное: пусто → добавить из меню браузера → папка → поиск → открыть из списка ---
+bookmarks;                                                                shot 15-fav-empty 4
+browser --ei profile 3 --es site gmail --es url https://example.com;      sleep 20
+tap_text "Menu";                                                          shot 16-menu 2
+tap_text "Add to favorites";                                              shot 17-fav-added 1
+bookmarks --es debug_add_url https://ru.wikipedia.org/ --es debug_add_title Wikipedia --es debug_add_folder Work
+                                                                          shot 18-fav-list 4
+tap_text "Work";                                                          shot 19-fav-folder 2
+back
+tap_text "Search favorites"; sleep 1; adb shell input text wiki;          shot 20-fav-search 2
+back   # скрыть клавиатуру
+# Открыть закладку из результатов поиска: должна загрузиться другая страница (Википедия) в текущем профиле.
+tap_text "Wikipedia";                                                     shot 21-fav-opened 25
+tap_text "Menu";                                                          shot 22-menu-remove 2
+back
 
 adb logcat -d -v time > "$OUT/logcat.txt"
 grep -E "OsDiag|GeckoConsole|AndroidRuntime|FATAL|Gecko" "$OUT/logcat.txt" | tail -800 > "$OUT/diag.txt"
@@ -75,7 +117,7 @@ def read_png(path):
 
 outdir=sys.argv[1]
 # Эти экраны обязаны показывать реальную страницу — не пустую.
-must_render={'02-example','03-wikipedia','05-p1-claude','06-p2-claude','07-p4-claude','11-claude-light','14-session-restored'}
+must_render={'21-fav-opened','02-example','03-wikipedia','05-p1-claude','06-p2-claude','07-p4-claude','11-claude-light','14-session-restored'}
 fails=[]
 for path in sorted(glob.glob(os.path.join(outdir,'*.png'))):
     name=os.path.splitext(os.path.basename(path))[0]
@@ -94,6 +136,9 @@ for path in sorted(glob.glob(os.path.join(outdir,'*.png'))):
     if name in must_render and (wr>0.9 or sr>0.97):
         status='BLANK'; fails.append(f"{name}: white={wr:.2f} uniform={sr:.2f}")
     print(f"{name:24} white={wr:.2f} uniform={sr:.2f} {status}")
+checks=os.path.join(outdir,'checks.txt')
+if os.path.exists(checks):
+    fails+=[l.strip() for l in open(checks) if l.startswith('FAIL')]
 if fails:
     print("\nПРИЁМКА НЕ ПРОЙДЕНА — пустые страницы:")
     for f in fails: print("  "+f)
