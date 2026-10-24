@@ -296,7 +296,7 @@ class SettingsActivity : AppCompatActivity() {
                     maxLines = 1
                 })
                 addView(TextView(context).apply {
-                    text = pin.url
+                    text = if (pin.url == Pins.START) "Стартовая страница" else pin.url
                     textSize = 12f
                     setTextColor(Ui.MUTED)
                     maxLines = 1

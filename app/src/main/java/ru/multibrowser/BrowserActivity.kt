@@ -191,8 +191,9 @@ class BrowserActivity : AppCompatActivity() {
     /** В покое — только домен и замок для https, при редактировании — полный адрес. */
     private fun showUrl(url: String) {
         currentUrl = url
+        val internal = url.startsWith("data:") || url == Pins.START
         lockIcon.visibility = if (url.startsWith("https://")) View.VISIBLE else View.GONE
-        if (!urlBar.hasFocus()) urlBar.setText(Uri.parse(url).host ?: url)
+        if (!urlBar.hasFocus()) urlBar.setText(if (internal) "" else Uri.parse(url).host ?: url)
     }
 
     private fun setBarsHidden(hidden: Boolean) {
@@ -559,7 +560,7 @@ class BrowserActivity : AppCompatActivity() {
         urlBar.setOnFocusChangeListener { v, focused ->
             addressBox.background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1), if (focused) Ui.ACCENT else Ui.BORDER)
             if (focused) {
-                urlBar.setText(currentUrl)
+                urlBar.setText(if (currentUrl.startsWith("data:")) "" else currentUrl)
                 urlBar.post { urlBar.selectAll() }
             } else {
                 urlBar.setText(Uri.parse(currentUrl).host ?: currentUrl)
