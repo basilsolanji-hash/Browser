@@ -307,6 +307,11 @@ adb shell run-as "$PKG" cat shared_prefs/onboarding.xml shared_prefs/pins.xml >>
 # №23, №25
 act AboutActivity;                                                          shot 60-about 5
 act HelpActivity;                                                           shot 61-help 5
+# Быстрый поиск на главном: адрес открывается новой вкладкой в последнем профиле.
+main; sleep 4
+xtap "Address or search" && adb shell input text "example.org" && adb shell input keyevent 66; sleep 15
+                                                                            shot 69e-quick-search 1
+adb shell run-as "$PKG" cat shared_prefs/tabs.xml > "$OUT/tabs_qs.txt" 2>&1
 act StatsActivity;                                                          shot 66-stats 5
 adb shell run-as "$PKG" cat shared_prefs/stats.xml >> "$X" 2>&1
 adb shell run-as "$PKG" ls -la files/saved >> "$X" 2>&1
@@ -374,6 +379,7 @@ check "Уведомление сайта показано системой" 'gre
 check "Скачивание: разрешение и файл в загрузках" 'grep -q "report.bin" "$OUT/downloads.txt"'
 check "№27 главная: пустая страница выбрана"  'grep -q "BLANK" "$OUT/home_blank.txt"'
 check "Скачивание: уведомление «Скачано»" 'grep -q "report.bin" "$OUT/notifications_dl.txt"'
+check "Быстрый поиск: вкладка открыта" 'grep -q "example.org" "$OUT/tabs_qs.txt"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 
 # --- Автопроверка на белый экран: центральная область не должна быть почти вся белой/пустой ---

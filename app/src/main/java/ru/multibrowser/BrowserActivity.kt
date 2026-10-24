@@ -266,6 +266,7 @@ class BrowserActivity : AppCompatActivity() {
         profileId = id
         pin = newPin
         Profiles.saveLastPinId(this, newPin.id)
+        Profiles.saveLastProfile(this, id)
 
         val p = Profiles.get(this, id)
         chipDot.background = Ui.oval(p.color)
@@ -1003,14 +1004,7 @@ class BrowserActivity : AppCompatActivity() {
         root.requestFocus()
     }
 
-    private fun toUrl(input: String): String {
-        val t = input.trim()
-        return when {
-            t.startsWith("http://") || t.startsWith("https://") -> t
-            t.contains('.') && !t.contains(' ') -> "https://$t"
-            else -> Search.queryUrl(this, t)
-        }
-    }
+    private fun toUrl(input: String): String = Search.toUrl(this, input)
 
     private fun answerFilePrompt(
         prompt: GeckoSession.PromptDelegate.FilePrompt,
