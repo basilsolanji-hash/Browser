@@ -595,11 +595,10 @@ try {
     await cp.check('#o-logout');
     await cp.click('#do-clear');
     await cp.click('.modal .btn.accent');
-    await sleep(1000);
-    await flush();
-    const c2 = await main(async ({ session }) => (await session.fromPartition('persist:profile_2').cookies.get({})).length);
-    check('profile 2 cookies removed', c2 === 0, `${c2}`);
-    check('profile 2 tabs and history removed', !readJson('tabs')?.profiles?.['2'] && !readJson('history')?.h?.['2']);
+    const c2 = await waitFor(async () => (await main(async ({ session }) => (await session.fromPartition('persist:profile_2').cookies.get({})).length)) === 0, 15000);
+    check('profile 2 cookies removed', c2);
+    const gone = await waitFor(async () => { await flush(); return !readJson('tabs')?.profiles?.['2'] && !readJson('history')?.h?.['2']; }, 10000);
+    check('profile 2 tabs and history removed', gone);
     const c1 = await main(async ({ session }) => (await session.fromPartition('persist:profile_1').cookies.get({ name: 'os_test' }))[0]?.value);
     check('other profiles not affected', c1 === 'one', c1);
   }
