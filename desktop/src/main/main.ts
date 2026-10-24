@@ -9,6 +9,7 @@ import { OsWindow, lockAll, mainWindow, windows } from './window';
 import { setBlockedListener } from './privacy';
 import { installNotifications, shownForTest, clickLastForTest } from './notify';
 import { incomingUrl } from './defaultbrowser';
+import * as Updater from './updater';
 import * as Onboarding from './onboarding';
 import * as Tabs from './tabs';
 import * as Profiles from './profiles';
@@ -57,6 +58,7 @@ if (!app.requestSingleInstanceLock()) {
     // Блокировка Windows или сон — при возврате нужен PIN.
     powerMonitor.on('lock-screen', lockAll);
     powerMonitor.on('suspend', lockAll);
+    Updater.start();
     if (process.env.OS_TEST_DELAY) setTimeout(createMain, Number(process.env.OS_TEST_DELAY));
     else createMain();
   });

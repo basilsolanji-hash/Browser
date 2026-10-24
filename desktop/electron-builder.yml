@@ -10,6 +10,10 @@ files:
   - "!dist/**/*.map"
   - package.json
 asar: true
+# latest.yml для автообновления (electron-updater): постоянный релиз desktop-latest, только HTTPS.
+publish:
+  provider: generic
+  url: https://github.com/basilsolanji-hash/Browser/releases/download/desktop-latest
 # Безопасность сборки: без запуска как Node, без NODE_OPTIONS и --inspect, cookies шифруются, код только из asar.
 electronFuses:
   runAsNode: false

@@ -18,6 +18,7 @@ export interface SettingsData {
   hideContent: boolean;
   /** PIN входа: соль и хеш scrypt (сам PIN не хранится). */
   lock: { salt: string; hash: string } | null;
+  autoUpdate: boolean;
 }
 
 export const settings = new JsonFile<SettingsData>('settings', () => ({
@@ -33,6 +34,7 @@ export const settings = new JsonFile<SettingsData>('settings', () => ({
   blockThirdPartyCookies: true,
   hideContent: false,
   lock: null,
+  autoUpdate: true,
 }));
 
 export const profileCount = () =>

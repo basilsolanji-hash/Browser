@@ -21,6 +21,7 @@ import * as Perms from './permissions';
 import * as Lock from './lock';
 import { blocklistSize } from './privacy';
 import * as DefaultBrowser from './defaultbrowser';
+import * as Updater from './updater';
 import { LANGS, LANG_NAMES } from '../shared/format';
 import type { Suggestion, UiInit } from '../shared/types';
 
@@ -125,6 +126,9 @@ on(['page'], 'feedback', (_w, kind) => {
   void shell.openExternal(`mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
 });
 on(['page'], 'feedbackEmail', () => FEEDBACK_EMAIL);
+on(['page'], 'updateStatus', () => Updater.status());
+on(['page'], 'updateCheck', () => { Updater.check(); return Updater.status(); });
+on(['page'], 'updateRestart', () => Updater.restartAndInstall());
 on(['page'], 'openLicenses', async () => {
   // Лицензии Chromium лежат рядом с программой (их кладёт Electron).
   const file = join(dirname(process.execPath), 'LICENSES.chromium.html');
@@ -349,6 +353,9 @@ on(['page'], 'setSetting', (_w, key, value) => {
     settings.update((d) => { d.homeUrl = u && isWebUrl(u) ? u : ''; });
   } else if (['trackingProtection', 'httpsOnly', 'blockThirdPartyCookies'].includes(k)) {
     settings.update((d) => { (d as unknown as Record<string, boolean>)[k] = value === true; });
+  } else if (k === 'autoUpdate') {
+    settings.update((d) => { d.autoUpdate = value === true; });
+    Updater.start();
   } else if (k === 'hideContent') {
     settings.update((d) => { d.hideContent = value === true; });
     for (const w of windows) w.win.setContentProtection(value === true);
@@ -454,6 +461,7 @@ function sender(e: IpcMainInvokeEvent) {
 export function installIpc(): void {
   // Ход загрузок — экранам «Загрузки» (не чаще, чем шлёт downloads.ts).
   Downloads.setListener(() => { for (const w of windows) w.page.webContents.send('os:event', 'downloads', null); });
+  Updater.setListener(() => { for (const w of windows) w.page.webContents.send('os:event', 'update', null); });
   ipcMain.handle('os', async (e, cmd: unknown, ...args: unknown[]) => {
     const who = sender(e);
     const h = typeof cmd === 'string' ? handlers[cmd] : undefined;

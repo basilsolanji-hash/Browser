@@ -7,7 +7,7 @@ interface Opt { id: string; name: string }
 interface SettingsInfo {
   values: {
     lang: string; theme: string; engine: string; profileCount: number; homeMode: string; homeUrl: string;
-    trackingProtection: boolean; httpsOnly: boolean; blockThirdPartyCookies: boolean; hideContent: boolean; lock: boolean;
+    trackingProtection: boolean; httpsOnly: boolean; blockThirdPartyCookies: boolean; hideContent: boolean; lock: boolean; autoUpdate: boolean;
   };
   langs: Opt[]; themes: Opt[]; engines: Opt[]; minProfiles: number; maxProfiles: number;
 }
@@ -68,6 +68,11 @@ async function render(): Promise<void> {
   const s = await os.call<SettingsInfo>('settings');
   const lastProfile = await os.call<number>('lastProfile');
   const def = await os.call<{ isDefault: boolean; supported: boolean }>('defaultBrowser');
+  const upd = await os.call<{ state: string; version: string }>('updateStatus');
+  const updText: Record<string, string> = {
+    off: t('dt_update_off'), dev: t('dt_update_dev'), idle: t('dt_update_idle'), checking: t('dt_update_checking'),
+    none: t('dt_update_none'), available: t('dt_update_available', upd.version), downloaded: t('dt_update_ready', upd.version), error: t('dt_update_error'),
+  };
   const v = s.values;
   const homeUrl = h('input', {
     type: 'url', class: 'homeurl', id: 'home-url', value: v.homeUrl, placeholder: t('home_url_hint'),
@@ -125,6 +130,12 @@ async function render(): Promise<void> {
           if (await confirmDialog(t('clear_history_all_q'), '', t('clear'), true)) { await os.call('clearHistoryAll'); toast(t('history_cleared')); }
         },
       }, t('clear_history_all')))),
+    sec(t('dt_updates'), h('div', { class: 'card' },
+      setting(t('dt_update_auto'), toggle('auto-update', v.autoUpdate, t('dt_on'), t('dt_off'), 'autoUpdate'), t('dt_update_desc')),
+      setting(updText[upd.state] ?? '', upd.state === 'downloaded'
+        ? h('button', { class: 'btn accent', id: 'update-restart', onclick: () => void os.call('updateRestart') }, t('dt_update_restart'))
+        : h('button', { class: 'btn', id: 'update-check', disabled: upd.state === 'dev' || upd.state === 'off' || upd.state === 'checking',
+          onclick: () => void os.call('updateCheck').then(render) }, t('dt_update_check'))))),
     sec(t('about_section'), h('div', { class: 'links' },
       h('a', { class: 'btn', href: 'os://stats/', style: 'text-decoration:none;color:inherit' }, t('stats')),
       h('a', { class: 'btn', href: 'os://about/', style: 'text-decoration:none;color:inherit' }, t('about')),
@@ -135,4 +146,5 @@ async function render(): Promise<void> {
 }
 
 os.on('changed', () => void render());
+os.on('update', () => { if (document.activeElement?.tagName !== 'INPUT') void render(); });
 void boot(render);

@@ -42,7 +42,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Os-Browser-Setup-0.1.${{ github.run_number }}
-          path: desktop/release/*.exe
+          path: |
+            desktop/release/*.exe
+            desktop/release/latest.yml
 
       # Ошибки проверки — комментарием к коммиту (логи jobs скачать нельзя).
       - name: Report errors
@@ -69,6 +71,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="desktop-${{ github.run_number }}"
-          gh release create "$TAG" release/*.exe --target "${{ github.sha }}" --latest=false \
+          gh release create "$TAG" release/*.exe release/*.blockmap release/latest.yml --target "${{ github.sha }}" --latest=false \
             --title "Ось Browser для Windows, сборка ${{ github.run_number }}" \
             --notes "Движок Chromium (Electron $(node -p "require('electron/package.json').version")). Установщик без подписи кода: Windows SmartScreen покажет предупреждение — «Подробнее» → «Выполнить в любом случае». Автосборка из ${{ github.sha }}"
+
+      # Постоянный релиз для автообновления: electron-updater читает desktop-latest/latest.yml.
+      - name: Update desktop-latest
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view desktop-latest > /dev/null 2>&1 || gh release create desktop-latest --target "${{ github.sha }}" --latest=false \
+            --title "Ось Browser для Windows — последняя версия (автообновление)" \
+            --notes "Служебный релиз для автообновления. Установщик последней сборки из main."
+          # Старые установщики убираем, чтобы в релизе лежала только последняя версия.
+          gh release view desktop-latest --json assets -q '.assets[].name' | grep -E '\.(exe|blockmap)$' | while read -r f; do
+            gh release delete-asset desktop-latest "$f" -y
+          done
+          gh release upload desktop-latest release/*.exe release/*.blockmap release/latest.yml --clobber
