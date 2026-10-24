@@ -26,19 +26,13 @@ class PageTools(
     private val url: () -> String,
     private val profile: () -> Int?,
 ) {
-    /** Пункты меню ⋮ браузера. */
-    fun menuItems(): List<Pair<String, () -> Unit>> = listOf(
-        Tr.t(if (Reader.isReader(url())) "reader_exit" else "reader_mode") to { toggleReader() },
-        Tr.t("save_page") to { savePage() },
-        Tr.t("saved_pages") to { a.startActivity(Intent(a, SavedPagesActivity::class.java)) },
-        Tr.t("notes") to { a.startActivity(Intent(a, NotesActivity::class.java)) },
-        Tr.t("help_feedback") to { a.startActivity(Intent(a, HelpActivity::class.java)) },
-    )
+    /** Подпись пункта меню режима чтения: войти или выйти. */
+    fun readerTitle() = Tr.t(if (Reader.isReader(url())) "reader_exit" else "reader_mode")
 
     /** Делегат выделения для новой вкладки: копировать, поделиться, поиск, «Добавить в заметку». */
     fun textActions(): GeckoSession.SelectionActionDelegate = TextActions(a) { if (profile() == null) "" else url() }
 
-    private fun toggleReader() {
+    fun toggleReader() {
         val s = session() ?: return
         val u = url()
         when {
@@ -48,7 +42,7 @@ class PageTools(
         }
     }
 
-    private fun savePage() {
+    fun savePage() {
         val s = session() ?: return
         val u = Reader.original(url())
         if (!u.startsWith("http://") && !u.startsWith("https://")) {
