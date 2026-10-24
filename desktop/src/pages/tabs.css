@@ -1,0 +1,27 @@
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0 4px; }
+.toolbar input[type="search"] { flex: 1; min-width: 200px; }
+.selbar { position: sticky; top: 0; z-index: 5; background: var(--accent); color: var(--on-accent); border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+.selbar .btn { background: transparent; border-color: color-mix(in srgb, var(--on-accent) 50%, transparent); color: var(--on-accent); }
+.ghead { display: flex; align-items: center; gap: 10px; margin: 24px 0 10px; }
+.ghead .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.ghead .gname { font-weight: 700; font-size: 15px; }
+.ghead .cnt { color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.tcard { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; text-align: start; padding: 0; }
+.tcard:hover { border-color: var(--muted); }
+.tcard.cur { border: 2px solid var(--accent); }
+.tcard.sel { box-shadow: 0 0 0 3px var(--accent); }
+.tcard .thumb { height: 116px; background: var(--bg); display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--border); }
+.tcard .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.tcard .letter { width: 44px; height: 44px; border-radius: 10px; background: var(--muted); color: var(--bg); font-weight: 700; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+.tcard .meta { padding: 8px 10px 10px; }
+.tcard .ttl { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tcard .host { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tcard .gbar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.tcard .x { position: absolute; top: 6px; inset-inline-end: 6px; width: 26px; height: 26px; border-radius: 13px; border: 0; background: color-mix(in srgb, var(--surface) 85%, transparent); display: flex; align-items: center; justify-content: center; color: var(--text); }
+.tcard .chk { position: absolute; top: 8px; inset-inline-start: 10px; width: 20px; height: 20px; accent-color: var(--accent); }
+.pinrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.pinrow .btn.cur { border-color: var(--accent); color: var(--accent); }
+.colors { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.colors button { width: 30px; height: 30px; border-radius: 50%; border: 3px solid transparent; }
+.colors button.on { border-color: var(--text); }

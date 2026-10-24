@@ -1,0 +1,5 @@
+.head { display: flex; align-items: center; gap: 12px; }
+.head .dot { width: 16px; height: 16px; border-radius: 50%; flex: none; }
+.head input { font-size: 20px; font-weight: 700; flex: 1; }
+.file .ic { color: var(--muted); }
+.saved-note { color: var(--muted); font-size: 12px; min-height: 16px; }

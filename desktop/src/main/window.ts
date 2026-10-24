@@ -1,0 +1,710 @@
+import { BrowserWindow, WebContentsView, screen, session, type Session, type WebContents } from 'electron';
+import { join } from 'node:path';
+import { JsonFile } from './store';
+import { WEB_PREFS, hardenSession, openExternal } from './security';
+import { handleUiSession, handleWebSession, isPanelUrl } from './protocol';
+import { INCOGNITO_PALETTE, palette } from './themes';
+import { settings, searchUrl } from './settings';
+import { TabView, type TabHost } from './tabview';
+import { START, fromInput, isOwnUrl, isWebUrl } from './urls';
+import { t } from './i18n';
+import * as Tabs from './tabs';
+import * as Pins from './pins';
+import * as Profiles from './profiles';
+import * as History from './history';
+import type { Palette, ProfileInfo, StripTab, WindowState } from '../shared/types';
+
+/** Высота шапки: верхний ряд (вкладки + кнопки окна) и панель адреса. */
+export const ROW1 = 40;
+export const ROW2 = 44;
+
+const windowFile = new JsonFile<{ x?: number; y?: number; width: number; height: number; maximized: boolean }>(
+  'window', () => ({ width: 1280, height: 820, maximized: false }));
+
+/** Все окна приложения: одно обычное и сколько угодно окон инкогнито. */
+export const windows = new Set<OsWindow>();
+
+let uiSession: Session | null = null;
+export function uiSes(): Session {
+  if (!uiSession) {
+    uiSession = session.fromPartition('os-ui');
+    hardenSession(uiSession);
+    handleUiSession(uiSession);
+  }
+  return uiSession;
+}
+
+export function profileSession(id: number): Session {
+  const ses = session.fromPartition(Profiles.partition(id));
+  hardenSession(ses);
+  handleWebSession(ses, false);
+  return ses;
+}
+
+let incognitoSeq = 0;
+
+/** Адрес главной страницы для маркера «Старт» (Home.kt): «Ось», пустая или свой адрес. */
+export function homeUrl(incognito: boolean): string {
+  const s = settings.get();
+  if (incognito || s.homeMode === 'OS') return START;
+  if (s.homeMode === 'BLANK') return 'about:blank';
+  return isWebUrl(s.homeUrl) ? s.homeUrl : START;
+}
+
+const preload = () => join(__dirname, '..', 'preload', 'preload.js');
+
+interface MemTab { id: string; title: string; url: string }
+
+export class OsWindow implements TabHost {
+  readonly win: BrowserWindow;
+  readonly chrome: WebContentsView;
+  readonly page: WebContentsView;
+  readonly incognito: boolean;
+  private incogSession: Session | null = null;
+  /** Профиль, чьи вкладки показаны; null — экран профилей. */
+  profile: number | null = null;
+  /** Открытый поверх вкладок экран (os://settings, os://tabs…); у экрана профилей всегда открыт os://home. */
+  panel: string | null = null;
+  private views = new Map<string, TabView>();
+  private shown: TabView | null = null;
+  private overlay = false;
+  private pushTimer: NodeJS.Timeout | null = null;
+  // Вкладки инкогнито живут только в памяти.
+  private memTabs: MemTab[] = [];
+  private memActive: string | null = null;
+  private memClosed: MemTab[] = [];
+  private memSeq = 0;
+
+  constructor(opts: { incognito?: boolean } = {}) {
+    this.incognito = !!opts.incognito;
+    const pal = this.palette();
+    const saved = windowFile.get();
+    const bounds = this.incognito ? { width: 1100, height: 760 } : visibleBounds(saved);
+    this.win = new BrowserWindow({
+      ...bounds,
+      minWidth: 560,
+      minHeight: 400,
+      show: false,
+      frame: false,
+      titleBarStyle: 'hidden',
+      ...(process.platform === 'darwin' ? {} : { titleBarOverlay: { color: pal.surface, symbolColor: pal.text, height: ROW1 } }),
+      backgroundColor: pal.bg,
+      title: this.incognito ? `${t('incognito')} — Ось Browser` : 'Ось Browser',
+      icon: join(__dirname, '..', 'assets', 'icon.png'),
+      webPreferences: { ...WEB_PREFS, session: uiSes() },
+    });
+    this.win.webContents.loadURL('about:blank');
+    if (!this.incognito && saved.maximized) this.win.maximize();
+
+    this.page = this.ownView();
+    this.chrome = this.ownView();
+    // Шапка прозрачна там, где открывается выпадающее меню поверх страницы.
+    this.chrome.setBackgroundColor('#00000000');
+    this.win.contentView.addChildView(this.page);
+    this.win.contentView.addChildView(this.chrome);
+    void this.chrome.webContents.loadURL(this.incognito ? 'os://ui/?incognito=1' : 'os://ui/');
+
+    this.win.on('resize', () => { this.layout(); this.saveBounds(); });
+    this.win.on('move', () => this.saveBounds());
+    this.win.on('maximize', () => { this.push(); this.saveBounds(); });
+    this.win.on('unmaximize', () => { this.push(); this.saveBounds(); });
+    this.win.on('enter-full-screen', () => this.layout());
+    this.win.on('leave-full-screen', () => this.layout());
+    // Кнопки «назад/вперёд» мыши в Windows.
+    this.win.on('app-command', (_e, cmd) => {
+      if (cmd === 'browser-backward') this.back();
+      if (cmd === 'browser-forward') this.forward();
+    });
+    this.win.once('ready-to-show', () => this.win.show());
+    this.chrome.webContents.once('did-finish-load', () => this.win.show());
+    this.win.on('closed', () => this.destroyAll());
+    windows.add(this);
+    if (this.incognito) this.newTab();
+    this.layout();
+  }
+
+  /** Вид для своих страниц: сессия интерфейса, preload с мостом (только для os://). */
+  private ownView(): WebContentsView {
+    const v = new WebContentsView({ webPreferences: { ...WEB_PREFS, session: uiSes(), preload: preload() } });
+    const wc = v.webContents;
+    wc.setWindowOpenHandler(({ url }) => {
+      if (isWebUrl(url)) this.openUrl(url);
+      return { action: 'deny' };
+    });
+    wc.on('will-navigate', (e) => {
+      if (isPanelUrl(e.url) && v === this.page) return;
+      e.preventDefault();
+      if (isWebUrl(e.url) || /^mailto:/i.test(e.url)) {
+        if (/^mailto:/i.test(e.url)) openExternal(e.url);
+        else this.openUrl(e.url);
+      }
+    });
+    wc.on('did-navigate', () => { if (v === this.page) this.push(); });
+    wc.on('did-navigate-in-page', () => { if (v === this.page) this.push(); });
+    wc.on('page-title-updated', () => { if (v === this.page) this.push(); });
+    wc.on('before-input-event', (e, input) => { if (this.shortcut(input, wc)) e.preventDefault(); });
+    return v;
+  }
+
+  palette(): Palette {
+    return this.incognito ? INCOGNITO_PALETTE : palette(settings.get().theme);
+  }
+
+  private session(): Session {
+    if (this.incognito) {
+      if (!this.incogSession) {
+        // Партиция без «persist:» живёт в памяти и исчезает вместе с окном.
+        this.incogSession = session.fromPartition(`incognito_${++incognitoSeq}`);
+        hardenSession(this.incogSession);
+        handleWebSession(this.incogSession, true);
+      }
+      return this.incogSession;
+    }
+    return profileSession(this.profile!);
+  }
+
+  // --- Раскладка ---
+
+  chromeHeight(): number {
+    if (this.win.isFullScreen() && !this.panel) return 0;
+    return this.profile == null && !this.incognito ? ROW1 : ROW1 + ROW2;
+  }
+
+  layout(): void {
+    if (this.win.isDestroyed()) return;
+    const { width, height } = this.win.getContentBounds();
+    const top = this.chromeHeight();
+    const content = { x: 0, y: top, width, height: Math.max(0, height - top) };
+    this.chrome.setBounds(this.overlay ? { x: 0, y: 0, width, height } : { x: 0, y: 0, width, height: top || 1 });
+    this.chrome.setVisible(top > 0 || this.overlay);
+    const showPanel = this.panel != null;
+    this.page.setVisible(showPanel);
+    this.page.setBounds(content);
+    for (const v of this.views.values()) {
+      const visible = !showPanel && v === this.shown;
+      v.view.setVisible(visible);
+      if (visible) v.view.setBounds(content);
+    }
+  }
+
+  /** Выпадающее меню шапки: на время показа шапка накрывает окно целиком (её фон прозрачный). */
+  setOverlay(open: boolean): void {
+    this.overlay = open;
+    this.layout();
+    if (open) this.chrome.webContents.focus();
+  }
+
+  private saveBounds(): void {
+    if (this.incognito || this.win.isDestroyed() || this.win.isFullScreen()) return;
+    const maximized = this.win.isMaximized();
+    windowFile.update((d) => {
+      d.maximized = maximized;
+      if (!maximized && !this.win.isMinimized()) Object.assign(d, this.win.getBounds());
+    });
+  }
+
+  // --- Состояние для шапки ---
+
+  push(): void {
+    if (this.pushTimer) return;
+    this.pushTimer = setTimeout(() => {
+      this.pushTimer = null;
+      if (this.win.isDestroyed()) return;
+      this.chrome.webContents.send('os:event', 'state', this.state());
+      if (!this.incognito) this.win.setTitle(this.profile ? `${Profiles.name(this.profile)} — Ось Browser` : 'Ось Browser');
+    }, 16);
+  }
+
+  state(): WindowState {
+    const v = this.shown;
+    const wc = v?.wc;
+    const url = v ? v.url() : '';
+    const pageWc = this.page.webContents;
+    return {
+      incognito: this.incognito,
+      profile: this.profile != null ? profileInfo(this.profile) : null,
+      tabs: this.strip(),
+      groups: this.profile != null ? Tabs.groups(this.profile) : [],
+      active: this.activeId(),
+      url: url === START || url === 'about:blank' ? '' : url,
+      title: wc?.getTitle() ?? '',
+      canBack: !!wc?.navigationHistory.canGoBack(),
+      canForward: !!wc?.navigationHistory.canGoForward(),
+      loading: !!wc?.isLoading(),
+      secure: url.startsWith('https://') && !v?.failedUrl,
+      panel: this.panel,
+      panelTitle: this.panel ? pageWc.getTitle() : '',
+      panelCanBack: this.panel ? pageWc.navigationHistory.canGoBack() && this.profile == null : false,
+      maximized: this.win.isMaximized(),
+      zoom: wc ? Math.round(wc.getZoomFactor() * 100) : 100,
+    };
+  }
+
+  private key(id: string): string {
+    return this.incognito ? `i:${id}` : `${this.profile}:${id}`;
+  }
+
+  strip(): StripTab[] {
+    const live = (id: string) => this.views.get(this.key(id));
+    const item = (id: string, pinned: boolean, title: string, url: string, group: string | null): StripTab => {
+      const v = live(id);
+      return {
+        id, pinned, group, url: v?.url() || url,
+        title: v?.wc.getTitle() && !v.wc.getURL().startsWith('os://start') ? v.wc.getTitle() : title,
+        loading: !!v?.wc.isLoading(),
+        favicon: v?.favicon ?? null,
+      };
+    };
+    if (this.incognito) return this.memTabs.map((m) => item(m.id, false, m.title || t('new_tab'), m.url, null));
+    if (this.profile == null) return [];
+    const p = this.profile;
+    const pins = Pins.all(p).map((pin) => item(pin.id, true, pin.title, Tabs.pinState(p, pin.id)?.url ?? pin.url, null));
+    const tabs = Tabs.list(p).map((x) => item(x.id, false, Tabs.label(x), x.url, x.group));
+    return [...pins, ...tabs];
+  }
+
+  activeId(): string | null {
+    if (this.incognito) return this.memActive;
+    if (this.profile == null) return null;
+    const id = Tabs.active(this.profile);
+    return id && this.exists(id) ? id : (Pins.all(this.profile)[0]?.id ?? null);
+  }
+
+  private exists(id: string): boolean {
+    if (this.incognito) return this.memTabs.some((m) => m.id === id);
+    if (this.profile == null) return false;
+    return Tabs.isTab(id) ? !!Tabs.byId(this.profile, id) : !!Pins.byId(id, this.profile);
+  }
+
+  /** С какого адреса открыть вкладку, у которой ещё нет вида. */
+  private initialUrl(id: string): string {
+    if (this.incognito) return this.memTabs.find((m) => m.id === id)?.url ?? homeUrl(true);
+    const p = this.profile!;
+    if (Tabs.isTab(id)) {
+      const url = Tabs.byId(p, id)?.url ?? START;
+      return url === START ? homeUrl(false) : url;
+    }
+    const pin = Pins.byId(id, p);
+    const saved = Tabs.pinState(p, id)?.url;
+    if (saved) return saved;
+    return !pin || pin.url === START ? homeUrl(false) : pin.url;
+  }
+
+  // --- Профили и экраны ---
+
+  showHome(): void {
+    if (this.incognito) return;
+    this.profile = null;
+    this.openPanel('os://home/');
+  }
+
+  openProfile(id: number, tabId?: string): void {
+    if (this.incognito || !Profiles.exists(id)) return;
+    this.profile = id;
+    this.panel = null;
+    this.overlay = false;
+    this.activate(tabId && this.exists(tabId) ? tabId : this.activeId()!);
+  }
+
+  openPanel(url: string): void {
+    if (!isPanelUrl(url)) return;
+    this.panel = url;
+    const wc = this.page.webContents;
+    if (wc.getURL() !== url) void wc.loadURL(url);
+    this.layout();
+    this.push();
+    wc.focus();
+  }
+
+  closePanel(): void {
+    if (this.profile == null) return;
+    this.panel = null;
+    this.layout();
+    this.push();
+    this.shown?.wc.focus();
+  }
+
+  // --- Вкладки ---
+
+  activate(id: string): void {
+    if (!this.incognito && this.profile == null) return;
+    if (!this.exists(id)) return;
+    this.panel = null;
+    const key = this.key(id);
+    let v = this.views.get(key);
+    if (!v) {
+      // Сайты без своего фона — на белом, как в Chrome.
+      v = new TabView(key, id, this.session(), this, '#FFFFFF');
+      this.views.set(key, v);
+      this.win.contentView.addChildView(v.view, 0);
+      v.wc.setZoomFactor(settings.get().zoom / 100);
+      void v.wc.loadURL(this.initialUrl(id));
+    }
+    this.shown = v;
+    if (this.incognito) this.memActive = id;
+    else Tabs.setActive(this.profile!, id);
+    this.layout();
+    this.push();
+    if (!this.overlay) v.wc.focus();
+  }
+
+  newTab(url?: string, opts: { after?: string | null; foreground?: boolean } = {}): void {
+    const target = url ?? START;
+    if (this.incognito) {
+      const m: MemTab = { id: `tab${Date.now()}${++this.memSeq}`, title: '', url: target === START ? homeUrl(true) : target };
+      const i = opts.after ? this.memTabs.findIndex((x) => x.id === opts.after) : -1;
+      if (i >= 0) this.memTabs.splice(i + 1, 0, m);
+      else this.memTabs.push(m);
+      if (opts.foreground !== false || !this.memActive) this.activate(m.id);
+      else this.push();
+      return;
+    }
+    if (this.profile == null) {
+      this.openProfile(Tabs.tabsFile.get().lastProfile ?? Profiles.order()[0]);
+    }
+    const tab = Tabs.add(this.profile!, target, { after: opts.after ?? null });
+    if (opts.foreground !== false) this.activate(tab.id);
+    else this.push();
+  }
+
+  /** Ссылка из своих экранов или извне: в текущем профиле (или последнем), в новой вкладке. */
+  openUrl(url: string): void {
+    if (this.panel && this.profile != null) this.closePanel();
+    this.newTab(url);
+  }
+
+  closeTab(id: string | null = this.activeId()): void {
+    if (!id) return;
+    const strip = this.strip();
+    const idx = strip.findIndex((s) => s.id === id);
+    const key = this.key(id);
+    const v = this.views.get(key);
+    const wasActive = this.activeId() === id;
+    if (v) {
+      this.win.contentView.removeChildView(v.view);
+      v.destroy();
+      this.views.delete(key);
+      if (this.shown === v) this.shown = null;
+    }
+    if (this.incognito) {
+      const m = this.memTabs.find((x) => x.id === id);
+      this.memTabs = this.memTabs.filter((x) => x.id !== id);
+      if (m) this.memClosed.unshift({ ...m, url: v?.url() || m.url });
+      if (!this.memTabs.length) {
+        this.win.close();
+        return;
+      }
+    } else if (this.profile != null) {
+      if (Tabs.isTab(id)) Tabs.close(this.profile, [id]);
+      // Закреплённая вкладка не исчезает: выгружается и возвращается к своему адресу.
+      else Tabs.forgetPin(this.profile, id);
+    }
+    if (wasActive) {
+      const rest = this.strip();
+      const next = rest[Math.min(idx, rest.length - 1)] ?? rest[0];
+      if (next) this.activate(next.id === id ? (rest[idx + 1]?.id ?? rest[0].id) : next.id);
+    } else {
+      this.push();
+    }
+    this.layout();
+  }
+
+  /** Закрыть вкладки профиля (экран вкладок, «Закрыть все»). Закреплённые остаются. */
+  closeTabs(ids: string[]): void {
+    if (this.profile == null) return;
+    for (const id of ids.filter((x) => Tabs.isTab(x))) {
+      const v = this.views.get(this.key(id));
+      if (v) {
+        this.win.contentView.removeChildView(v.view);
+        v.destroy();
+        this.views.delete(v.key);
+        if (this.shown === v) this.shown = null;
+      }
+    }
+    Tabs.close(this.profile, ids.filter((x) => Tabs.isTab(x)));
+    if (!this.shown && !this.panel) this.activate(this.activeId()!);
+    this.push();
+  }
+
+  reopenClosed(): void {
+    if (this.incognito) {
+      const m = this.memClosed.shift();
+      if (m) this.newTab(m.url);
+      return;
+    }
+    if (this.profile == null) return;
+    const tab = Tabs.reopen(this.profile);
+    if (tab) this.activate(tab.id);
+  }
+
+  cycle(delta: number): void {
+    const strip = this.strip();
+    if (!strip.length) return;
+    const i = strip.findIndex((s) => s.id === this.activeId());
+    this.activate(strip[(i + delta + strip.length) % strip.length].id);
+  }
+
+  activateIndex(n: number): void {
+    const strip = this.strip();
+    const tab = n === 9 ? strip[strip.length - 1] : strip[n - 1];
+    if (tab) this.activate(tab.id);
+  }
+
+  moveTab(id: string, index: number): void {
+    if (this.incognito) {
+      const i = this.memTabs.findIndex((m) => m.id === id);
+      if (i < 0) return;
+      const [m] = this.memTabs.splice(i, 1);
+      this.memTabs.splice(Math.max(0, Math.min(index, this.memTabs.length)), 0, m);
+    } else if (this.profile != null) {
+      Tabs.moveTo(this.profile, id, index);
+    }
+    this.push();
+  }
+
+  /** Ввод адресной строки: адрес или поисковый запрос. */
+  navigate(input: string): void {
+    const url = fromInput(input) ?? searchUrl(input.trim());
+    if (isPanelUrl(url)) {
+      if (!this.incognito) this.openPanel(url);
+      return;
+    }
+    if (isOwnUrl(url) && url !== START && !url.startsWith('os://start')) return;
+    if (!this.shown) {
+      this.newTab(url);
+      return;
+    }
+    this.shown.failedUrl = null;
+    void this.shown.wc.loadURL(url.startsWith('os://start') ? homeUrl(this.incognito) : url);
+    this.shown.wc.focus();
+  }
+
+  back(): void {
+    if (this.panel && this.profile == null && this.page.webContents.navigationHistory.canGoBack()) {
+      this.page.webContents.navigationHistory.goBack();
+    } else if (this.panel) {
+      this.closePanel();
+    } else if (this.shown?.wc.navigationHistory.canGoBack()) this.shown.wc.navigationHistory.goBack();
+  }
+
+  forward(): void {
+    if (this.shown?.wc.navigationHistory.canGoForward()) this.shown.wc.navigationHistory.goForward();
+  }
+
+  reload(ignoreCache = false): void {
+    if (this.panel) return this.page.webContents.reload();
+    const v = this.shown;
+    if (!v) return;
+    if (v.failedUrl) {
+      const u = v.failedUrl;
+      v.failedUrl = null;
+      void v.wc.loadURL(u);
+    } else if (ignoreCache) v.wc.reloadIgnoringCache();
+    else v.wc.reload();
+  }
+
+  stop(): void {
+    this.shown?.wc.stop();
+  }
+
+  goHome(): void {
+    if (this.shown) void this.shown.wc.loadURL(homeUrl(this.incognito));
+  }
+
+  zoom(step: number): void {
+    const wc = this.panel ? this.page.webContents : this.shown?.wc;
+    if (!wc) return;
+    const levels = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5];
+    const cur = wc.getZoomFactor();
+    let next = 1;
+    if (step !== 0) {
+      const i = levels.findIndex((l) => l >= cur - 0.001);
+      next = levels[Math.max(0, Math.min(levels.length - 1, (i < 0 ? levels.length - 1 : i) + step))];
+    }
+    wc.setZoomFactor(next);
+    this.push();
+  }
+
+  activeWebContents(): WebContents | null {
+    return this.shown?.wc ?? null;
+  }
+
+  /** Все живые вкладки окна (для приёмки и снимков сетки вкладок). */
+  liveTabs(): TabView[] {
+    return [...this.views.values()];
+  }
+
+  viewFor(profile: number, id: string): TabView | undefined {
+    return this.views.get(`${profile}:${id}`);
+  }
+
+  /** Выход из аккаунтов профиля: закрыть его вкладки в окне. */
+  dropProfileViews(profile: number): void {
+    for (const [key, v] of [...this.views]) {
+      if (!key.startsWith(`${profile}:`)) continue;
+      this.win.contentView.removeChildView(v.view);
+      v.destroy();
+      this.views.delete(key);
+      if (this.shown === v) this.shown = null;
+    }
+    if (this.profile === profile) this.showHome();
+  }
+
+  /** Тема или язык поменялись: шапку и экраны перерисовать, стартовые страницы — перезагрузить. */
+  refreshLook(): void {
+    const pal = this.palette();
+    if (process.platform !== 'darwin') this.win.setTitleBarOverlay({ color: pal.surface, symbolColor: pal.text, height: ROW1 });
+    this.win.setBackgroundColor(pal.bg);
+    for (const wc of [this.chrome.webContents, this.page.webContents]) wc.send('os:event', 'look', null);
+    for (const v of this.views.values()) {
+      if (v.wc.getURL().startsWith('os://')) v.wc.reload();
+    }
+    this.push();
+  }
+
+  // --- TabHost ---
+
+  onTabUpdated(): void {
+    this.push();
+  }
+
+  onNavigated(tab: TabView, url: string): void {
+    if (!this.incognito) {
+      const p = Number(tab.key.split(':')[0]);
+      const real = tab.url();
+      if (Tabs.isTab(tab.id)) Tabs.update(p, tab.id, { url: real.startsWith('os://start') ? START : real });
+      else Tabs.setPinState(p, tab.id, real, tab.wc.getTitle());
+      if (isWebUrl(url)) History.add(p, url);
+    } else {
+      const m = this.memTabs.find((x) => x.id === tab.id);
+      if (m && isWebUrl(url)) m.url = url;
+    }
+    this.push();
+  }
+
+  onTitle(tab: TabView, title: string): void {
+    if (!this.incognito) {
+      const p = Number(tab.key.split(':')[0]);
+      const url = tab.wc.getURL();
+      if (isWebUrl(url)) {
+        if (Tabs.isTab(tab.id)) Tabs.update(p, tab.id, { title });
+        else Tabs.setPinState(p, tab.id, url, title);
+        History.setTitle(p, url, title);
+        Profiles.updateFromTitle(p, title);
+      }
+    } else {
+      const m = this.memTabs.find((x) => x.id === tab.id);
+      if (m) m.title = title;
+    }
+    this.push();
+  }
+
+  openTab(url: string, opener: TabView, foreground: boolean): void {
+    if (!this.incognito && opener.key.split(':')[0] !== String(this.profile)) return;
+    this.newTab(url, { after: Tabs.isTab(opener.id) || this.incognito ? opener.id : null, foreground });
+  }
+
+  popupOptions(): Electron.BrowserWindowConstructorOptions {
+    return {
+      width: 520,
+      height: 680,
+      parent: this.win,
+      autoHideMenuBar: true,
+      backgroundColor: '#FFFFFF',
+      webPreferences: { ...WEB_PREFS, session: this.session() },
+    };
+  }
+
+  /** Горячие клавиши — как в Chrome. true — нажатие обработано. */
+  shortcut(input: Electron.Input, wc: WebContents): boolean {
+    if (input.type !== 'keyDown') return false;
+    const ctrl = input.control || input.meta;
+    const k = input.key.length === 1 ? input.key.toLowerCase() : input.key;
+    const code = input.code;
+    const fromChrome = wc === this.chrome.webContents;
+    if (ctrl && input.shift && (code === 'KeyT')) { this.reopenClosed(); return true; }
+    if (ctrl && input.shift && code === 'KeyN') { openIncognito(); return true; }
+    if (ctrl && !input.shift && code === 'KeyT') { this.newTab(); this.focusAddress(); return true; }
+    if (ctrl && code === 'KeyW') { if (this.panel && this.profile != null) this.closePanel(); else this.closeTab(); return true; }
+    if (ctrl && (k === 'Tab' || k === 'PageDown' || k === 'PageUp')) {
+      this.cycle(k === 'PageUp' || (k === 'Tab' && input.shift) ? -1 : 1);
+      return true;
+    }
+    if (ctrl && !input.shift && /^Digit[1-9]$/.test(code)) { this.activateIndex(Number(code.slice(5))); return true; }
+    if ((ctrl && code === 'KeyL') || (input.alt && code === 'KeyD') || k === 'F6') { this.focusAddress(); return true; }
+    if (k === 'F5' || (ctrl && code === 'KeyR')) { this.reload(input.shift || ctrl && k === 'F5'); return true; }
+    if (input.alt && k === 'ArrowLeft') { this.back(); return true; }
+    if (input.alt && k === 'ArrowRight') { this.forward(); return true; }
+    if (input.alt && k === 'Home') { this.goHome(); return true; }
+    if (ctrl && (k === '=' || k === '+' || code === 'NumpadAdd')) { this.zoom(1); return true; }
+    if (ctrl && (k === '-' || code === 'NumpadSubtract')) { this.zoom(-1); return true; }
+    if (ctrl && (code === 'Digit0' || code === 'Numpad0')) { this.zoom(0); return true; }
+    if (k === 'F11') { this.win.setFullScreen(!this.win.isFullScreen()); return true; }
+    if (ctrl && input.shift && code === 'KeyA' && this.profile != null) { this.openPanel(`os://tabs/?profile=${this.profile}`); return true; }
+    if (k === 'Escape' && !fromChrome) {
+      if (this.panel && this.profile != null) { this.closePanel(); return true; }
+      if (this.shown?.wc.isLoading()) { this.stop(); return false; }
+    }
+    return false;
+  }
+
+  focusAddress(): void {
+    if (this.panel && this.profile != null) this.closePanel();
+    this.chrome.webContents.focus();
+    this.chrome.webContents.send('os:event', 'focusAddress', null);
+  }
+
+  private destroyAll(): void {
+    for (const v of this.views.values()) v.destroy();
+    this.views.clear();
+    windows.delete(this);
+    if (this.incogSession) {
+      // Инкогнито не оставляет данных: всё, что было в памяти сессии, стираем сразу.
+      void this.incogSession.clearStorageData();
+      void this.incogSession.clearCache();
+      this.incogSession = null;
+    }
+  }
+}
+
+export function profileInfo(id: number): ProfileInfo {
+  return {
+    id,
+    name: Profiles.name(id),
+    color: Profiles.color(id),
+    email: Profiles.email(id),
+    unread: Profiles.unread(id),
+    description: Profiles.description(id),
+    files: Profiles.fileCount(id),
+    active: [...windows].some((w) => w.liveTabs().some((v) => v.key.startsWith(`${id}:`))),
+    pins: Pins.all(id),
+    ownPins: Pins.hasOwn(id),
+  };
+}
+
+function visibleBounds(b: { x?: number; y?: number; width: number; height: number }) {
+  const width = Math.max(560, b.width);
+  const height = Math.max(400, b.height);
+  if (b.x == null || b.y == null) return { width, height };
+  const area = screen.getDisplayMatching({ x: b.x, y: b.y, width, height }).workArea;
+  const inside = b.x < area.x + area.width - 80 && b.y < area.y + area.height - 40 && b.x + width > area.x + 80 && b.y >= area.y - 8;
+  return inside ? { x: b.x, y: b.y, width, height } : { width, height };
+}
+
+export function mainWindow(): OsWindow | undefined {
+  return [...windows].find((w) => !w.incognito);
+}
+
+export function openIncognito(): OsWindow {
+  const w = new OsWindow({ incognito: true });
+  w.win.focus();
+  return w;
+}
+
+export function byWebContents(wc: WebContents): { win: OsWindow; role: 'chrome' | 'page' } | null {
+  for (const w of windows) {
+    if (w.chrome.webContents === wc) return { win: w, role: 'chrome' };
+    if (w.page.webContents === wc) return { win: w, role: 'page' };
+  }
+  return null;
+}

@@ -1,0 +1,60 @@
+import { app, session, shell, type Session, type WebContents } from 'electron';
+import { isWebUrl } from './urls';
+
+/**
+ * Правила безопасности Electron (§7 ТЗ): песочница, без Node и <webview>, свои страницы — только os://,
+ * сайтам — только http(s), внешние программы — только для http(s) и mailto.
+ */
+
+/** Чистый UA Chrome без «Electron/…» и имени приложения: иначе часть сайтов (вход Google) отказывает. */
+export function cleanUserAgent(): string {
+  return app.userAgentFallback
+    .replace(/\s?Electron\/\S+/g, '')
+    .replace(new RegExp(`\\s?${app.getName().replace(/[^\w]/g, '.')}\\/\\S+`, 'gi'), '')
+    .replace(/\s?os-browser\/\S+/gi, '');
+}
+
+export const WEB_PREFS = {
+  contextIsolation: true,
+  sandbox: true,
+  nodeIntegration: false,
+  nodeIntegrationInSubFrames: false,
+  webSecurity: true,
+  allowRunningInsecureContent: false,
+  webviewTag: false,
+  spellcheck: false, // проверка орфографии Chromium качает словари из сети
+  navigateOnDragDrop: false,
+  safeDialogs: true,
+} as const;
+
+/** Открыть во внешней программе — только веб-адреса и почту. */
+export function openExternal(url: string): void {
+  if (isWebUrl(url) || /^mailto:/i.test(url)) void shell.openExternal(url);
+}
+
+const hardened = new WeakSet<Session>();
+
+/** Общие правила сессии профиля или инкогнито. Разрешения — «нет», пока нет экрана «спросить» (этап 3). */
+export function hardenSession(ses: Session): void {
+  if (hardened.has(ses)) return;
+  hardened.add(ses);
+  ses.setUserAgent(cleanUserAgent());
+  // Проверка орфографии в Linux качает словари с серверов Google — выключаем полностью.
+  ses.setSpellCheckerEnabled(false);
+  try { ses.setSpellCheckerLanguages([]); } catch { /* в Windows и macOS — системная проверка */ }
+  const allowed = new Set(['fullscreen', 'clipboard-sanitized-write', 'pointerLock']);
+  ses.setPermissionRequestHandler((_wc, permission, callback) => callback(allowed.has(permission)));
+  ses.setPermissionCheckHandler((_wc, permission) => allowed.has(permission));
+  ses.setDevicePermissionHandler(() => false);
+  ses.on('select-hid-device', (e, _d, cb) => { e.preventDefault(); cb(''); });
+  ses.on('select-serial-port', (e, _d, _wc, cb) => { e.preventDefault(); cb(''); });
+  ses.on('select-usb-device', (e, _d, cb) => { e.preventDefault(); cb(); });
+}
+
+/** Для всех webContents: никаких <webview> и навигаций своих страниц на чужие адреса. */
+export function installGlobalGuards(): void {
+  app.on('web-contents-created', (_e, wc: WebContents) => {
+    wc.on('will-attach-webview', (ev) => ev.preventDefault());
+  });
+  hardenSession(session.defaultSession);
+}

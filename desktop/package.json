@@ -1,0 +1,31 @@
+{
+  "name": "os-browser",
+  "productName": "Os Browser",
+  "version": "0.1.0",
+  "description": "Ось Browser — деловой браузер с упором на конфиденциальность",
+  "author": "Ось Browser",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "dist/main/main.js",
+  "scripts": {
+    "i18n": "node scripts/gen-i18n.mjs",
+    "build": "node scripts/gen-i18n.mjs && node scripts/build.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint src test scripts",
+    "check": "npm run i18n && npm run typecheck && npm run lint",
+    "start": "npm run build && electron .",
+    "dist:win": "electron-builder --win nsis --publish never",
+    "acceptance": "node test/acceptance.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "electron": "44.9.3",
+    "electron-builder": "26.17.0",
+    "esbuild": "0.28.2",
+    "eslint": "10.12.0",
+    "playwright": "1.64.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.2"
+  }
+}

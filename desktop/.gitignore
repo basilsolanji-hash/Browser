@@ -1,0 +1,5 @@
+node_modules/
+dist/
+release/
+src/i18n/*.json
+test-results/

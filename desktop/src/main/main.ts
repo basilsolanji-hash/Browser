@@ -1,0 +1,77 @@
+import { app, Menu, nativeTheme } from 'electron';
+import { join } from 'node:path';
+import { registerScheme } from './protocol';
+import { installGlobalGuards, cleanUserAgent } from './security';
+import { applyLanguage } from './i18n';
+import { flushAll } from './store';
+import { installIpc, applyTheme } from './ipc';
+import { OsWindow, mainWindow, windows } from './window';
+import * as Onboarding from './onboarding';
+import * as Tabs from './tabs';
+import * as Profiles from './profiles';
+
+/**
+ * Ось Browser для Windows: главный процесс. Профили — изолированные партиции, вкладки — WebContentsView,
+ * свои экраны — os://. Своих серверов и аналитики нет: данные лежат в userData.
+ */
+
+// Отдельная папка данных для приёмки и портативного запуска.
+app.setName('Os Browser');
+if (process.env.OS_USER_DATA) app.setPath('userData', process.env.OS_USER_DATA);
+if (process.platform === 'win32') app.setAppUserModelId('ru.multibrowser.desktop');
+
+// Никаких отчётов и фоновых запросов Chromium.
+app.commandLine.appendSwitch('disable-features', 'SpareRendererForSitePerProcess,MediaRouter,DialMediaRouteProvider,AutofillServerCommunication,OptimizationHints');
+app.commandLine.appendSwitch('disable-background-networking');
+
+registerScheme();
+
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    const w = mainWindow() ?? createMain();
+    if (w.win.isMinimized()) w.win.restore();
+    w.win.focus();
+  });
+
+  app.whenReady().then(() => {
+    app.userAgentFallback = cleanUserAgent();
+    Menu.setApplicationMenu(null);
+    installGlobalGuards();
+    applyLanguage();
+    applyTheme();
+    installIpc();
+    nativeTheme.on('updated', () => { for (const w of windows) w.refreshLook(); });
+    if (process.env.OS_TEST_DELAY) setTimeout(createMain, Number(process.env.OS_TEST_DELAY));
+    else createMain();
+  });
+
+  app.on('window-all-closed', () => app.quit());
+  app.on('before-quit', () => flushAll());
+  app.on('will-quit', () => flushAll());
+}
+
+function createMain(): OsWindow {
+  const w = new OsWindow();
+  // Первый запуск — обучение; потом — последний открытый профиль (вкладки восстанавливаются).
+  if (Onboarding.shouldShow()) {
+    w.profile = null;
+    w.openPanel('os://onboarding/');
+  } else {
+    const last = Tabs.tabsFile.get().lastProfile;
+    if (last != null && Profiles.exists(last)) w.openProfile(last);
+    else w.showHome();
+  }
+  return w;
+}
+
+// Для приёмки (Playwright): доступ к состоянию окон из главного процесса.
+if (process.env.OS_TEST === '1') {
+  (globalThis as Record<string, unknown>).osTest = {
+    windows: () => [...windows],
+    flush: () => flushAll(),
+    userData: () => app.getPath('userData'),
+    dist: () => join(__dirname, '..'),
+  };
+}
