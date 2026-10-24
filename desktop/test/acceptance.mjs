@@ -444,7 +444,7 @@ try {
 
   // --- 9. Перезапуск восстанавливает вкладки ---
   step('9. Перезапуск восстанавливает вкладки, профиль, язык и размер окна');
-  await main(() => globalThis.osTest.windows()[0].win.setBounds({ x: 40, y: 30, width: 1111, height: 777 }));
+  await main(() => globalThis.osTest.windows()[0].win.setBounds({ x: 40, y: 30, width: 900, height: 640 }));
   await main(() => globalThis.osTest.windows()[0].activate(globalThis.osTest.windows()[0].state().tabs.filter((t) => !t.pinned).pop().id));
   await sleep(600);
   const beforeRestart = await state();
@@ -464,7 +464,7 @@ try {
   const ui2 = await page('os://ui');
   check('language kept after restart', (await ui2.getAttribute('#address', 'placeholder')) === 'Адрес или поиск');
   const bounds = await main(() => globalThis.osTest.windows()[0].win.getBounds());
-  check('window size remembered', Math.abs(bounds.width - 1111) <= 2 && Math.abs(bounds.height - 777) <= 2, JSON.stringify(bounds));
+  check('window size remembered', Math.abs(bounds.width - 900) <= 2 && Math.abs(bounds.height - 640) <= 2, JSON.stringify(bounds));
   await keyScreen('09-after-restart', 'tab');
   await windowShot('after-restart');
 
