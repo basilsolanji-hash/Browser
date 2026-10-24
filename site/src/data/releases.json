@@ -1,0 +1,1105 @@
+{
+ "generated": "2026-10-24T21:35:37.750Z",
+ "repo": "basilsolanji-hash/Browser",
+ "android": {
+  "latest": {
+   "tag": "build-121",
+   "build": 121,
+   "version": "0.8.121",
+   "date": "2026-10-24T21:00:27Z",
+   "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-121",
+   "commit": "3a02216a06287001ff71cade265ba589d8c15916",
+   "engine": "GeckoView (Firefox) 158",
+   "assets": [
+    {
+     "name": "Os-Browser-build-121.aab",
+     "size": 96541338,
+     "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-121/Os-Browser-build-121.aab",
+     "sha256": "a3c367c0bb9e775d718b5ad948aedf112cbe60c20051fcb8d3a220135726f0b5"
+    },
+    {
+     "name": "Os-Browser-build-121.apk",
+     "size": 198229425,
+     "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-121/Os-Browser-build-121.apk",
+     "sha256": "689b42837a0146e42cb260cea811ca03c2e0d9f3cccca8093da70c376ad2091e"
+    }
+   ],
+   "changes": []
+  },
+  "releases": [
+   {
+    "tag": "build-121",
+    "build": 121,
+    "version": "0.8.121",
+    "date": "2026-10-24T21:00:27Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-121",
+    "commit": "3a02216a06287001ff71cade265ba589d8c15916",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-121.aab",
+      "size": 96541338,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-121/Os-Browser-build-121.aab",
+      "sha256": "a3c367c0bb9e775d718b5ad948aedf112cbe60c20051fcb8d3a220135726f0b5"
+     },
+     {
+      "name": "Os-Browser-build-121.apk",
+      "size": 198229425,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-121/Os-Browser-build-121.apk",
+      "sha256": "689b42837a0146e42cb260cea811ca03c2e0d9f3cccca8093da70c376ad2091e"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "build-120",
+    "build": 120,
+    "version": "0.8.120",
+    "date": "2026-10-24T20:57:13Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-120",
+    "commit": "92d2eba033b157c5b1530efc96c1a8ecfb1f9a51",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-120.aab",
+      "size": 96541342,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-120/Os-Browser-build-120.aab",
+      "sha256": "62e18313675ddff70d3c828b9f80f28d1d2d39553cb54ee396951adbc377574f"
+     },
+     {
+      "name": "Os-Browser-build-120.apk",
+      "size": 198229429,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-120/Os-Browser-build-120.apk",
+      "sha256": "53beadb1c079f05dcfcc0f1502a86e348069f1357e92ca1df90b56f46e18c1f0"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "build-110",
+    "build": 110,
+    "version": "0.8.110",
+    "date": "2026-10-24T19:23:44Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-110",
+    "commit": "9597e86f0b18501b83471000af7f88d02d9422b7",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-110.aab",
+      "size": 96541341,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-110/Os-Browser-build-110.aab",
+      "sha256": "18bcde2a6f6ef8d8c62bbd8347da9d9a5b51aca34b78b6f1b10bc4047e209bb6"
+     },
+     {
+      "name": "Os-Browser-build-110.apk",
+      "size": 198229429,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-110/Os-Browser-build-110.apk",
+      "sha256": "dd63995db3005e4d2cfaa03d434d9dd0597e699ed34b8cce29a3f75a7abcad08"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "build-109",
+    "build": 109,
+    "version": "0.8.109",
+    "date": "2026-10-24T19:22:56Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-109",
+    "commit": "2be82c85f497d498f97876f3ec9168fe74e5cb73",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-109.aab",
+      "size": 96541342,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-109/Os-Browser-build-109.aab",
+      "sha256": "33dea724a8eca76861957b022b0d6cda9584f05f274c7ef2559952d7dd589e1f"
+     },
+     {
+      "name": "Os-Browser-build-109.apk",
+      "size": 198229429,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-109/Os-Browser-build-109.apk",
+      "sha256": "cf274c786cdcd8b5bc35107998ca72ce219016bc1dd3aefeb1000ec0d23bb7d2"
+     }
+    ],
+    "changes": [
+     "Debug build: export DownloadsActivity for acceptance screenshots",
+     "Grouped browser menu with icons; download progress with percent"
+    ]
+   },
+   {
+    "tag": "build-101",
+    "build": 101,
+    "version": "0.8.101",
+    "date": "2026-10-24T18:34:50Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-101",
+    "commit": "bcfd14646e8ec6508a7eeef4a44655c3c90d574f",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-101.aab",
+      "size": 96526864,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-101/Os-Browser-build-101.aab",
+      "sha256": "2e439847d043f8d51951ae5069b0817742554031ceeb61f5a83968069bb99d5c"
+     },
+     {
+      "name": "Os-Browser-build-101.apk",
+      "size": 198221845,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-101/Os-Browser-build-101.apk",
+      "sha256": "38bc3a94a0b51551e688dd3cf4ff5d7272360a215df63bc464e8c56598c70b40"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "build-99",
+    "build": 99,
+    "version": "0.8.99",
+    "date": "2026-10-24T18:14:51Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-99",
+    "commit": "264ed1635faf0eedee38aee27fa09e388063aa80",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-99.aab",
+      "size": 96526862,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-99/Os-Browser-build-99.aab",
+      "sha256": "b7e52af19b968396c851d2ea6b25be861034908ef0531338c5751f40dfbe7120"
+     },
+     {
+      "name": "Os-Browser-build-99.apk",
+      "size": 198221849,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-99/Os-Browser-build-99.apk",
+      "sha256": "b88c5dbe0e3678bd78d5dee02e0e2f5201fe4830b63558491fbb5fb1a7859d09"
+     }
+    ],
+    "changes": [
+     "Merge feat/polish: texts, equal quick links, download/upload permissions",
+     "Escape $ in a positional format string (Hindi)",
+     "Polish texts and layout; ask before downloads, site control for uploads"
+    ]
+   },
+   {
+    "tag": "build-98",
+    "build": 98,
+    "version": "0.8.98",
+    "date": "2026-10-24T18:01:17Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-98",
+    "commit": "0ed8632d05119fa0fe17f86f1cbc30cde4cce87d",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-98.aab",
+      "size": 96523291,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-98/Os-Browser-build-98.aab",
+      "sha256": "aaf825018f23bbe4ffae228d0d7668ee4659d25f014c7fcecc9b191251e7c2f9"
+     },
+     {
+      "name": "Os-Browser-build-98.apk",
+      "size": 198221793,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-98/Os-Browser-build-98.apk",
+      "sha256": "16e8779234b610ffa7b3b27911b22cb6ed89e05a9bdf681c05d0b1ccb325bc06"
+     }
+    ],
+    "changes": [
+     "Downloads: pause, resume and continue after a dropped connection or restart"
+    ]
+   },
+   {
+    "tag": "build-97",
+    "build": 97,
+    "version": "0.8.97",
+    "date": "2026-10-24T17:56:36Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-97",
+    "commit": "91a945f9356773785d24f534949a5e4a83b61db1",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-97.aab",
+      "size": 96522501,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-97/Os-Browser-build-97.aab",
+      "sha256": "aba982d0f9e12cbbd04b94547cb2cbde7dafb468aa105a687cfa73fdab30a0ab"
+     },
+     {
+      "name": "Os-Browser-build-97.apk",
+      "size": 198221793,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-97/Os-Browser-build-97.apk",
+      "sha256": "2fc4e5383cc481d865947d6930157de789724ad031eb773979c623c05798993b"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "build-91",
+    "build": 91,
+    "version": "0.8.91",
+    "date": "2026-10-24T17:36:46Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-91",
+    "commit": "a0caf95b848e644643943da4f3f94637ccfc98c1",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-91.aab",
+      "size": 96522519,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-91/Os-Browser-build-91.aab",
+      "sha256": "6a321c04b7f7dcc947dadabb0e6027c4f421287e3c2b4f5b32df2bccf5e107fa"
+     },
+     {
+      "name": "Os-Browser-build-91.apk",
+      "size": 198221793,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-91/Os-Browser-build-91.apk",
+      "sha256": "dd6f436b1c882e922a40c9c54a3fce084f0bf450cb7c87e8beb7734da078ac3a"
+     }
+    ],
+    "changes": [
+     "Desktop stage 5: auto-update, uninstall with data question, installer check"
+    ]
+   },
+   {
+    "tag": "build-86",
+    "build": 86,
+    "version": "0.8.86",
+    "date": "2026-10-24T17:22:28Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-86",
+    "commit": "d2b3c9250f7c133c347ebab2267ed2a1f6c84a2a",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-86.aab",
+      "size": 96518885,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-86/Os-Browser-build-86.aab",
+      "sha256": "17b105427eb5decb7e69ae6406769617f5bda27426452b08fcd433b089ae0365"
+     },
+     {
+      "name": "Os-Browser-build-86.apk",
+      "size": 198221793,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-86/Os-Browser-build-86.apk",
+      "sha256": "8daf06bc21ef286fb84709737dc45bf0706cb81764087ffa4254d84a6e7c0d10"
+     }
+    ],
+    "changes": [
+     "Desktop stage 4: reader mode, text actions, notifications, default browser, help"
+    ]
+   },
+   {
+    "tag": "build-84",
+    "build": 84,
+    "version": "0.8.84",
+    "date": "2026-10-24T17:14:40Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-84",
+    "commit": "cdd11a47213d6c53f93922a6a86e82633b683602",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-84.aab",
+      "size": 96514851,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-84/Os-Browser-build-84.aab",
+      "sha256": "d75b0bc1cd8b5c8d216a4a9bb8e54366ee398f7b9102d0e201b30db84e83b8eb"
+     },
+     {
+      "name": "Os-Browser-build-84.apk",
+      "size": 198205409,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-84/Os-Browser-build-84.apk",
+      "sha256": "31c35ca25e059ee6944254113ce0a8b489888398f28e7cbfba76d6898a1815fa"
+     }
+    ],
+    "changes": [
+     "Desktop stage 3: tracker blocking, HTTPS-only, site permissions, PIN lock"
+    ]
+   },
+   {
+    "tag": "build-82",
+    "build": 82,
+    "version": "0.8.82",
+    "date": "2026-10-24T17:10:03Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-82",
+    "commit": "54a68d4283e06567322800518839eab2cf8a0491",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-82.aab",
+      "size": 96506917,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-82/Os-Browser-build-82.aab",
+      "sha256": "20785df59aca79be22518be2a59ce7cc12c5e29c23ed12b427211861637dc288"
+     },
+     {
+      "name": "Os-Browser-build-82.apk",
+      "size": 198205409,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-82/Os-Browser-build-82.apk",
+      "sha256": "6ba6d003e68cfdc38e3ac4f5f4baa1ba66b8f48dc3dae74d65b20b732d124e7a"
+     }
+    ],
+    "changes": [
+     "Desktop stage 2: history, favorites, downloads, saved pages, stats, clearing"
+    ]
+   },
+   {
+    "tag": "build-80",
+    "build": 80,
+    "version": "0.8.80",
+    "date": "2026-10-24T16:57:38Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-80",
+    "commit": "f2be315f4edc33cc055cbd955bc4b61ac3d34a72",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-80.aab",
+      "size": 96505794,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-80/Os-Browser-build-80.aab",
+      "sha256": "6e6682ca48b9752121eaab282a02fa402f5107daedb4b803fec43c982ffad0e6"
+     },
+     {
+      "name": "Os-Browser-build-80.apk",
+      "size": 198205409,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-80/Os-Browser-build-80.apk",
+      "sha256": "ad9201187eebaa9fa9b7410b51c353902513dbb31e28c03b9ae45ce64b0b1d53"
+     }
+    ],
+    "changes": [
+     "Desktop stage 1: Electron skeleton, profiles, tabs, first run"
+    ]
+   },
+   {
+    "tag": "build-76",
+    "build": 76,
+    "version": "0.8.76",
+    "date": "2026-10-24T16:24:45Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-76",
+    "commit": "06a1a2fc861ea428ea449d6afb2366d85fee6685",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-76.aab",
+      "size": 96500378,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-76/Os-Browser-build-76.aab",
+      "sha256": "adc481188367b677affecd47111666c59843dedaf3565d97e2301f5b27ef5078"
+     },
+     {
+      "name": "Os-Browser-build-76.apk",
+      "size": 198189025,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-76/Os-Browser-build-76.apk",
+      "sha256": "3a04acfe606c24b9495c5e71d5de766c1057ea7235dd9ea0b1b385653f75ab35"
+     }
+    ],
+    "changes": [
+     "Site notifications as Android notifications",
+     "Main screen layout for long languages; fix acceptance script tail",
+     "Merge feat/tabs (block A: open tabs, grid, groups, search, selection)",
+     "Merge main into feat/extras (favorites, downloads, block C, Google sign-in popups)",
+     "Revert my open-tabs implementation in favour of block A (feat/tabs)",
+     "Multiple tabs inside a profile",
+     "Fix profile screen crash and tutorial side margins",
+     "Language switch applies everywhere at once",
+     "Statistics screen in settings",
+     "Typical example profiles for new users: Personal, Work, Shopping, Social",
+     "First-run tutorial and example profiles «My mail» / «My company»",
+     "Tabs grid: zero-height placeholder in incomplete rows (fixes hidden sections after a closed tab); shorter current-tab chip",
+     "Main screen: brand header, quick links, first five profiles with «Show all»",
+     "Each profile can have its own pinned tabs",
+     "Profiles: drag to reorder, description and attached files",
+     "Full-screen mode from the browser menu",
+     "Reader mode via built-in Readability extension, save-page diagnostics, stricter D/E/F acceptance",
+     "Tabs: scroll strip to current tab, palette in two rows, per-profile fallbacks; acceptance logs",
+     "Web Push design (docs/WEBPUSH.md), acceptance scenarios for D/E/F, note action first in selection bar",
+     "Extras (D/E/F): default browser, home page, reader mode, saved pages, phrase of the day, about, help, notes from selection",
+     "Acceptance: tab scenarios (grid, groups, search, selection, switch, close)",
+     "Tabs: open tabs per profile, tab grid, groups, search and selection (block A)"
+    ]
+   },
+   {
+    "tag": "build-59",
+    "build": 59,
+    "version": "0.8.59",
+    "date": "2026-10-24T14:16:20Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-59",
+    "commit": "fc39462e25f5d0de52c54cad135cddbd2bbd4ecc",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-59.aab",
+      "size": 96344174,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-59/Os-Browser-build-59.aab",
+      "sha256": "39ef4674ac35b76c384323f62bbc6fde7a5e20f49afc06054039c68926e3f9be"
+     },
+     {
+      "name": "Os-Browser-build-59.apk",
+      "size": 198042617,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-59/Os-Browser-build-59.apk",
+      "sha256": "d814abe26db33ec985c384d5b11b03f2e3476c35beda01cc5d796d56f6b19ecb"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "build-56",
+    "build": 56,
+    "version": "0.8.56",
+    "date": "2026-10-24T14:13:44Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-56",
+    "commit": "fceb69fec27071333a86265804edf09d94c58fd5",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-56.aab",
+      "size": 96344176,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-56/Os-Browser-build-56.aab",
+      "sha256": "b88497d6956b3acda1bd68431def424bcec07df6c8d367aacd7e8f640cfa1012"
+     },
+     {
+      "name": "Os-Browser-build-56.apk",
+      "size": 198042617,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-56/Os-Browser-build-56.apk",
+      "sha256": "76f7c055b8d11d0e0efded260ed9862d9439a48021e32979e1b10be4b14bff7d"
+     }
+    ],
+    "changes": [
+     "Merge feat/security: site permissions, security check, settings search (№12, 13, 30-32)",
+     "Security check: plural-free wording for granted permissions",
+     "SitePermissions: avoid soft keyword as variable name",
+     "Site permissions, site settings, security check, settings search (block C)"
+    ]
+   },
+   {
+    "tag": "build-53",
+    "build": 53,
+    "version": "0.8.53",
+    "date": "2026-10-24T14:08:26Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-53",
+    "commit": "81a78033c8597e7c521f3b7b32889b4cf42a2319",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-53.aab",
+      "size": 96308142,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-53/Os-Browser-build-53.aab",
+      "sha256": "efc3e1459fd4c67626fe545a25871f871bbb11f9ccc859a3c9a7f901ed6d6ad7"
+     },
+     {
+      "name": "Os-Browser-build-53.apk",
+      "size": 198009661,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-53/Os-Browser-build-53.apk",
+      "sha256": "6c3060f4c1e7685af78c3b453e7ca59871ba3bdc720bffb1bc98bf4a8ca6880e"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "build-52",
+    "build": 52,
+    "version": "0.8.52",
+    "date": "2026-10-24T14:04:57Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-52",
+    "commit": "cfd145f5c30d64bdc1cac378d35f76d0243f4b29",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-52.aab",
+      "size": 96308146,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-52/Os-Browser-build-52.aab",
+      "sha256": "21385b3735e6b269b431f2d3a99dd162a3f66716f8fee382a619e8ad52b017d7"
+     },
+     {
+      "name": "Os-Browser-build-52.apk",
+      "size": 198009661,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-52/Os-Browser-build-52.apk",
+      "sha256": "5d08a24c21c297dccb5600d14211f82af4a0347c357a00e7995a4e02fb5ebe1e"
+     }
+    ],
+    "changes": [
+     "Merge feat/bookmarks: Favorites screen with folders (№21, 22)",
+     "Favorites screen with folders, search; browser menu: add/remove favorite, open favorites"
+    ]
+   },
+   {
+    "tag": "build-42",
+    "build": 42,
+    "version": "0.8.42",
+    "date": "2026-10-24T13:40:13Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-42",
+    "commit": "0683af185b0421a5bdaf695a22d876937087f181",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-42.aab",
+      "size": 96291040,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-42/Os-Browser-build-42.aab",
+      "sha256": "479176bcb1ac31af6cbb9bca12a48c36ea944531d0014c436b19af583673ac45"
+     },
+     {
+      "name": "Os-Browser-build-42.apk",
+      "size": 197990820,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-42/Os-Browser-build-42.apk",
+      "sha256": "6cd13e731f97a43f5a0943d47c9d9aa4db33b4d7efed1ca7574795022d6d4f97"
+     }
+    ],
+    "changes": [
+     "Fix Google sign-in loop: open auth popups as real windows with opener (same profile context)"
+    ]
+   },
+   {
+    "tag": "build-40",
+    "build": 40,
+    "version": "0.8.40",
+    "date": "2026-10-24T13:34:14Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-40",
+    "commit": "a3a47edbb480627f4ddbcdbd97e947bba715a8e6",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-40.aab",
+      "size": 96287803,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-40/Os-Browser-build-40.aab",
+      "sha256": "1d313c58a23d762f1ef15e1f906cca17ce1d69b8edb347c22e42bb76c12c2c91"
+     },
+     {
+      "name": "Os-Browser-build-40.apk",
+      "size": 197990820,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-40/Os-Browser-build-40.apk",
+      "sha256": "e81ccf3f35b8f3f9e3723a4d7224f0c9db3ca17f8589a44a885a2775ea1ea127"
+     }
+    ],
+    "changes": [
+     "Downloads screen (№29): list, open via FileProvider, share, delete, clear; menu entry"
+    ]
+   },
+   {
+    "tag": "build-39",
+    "build": 39,
+    "version": "0.8.39",
+    "date": "2026-10-24T13:32:59Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-39",
+    "commit": "bd2ac5e6fe92a862770d8078b964c49b09b0ece8",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-39.aab",
+      "size": 96283514,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-39/Os-Browser-build-39.aab",
+      "sha256": "7edbc0cf70d765f59d2d8cb34ee8c15d00ad08cc2c0e9818b69af4a9b573d45a"
+     },
+     {
+      "name": "Os-Browser-build-39.apk",
+      "size": 197973800,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-39/Os-Browser-build-39.apk",
+      "sha256": "1bb04ac091e2485ce120354da247106aa9866e04c85155ab24c4d2b21c3e06ec"
+     }
+    ],
+    "changes": [
+     "Prepare parallel work: per-block translation modules, CI on feat/** branches, per-branch acceptance results"
+    ]
+   },
+   {
+    "tag": "build-38",
+    "build": 38,
+    "version": "0.8.38",
+    "date": "2026-10-24T13:31:43Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-38",
+    "commit": "e8553756b5d0f7d2031748cbe4bba43034863ce6",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-38.aab",
+      "size": 96282922,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-38/Os-Browser-build-38.aab",
+      "sha256": "68d44c333a3c00057b016f52db7dfa53aa4df64d31a125f86d73c400261d5e44"
+     },
+     {
+      "name": "Os-Browser-build-38.apk",
+      "size": 197973800,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-38/Os-Browser-build-38.apk",
+      "sha256": "306c36fd7d43ccb1ce577d65dd5b7971f168c20a7c1cc8286bf095ec780a5042"
+     }
+    ],
+    "changes": [
+     "Fix start page load: use GeckoSession.Loader().data (loadData removed)",
+     "Localized start page (follows UI language and theme, RTL-aware)"
+    ]
+   },
+   {
+    "tag": "build-35",
+    "build": 35,
+    "version": "0.8.35",
+    "date": "2026-10-24T13:22:26Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-35",
+    "commit": "dfcb7bb05189085c45bacb82428380ce0724d873",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-35.aab",
+      "size": 96281985,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-35/Os-Browser-build-35.aab",
+      "sha256": "c6156837a38c41bfcdca15306207cfbda52fdc59a65c26fec362867c14b1f315"
+     },
+     {
+      "name": "Os-Browser-build-35.apk",
+      "size": 197973796,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-35/Os-Browser-build-35.apk",
+      "sha256": "1f11ae9925ffac806e4ea7420ab983264d3f1f989cc62585eb5e02acff286e57"
+     }
+    ],
+    "changes": [
+     "Foundation stores for favorites and downloads (+ record downloads, i18n keys)"
+    ]
+   },
+   {
+    "tag": "build-34",
+    "build": 34,
+    "version": "0.8.34",
+    "date": "2026-10-24T13:10:48Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-34",
+    "commit": "e3b997031087174ce78385f2f368e2539583a772",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-34.aab",
+      "size": 96277422,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-34/Os-Browser-build-34.aab",
+      "sha256": "1a7588fbb74fae1a9b22e2b090869397df8ddb9d253c16d413c5341da9731c8d"
+     },
+     {
+      "name": "Os-Browser-build-34.apk",
+      "size": 197973796,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-34/Os-Browser-build-34.apk",
+      "sha256": "5be0b31147d1ae0b82e3cf6104aa32b73824b34b8aa2fb9bf8e0dd141507572f"
+     }
+    ],
+    "changes": [
+     "Fix incognito QA findings: close private session on destroy, exit on Home/chip, clear nav state, no tab highlight"
+    ]
+   },
+   {
+    "tag": "build-33",
+    "build": 33,
+    "version": "0.8.33",
+    "date": "2026-10-24T12:53:00Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-33",
+    "commit": "e55cd706ed99f9290c66595a61ca4165880c3aa6",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-33.aab",
+      "size": 96277604,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-33/Os-Browser-build-33.aab",
+      "sha256": "fcde3a14355145614b35377bdd92602396f2a0291ea171f074d6e875d0957a57"
+     },
+     {
+      "name": "Os-Browser-build-33.apk",
+      "size": 197973800,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-33/Os-Browser-build-33.apk",
+      "sha256": "9bec3985bdfbd38bb2c50b791b4a08b59ee74b6ae2af47496e7f7ba60568f14d"
+     }
+    ],
+    "changes": [
+     "Restore Settings methods lost in theme refactor",
+     "Phase 1 business rebrand: scarlet palette + Ось Browser, 6 themes, search engines, incognito, zoom, privacy framing"
+    ]
+   },
+   {
+    "tag": "build-31",
+    "build": 31,
+    "version": "0.8.31",
+    "date": "2026-10-24T09:49:17Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-31",
+    "commit": "f6e7128c7bf6c21ce3c0e747b6c9a2571f0502ce",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-31.aab",
+      "size": 96270848,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-31/Os-Browser-build-31.aab",
+      "sha256": "98e91d5a27ea8a49a617afb0e2eac0141b4474b987ab9bafd552aa849527137a"
+     },
+     {
+      "name": "Os-Browser-build-31.apk",
+      "size": 197973748,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-31/Os-Browser-build-31.apk",
+      "sha256": "a880f1fd3d05bfecb18132f28c4aa77e17ecda745d09623160ea551870d0d1a2"
+     }
+    ],
+    "changes": [
+     "Localize theme labels; language as a dialog list"
+    ]
+   },
+   {
+    "tag": "build-30",
+    "build": 30,
+    "version": "0.8.30",
+    "date": "2026-10-24T09:36:33Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-30",
+    "commit": "d0c6759f360741a0836db582717f00b2624cb415",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-30.aab",
+      "size": 96270590,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-30/Os-Browser-build-30.aab",
+      "sha256": "20fd979bba99f568197e3059a5dfeac6e73c29f25659df799a5353a84e0b1883"
+     },
+     {
+      "name": "Os-Browser-build-30.apk",
+      "size": 197973752,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-30/Os-Browser-build-30.apk",
+      "sha256": "313dc48fd0050b668f1ea106aec7222adb68372e7f0b764552bd7bb69aa8e71e"
+     }
+    ],
+    "changes": [
+     "Multilingual UI: 10 languages, in-app language picker, RTL for Arabic"
+    ]
+   },
+   {
+    "tag": "build-29",
+    "build": 29,
+    "version": "0.8.29",
+    "date": "2026-10-24T09:12:22Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-29",
+    "commit": "aae4013132e54d2c12a406caca0538beb82feabf",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-29.aab",
+      "size": 96246858,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-29/Os-Browser-build-29.aab",
+      "sha256": "f0a4b382ca1deb9e9d3f372482d37abd0725cb8e7c751c08aa685dcde12a0101"
+     },
+     {
+      "name": "Os-Browser-build-29.apk",
+      "size": 197940956,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-29/Os-Browser-build-29.apk",
+      "sha256": "16be509fd1fbbdcf149d5be528b4c6064fad66e17123371e3dc069766475235a"
+     }
+    ],
+    "changes": [
+     "Show friendly label for Start page instead of data: URL"
+    ]
+   },
+   {
+    "tag": "build-28",
+    "build": 28,
+    "version": "0.8.28",
+    "date": "2026-10-24T08:59:49Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-28",
+    "commit": "18ee6b934009836061ada667006eb98dbab5701b",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-28.aab",
+      "size": 96246841,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-28/Os-Browser-build-28.aab",
+      "sha256": "b7df162bb4505c2b65e4992229396efc77347566609c3896c191b6b45ca1413a"
+     },
+     {
+      "name": "Os-Browser-build-28.apk",
+      "size": 197940956,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-28/Os-Browser-build-28.apk",
+      "sha256": "874c9b549cec1a95ebf261ed032b8556ae31081b25997b91b37405e72dff0077"
+     }
+    ],
+    "changes": [
+     "Neutral universal base: Start page default, no bundled brand tabs; user adds any site"
+    ]
+   },
+   {
+    "tag": "build-27",
+    "build": 27,
+    "version": "0.8.27",
+    "date": "2026-10-24T08:55:26Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/build-27",
+    "commit": "21f4ebf4a8fdc49a19d1142b41503ab064b810e6",
+    "engine": "GeckoView (Firefox) 158",
+    "assets": [
+     {
+      "name": "Os-Browser-build-27.aab",
+      "size": 96246073,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-27/Os-Browser-build-27.aab",
+      "sha256": "6499b0d1e6a658dce5fd4837a75d5e4108ff957a9fc4380692f85399539d3ee5"
+     },
+     {
+      "name": "Os-Browser-build-27.apk",
+      "size": 197940952,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/build-27/Os-Browser-build-27.apk",
+      "sha256": "daf2209ddc571e12273afe82fd83ffa06799a3b003fad02fb03478e9d442262b"
+     }
+    ],
+    "changes": [
+     "Fix tab label truncation; store listing assets"
+    ]
+   }
+  ]
+ },
+ "windows": {
+  "latest": {
+   "tag": "desktop-29",
+   "build": 29,
+   "version": "0.1.29",
+   "date": "2026-10-24T21:33:10Z",
+   "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-29",
+   "commit": "372f225bfb763af54b35fb84ad2f5b312f9322c4",
+   "engine": "Electron 44.9.3",
+   "assets": [
+    {
+     "name": "Os-Browser-Portable-0.1.29.zip",
+     "size": 153716585,
+     "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-29/Os-Browser-Portable-0.1.29.zip",
+     "sha256": "570e358863a2fbc43a79a22e8d33b1737a1c7072ce80f8e606f85b0337331c81"
+    },
+    {
+     "name": "Os-Browser-Setup-0.1.29.exe",
+     "size": 120809524,
+     "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-29/Os-Browser-Setup-0.1.29.exe",
+     "sha256": "d836d9a2492391367d8aecd1daa18556e71fa43836e6a01bafcb05aa7dee4868"
+    }
+   ],
+   "changes": []
+  },
+  "releases": [
+   {
+    "tag": "desktop-29",
+    "build": 29,
+    "version": "0.1.29",
+    "date": "2026-10-24T21:33:10Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-29",
+    "commit": "372f225bfb763af54b35fb84ad2f5b312f9322c4",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Portable-0.1.29.zip",
+      "size": 153716585,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-29/Os-Browser-Portable-0.1.29.zip",
+      "sha256": "570e358863a2fbc43a79a22e8d33b1737a1c7072ce80f8e606f85b0337331c81"
+     },
+     {
+      "name": "Os-Browser-Setup-0.1.29.exe",
+      "size": 120809524,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-29/Os-Browser-Setup-0.1.29.exe",
+      "sha256": "d836d9a2492391367d8aecd1daa18556e71fa43836e6a01bafcb05aa7dee4868"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "desktop-28",
+    "build": 28,
+    "version": "0.1.28",
+    "date": "2026-10-24T19:24:56Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-28",
+    "commit": "9597e86f0b18501b83471000af7f88d02d9422b7",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Portable-0.1.28.zip",
+      "size": 153715969,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-28/Os-Browser-Portable-0.1.28.zip",
+      "sha256": "262112256fcc4ae38ab30dfb868fbc3e49268230d5fc4767fc12fb89f5385ed9"
+     },
+     {
+      "name": "Os-Browser-Setup-0.1.28.exe",
+      "size": 120809010,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-28/Os-Browser-Setup-0.1.28.exe",
+      "sha256": "e4c678ac1d68b7a5aaf7b6cab4ec1b9fc1165e0f194a6755ead09c85b2c52b74"
+     }
+    ],
+    "changes": [
+     "Installer check: pass /D= through PowerShell for both folders",
+     "Installer check: chosen folder in Latin and Cyrillic, with a file listing",
+     "CI builds all Windows targets (installer and zip); Cyrillic install path without spaces",
+     "Portable zip: name via win.artifactName; installer check stops without a built setup",
+     "Portable zip build; installer check in a Cyrillic folder"
+    ]
+   },
+   {
+    "tag": "desktop-27",
+    "build": 27,
+    "version": "0.1.27",
+    "date": "2026-10-24T19:22:37Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-27",
+    "commit": "2be82c85f497d498f97876f3ec9168fe74e5cb73",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Setup-0.1.27.exe",
+      "size": 120809107,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-27/Os-Browser-Setup-0.1.27.exe",
+      "sha256": "ef8a385d05b40bfd9732ff3dae5f8c2ae4c726bc83998386a6a8388a292dde70"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "desktop-21",
+    "build": 21,
+    "version": "0.1.21",
+    "date": "2026-10-24T18:34:51Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-21",
+    "commit": "bcfd14646e8ec6508a7eeef4a44655c3c90d574f",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Setup-0.1.21.exe",
+      "size": 120808744,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-21/Os-Browser-Setup-0.1.21.exe",
+      "sha256": "7c8c088d45c2b05c30d08d9b8d7eb5eb848f38f40ef83e8b971878fb3f28465c"
+     }
+    ],
+    "changes": [
+     "Installer: Ось icon, check install over the previous release and shortcut targets"
+    ]
+   },
+   {
+    "tag": "desktop-19",
+    "build": 19,
+    "version": "0.1.19",
+    "date": "2026-10-24T18:14:48Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-19",
+    "commit": "264ed1635faf0eedee38aee27fa09e388063aa80",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Setup-0.1.19.exe",
+      "size": 120795984,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-19/Os-Browser-Setup-0.1.19.exe",
+      "sha256": "741d360de2068bf2ae3714e9b8bece88169701888ee1092226600d617a0f966c"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "desktop-18",
+    "build": 18,
+    "version": "0.1.18",
+    "date": "2026-10-24T18:00:52Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-18",
+    "commit": "0ed8632d05119fa0fe17f86f1cbc30cde4cce87d",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Setup-0.1.18.exe",
+      "size": 120795414,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-18/Os-Browser-Setup-0.1.18.exe",
+      "sha256": "d84bbf294bf835aaaf011761291cbc475811cba5d875da355a63c9d74ffda399"
+     }
+    ],
+    "changes": [
+     "Downloads: pause, resume and continue after a dropped connection or restart"
+    ]
+   },
+   {
+    "tag": "desktop-17",
+    "build": 17,
+    "version": "0.1.17",
+    "date": "2026-10-24T17:56:14Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-17",
+    "commit": "91a945f9356773785d24f534949a5e4a83b61db1",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Setup-0.1.17.exe",
+      "size": 120793983,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-17/Os-Browser-Setup-0.1.17.exe",
+      "sha256": "231cb62f3bc7f1b0cc5b126a44c64135afb24533014a4eaf623ce7867eefd8d4"
+     }
+    ],
+    "changes": []
+   },
+   {
+    "tag": "desktop-14",
+    "build": 14,
+    "version": "0.1.14",
+    "date": "2026-10-24T17:36:25Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-14",
+    "commit": "a0caf95b848e644643943da4f3f94637ccfc98c1",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Setup-0.1.14.exe",
+      "size": 120794100,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-14/Os-Browser-Setup-0.1.14.exe",
+      "sha256": "787a1bef180477d0d78942f799b02e7cf47c802bb3c30e9d713b1d395ad291a7"
+     }
+    ],
+    "changes": [
+     "Installer check: the per-user install folder is named after the product",
+     "Installer check: convert Windows paths for Git Bash",
+     "Desktop stage 5: auto-update, uninstall with data question, installer check"
+    ]
+   },
+   {
+    "tag": "desktop-10",
+    "build": 10,
+    "version": "0.1.10",
+    "date": "2026-10-24T17:22:13Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-10",
+    "commit": "d2b3c9250f7c133c347ebab2267ed2a1f6c84a2a",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Setup-0.1.10.exe",
+      "size": 120697437,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-10/Os-Browser-Setup-0.1.10.exe",
+      "sha256": "8595ee05ba061ba5477f77b33cba67a20f9f27e1ff1697134c23919088179fae"
+     }
+    ],
+    "changes": [
+     "Desktop stage 4: reader mode, text actions, notifications, default browser, help"
+    ]
+   },
+   {
+    "tag": "desktop-8",
+    "build": 8,
+    "version": "0.1.8",
+    "date": "2026-10-24T17:14:30Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-8",
+    "commit": "cdd11a47213d6c53f93922a6a86e82633b683602",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Setup-0.1.8.exe",
+      "size": 120668370,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-8/Os-Browser-Setup-0.1.8.exe",
+      "sha256": "b69970150718891c3f560449750017ba4e6429fa88895b713682f7bbec1f8304"
+     }
+    ],
+    "changes": [
+     "Desktop stage 3: tracker blocking, HTTPS-only, site permissions, PIN lock"
+    ]
+   },
+   {
+    "tag": "desktop-6",
+    "build": 6,
+    "version": "0.1.6",
+    "date": "2026-10-24T17:09:14Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-6",
+    "commit": "54a68d4283e06567322800518839eab2cf8a0491",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Setup-0.1.6.exe",
+      "size": 120608385,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-6/Os-Browser-Setup-0.1.6.exe",
+      "sha256": "f727175228a87c0d7fca3527158458988b6cdab6bc0ed52d7120ec06f0adae01"
+     }
+    ],
+    "changes": [
+     "Desktop acceptance: wait for profile clearing instead of a fixed pause",
+     "Desktop stage 2: history, favorites, downloads, saved pages, stats, clearing"
+    ]
+   },
+   {
+    "tag": "desktop-4",
+    "build": 4,
+    "version": "0.1.4",
+    "date": "2026-10-24T16:57:23Z",
+    "page": "https://github.com/basilsolanji-hash/Browser/releases/tag/desktop-4",
+    "commit": "f2be315f4edc33cc055cbd955bc4b61ac3d34a72",
+    "engine": "Electron 44.9.3",
+    "assets": [
+     {
+      "name": "Os-Browser-Setup-0.1.4.exe",
+      "size": 120601058,
+      "url": "https://github.com/basilsolanji-hash/Browser/releases/download/desktop-4/Os-Browser-Setup-0.1.4.exe",
+      "sha256": "312b84d60e27067acacb6f85caa323290c6a7429eebc0760e59f96a69cea987d"
+     }
+    ],
+    "changes": []
+   }
+  ]
+ }
+}

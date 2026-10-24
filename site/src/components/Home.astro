@@ -1,0 +1,94 @@
+---
+// Главная по прототипу docs/site-prototype/index.html.
+import Icon from './Icon.astro';
+import { t, href, asset } from '../lib/i18n';
+const { lang } = Astro.props;
+const L = (k: string, v?: Record<string, string>) => t(lang, k, v);
+// Заголовок первого экрана: *слово* выделяется акцентом.
+const [h1a, h1b = '', h1c = ''] = L('hero_title').split('*');
+const features = [['profiles', 'f1'], ['tabs', 'f2'], ['shield', 'f3'], ['book', 'f4'], ['note', 'f5'], ['bell', 'f6']];
+---
+<div class="wrap hero">
+<div>
+<p class="badge"><span class="dot"></span>{L('hero_badge')}</p>
+<h1>{h1a}<span class="accent">{h1b}</span>{h1c}</h1>
+<p class="lead">{L('hero_lead')}</p>
+<div class="actions">
+<a class="btn btn-primary btn-lg" href={href(lang, 'download') + '#android'}><Icon name="download" size={20} />{L('hero_cta_android')}</a>
+<a class="btn btn-ghost btn-lg" href={href(lang, 'download') + '#windows'}>{L('hero_cta_windows')}</a>
+</div>
+<p class="note">{L('hero_note')}</p>
+</div>
+<div class="mock" aria-hidden="true">
+<div class="mock-win">
+<div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span>
+<div class="mock-tabs"><span class="on">{L('mock_mail')}</span><span>{L('mock_calendar')}</span><span>{L('mock_crm')}</span></div></div>
+<div class="mock-url"><Icon name="lock" size={14} />mail.example.com</div>
+<div class="mock-grid"><div></div><div></div><div></div><div class="w2"></div><div class="h90"></div></div>
+</div>
+<div class="mock-phone">
+<div class="mock-phone-title">{L('mock_profiles')}</div>
+<div class="mock-prof c-red"><div><b>{L('mock_personal')}</b><small class="ltr">anna@mail.example</small></div><span class="tag">{L('mock_badge')}</span></div>
+<div class="mock-prof c-purple"><div><b>{L('mock_work')}</b><small class="ltr">a.ivanova@company.example</small></div></div>
+<div class="mock-prof c-indigo"><div><b>{L('mock_shopping')}</b><small>{L('mock_signed_out')}</small></div></div>
+<div class="mock-prof c-blue"><div><b>{L('mock_social')}</b><small>{L('mock_signed_out')}</small></div></div>
+</div>
+</div>
+</div>
+
+<section class="band" aria-label={L('principles')}>
+<div class="wrap principles">
+{[1, 2, 3, 4].map((i) => <div><b>{L(`pr${i}_t`)}</b><span>{L(`pr${i}_d`)}</span></div>)}
+</div>
+</section>
+
+<section id="features" class="wrap section reveal" aria-labelledby="h-features">
+<h2 class="h2" id="h-features">{L('feat_title')}</h2>
+<p class="lead">{L('feat_lead')}</p>
+<div class="grid cards-3">
+{features.map(([icon, k]) => <article class="card"><span class="icon"><Icon name={icon} /></span><h3>{L(`${k}_t`)}</h3><p>{L(`${k}_d`)}</p></article>)}
+</div>
+<p><a href={href(lang, 'features')}>{L('feat_more')}<span class="arr" aria-hidden="true"> →</span></a></p>
+</section>
+
+<section id="profiles" class="wrap section split reveal" aria-labelledby="h-profiles">
+<div>
+<h2 class="h2" id="h-profiles">{L('prof_title')}</h2>
+<p class="lead">{L('prof_lead')}</p>
+<ol class="steps"><li>{L('prof_li1')}</li><li>{L('prof_li2')}</li><li>{L('prof_li3')}</li></ol>
+</div>
+<div class="pgrid" aria-hidden="true">
+<div class="c-red"><i></i><b>{L('mock_personal')}</b><small>{L('mock_c1')}</small></div>
+<div class="c-purple"><i></i><b>{L('mock_work')}</b><small>{L('mock_c2')}</small></div>
+<div class="c-indigo"><i></i><b>{L('mock_client')}</b><small>{L('mock_c3')}</small></div>
+<div class="more">{L('mock_more')}</div>
+</div>
+</section>
+
+<section id="privacy" class="band" aria-labelledby="h-privacy">
+<div class="wrap section reveal">
+<h2 class="h2" id="h-privacy">{L('priv_title')}</h2>
+<div class="facts">
+{[1, 2, 3, 4, 5, 6].map((i) => <div><h3>{L(`p${i}_t`)}</h3><p>{L(`p${i}_d`)}</p></div>)}
+</div>
+<p class="row"><a href={href(lang, 'privacy-security')}>{L('priv_more')}<span class="arr" aria-hidden="true"> →</span></a><a href={asset('privacy.html')}>{L('footer_policy')}</a></p>
+</div>
+</section>
+
+<section id="platforms" class="wrap section reveal" aria-labelledby="h-platforms">
+<h2 class="h2" id="h-platforms">{L('plat_title')}</h2>
+<div class="grid cards-4 top-40">
+<div class="card plat"><b>Android</b><span class="muted">{L('plat_android_d')}</span><span class="spacer"></span><a class="btn btn-primary" href={href(lang, 'download') + '#android'}>{L('plat_android_cta')}</a></div>
+<div class="card plat"><b>Windows</b><span class="muted">{L('plat_windows_d')}</span><span class="spacer"></span><a class="btn btn-primary" href={href(lang, 'download') + '#windows'}>{L('plat_windows_cta')}</a></div>
+<div class="card card-soon plat"><b>{L('plat_ios')}</b><span class="muted">{L('plat_dev')}</span><span class="spacer"></span><span class="btn btn-soon">{L('plat_ios_cta')}</span></div>
+<div class="card card-soon plat"><b>{L('plat_mac')}</b><span class="muted">{L('plat_dev')}</span><span class="spacer"></span><span class="btn btn-soon">{L('plat_soon')}</span></div>
+</div>
+</section>
+
+<section id="faq" class="wrap narrow faq reveal" aria-labelledby="h-faq">
+<h2 class="h2" id="h-faq">{L('faq_title')}</h2>
+<div class="top-28">
+{[1, 2, 3, 4].map((i) => <details><summary>{L(`faq${i}_q`)}</summary><p class:list={[{ placeholder: i === 1 }]}>{L(`faq${i}_a`)}</p></details>)}
+</div>
+<p class="pad-end"><a href={href(lang, 'help')}>{L('faq_more')}<span class="arr" aria-hidden="true"> →</span></a></p>
+</section>

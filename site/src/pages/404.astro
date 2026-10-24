@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { LANGS, t, href, isRtl } from '../lib/i18n';
+// GitHub Pages отдаёт один 404.html на все адреса: в нём текст на всех языках,
+// not-found.js показывает нужный по адресу или сохранённому выбору. Без JavaScript — английский.
+---
+<Layout lang="en" page={null} title={t('en', 'nf_title')} desc={t('en', 'nf_desc')} scripts={['not-found.js']}>
+<div class="wrap page-head prose">
+{LANGS.map((l) => <div data-nf={l} lang={l} dir={isRtl(l) ? 'rtl' : 'ltr'} hidden={l !== 'en'} data-title={t(l, 'nf_title')}>
+<h1 class="h1">{t(l, 'nf_title')}</h1>
+<p class="lead">{t(l, 'nf_lead')}</p>
+<div class="actions"><a class="btn btn-primary" href={href(l)}>{t(l, 'nf_home')}</a><a class="btn btn-ghost" href={href(l, 'download')}>{t(l, 'nav_download')}</a></div>
+</div>)}
+</div>
+</Layout>

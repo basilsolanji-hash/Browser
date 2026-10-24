@@ -1,0 +1,5 @@
+---
+// Логотип: кольцо «О» на оси, точка слева, квадрат справа. Кольцо — цвет текста темы.
+const { width = 56 } = Astro.props;
+---
+<svg width={width} height={Math.round((width * 22) / 56)} viewBox="0 0 56 22" aria-hidden="true" class="ltr"><circle cx="4" cy="11" r="3.5" fill="var(--accent)"></circle><line x1="4" y1="11" x2="52" y2="11" stroke="var(--accent)" stroke-width="2.5"></line><circle cx="26" cy="11" r="8.5" fill="none" stroke="currentColor" stroke-width="3"></circle><rect x="48" y="7.5" width="7" height="7" fill="var(--accent)"></rect></svg>

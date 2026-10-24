@@ -1,0 +1,93 @@
+---
+// «Скачать» по прототипу docs/site-prototype/download.html. Ссылки и суммы — из releases.json.
+import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
+import { t, href, fmtDate, fmtSize } from '../../lib/i18n';
+import { langPaths } from '../../lib/paths';
+import { android, windows, apk, exe, zip, repoReleases } from '../../lib/releases';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.params;
+const L = (k: string, v?: Record<string, string | number>) => t(lang, k, v);
+const meta = (r: typeof android, a: typeof apk) => r && a ? L('dl_meta', { version: r.latest.version ?? r.latest.tag, date: fmtDate(lang, r.latest.date), size: fmtSize(lang, a.size) }) : L('dl_unavailable');
+const rec = [
+  { id: 'android', name: L('dl_name_android'), meta: meta(android, apk), cta: L('dl_cta_android'), url: apk?.url ?? repoReleases },
+  { id: 'windows', name: L('dl_name_windows'), meta: meta(windows, exe), cta: L('dl_cta_windows'), url: exe?.url ?? repoReleases },
+  { id: 'ios', name: L('dl_name_ios'), meta: L('dl_soon_meta'), cta: L('dl_cta_soon'), url: href(lang, 'changelog') },
+  { id: 'mac', name: L('dl_name_mac'), meta: L('dl_soon_meta'), cta: L('dl_cta_soon'), url: href(lang, 'changelog') },
+];
+const tabs = [['android', 'Android'], ['windows', 'Windows'], ['ios', L('plat_ios')], ['mac', 'macOS']];
+---
+<Layout lang={lang} page="download" title={L('dl_title')} desc={L('dl_desc')} scripts={['download.js']}>
+<div class="wrap page-head">
+<h1 class="h1">{L('dl_title')}</h1>
+<p class="lead">{L('dl_lead')}</p>
+
+<section class="rec" aria-label={L('dl_rec')} data-rec>
+{rec.map((r) => <div class="rec-panel" data-panel={r.id} hidden={r.id !== 'android'}>
+<div class="rec-row">
+<div>
+<p class="rec-label">{L('dl_for_device')}</p>
+<p class="rec-name">{r.name}</p>
+<p class="rec-meta">{r.meta}</p>
+</div>
+<a class="btn btn-primary btn-lg" href={r.url} data-platform-cta={r.id}><Icon name="download" size={20} />{r.cta}</a>
+</div>
+</div>)}
+</section>
+
+<div class="tabs" role="group" aria-label={L('dl_show_for')} data-tabs hidden>
+{tabs.map(([id, label]) => <button type="button" class="tab" data-id={id} aria-pressed={id === 'android' ? 'true' : 'false'}>{label}</button>)}
+</div>
+
+<div class="grid dl-cards">
+<article id="android" class="card" data-card="android">
+<h2>Android</h2>
+<ul><li>{L('dl_android_r1')}</li><li>{L('dl_android_r2')}</li><li class="placeholder">{L('dl_android_r3')}</li></ul>
+<div class="row">
+<a class="btn btn-primary" href={apk?.url ?? repoReleases}>{L('dl_cta_android')}</a>
+<a class="btn btn-ghost" href="#install-android">{L('dl_how')}</a>
+</div>
+{android && <p class="small">{L('dl_engine')}: {android.latest.engine} · {meta(android, apk)}</p>}
+{apk?.sha256 && <p class="small">{L('dl_sha')}: <span class="hash">{apk.sha256}</span></p>}
+</article>
+<article id="windows" class="card" data-card="windows">
+<h2>Windows</h2>
+<ul><li>{L('dl_win_r1')}</li><li>{L('dl_win_r2')}</li><li>{L('dl_win_r3')}</li></ul>
+<div class="row">
+<a class="btn btn-primary" href={exe?.url ?? repoReleases}>{L('dl_win_exe')}</a>
+<a class="btn btn-ghost" href={zip?.url ?? repoReleases}>{L('dl_win_zip')}</a>
+</div>
+<p class="small">{L('dl_smartscreen')}</p>
+{windows && <p class="small">{L('dl_engine')}: {windows.latest.engine} · {meta(windows, exe)}</p>}
+{exe?.sha256 && <p class="small">{L('dl_sha')} .exe: <span class="hash">{exe.sha256}</span></p>}
+{zip?.sha256 && <p class="small">{L('dl_sha')} .zip: <span class="hash">{zip.sha256}</span></p>}
+</article>
+<article id="ios" class="card card-soon" data-card="ios">
+<h2>{L('plat_ios')}</h2>
+<p>{L('dl_ios_d')}</p>
+</article>
+<article id="mac" class="card card-soon" data-card="mac">
+<h2>macOS</h2>
+<p>{L('dl_mac_d')}</p>
+</article>
+</div>
+
+<section class="install" aria-labelledby="h-install">
+<h2 id="h-install">{L('dl_install_title')}</h2>
+<h3 id="install-android">{L('dl_inst_android')}</h3>
+<ol>{[1, 2, 3, 4].map((i) => <li>{L(`inst_a${i}`)}</li>)}</ol>
+<h3 id="install-windows">{L('dl_inst_windows')}</h3>
+<ol>{[1, 2, 3, 4].map((i) => <li>{L(`inst_w${i}`)}</li>)}</ol>
+<h3>{L('dl_verify_title')}</h3>
+<p class="muted">{L('dl_verify_d')}</p>
+<ul class="muted"><li>Windows: <code>certutil -hashfile Os-Browser-Setup.exe SHA256</code></li><li>macOS, Linux: <code>shasum -a 256 Os-Browser-build.apk</code></li></ul>
+</section>
+
+<section class="box">
+<h2>{L('dl_all_title')}</h2>
+<p>{L('dl_all_d')}</p>
+<a href={href(lang, 'changelog')}>{L('dl_all_link')}</a>
+</section>
+<div class="pad-end"></div>
+</div>
+</Layout>

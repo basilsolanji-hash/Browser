@@ -1,0 +1,58 @@
+---
+// Общий каркас страницы: заголовки безопасности, SEO (hreflang, canonical, OG), шапка и подвал.
+import '../styles/site.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { LANGS, t, href, asset, isRtl } from '../lib/i18n';
+
+interface Props { lang: string; page?: string | null; title: string; desc: string; jsonld?: object; scripts?: string[]; canonical?: string }
+const { lang, page = '', title, desc, jsonld, scripts = [], canonical } = Astro.props;
+const site = Astro.site!.toString().replace(/\/$/, '');
+const abs = (p: string) => site + p;
+const fontSubset = lang === 'ru' ? 'cyrillic' : 'latin';
+const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'";
+---
+<!doctype html>
+<html lang={lang} dir={isRtl(lang) ? 'rtl' : 'ltr'}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content={csp}>
+<meta name="referrer" content="no-referrer">
+<title>{title}</title>
+<meta name="description" content={desc}>
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F6F5F4">
+<link rel="icon" href={asset('favicon.svg')} type="image/svg+xml">
+<link rel="preload" href={asset(`fonts/inter-${fontSubset}-400-normal.woff2`)} as="font" type="font/woff2" crossorigin>
+{!['ar', 'hi', 'zh'].includes(lang) && <link rel="preload" href={asset(`fonts/unbounded-${fontSubset}-700-normal.woff2`)} as="font" type="font/woff2" crossorigin>}
+{page !== null && <>
+<link rel="canonical" href={canonical ?? abs(href(lang, page))}>
+{LANGS.map((l) => <link rel="alternate" hreflang={l} href={abs(href(l, page))}>)}
+<link rel="alternate" hreflang="x-default" href={abs(href('en', page))}>
+</>}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ось">
+<meta property="og:title" content={title}>
+<meta property="og:description" content={desc}>
+<meta property="og:image" content={abs(asset(`og/${lang}.png`))}>
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content={lang}>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content={title}>
+<meta name="twitter:description" content={desc}>
+<meta name="twitter:image" content={abs(asset(`og/${lang}.png`))}>
+{jsonld && <script type="application/ld+json" set:html={JSON.stringify(jsonld)} />}
+<script src={asset('js/site.js')} defer></script>
+{scripts.map((s) => <script src={asset(`js/${s}`)} defer></script>)}
+</head>
+<body>
+<a class="skip" href="#main">{t(lang, 'skip')}</a>
+<Header lang={lang} page={page} />
+<main id="main">
+<slot />
+</main>
+<Footer lang={lang} page={page} />
+</body>
+</html>

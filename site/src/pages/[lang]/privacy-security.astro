@@ -1,0 +1,29 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { t, asset } from '../../lib/i18n';
+import { langPaths } from '../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.params;
+const L = (k: string) => t(lang, k);
+const list = (k: string, n: number) => Array.from({ length: n }, (_, i) => L(`${k}_${i + 1}`));
+---
+<Layout lang={lang} page="privacy-security" title={L('ps_title')} desc={L('ps_desc')}>
+<div class="wrap narrow page-head prose">
+<h1 class="h1">{L('ps_title')}</h1>
+<p class="lead">{L('ps_lead')}</p>
+
+<h2 id="h-store">{L('ps_store_t')}</h2>
+<p>{L('ps_store_d')}</p>
+<section class="table-wrap" aria-labelledby="h-store" tabindex="0"><table>
+<thead><tr><th scope="col">{L('ps_th_data')}</th><th scope="col">{L('ps_th_where')}</th><th scope="col">{L('ps_th_delete')}</th></tr></thead>
+<tbody>{[1, 2, 3, 4].map((i) => <tr><th scope="row">{L(`ps_row${i}`)}</th><td>{L(`ps_row${i}_w`)}</td><td>{L(`ps_row${i}_d`)}</td></tr>)}</tbody>
+</table></section>
+
+<h2>{L('ps_net_t')}</h2><ul>{list('ps_net', 3).map((s) => <li>{s}</li>)}</ul>
+<h2>{L('ps_track_t')}</h2><ul>{list('ps_track', 3).map((s) => <li>{s}</li>)}</ul>
+<h2>{L('ps_perm_t')}</h2><ul>{list('ps_perm', 2).map((s) => <li>{s}</li>)}</ul>
+<h2>{L('ps_lock_t')}</h2><ul>{list('ps_lock', 2).map((s) => <li>{s}</li>)}</ul>
+<h2>{L('ps_limits_t')}</h2><ul>{list('ps_limits', 3).map((s) => <li>{s}</li>)}</ul>
+<p class="top-40"><a href={asset('privacy.html')}>{L('ps_policy')}<span class="arr" aria-hidden="true"> →</span></a></p>
+</div>
+</Layout>

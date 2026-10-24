@@ -1,0 +1,24 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
+import { t, href } from '../../lib/i18n';
+import { langPaths } from '../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.params;
+const L = (k: string) => t(lang, k);
+const blocks: [string, string, number][] = [['profiles', 'fp_prof', 3], ['tabs', 'fp_tabs', 3], ['book', 'fp_read', 2], ['note', 'fp_notes', 2], ['bell', 'fp_notif', 2], ['chart', 'fp_stats', 2], ['plus', 'fp_more', 4]];
+---
+<Layout lang={lang} page="features" title={L('fp_title')} desc={L('fp_desc')}>
+<div class="wrap page-head">
+<h1 class="h1">{L('fp_title')}</h1>
+<p class="lead">{L('fp_lead')}</p>
+<div class="grid cards-3">
+{blocks.map(([icon, k, n]) => <section class="card" aria-labelledby={`h-${k}`}>
+<span class="icon"><Icon name={icon} /></span>
+<h2 class="card-h" id={`h-${k}`}>{L(`${k}_t`)}</h2>
+<ul class="card-list">{Array.from({ length: n }, (_, i) => <li>{L(`${k}_${i + 1}`)}</li>)}</ul>
+</section>)}
+</div>
+<div class="actions pad-end"><a class="btn btn-primary btn-lg" href={href(lang, 'download')}><Icon name="download" size={20} />{t(lang, 'nav_download')}</a></div>
+</div>
+</Layout>
