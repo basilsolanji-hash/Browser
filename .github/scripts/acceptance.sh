@@ -17,6 +17,28 @@ main() { adb shell am start -n "$PKG/ru.multibrowser.MainActivity" "$@" >/dev/nu
 browser() { adb shell am start -n "$PKG/ru.multibrowser.BrowserActivity" "$@" >/dev/null; }
 settings() { adb shell am start -n "$PKG/ru.multibrowser.SettingsActivity" "$@" >/dev/null; }
 rotate() { adb shell settings put system accelerometer_rotation 0; adb shell settings put system user_rotation "$1"; }
+tabs() { adb shell am start -n "$PKG/ru.multibrowser.TabsActivity" "$@" >/dev/null; }
+# Нажать на элемент по тексту или contentDescription (без учёта регистра) через дамп uiautomator.
+tap() {
+  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+  adb shell cat /sdcard/ui.xml > "$OUT/ui.xml" 2>/dev/null
+  local xy
+  xy=$(python3 - "$OUT/ui.xml" "$1" <<'PY'
+import sys, re, xml.etree.ElementTree as ET
+q = sys.argv[2].lower()
+try:
+    root = ET.parse(sys.argv[1]).getroot()
+except Exception:
+    sys.exit(0)
+for n in root.iter('node'):
+    if (n.get('text') or '').lower() == q or (n.get('content-desc') or '').lower() == q:
+        x1, y1, x2, y2 = map(int, re.findall(r'\d+', n.get('bounds')))
+        print((x1 + x2) // 2, (y1 + y2) // 2)
+        break
+PY
+)
+  if [ -n "$xy" ]; then adb shell input tap $xy; echo "tap '$1' at $xy"; else echo "TAP NOT FOUND: '$1'"; fi
+}
 
 # --- Сценарии ---
 main;                                                                     shot 01-main 10
@@ -29,7 +51,31 @@ browser --ei profile 2 --es url https://claude.ai/;                       shot 0
 browser --ei profile 4 --es url https://claude.ai/;                       shot 07-p4-claude 40
 rotate 1; sleep 3;                                                        shot 08-claude-landscape 6
 rotate 0; sleep 3
-settings;                                                                 shot 09-settings 6
+# --- Вкладки (блок A): профиль 7 — чистый ---
+tabs --ei profile 7;                                                      shot 20-tabs-empty 5
+browser --ei profile 7 --es action new_tab --es url https://example.com;  shot 21-newtab-example 25
+browser --ei profile 7 --es action new_tab --es url https://ru.wikipedia.org; sleep 20
+browser --ei profile 7 --es action new_tab;                               shot 22-newtab-start 8
+tap "Menu";                                                               shot 23-menu 3
+adb shell input keyevent KEYCODE_BACK; sleep 1
+tap "Tabs";                                                               shot 24-tabs-grid 4
+adb shell input keyevent KEYCODE_BACK; sleep 1
+tabs --ei profile 7 --es demo_group Work;                                 shot 25-tabs-group 4
+tabs --ei profile 7 --es filter wiki;                                     shot 26-tabs-search 4
+tabs --ei profile 7 --es filter zzzz;                                     shot 27-tabs-notfound 4
+tabs --ei profile 7 --es mode select --ez select_all true;                shot 28-tabs-select 4
+tabs --ei profile 7;                                                      sleep 3
+tap "Example Domain";                                                     shot 29-tab-switched 8
+browser --ei profile 7 --es action new_group;                             shot 30-new-group-dialog 4
+adb shell input keyevent KEYCODE_BACK; sleep 1
+adb shell input keyevent KEYCODE_BACK; sleep 1
+tabs --ei profile 7;                                                      sleep 3
+tap "Close tab";                                                          shot 31-tab-closed 3
+browser --ei profile 7 --es action close_all;                             shot 32-close-all-dialog 4
+tap "Close";                                                              shot 33-after-close-all 6
+tabs --ei profile 7;                                                      shot 34-tabs-after-close 4
+adb shell input keyevent KEYCODE_BACK; sleep 1
+settings;                                                               shot 09-settings 6
 # Светлая тема (2-й пункт переключателя «Тема» рядом с верхом). Тап по координате сегмента «Светлая».
 adb shell input tap 540 340; sleep 2;                                     shot 10-settings-light 3
 browser --ei profile 5 --es site claude --es url https://claude.ai/;      shot 11-claude-light 40
@@ -75,7 +121,8 @@ def read_png(path):
 
 outdir=sys.argv[1]
 # Эти экраны обязаны показывать реальную страницу — не пустую.
-must_render={'02-example','03-wikipedia','05-p1-claude','06-p2-claude','07-p4-claude','11-claude-light','14-session-restored'}
+must_render={'02-example','03-wikipedia','05-p1-claude','06-p2-claude','07-p4-claude','11-claude-light','14-session-restored',
+             '21-newtab-example','24-tabs-grid','25-tabs-group','28-tabs-select','29-tab-switched'}
 fails=[]
 for path in sorted(glob.glob(os.path.join(outdir,'*.png'))):
     name=os.path.splitext(os.path.basename(path))[0]

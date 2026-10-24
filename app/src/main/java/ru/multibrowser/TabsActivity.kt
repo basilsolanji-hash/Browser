@@ -241,6 +241,7 @@ class TabsActivity : AppCompatActivity() {
                 .setPositiveButton(Tr.t("delete")) { _, _ -> Tabs.deleteGroup(this, profile, g.id); render() }
                 .setNegativeButton(Tr.t("cancel"), null)
                 .show()
+            Unit
         }
         popup(anchor, items)
     }
