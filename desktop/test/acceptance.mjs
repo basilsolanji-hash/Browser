@@ -4,6 +4,7 @@
 // Запуск: npm run build && node test/acceptance.mjs [этап]
 import { _electron } from 'playwright';
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -47,15 +48,39 @@ async function waitFor(fn, timeout = 10000, every = 150) {
 
 // --- Тестовый сайт: cookies и страницы ---
 const seen = [];
+// 6 МБ неповторяющихся данных: по контрольной сумме видно, что докачка склеила файл правильно.
+const BIG = Buffer.alloc(6 * 1024 * 1024);
+for (let i = 0; i < BIG.length; i++) BIG[i] = (i * 31 + (i >> 11)) & 255;
+const BIG_SHA = createHash('sha256').update(BIG).digest('hex');
+let bigDrop = true;
 const server = createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
-  seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '' });
+  seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '', range: req.headers.range });
   res.setHeader('content-type', 'text/html; charset=utf-8');
   if (u.pathname === '/set') {
     res.setHeader('set-cookie', `os_test=${u.searchParams.get('p')}; Path=/; Max-Age=86400`);
     res.end(`<title>Set ${u.searchParams.get('p')}</title><h1>cookie set</h1>`);
   } else if (u.pathname === '/get') {
     res.end(`<title>Get</title><h1 id="c">${(req.headers.cookie ?? '').replace(/</g, '')}</h1><script>document.title='Get '+(document.cookie||'none')</script>`);
+  } else if (u.pathname === '/big.bin') {
+    // Медленный файл с Range/ETag: проверка паузы, обрыва и докачки после перезапуска.
+    const range = req.headers.range;
+    const start = range ? Number(/bytes=(\d+)-/.exec(range)[1]) : 0;
+    res.writeHead(range ? 206 : 200, {
+      'content-type': 'application/octet-stream', 'content-disposition': 'attachment; filename="os-big.bin"', 'accept-ranges': 'bytes',
+      etag: '"os-v1"', 'last-modified': 'Wed, 21 Oct 2026 07:28:00 GMT', 'content-length': BIG.length - start,
+      ...(range ? { 'content-range': `bytes ${start}-${BIG.length - 1}/${BIG.length}` } : {}),
+    });
+    let pos = start;
+    const timer = setInterval(() => {
+      if (pos >= BIG.length) { clearInterval(timer); res.end(); return; }
+      if (bigDrop && !range && pos >= 1024 * 1024) { bigDrop = false; clearInterval(timer); req.socket.destroy(); return; }
+      const n = Math.min(32 * 1024, BIG.length - pos);
+      res.write(BIG.subarray(pos, pos + n));
+      pos += n;
+    }, 40);
+    req.on('close', () => clearInterval(timer));
+    return;
   } else if (u.pathname === '/file.txt') {
     res.setHeader('content-type', 'text/plain');
     res.setHeader('content-disposition', `attachment; filename="os-test-${process.pid}.txt"`);
@@ -851,6 +876,53 @@ try {
     await flush();
     check('automatic updates on by default and saved', readJson('settings')?.autoUpdate === true);
     await keyScreen('27-settings-updates', 'page');
+
+    // --- 28. Докачка ---
+    step('28. Загрузки: обрыв связи, пауза и докачка после перезапуска с того же места');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    const bigReqs = () => seen.filter((r) => r.path === '/big.bin');
+    const n0 = bigReqs().length;
+    await typeAddress(`${SITE}/big.bin`);
+    const dlEntry = async () => { await flush(); return (readJson('downloads')?.list ?? []).find((d) => d.name.startsWith('os-big')); };
+    check('download resumes by itself after a dropped connection (Range request)',
+      await waitFor(async () => bigReqs().slice(n0).some((r) => /^bytes=\d+-/.test(r.range ?? '')), 20000), JSON.stringify(bigReqs().slice(n0)));
+    await key('Ctrl+J');
+    const dlp = await page('os://downloads/');
+    await dlp.waitForSelector('.dl-pause', { timeout: 15000 });
+    await dlp.click('.dl-pause');
+    check('pause stops the download', await waitFor(async () => (await dlEntry())?.state === 'paused'));
+    const pausedAt = (await dlEntry()).received;
+    await sleep(800);
+    check('paused download does not grow', (await dlEntry()).received === pausedAt);
+    await keyScreen('28-download-paused', 'page');
+    await dlp.click('.dl-resume');
+    check('resume continues the download', await waitFor(async () => { const d = await dlEntry(); return d.state === 'progress' && d.received > pausedAt; }));
+    await sleep(500);
+    await flush();
+    await app.close();
+    const mid = (readJson('downloads')?.list ?? []).find((d) => d.name.startsWith('os-big'));
+    check('unfinished download is kept as resumable after quitting', mid?.state === 'interrupted' && mid.resumable === true && mid.received < BIG.length, JSON.stringify(mid && { s: mid.state, r: mid.received }));
+    const n1 = bigReqs().length;
+    await launch();
+    // После перезапуска браузер под PIN (сценарий 19).
+    const lock2 = await page('os://lock/', 8000);
+    if (lock2) {
+      await lock2.fill('#pin', '2468');
+      await lock2.click('#unlock');
+      await waitFor(async () => (await state())?.locked === false);
+    }
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://downloads/'));
+    const dlp2 = await page('os://downloads/');
+    await dlp2.waitForSelector('.dl-resume', { timeout: 15000 });
+    await keyScreen('28-download-interrupted', 'page');
+    await dlp2.click('.dl-resume');
+    const done = await waitFor(async () => { const d = await dlEntry(); return d?.state === 'completed' && d; }, 40000);
+    const after = bigReqs().slice(n1);
+    check('after restart the download continues from the same point (Range, not from zero)',
+      after.length > 0 && after.every((r) => /^bytes=[1-9]\d*-/.test(r.range ?? '')), JSON.stringify(after));
+    const sha = done && existsSync(done.path) ? createHash('sha256').update(readFileSync(done.path)).digest('hex') : '';
+    check('resumed file is complete and intact (sha256)', sha === BIG_SHA, `${done?.path} ${sha.slice(0, 12)}`);
+    if (done) rmSync(done.path, { force: true });
   }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));

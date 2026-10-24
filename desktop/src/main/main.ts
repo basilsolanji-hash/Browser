@@ -10,6 +10,7 @@ import { setBlockedListener } from './privacy';
 import { installNotifications, shownForTest, clickLastForTest } from './notify';
 import { incomingUrl } from './defaultbrowser';
 import * as Updater from './updater';
+import { suspendAll } from './downloads';
 import * as Onboarding from './onboarding';
 import * as Tabs from './tabs';
 import * as Profiles from './profiles';
@@ -64,7 +65,8 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.on('window-all-closed', () => app.quit());
-  app.on('before-quit', () => flushAll());
+  // Незаконченные загрузки запоминаем, чтобы после перезапуска продолжить их с того же места.
+  app.on('before-quit', () => { suspendAll(); flushAll(); });
   app.on('will-quit', () => flushAll());
 }
 
