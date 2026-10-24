@@ -65,6 +65,7 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var chipName: TextView
     private lateinit var tabBar: LinearLayout
     private lateinit var tabsCount: TextView
+    private lateinit var tabScroll: HorizontalScrollView
     private lateinit var progress: ProgressBar
     private lateinit var switcher: LinearLayout
     private lateinit var backButton: View
@@ -169,7 +170,11 @@ class BrowserActivity : AppCompatActivity() {
             return
         }
         val pinId = intent.getStringExtra(EXTRA_SITE) ?: Profiles.lastPinId(this)
-        openTab(id, Tabs.resolve(this, id, pinId), if (action == ACTION_INCOGNITO) null else url)
+        // Последнюю вкладку могли закрыть — тогда открываем последнюю из оставшихся.
+        val target = if (Tabs.isTab(pinId) && Tabs.byId(this, id, pinId) == null && intent.getStringExtra(EXTRA_SITE) == null)
+            Tabs.list(this, id).lastOrNull()?.let { Tabs.pin(this, it) } ?: Pins.all(this).first()
+        else Tabs.resolve(this, id, pinId)
+        openTab(id, target, if (action == ACTION_INCOGNITO) null else url)
         when (action) {
             ACTION_TABS -> showTabs()
             ACTION_SELECT_TABS -> showTabs(TabsActivity.MODE_SELECT)
@@ -293,6 +298,9 @@ class BrowserActivity : AppCompatActivity() {
                 minWidth = dp(72)
                 setOnClickListener { showTabs() }
             }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT))
+            // Полоса прокручивается: показываем ярлык текущей вкладки целиком.
+            val chip = tabBar.getChildAt(tabBar.childCount - 1)
+            chip.post { tabScroll.smoothScrollTo(maxOf(0, chip.right - tabScroll.width + dp(4)), 0) }
         }
         val n = Tabs.count(this, profileId)
         tabsCount.text = if (n > 99) "∞" else n.toString()
@@ -463,7 +471,8 @@ class BrowserActivity : AppCompatActivity() {
                 background = if (current) Ui.oval(p.color, dp(2), Ui.TEXT) else Ui.oval(p.color)
                 alpha = if (current || Gecko.isActive(this@BrowserActivity, p.id)) 1f else 0.55f
                 contentDescription = p.name
-                setOnClickListener { openTab(p.id, pin) }
+                // Обычные вкладки свои у каждого профиля, поэтому в другом профиле открываем закреплённую.
+                setOnClickListener { openTab(p.id, if (Tabs.isTab(pin.id)) Pins.all(this@BrowserActivity).first() else pin) }
             }, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(8) })
         }
     }
@@ -637,7 +646,7 @@ class BrowserActivity : AppCompatActivity() {
                     // Закрываем вкладки профиля, стираем его данные и открываем заново — уже без входа.
                     geckoView.releaseSession()
                     Gecko.clearProfile(this, profileId)
-                    openTab(profileId, pin)
+                    openTab(profileId, Tabs.resolve(this, profileId, pin.id))
                 }
                 Toast.makeText(this, Tr.t("done"), Toast.LENGTH_SHORT).show()
             }
@@ -720,7 +729,7 @@ class BrowserActivity : AppCompatActivity() {
             background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
             setPadding(dp(3), dp(3), dp(3), dp(3))
         }
-        val tabScroll = HorizontalScrollView(this).apply {
+        tabScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             addView(tabBar)
         }

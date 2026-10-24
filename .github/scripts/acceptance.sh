@@ -5,6 +5,8 @@ set -u
 PKG=ru.multibrowser.test
 OUT=results
 mkdir -p "$OUT"
+# Ход сценариев (нажатия, состояние вкладок) — в results/steps.txt.
+exec > >(tee -a "$OUT/steps.txt") 2>&1
 
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 for a in window_animation_scale transition_animation_scale animator_duration_scale; do
@@ -18,6 +20,8 @@ browser() { adb shell am start -n "$PKG/ru.multibrowser.BrowserActivity" "$@" >/
 settings() { adb shell am start -n "$PKG/ru.multibrowser.SettingsActivity" "$@" >/dev/null; }
 rotate() { adb shell settings put system accelerometer_rotation 0; adb shell settings put system user_rotation "$1"; }
 tabs() { adb shell am start -n "$PKG/ru.multibrowser.TabsActivity" "$@" >/dev/null; }
+# Сохранённые вкладки и группы (debug-сборка допускает run-as).
+tabstate() { echo "== tabs state: $1"; adb shell run-as "$PKG" cat shared_prefs/tabs.xml; echo; }
 # Нажать на элемент по тексту или contentDescription (без учёта регистра) через дамп uiautomator.
 tap() {
   adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
@@ -69,10 +73,13 @@ tap "Example Domain";                                                     shot 2
 browser --ei profile 7 --es action new_group;                             shot 30-new-group-dialog 4
 adb shell input keyevent KEYCODE_BACK; sleep 1
 adb shell input keyevent KEYCODE_BACK; sleep 1
-tabs --ei profile 7;                                                      sleep 3
+tabstate before-close
+tabs --ei profile 7;                                                      shot 31a-before-close 3
 tap "Close tab";                                                          shot 31-tab-closed 3
+tabstate after-close
 browser --ei profile 7 --es action close_all;                             shot 32-close-all-dialog 4
 tap "Close";                                                              shot 33-after-close-all 6
+tabstate after-close-all
 tabs --ei profile 7;                                                      shot 34-tabs-after-close 4
 adb shell input keyevent KEYCODE_BACK; sleep 1
 settings;                                                               shot 09-settings 6

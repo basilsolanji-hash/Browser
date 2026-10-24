@@ -14,7 +14,6 @@ import android.view.Gravity
 import android.view.View
 import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.ScrollView
@@ -181,18 +180,24 @@ class TabsActivity : AppCompatActivity() {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         }
         var color = group?.color ?: Tabs.GROUP_COLORS[Tabs.groups(this, profile).size % Tabs.GROUP_COLORS.size]
-        val swatches = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        // Палитра — две строки по 4 круга, чтобы все цвета были видны на узком экране.
+        val swatches = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         fun renderSwatches() {
             swatches.removeAllViews()
-            Tabs.GROUP_COLORS.forEach { c ->
-                swatches.addView(FrameLayout(this).apply {
+            Tabs.GROUP_COLORS.toList().chunked(4).forEach { rowColors ->
+              val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+              swatches.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                  .apply { bottomMargin = dp(8) })
+              rowColors.forEach { c ->
+                row.addView(FrameLayout(this).apply {
                     background = if (c == color) Ui.oval(c, dp(3), Ui.TEXT) else Ui.oval(c)
                     contentDescription = Tr.t("group_color")
                     if (c == color) addView(icon(R.drawable.ic_check, Color.WHITE, 18).apply {
                         layoutParams = FrameLayout.LayoutParams(dp(18), dp(18), Gravity.CENTER)
                     })
                     setOnClickListener { color = c; renderSwatches() }
-                }, LinearLayout.LayoutParams(dp(34), dp(34)).apply { marginEnd = dp(8) })
+                }, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(12) })
+              }
             }
         }
         renderSwatches()
@@ -206,10 +211,7 @@ class TabsActivity : AppCompatActivity() {
                 setTextColor(Ui.MUTED)
                 setPadding(0, dp(14), 0, dp(8))
             })
-            addView(HorizontalScrollView(context).apply {
-                isHorizontalScrollBarEnabled = false
-                addView(swatches)
-            })
+            addView(swatches)
         }
         AlertDialog.Builder(this)
             .setTitle(if (group == null) Tr.t("new_tab_group") else Tr.t("rename_group"))
@@ -469,7 +471,7 @@ class TabsActivity : AppCompatActivity() {
         body.addView(top)
         body.addView(FrameLayout(this).apply {
             addView(TextView(context).apply {
-                text = (if (tab.url.startsWith("http")) host else label).take(1).uppercase()
+                text = label.trim().take(1).uppercase()
                 textSize = 30f
                 typeface = Typeface.DEFAULT_BOLD
                 gravity = Gravity.CENTER
