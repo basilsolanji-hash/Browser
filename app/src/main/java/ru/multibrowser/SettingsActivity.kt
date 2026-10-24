@@ -64,13 +64,8 @@ class SettingsActivity : AppCompatActivity() {
     private fun header() = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        addView(TextView(context).apply {
-            text = "‹"
-            textSize = 26f
-            gravity = Gravity.CENTER
-            setTextColor(Ui.TEXT)
-            setOnClickListener { finish() }
-        }, LinearLayout.LayoutParams(dp(40), dp(40)))
+        addView(iconButton(R.drawable.ic_back, "Назад") { finish() },
+            LinearLayout.LayoutParams(dp(40), dp(40)))
         addView(TextView(context).apply {
             text = "Настройки"
             textSize = 20f

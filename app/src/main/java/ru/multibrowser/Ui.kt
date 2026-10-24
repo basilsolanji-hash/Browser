@@ -2,13 +2,18 @@ package ru.multibrowser
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
+import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -102,4 +107,22 @@ fun Context.sectionTitle(text: String) = TextView(this).apply {
     letterSpacing = 0.06f
     setTextColor(Ui.MUTED)
     setPadding(0, dp(24), 0, dp(8))
+}
+
+/** Векторная иконка, окрашенная под тему. */
+fun Context.icon(res: Int, color: Int = Ui.TEXT, sizeDp: Int = 22) = ImageView(this).apply {
+    setImageResource(res)
+    imageTintList = ColorStateList.valueOf(color)
+    scaleType = ImageView.ScaleType.CENTER_INSIDE
+    layoutParams = LinearLayout.LayoutParams(dp(sizeDp), dp(sizeDp))
+}
+
+/** Квадратная кнопка с иконкой в рамке. */
+fun Context.iconButton(res: Int, description: String, onClick: (View) -> Unit) = FrameLayout(this).apply {
+    background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
+    contentDescription = description
+    addView(icon(res).apply {
+        layoutParams = FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER)
+    })
+    setOnClickListener(onClick)
 }

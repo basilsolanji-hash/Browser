@@ -49,14 +49,8 @@ class MainActivity : AppCompatActivity() {
             addView(ImageView(context).apply { setImageResource(R.drawable.ic_logo) })
             addView(logoText().apply { setPadding(dp(10), 0, 0, 0) },
                 LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-            addView(TextView(context).apply {
-                text = "⚙"
-                textSize = 20f
-                gravity = Gravity.CENTER
-                setTextColor(Ui.TEXT)
-                background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
-                contentDescription = "Настройки"
-                setOnClickListener { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) }
+            addView(iconButton(R.drawable.ic_settings, "Настройки") {
+                startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
             }, LinearLayout.LayoutParams(dp(40), dp(40)))
         })
         list.addView(TextView(this).apply {

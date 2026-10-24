@@ -213,30 +213,18 @@ class BrowserActivity : AppCompatActivity() {
         view.setTextColor(if (selected) Ui.ON_ACCENT else Ui.MUTED)
     }
 
-    private fun iconButton(symbol: String, onClick: (View) -> Unit) = TextView(this).apply {
-        text = symbol
-        textSize = 20f
-        setTextColor(Ui.TEXT)
-        gravity = Gravity.CENTER
-        background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
-        setOnClickListener(onClick)
-    }
-
-    private fun actionButton(symbol: String, label: String, onClick: () -> Unit) = LinearLayout(this).apply {
+    private fun actionButton(iconRes: Int, label: String, onClick: () -> Unit) = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         gravity = Gravity.CENTER
-        setPadding(0, dp(4), 0, dp(2))
-        addView(TextView(context).apply {
-            text = symbol
-            textSize = 20f
-            gravity = Gravity.CENTER
-            setTextColor(Ui.TEXT)
-        })
+        setPadding(0, dp(6), 0, dp(4))
+        contentDescription = label
+        addView(icon(iconRes))
         addView(TextView(context).apply {
             text = label
             textSize = 10f
             gravity = Gravity.CENTER
             setTextColor(Ui.MUTED)
+            setPadding(0, dp(3), 0, 0)
         })
         setOnClickListener { onClick() }
     }
@@ -389,7 +377,7 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
 
-        val more = iconButton("⋮") { showMenu(it) }
+        val more = iconButton(R.drawable.ic_more, "Меню") { showMenu(it) }
 
         val h = dp(40)
         val toolbar = LinearLayout(this).apply {
@@ -421,15 +409,15 @@ class BrowserActivity : AppCompatActivity() {
             setBackgroundColor(Ui.BG)
             setPadding(dp(4), dp(4), dp(4), 0)
         }
-        fun action(symbol: String, label: String, onClick: () -> Unit) = actionButton(symbol, label, onClick).also {
+        fun action(iconRes: Int, label: String, onClick: () -> Unit) = actionButton(iconRes, label, onClick).also {
             actions.addView(it, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         }
-        backButton = action("‹", "Назад") { session?.goBack() }
-        forwardButton = action("›", "Вперёд") { session?.goForward() }
-        action("⌂", "Домой") { session?.loadUri(site.home) }
-        action("☰", "История") { showHistory() }
-        action("✕", "Очистка") { showClear() }
-        action("⟳", "Обновить") { session?.reload() }
+        backButton = action(R.drawable.ic_back, "Назад") { session?.goBack() }
+        forwardButton = action(R.drawable.ic_forward, "Вперёд") { session?.goForward() }
+        action(R.drawable.ic_home, "Домой") { session?.loadUri(site.home) }
+        action(R.drawable.ic_history, "История") { showHistory() }
+        action(R.drawable.ic_delete, "Очистка") { showClear() }
+        action(R.drawable.ic_refresh, "Обновить") { session?.reload() }
 
         val switcherScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
