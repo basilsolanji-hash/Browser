@@ -56,6 +56,11 @@ const server = createServer((req, res) => {
     res.end(`<title>Set ${u.searchParams.get('p')}</title><h1>cookie set</h1>`);
   } else if (u.pathname === '/get') {
     res.end(`<title>Get</title><h1 id="c">${(req.headers.cookie ?? '').replace(/</g, '')}</h1><script>document.title='Get '+(document.cookie||'none')</script>`);
+  } else if (u.pathname === '/file.txt') {
+    res.setHeader('content-type', 'text/plain');
+    res.setHeader('content-disposition', `attachment; filename="os-test-${process.pid}.txt"`);
+    res.end('Ось download test');
+    return;
   } else if (u.pathname === '/open') {
     res.end('<title>Opener</title><a id="blank" href="/page/opened" target="_blank">open</a>');
   } else {
@@ -483,12 +488,126 @@ try {
   await keyScreen('10-profile-menu', 'page');
   check('profile context menu has rename and sign out', (await home2.$$eval('.ctx button', (b) => b.length)) >= 5);
   await home2.keyboard.press('Escape');
+
+  if (STAGE >= 2) {
+    // --- 11. Избранное ---
+    step('11. Избранное: звёздочка, Ctrl+D, папки');
+    await main(() => globalThis.osTest.windows()[0].openProfile(1));
+    await key('Ctrl+T');
+    await typeAddress(`${SITE}/page/fav`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/page/fav') && !x.loading; });
+    const ui3 = await page('os://ui');
+    await ui3.click('#star');
+    await sleep(400);
+    await flush();
+    check('☆ adds the page to favorites', (readJson('bookmarks')?.list ?? []).some((b) => b.u.endsWith('/page/fav') && b.t === 'Page fav'));
+    check('star shows the page is in favorites', (await state()).bookmarked === true);
+    await key('Ctrl+D');
+    await flush();
+    check('Ctrl+D removes it again', !(readJson('bookmarks')?.list ?? []).some((b) => b.u.endsWith('/page/fav')));
+    await key('Ctrl+D');
+    await key('Ctrl+Shift+O');
+    const fav = await page('os://favorites/');
+    check('Ctrl+Shift+O opens favorites', fav);
+    await fav.waitForSelector('.item');
+    check('favorites list shows the page', (await fav.textContent('body')).includes('Page fav'));
+    await fav.click('#new-folder');
+    await fav.fill('.modal input', 'Work docs');
+    await fav.click('.modal .btn.accent');
+    await sleep(400);
+    await flush();
+    check('folder created in favorites', (readJson('bookmarks')?.folders ?? []).includes('Work docs'));
+    await keyScreen('11-favorites', 'page');
+    await key('Escape', 0, 'page');
+
+    // --- 12. История ---
+    step('12. История профиля: список, поиск, удаление');
+    await key('Ctrl+H');
+    const hp = await page('os://history/');
+    check('Ctrl+H opens history', hp);
+    await hp.waitForSelector('.item');
+    const n0 = await hp.$$eval('.item', (e) => e.length);
+    check('history shows visits', n0 >= 3, `${n0}`);
+    await hp.fill('#search', 'fav');
+    await sleep(400);
+    check('history search filters', (await hp.$$eval('.item', (e) => e.length)) === 1);
+    await keyScreen('12-history', 'page');
+    await hp.click('.item .icon-btn');
+    await sleep(400);
+    await flush();
+    check('history entry deleted', !(readJson('history')?.h?.['1'] ?? []).some((v) => v.u.endsWith('/page/fav')));
+    await key('Escape', 0, 'page');
+
+    // --- 13. Загрузки ---
+    step('13. Загрузки: файл сохраняется в «Загрузки/Ось» и виден в списке');
+    await typeAddress(`${SITE}/file.txt`);
+    const dl = await waitFor(async () => { await flush(); return (readJson('downloads')?.list ?? []).find((d) => d.state === 'completed'); }, 15000);
+    check('download completed and logged', dl, JSON.stringify(dl));
+    check('downloaded file saved in Downloads/Ось', dl && existsSync(dl.path) && readFileSync(dl.path, 'utf8') === 'Ось download test' && /[\\/]Ось[\\/]/.test(dl.path), dl?.path);
+    await key('Ctrl+J');
+    const dp = await page('os://downloads/');
+    await dp.waitForSelector('.item');
+    check('downloads screen lists the file', (await dp.textContent('.item .t')) === dl?.name);
+    await keyScreen('13-downloads', 'page');
+    if (dl) rmSync(dl.path, { force: true });
+    await key('Escape', 0, 'page');
+
+    // --- 14. Сохранённые страницы ---
+    step('14. Сохранить страницу в PDF');
+    await typeAddress(`${SITE}/page/save`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/page/save') && !x.loading; });
+    await key('Ctrl+S');
+    const sp = await waitFor(async () => { await flush(); return (readJson('saved_pages')?.list ?? [])[0]; }, 15000);
+    const pdfPath = sp && join(userData, 'saved', sp.file);
+    check('page saved as PDF', sp && existsSync(pdfPath) && readFileSync(pdfPath).subarray(0, 4).toString() === '%PDF', JSON.stringify(sp));
+    check('saved page title and address', sp?.title === 'Page save' && sp.url.endsWith('/page/save'));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://saved/'));
+    const svp = await page('os://saved/');
+    await svp.waitForSelector('.item');
+    check('saved pages screen lists it', (await svp.textContent('.item .t')) === 'Page save');
+    await keyScreen('14-saved', 'page');
+
+    // --- 15. Статистика и заметки ---
+    step('15. Статистика и заметки');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://stats/'));
+    const stp = await page('os://stats/');
+    await stp.waitForSelector('#pages-total');
+    const total = Number(await stp.textContent('#pages-total'));
+    await flush();
+    check('statistics counts opened pages', total > 0 && (readJson('stats')?.pages?.['1'] ?? 0) > 0, `${total}`);
+    await keyScreen('15-stats', 'page');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://notes/'));
+    const np = await page('os://notes/');
+    await np.click('#new-note');
+    await np.fill('.modal textarea', 'Позвонить клиенту в 15:00');
+    await np.click('.modal .btn.accent');
+    await sleep(400);
+    await flush();
+    check('note saved locally', (readJson('notes')?.list ?? []).some((n) => n.text === 'Позвонить клиенту в 15:00'));
+    await keyScreen('15-notes', 'page');
+
+    // --- 16. Очистка профиля ---
+    step('16. Очистка данных и выход из аккаунтов профиля 2');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://clear/?profile=2'));
+    const cp = await page('os://clear/');
+    await cp.waitForSelector('#o-logout');
+    await keyScreen('16-clear', 'page');
+    await cp.check('#o-logout');
+    await cp.click('#do-clear');
+    await cp.click('.modal .btn.accent');
+    const c2 = await waitFor(async () => (await main(async ({ session }) => (await session.fromPartition('persist:profile_2').cookies.get({})).length)) === 0, 15000);
+    check('profile 2 cookies removed', c2);
+    const gone = await waitFor(async () => { await flush(); return !readJson('tabs')?.profiles?.['2'] && !readJson('history')?.h?.['2']; }, 10000);
+    check('profile 2 tabs and history removed', gone);
+    const c1 = await main(async ({ session }) => (await session.fromPartition('persist:profile_1').cookies.get({ name: 'os_test' }))[0]?.value);
+    check('other profiles not affected', c1 === 'one', c1);
+  }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));
 } finally {
   try { await flush(); } catch { /* приложение уже закрыто */ }
   try {
-    for (const f of ['settings', 'profiles', 'pins', 'tabs', 'onboarding', 'history']) {
+    for (const f of ['settings', 'profiles', 'pins', 'tabs', 'onboarding', 'history', 'bookmarks', 'downloads', 'saved_pages', 'stats', 'notes']) {
       const j = readJson(f);
       if (j) writeFileSync(join(OUT, `state-${f}.json`), JSON.stringify(j, null, 1));
     }

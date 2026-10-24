@@ -1,0 +1,4 @@
+label.opt { display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+label.opt:last-child { border-bottom: 0; }
+label.opt input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 1px; }
+label.opt .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }

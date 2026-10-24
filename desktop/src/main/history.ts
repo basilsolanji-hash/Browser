@@ -1,4 +1,5 @@
 import { JsonFile } from './store';
+import * as Stats from './stats';
 
 /** История посещений, отдельная для каждого профиля (History.kt). Инкогнито сюда не пишет. */
 export interface Visit { u: string; t: string; d: number }
@@ -13,6 +14,12 @@ export function add(profile: number, url: string): void {
   const items = list(profile);
   if (items[0]?.u === url) return;
   historyFile.update((d) => { d.h[profile] = [{ u: url, t: '', d: Date.now() }, ...items].slice(0, MAX); });
+  Stats.page(profile);
+}
+
+/** Удалить одну запись (по адресу и времени). */
+export function remove(profile: number, url: string, time: number): void {
+  historyFile.update((d) => { d.h[profile] = list(profile).filter((v) => !(v.u === url && v.d === time)); });
 }
 
 export function setTitle(profile: number, url: string, title: string): void {

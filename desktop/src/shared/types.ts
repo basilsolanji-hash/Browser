@@ -52,6 +52,7 @@ export interface WindowState {
   panelCanBack: boolean;
   maximized: boolean;
   zoom: number;
+  bookmarked: boolean;
 }
 
 export interface Suggestion { kind: 'search' | 'history' | 'favorite' | 'url'; title: string; url: string }

@@ -5,7 +5,7 @@ import { basename, extname, join } from 'node:path';
 import { applyLanguage, currentLang, isRtl, strings, t } from './i18n';
 import { settings, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
 import { THEME_IDS, themeNameKey } from './themes';
-import { OsWindow, byWebContents, mainWindow, openIncognito, profileInfo, profileSession, windows } from './window';
+import { OsWindow, byWebContents, mainWindow, openIncognito, profileInfo, profileSession, saveWithToast, windows } from './window';
 import { fromInput, isWebUrl } from './urls';
 import * as Profiles from './profiles';
 import * as Pins from './pins';
@@ -14,6 +14,9 @@ import * as History from './history';
 import * as Bookmarks from './bookmarks';
 import * as Onboarding from './onboarding';
 import * as Notes from './notes';
+import * as Downloads from './downloads';
+import * as Saved from './saved';
+import * as Stats from './stats';
 import { LANGS, LANG_NAMES } from '../shared/format';
 import type { Suggestion, UiInit } from '../shared/types';
 
@@ -94,6 +97,89 @@ on(['chrome'], 'newGroupWith', (w, id) => {
   const g = Tabs.addGroup(w.profile, '', Tabs.GROUP_COLORS[Tabs.groups(w.profile).length % Tabs.GROUP_COLORS.length]);
   Tabs.setGroup(w.profile, [str(id, 100)], g.id);
   w.push();
+});
+
+on(['chrome'], 'toggleBookmark', (w) => {
+  const r = w.toggleBookmark();
+  w.toast(t(r == null ? 'fav_unavailable' : r ? 'added_favorite' : 'fav_removed'));
+});
+on(['chrome'], 'savePage', (w) => saveWithToast(w));
+
+// --- История ---
+on(['page'], 'history', (_w, profile) => {
+  const p = profileArg(profile);
+  return { profile: profileInfo(p), items: History.list(p) };
+});
+on(['page'], 'historyRemove', (_w, profile, url, time) => { History.remove(profileArg(profile), str(url, 8000), num(time)); });
+on(['page'], 'historyClear', (_w, profile) => { History.clear(profileArg(profile)); });
+on(both, 'openIn', (w, profile, url) => {
+  const u = str(url, 8000);
+  if (!isWebUrl(u)) return;
+  if (w.incognito) { w.newTab(u); return; }
+  w.openProfile(profileArg(profile));
+  w.newTab(u);
+});
+
+// --- Избранное ---
+on(['page'], 'favorites', () => ({ list: Bookmarks.all(), folders: Bookmarks.folders() }));
+on(['page'], 'favRemove', (_w, id) => { Bookmarks.remove(str(id, 100)); broadcast(); });
+on(['page'], 'favRename', (_w, id, title) => { Bookmarks.rename(str(id, 100), str(title, 300)); });
+on(['page'], 'favMove', (_w, id, folder) => { Bookmarks.move(str(id, 100), str(folder, 80)); });
+on(['page'], 'favAddFolder', (_w, name) => Bookmarks.addFolder(str(name, 80)));
+on(['page'], 'favRenameFolder', (_w, from, to) => Bookmarks.renameFolder(str(from, 80), str(to, 80)));
+on(['page'], 'favRemoveFolder', (_w, name, keep) => { Bookmarks.removeFolder(str(name, 80), keep === true); broadcast(); });
+on(['page'], 'lastProfile', () => Tabs.tabsFile.get().lastProfile ?? Profiles.order()[0]);
+
+// --- Загрузки ---
+on(['page'], 'downloads', () => ({ list: Downloads.list(), folder: Downloads.folder() }));
+on(['page'], 'dlOpen', (_w, id) => Downloads.open(str(id, 100)));
+on(['page'], 'dlShow', (_w, id) => Downloads.show(str(id, 100)));
+on(['page'], 'dlCancel', (_w, id) => Downloads.cancel(str(id, 100)));
+on(['page'], 'dlRemove', (_w, id) => Downloads.remove(str(id, 100)));
+on(['page'], 'dlClear', () => Downloads.clear());
+
+// --- Сохранённые страницы ---
+on(['page'], 'saved', () => Saved.list());
+on(['page'], 'savedOpen', async (_w, id) => {
+  const p = Saved.byId(num(id));
+  return p ? (await shell.openPath(Saved.pathOf(p))) === '' : false;
+});
+on(['page'], 'savedShow', (_w, id) => { const p = Saved.byId(num(id)); if (p) shell.showItemInFolder(Saved.pathOf(p)); });
+on(['page'], 'savedRename', (_w, id, title) => Saved.rename(num(id), str(title, 300)));
+on(['page'], 'savedRemove', (_w, id) => Saved.remove(num(id)));
+
+// --- Статистика ---
+on(['page'], 'stats', () => {
+  const s = Stats.get();
+  const hosts = new Map<string, number>();
+  for (let id = 1; id <= profileCount(); id++) {
+    for (const v of History.list(id)) {
+      try {
+        const h = new URL(v.u).hostname.replace(/^www\./, '');
+        hosts.set(h, (hosts.get(h) ?? 0) + 1);
+      } catch { /* битый адрес */ }
+    }
+  }
+  return {
+    since: s.since,
+    trackers: s.trackers,
+    pages: Profiles.order().map((id) => ({ profile: profileInfo(id), pages: s.pages[id] ?? 0 })),
+    top: [...hosts].sort((a, b) => b[1] - a[1]).slice(0, 10),
+    library: { notes: Notes.all().length, saved: Saved.list().length, downloads: Downloads.list().length, favorites: Bookmarks.all().length },
+  };
+});
+on(['page'], 'statsReset', () => Stats.reset());
+
+// --- Очистка данных профиля ---
+on(['page'], 'clearData', async (w, profile, what) => {
+  const p = profileArg(profile);
+  const o = (what ?? {}) as Record<string, unknown>;
+  if (o.history === true) History.clear(p);
+  if (o.cache === true) for (let id = 1; id <= profileCount(); id++) await profileSession(id).clearCache();
+  if (o.logout === true) await clearProfile(p);
+  broadcast();
+  void w;
+  return true;
 });
 
 // --- Экран профилей ---
@@ -291,6 +377,8 @@ function sender(e: IpcMainInvokeEvent) {
 }
 
 export function installIpc(): void {
+  // Ход загрузок — экранам «Загрузки» (не чаще, чем шлёт downloads.ts).
+  Downloads.setListener(() => { for (const w of windows) w.page.webContents.send('os:event', 'downloads', null); });
   ipcMain.handle('os', async (e, cmd: unknown, ...args: unknown[]) => {
     const who = sender(e);
     const h = typeof cmd === 'string' ? handlers[cmd] : undefined;

@@ -354,6 +354,11 @@ function renderRow2(): void {
   const nodes: HTMLElement[] = [back, fwd, reload];
   if (!st.incognito) nodes.push(home);
   nodes.push(addr);
+  if (!st.panel && st.url && /^https?:/.test(st.url)) {
+    const star = iconButton('star', `${st.bookmarked ? t('fav_remove') : t('add_favorite')} (Ctrl+D)`, () => void os.call('toggleBookmark'), st.bookmarked ? 'on' : 'off');
+    star.id = 'star';
+    addr.append(star);
+  }
   if (st.zoom !== 100) nodes.push(h('button', { class: 'zoom', title: t('reset'), onclick: () => void os.call('zoom', 0) }, st.zoom + '%'));
   const more = iconButton('more', t('menu'), () => mainMenu(more.getBoundingClientRect()));
   nodes.push(more);
@@ -439,11 +444,26 @@ function mainMenu(anchor: DOMRect): void {
     { sep: true },
     { label: t('copy_link'), icon: 'globe', disabled: !st.url, run: () => void os.call('copy', st!.url) },
   );
+  items.push({ label: t('save_page'), icon: 'saved', kbd: 'Ctrl+S', disabled: !st.url, run: () => void os.call('savePage') });
+  if (!st.incognito && st.profile) {
+    const id = st.profile.id;
+    items.push(
+      { sep: true },
+      { label: t('history'), icon: 'history', kbd: 'Ctrl+H', run: () => void os.call('openPanel', `os://history/?profile=${id}`) },
+      { label: t('favorites'), icon: 'star', kbd: 'Ctrl+Shift+O', run: () => void os.call('openPanel', 'os://favorites/') },
+      { label: t('downloads'), icon: 'saved', kbd: 'Ctrl+J', run: () => void os.call('openPanel', 'os://downloads/') },
+      { label: t('saved_pages'), icon: 'file', run: () => void os.call('openPanel', 'os://saved/') },
+      { label: t('clear_title'), icon: 'delete', run: () => void os.call('openPanel', `os://clear/?profile=${id}`) },
+    );
+  } else if (st.incognito) {
+    items.push({ label: t('downloads'), icon: 'saved', kbd: 'Ctrl+J', run: () => void os.call('openPanel', 'os://downloads/') });
+  }
   if (!st.incognito) {
     items.push(
       { sep: true },
       { label: t('profiles'), icon: 'person', run: () => void os.call('showHome') },
       { label: t('notes'), icon: 'note', run: () => void os.call('openPanel', 'os://notes/') },
+      { label: t('stats'), icon: 'tabs', run: () => void os.call('openPanel', 'os://stats/') },
       { label: t('about'), icon: 'info2', run: () => void os.call('openPanel', 'os://about/') },
       { label: t('settings'), icon: 'settings', run: () => void os.call('openPanel', 'os://settings/') },
     );
@@ -459,6 +479,15 @@ function render(): void {
 os.on('state', (s) => {
   st = s as WindowState;
   render();
+});
+let toastTimer = 0;
+os.on('toast', (text) => {
+  document.querySelector('.toast')?.remove();
+  const el = h('div', { class: 'toast', role: 'status' }, String(text));
+  document.body.append(el);
+  // Тост живёт внизу шапки: на время показа шапка не растягивается, поэтому он — под адресной строкой справа.
+  clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => el.remove(), 2600);
 });
 os.on('focusAddress', () => {
   const el = document.getElementById('address') as HTMLInputElement | null;

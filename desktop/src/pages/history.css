@@ -1,0 +1,10 @@
+.day { margin: 22px 0 8px; color: var(--muted); font-weight: 600; font-size: 13px; }
+.item { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--border); }
+.item:last-child { border-bottom: 0; }
+.item .time { color: var(--muted); font-size: 12px; width: 46px; flex: none; }
+.item .link { flex: 1; min-width: 0; text-decoration: none; color: var(--text); }
+.item .link:hover .t { text-decoration: underline; }
+.item .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item .u { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.toolbar { display: flex; gap: 8px; margin: 10px 0; align-items: center; flex-wrap: wrap; }
+.toolbar input { flex: 1; min-width: 200px; }
