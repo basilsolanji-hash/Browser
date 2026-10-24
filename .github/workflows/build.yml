@@ -39,7 +39,36 @@ jobs:
         run: |
           set -o pipefail
           # APK — для установки напрямую; AAB (bundle) — для загрузки в Google Play.
-          ./gradlew assembleRelease bundleRelease --no-daemon --refresh-dependencies 2>&1 | tee build.log
+          # Сначала модульные тесты (сотни случаев: переводы, адреса, ссылки, хранилища), потом сборка.
+          ./gradlew testDebugUnitTest assembleRelease bundleRelease --no-daemon --refresh-dependencies 2>&1 | tee build.log
+
+      # Итог модульных тестов — в сводку прогона (число случаев и провалов).
+      - name: Unit test summary
+        if: always()
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY" || true
+          import glob, xml.etree.ElementTree as ET
+          t = f = 0
+          for p in glob.glob('app/build/test-results/testDebugUnitTest/*.xml'):
+              r = ET.parse(p).getroot(); t += int(r.get('tests', 0)); f += int(r.get('failures', 0)) + int(r.get('errors', 0))
+          print(f"Модульные тесты: {t} случаев, провалов: {f}")
+          PY
+          # Тот же итог и список провалов — в ветку unit-results-<ветка>, чтобы забрать через git.
+          BR="unit-results-$(echo '${{ github.ref_name }}' | tr '/' '-')"
+          mkdir -p unit && cd unit
+          python3 - <<'PY' > summary.txt || true
+          import glob, xml.etree.ElementTree as ET
+          t = f = 0; bad = []
+          for p in glob.glob('../app/build/test-results/testDebugUnitTest/*.xml'):
+              r = ET.parse(p).getroot(); t += int(r.get('tests', 0))
+              for c in r.iter('testcase'):
+                  for x in list(c.findall('failure')) + list(c.findall('error')):
+                      f += 1; bad.append(f"{c.get('classname')}.{c.get('name')}: {(x.get('message') or '')[:300]}")
+          print(f"tests={t} failures={f}"); print("\n".join(bad))
+          PY
+          git init -q -b "$BR" && git add -A
+          git -c user.name=ci -c user.email=ci@localhost commit -q -m "Unit tests ${{ github.run_number }} (${{ github.sha }})"
+          git push -f -q "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/$BR" || true
 
       # Ошибки сборки — комментарием к коммиту, чтобы их было видно без полного лога.
       - name: Report errors
@@ -47,7 +76,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          { echo '```'; grep -E "^e: " build.log || true; grep -A40 "What went wrong" build.log || true; echo '```'; } > errors.md
+          { echo '```'; grep -E "^e: " build.log || true; grep -E "FAILED|AssertionError|expected:<" build.log | head -60 || true; grep -A40 "What went wrong" build.log || true; echo '```'; } > errors.md
           gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" -F body=@errors.md > /dev/null
 
       # Тестовая сборка ветки feat/** по ручному запуску — пре-релиз со ссылкой на APK (не «последний» релиз).

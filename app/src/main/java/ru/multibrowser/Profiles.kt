@@ -103,6 +103,14 @@ object Profiles {
         prefs(ctx).edit().putString("pin", pinId).apply()
     }
 
+    /** Профиль, которым пользовались последним (быстрый поиск на главном открывает в нём). */
+    fun lastProfile(ctx: Context): Int =
+        prefs(ctx).getInt("last_profile", 0).takeIf { it in order(ctx) } ?: order(ctx).first()
+
+    fun saveLastProfile(ctx: Context, id: Int) {
+        prefs(ctx).edit().putInt("last_profile", id).apply()
+    }
+
     /** Заголовок Gmail выглядит как «Входящие (3) - name@gmail.com - Gmail»: берём адрес и число непрочитанных. */
     fun updateFromTitle(ctx: Context, id: Int, title: String?) {
         if (title == null || !title.contains("Gmail")) return

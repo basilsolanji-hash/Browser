@@ -29,4 +29,14 @@ object Search {
 
     fun queryUrl(ctx: Context, text: String): String =
         current(ctx).query + URLEncoder.encode(text, "UTF-8")
+
+    /** Ввод адресной строки или быстрого поиска: адрес — как есть, иначе — запрос поисковику. */
+    fun toUrl(ctx: Context, input: String): String {
+        val t = input.trim()
+        return when {
+            t.startsWith("http://", ignoreCase = true) || t.startsWith("https://", ignoreCase = true) -> t
+            t.contains('.') && !t.contains(' ') -> "https://$t"
+            else -> queryUrl(ctx, t)
+        }
+    }
 }

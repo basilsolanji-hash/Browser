@@ -105,7 +105,19 @@ class BrowserActivity : AppCompatActivity() {
     private val pickFiles = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         val (prompt, result) = pendingFile ?: return@registerForActivityResult
         pendingFile = null
-        result.complete(answerFilePrompt(prompt, uris))
+        if (uris.isEmpty()) {
+            result.complete(prompt.dismiss())
+            return@registerForActivityResult
+        }
+        // Копируем в свою папку (GeckoView читает файлы по пути) — в фоне, файлы бывают большими.
+        val app = applicationContext
+        Thread {
+            val files = Uploads.copy(app, uris)
+            runOnUiThread {
+                if (files.isEmpty()) Toast.makeText(this, Tr.t("upload_failed"), Toast.LENGTH_SHORT).show()
+                result.complete(answerFilePrompt(prompt, files))
+            }
+        }.start()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -266,6 +278,7 @@ class BrowserActivity : AppCompatActivity() {
         profileId = id
         pin = newPin
         Profiles.saveLastPinId(this, newPin.id)
+        Profiles.saveLastProfile(this, id)
 
         val p = Profiles.get(this, id)
         chipDot.background = Ui.oval(p.color)
@@ -1003,14 +1016,7 @@ class BrowserActivity : AppCompatActivity() {
         root.requestFocus()
     }
 
-    private fun toUrl(input: String): String {
-        val t = input.trim()
-        return when {
-            t.startsWith("http://") || t.startsWith("https://") -> t
-            t.contains('.') && !t.contains(' ') -> "https://$t"
-            else -> Search.queryUrl(this, t)
-        }
-    }
+    private fun toUrl(input: String): String = Search.toUrl(this, input)
 
     private fun answerFilePrompt(
         prompt: GeckoSession.PromptDelegate.FilePrompt,

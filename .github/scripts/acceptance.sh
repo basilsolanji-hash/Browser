@@ -307,6 +307,11 @@ adb shell run-as "$PKG" cat shared_prefs/onboarding.xml shared_prefs/pins.xml >>
 # №23, №25
 act AboutActivity;                                                          shot 60-about 5
 act HelpActivity;                                                           shot 61-help 5
+# Быстрый поиск на главном: адрес открывается новой вкладкой в последнем профиле.
+adb shell am force-stop "$PKG"; main; sleep 6
+xtap "Address or search" && adb shell input text "example.org" && adb shell input keyevent 66; sleep 15
+                                                                            shot 69e-quick-search 1
+adb shell run-as "$PKG" cat shared_prefs/tabs.xml > "$OUT/tabs_qs.txt" 2>&1
 act StatsActivity;                                                          shot 66-stats 5
 adb shell run-as "$PKG" cat shared_prefs/stats.xml >> "$X" 2>&1
 adb shell run-as "$PKG" ls -la files/saved >> "$X" 2>&1
@@ -349,6 +354,24 @@ tap_any "Allow" "Разрешить" && sleep 6
 adb shell run-as "$PKG" cat shared_prefs/downloads.xml > "$OUT/downloads.txt" 2>&1
 adb shell dumpsys notification --noredact > "$OUT/notifications_dl.txt" 2>&1
 act DownloadsActivity;                                                      shot 69d-downloads 3
+# Отправка файла сайту (как «+» в Claude): системное окно выбора → report.bin из «Загрузок».
+cat > "$NW/upload.html" <<'HTML'
+<!doctype html><meta name="viewport" content="width=device-width"><title>Upload test</title>
+<body style="margin:0;font:22px sans-serif;background:#fff;color:#000">
+<label style="display:flex;align-items:center;justify-content:center;width:100vw;height:100vh;background:#ddd">
+Attach files<input id="f" type="file" multiple style="display:none"></label>
+<script>
+document.getElementById('f').onchange = e => {
+  for (const f of e.target.files) f.arrayBuffer().then(b => console.log('UPLOAD ' + f.name + ' ' + b.byteLength));
+};
+</script></body>
+HTML
+browser --ei profile 7 --es url http://localhost:8766/upload.html; sleep 10
+adb shell input tap 160 400; sleep 5;                                       shot 69f-upload-picker 1
+# «Недавние» в окне выбора пусты — открываем боковое меню (☰) → «Загрузки» → «Ось» → файл.
+sleep 3; tap_any "report.bin" || { adb shell input tap 28 48; sleep 2; tap_any "Downloads"; sleep 3
+  tap_any "Ось"; sleep 3; tap_any "report.bin"; }
+sleep 6;                                                                    shot 69g-upload-done 1
 kill "$NWPID" 2>/dev/null || true
 
 # Смена языка: сразу меняются и настройки, и главный экран под ними (и имена профилей-примеров).
@@ -374,6 +397,8 @@ check "Уведомление сайта показано системой" 'gre
 check "Скачивание: разрешение и файл в загрузках" 'grep -q "report.bin" "$OUT/downloads.txt"'
 check "№27 главная: пустая страница выбрана"  'grep -q "BLANK" "$OUT/home_blank.txt"'
 check "Скачивание: уведомление «Скачано»" 'grep -q "report.bin" "$OUT/notifications_dl.txt"'
+check "Быстрый поиск: вкладка открыта" 'grep -q "example.org" "$OUT/tabs_qs.txt"'
+check "Отправка файла сайту (кнопка «+»)" 'grep -q "UPLOAD report.bin 4096" "$OUT/logcat.txt"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 
 # --- Автопроверка на белый экран: центральная область не должна быть почти вся белой/пустой ---

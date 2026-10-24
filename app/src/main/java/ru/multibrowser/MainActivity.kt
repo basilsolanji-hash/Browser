@@ -3,10 +3,13 @@ package ru.multibrowser
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
+import android.text.InputType
 import android.text.TextUtils
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.HorizontalScrollView
@@ -36,6 +39,8 @@ class MainActivity : AppCompatActivity() {
         Ui.init(this)
         list = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
+            // Фокус на списке, а не на поле поиска: клавиатура не выскакивает при открытии.
+            isFocusableInTouchMode = true
             setPadding(dp(16), dp(20), dp(16), dp(24))
         }
         val root = ScrollView(this).apply {
@@ -83,6 +88,7 @@ class MainActivity : AppCompatActivity() {
             })
             addView(ExtrasUi.paragraph(context, Tr.t("about_desc"), 13f, Ui.MUTED).apply { gravity = Gravity.CENTER })
         })
+        list.addView(quickSearch())
         // Быстрый доступ к библиотеке и сведениям о приложении.
         list.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -172,6 +178,63 @@ class MainActivity : AppCompatActivity() {
             Profiles.setOrder(this, ids + Profiles.order(this).filterNot { it in ids })
         } else {
             profileMenu(p)
+        }
+    }
+
+    /** Быстрый поиск: запрос или адрес открывается новой вкладкой в последнем (или выбранном) профиле. */
+    private fun quickSearch(): View {
+        var target = Profiles.lastProfile(this)
+        val where = TextView(this).apply {
+            textSize = 12f
+            setTextColor(Ui.MUTED)
+            setPadding(dp(4), dp(6), dp(4), 0)
+        }
+        fun showTarget() { where.text = Tr.t("qs_in_profile", Profiles.get(this, target).name) }
+        showTarget()
+        where.setOnClickListener {
+            val all = Profiles.all(this)
+            AlertDialog.Builder(this)
+                .setTitle(Tr.t("qs_pick_profile"))
+                .setItems(all.map { it.name }.toTypedArray()) { _, i -> target = all[i].id; showTarget() }
+                .show()
+        }
+        val field = EditText(this).apply {
+            hint = Tr.t("address_hint")
+            contentDescription = Tr.t("address_hint")
+            setSingleLine()
+            textSize = 15f
+            setTextColor(Ui.TEXT)
+            setHintTextColor(Ui.MUTED)
+            imeOptions = EditorInfo.IME_ACTION_GO
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            background = null
+            setPadding(dp(10), 0, dp(10), 0)
+        }
+        fun go() {
+            val text = field.text.toString()
+            if (text.isBlank()) return
+            field.setText("")
+            startActivity(Intent(this, BrowserActivity::class.java)
+                .putExtra(BrowserActivity.EXTRA_PROFILE, target)
+                .putExtra(BrowserActivity.EXTRA_ACTION, BrowserActivity.ACTION_NEW_TAB)
+                .putExtra(BrowserActivity.EXTRA_URL, Search.toUrl(this, text)))
+        }
+        field.setOnEditorActionListener { _, action, event ->
+            val enter = event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
+            if (action == EditorInfo.IME_ACTION_GO || enter) { go(); true } else false
+        }
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, dp(10), 0, dp(4))
+            addView(LinearLayout(context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
+                setPadding(dp(12), 0, dp(4), 0)
+                addView(icon(R.drawable.ic_search, Ui.MUTED, 20))
+                addView(field, LinearLayout.LayoutParams(0, dp(48), 1f))
+                addView(iconButton(R.drawable.ic_forward, Tr.t("qs_go")) { go() }, LinearLayout.LayoutParams(dp(40), dp(40)))
+            })
+            addView(where)
         }
     }
 
