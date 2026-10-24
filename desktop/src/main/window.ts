@@ -15,6 +15,9 @@ import * as History from './history';
 import * as Downloads from './downloads';
 import * as Bookmarks from './bookmarks';
 import * as Saved from './saved';
+import * as Perms from './permissions';
+import * as Privacy from './privacy';
+import * as Lock from './lock';
 import type { Palette, ProfileInfo, StripTab, WindowState } from '../shared/types';
 
 /** Высота шапки: верхний ряд (вкладки + кнопки окна) и панель адреса. */
@@ -44,6 +47,8 @@ export function profileSession(id: number): Session {
     hardenSession(ses);
     handleWebSession(ses, false);
     Downloads.attach(ses, id);
+    Privacy.protect(ses);
+    installPermissions(ses, id);
   }
   return ses;
 }
@@ -64,6 +69,64 @@ const preload = () => join(__dirname, '..', 'preload', 'preload.js');
 
 interface MemTab { id: string; title: string; url: string }
 
+interface Prompt { id: number; wcId: number; host: string; kinds: string[]; resolve: (allow: boolean, remember: boolean) => void }
+let promptSeq = 0;
+
+const SIMPLE_ALLOW = new Set(['fullscreen', 'clipboard-sanitized-write', 'pointerLock']);
+
+/** Какие наши типы разрешений нужны для запроса Electron (null — запрещено всегда). */
+function kindsFor(permission: string, details: { mediaTypes?: string[]; mediaType?: string }): string[] | null {
+  if (permission === 'geolocation') return ['location'];
+  if (permission === 'notifications') return ['notifications'];
+  if (permission === 'clipboard-read') return ['clipboard'];
+  if (permission === 'media') {
+    const types = details.mediaTypes ?? (details.mediaType ? [details.mediaType] : []);
+    const out = [...(types.includes('video') ? ['camera'] : []), ...(types.includes('audio') ? ['microphone'] : [])];
+    return out.length ? out : null;
+  }
+  return null;
+}
+
+const hostOf = (url: string) => {
+  try { return new URL(url).hostname.toLowerCase(); } catch { return ''; }
+};
+
+/**
+ * Разрешения сайтов: по умолчанию — спросить; решение запоминается по сайту и профилю.
+ * Инкогнито: решения живут только в памяти окна.
+ */
+function installPermissions(ses: Session, profile: number | null): void {
+  const memory = new Map<string, Perms.Mode>();
+  const mode = (host: string, kind: string): Perms.Mode =>
+    profile == null ? (memory.get(`${host}|${kind}`) ?? Perms.defaultMode(kind)) : Perms.effective(profile, host, kind);
+  ses.setPermissionRequestHandler((wc, permission, cb, details) => {
+    if (SIMPLE_ALLOW.has(permission)) return cb(true);
+    const kinds = kindsFor(permission, details as { mediaTypes?: string[] });
+    const host = hostOf(details.requestingUrl || wc?.getURL() || '');
+    if (!kinds || !wc || !host) return cb(false);
+    const modes = kinds.map((k) => mode(host, k));
+    if (modes.includes('BLOCK')) return cb(false);
+    if (modes.every((m) => m === 'ALLOW')) return cb(true);
+    const w = [...windows].find((x) => x.owns(wc));
+    if (!w) return cb(false);
+    w.askPermission(wc, host, kinds, (allow, remember) => {
+      if (remember) {
+        for (const k of kinds) {
+          if (profile == null) memory.set(`${host}|${k}`, allow ? 'ALLOW' : 'BLOCK');
+          else Perms.set(profile, host, k, allow ? 'ALLOW' : 'BLOCK');
+        }
+      }
+      cb(allow);
+    });
+  });
+  ses.setPermissionCheckHandler((_wc, permission, origin, details) => {
+    if (SIMPLE_ALLOW.has(permission)) return true;
+    const kinds = kindsFor(permission, details as { mediaType?: string });
+    const host = hostOf(origin);
+    return !!kinds && !!host && kinds.every((k) => mode(host, k) === 'ALLOW');
+  });
+}
+
 export class OsWindow implements TabHost {
   readonly win: BrowserWindow;
   readonly chrome: WebContentsView;
@@ -83,6 +146,10 @@ export class OsWindow implements TabHost {
   private memActive: string | null = null;
   private memClosed: MemTab[] = [];
   private memSeq = 0;
+  /** Запросы разрешений сайтов, ждущие ответа пользователя. */
+  private prompts: Prompt[] = [];
+  /** Окно заблокировано PIN-ом: видно только os://lock. */
+  locked = false;
 
   constructor(opts: { incognito?: boolean } = {}) {
     this.incognito = !!opts.incognito;
@@ -103,6 +170,8 @@ export class OsWindow implements TabHost {
       webPreferences: { ...WEB_PREFS, session: uiSes() },
     });
     this.win.webContents.loadURL('about:blank');
+    // Скрывать содержимое окна от записи экрана и скриншотов — по настройке.
+    this.win.setContentProtection(settings.get().hideContent);
     if (!this.incognito && saved.maximized) this.win.maximize();
 
     this.page = this.ownView();
@@ -123,6 +192,13 @@ export class OsWindow implements TabHost {
     this.win.on('app-command', (_e, cmd) => {
       if (cmd === 'browser-backward') this.back();
       if (cmd === 'browser-forward') this.forward();
+    });
+    // Свернули больше чем на минуту — при возврате спросим PIN (как блокировка после минуты в фоне на Android).
+    let minimizedAt = 0;
+    this.win.on('minimize', () => { minimizedAt = Date.now(); });
+    this.win.on('restore', () => {
+      if (minimizedAt && Date.now() - minimizedAt > 60_000) lockAll();
+      minimizedAt = 0;
     });
     this.win.once('ready-to-show', () => this.win.show());
     this.chrome.webContents.once('did-finish-load', () => this.win.show());
@@ -167,6 +243,8 @@ export class OsWindow implements TabHost {
         hardenSession(this.incogSession);
         handleWebSession(this.incogSession, true);
         Downloads.attach(this.incogSession, null);
+        Privacy.protect(this.incogSession);
+        installPermissions(this.incogSession, null);
       }
       return this.incogSession;
     }
@@ -183,6 +261,14 @@ export class OsWindow implements TabHost {
   layout(): void {
     if (this.win.isDestroyed()) return;
     const { width, height } = this.win.getContentBounds();
+    if (this.locked) {
+      // Под замком видно только экран ввода PIN: ни вкладок, ни шапки.
+      this.chrome.setVisible(false);
+      for (const v of this.views.values()) v.view.setVisible(false);
+      this.page.setVisible(true);
+      this.page.setBounds({ x: 0, y: 0, width, height });
+      return;
+    }
     const top = this.chromeHeight();
     const content = { x: 0, y: top, width, height: Math.max(0, height - top) };
     this.chrome.setBounds(this.overlay ? { x: 0, y: 0, width, height } : { x: 0, y: 0, width, height: top || 1 });
@@ -248,6 +334,10 @@ export class OsWindow implements TabHost {
       maximized: this.win.isMaximized(),
       zoom: wc ? Math.round(wc.getZoomFactor() * 100) : 100,
       bookmarked: isWebUrl(url) && !!Bookmarks.findByUrl(url),
+      prompt: this.currentPrompt(),
+      blocked: wc ? Privacy.blockedOnTab(wc.id) : 0,
+      locked: this.locked,
+      lockEnabled: Lock.enabled(),
     };
   }
 
@@ -318,7 +408,12 @@ export class OsWindow implements TabHost {
   }
 
   openPanel(url: string): void {
-    if (!isPanelUrl(url)) return;
+    if (!isPanelUrl(url) || url.startsWith('os://lock')) return;
+    if (this.locked) {
+      // Откроется после ввода PIN.
+      this.panel = url;
+      return;
+    }
     this.panel = url;
     const wc = this.page.webContents;
     if (wc.getURL() !== url) void wc.loadURL(url);
@@ -536,6 +631,59 @@ export class OsWindow implements TabHost {
     this.push();
   }
 
+  owns(wc: WebContents): boolean {
+    return [...this.views.values()].some((v) => v.wc === wc);
+  }
+
+  askPermission(wc: WebContents, host: string, kinds: string[], resolve: (allow: boolean, remember: boolean) => void): void {
+    const p: Prompt = { id: ++promptSeq, wcId: wc.id, host, kinds, resolve };
+    this.prompts.push(p);
+    // Вкладку закрыли или увели на другой сайт — запрос отклоняется.
+    const cancel = () => this.answerPrompt(p.id, false, false);
+    const nav = (e: Electron.Event<Electron.WebContentsDidStartNavigationEventParams>) => {
+      if (e.isMainFrame && !e.isSameDocument) { wc.off('did-start-navigation', nav); cancel(); }
+    };
+    wc.once('destroyed', cancel);
+    wc.on('did-start-navigation', nav);
+    this.push();
+  }
+
+  answerPrompt(id: number, allow: boolean, remember: boolean): void {
+    const i = this.prompts.findIndex((p) => p.id === id);
+    if (i < 0) return;
+    const [p] = this.prompts.splice(i, 1);
+    p.resolve(allow, remember && !this.incognito);
+    this.push();
+  }
+
+  private currentPrompt(): WindowState['prompt'] {
+    const wc = this.shown?.wc;
+    const p = wc && !this.panel ? this.prompts.find((x) => x.wcId === wc.id) : undefined;
+    if (!p) return null;
+    const text = p.kinds.length === 2 ? t('perm_q_camera_mic', p.host) : t(Perms.kind(p.kinds[0])!.askKey, p.host);
+    return { id: p.id, text, canRemember: !this.incognito };
+  }
+
+  // --- Блокировка ---
+
+  lock(): void {
+    if (!Lock.enabled() || this.locked) return;
+    this.locked = true;
+    this.overlay = false;
+    void this.page.webContents.loadURL('os://lock/');
+    this.layout();
+    this.page.webContents.focus();
+  }
+
+  unlock(): void {
+    this.locked = false;
+    if (this.panel) void this.page.webContents.loadURL(this.panel);
+    else void this.page.webContents.loadURL('about:blank');
+    this.layout();
+    this.push();
+    this.shown?.wc.focus();
+  }
+
   /** В избранное / убрать из избранного (Ctrl+D). Возвращает новое состояние или null, если страницу нельзя добавить. */
   toggleBookmark(): boolean | null {
     const v = this.shown;
@@ -654,6 +802,7 @@ export class OsWindow implements TabHost {
   /** Горячие клавиши — как в Chrome. true — нажатие обработано. */
   shortcut(input: Electron.Input, wc: WebContents): boolean {
     if (input.type !== 'keyDown') return false;
+    if (this.locked) return input.control || input.meta || input.alt || /^F\d+$/.test(input.key);
     const ctrl = input.control || input.meta;
     const k = input.key.length === 1 ? input.key.toLowerCase() : input.key;
     const code = input.code;
@@ -744,6 +893,10 @@ function visibleBounds(b: { x?: number; y?: number; width: number; height: numbe
   const area = screen.getDisplayMatching({ x: b.x, y: b.y, width, height }).workArea;
   const inside = b.x < area.x + area.width - 80 && b.y < area.y + area.height - 40 && b.x + width > area.x + 80 && b.y >= area.y - 8;
   return inside ? { x: b.x, y: b.y, width, height } : { width, height };
+}
+
+export function lockAll(): void {
+  for (const w of windows) w.lock();
 }
 
 export function mainWindow(): OsWindow | undefined {

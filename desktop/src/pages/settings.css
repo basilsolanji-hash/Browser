@@ -2,3 +2,6 @@ select { min-width: 200px; }
 input[type="number"] { width: 90px; }
 .homeurl { width: 100%; margin-top: 8px; }
 .links { display: flex; flex-wrap: wrap; gap: 8px; }
+#settings-search { width: 100%; margin: 8px 0 4px; }
+.setting .label { min-width: 180px; }
+.setting { flex-wrap: wrap; }

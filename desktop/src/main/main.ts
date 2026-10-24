@@ -1,11 +1,12 @@
-import { app, Menu, nativeTheme } from 'electron';
+import { app, Menu, nativeTheme, powerMonitor } from 'electron';
 import { join } from 'node:path';
 import { registerScheme } from './protocol';
 import { installGlobalGuards, cleanUserAgent } from './security';
 import { applyLanguage } from './i18n';
 import { flushAll } from './store';
 import { installIpc, applyTheme } from './ipc';
-import { OsWindow, mainWindow, windows } from './window';
+import { OsWindow, lockAll, mainWindow, windows } from './window';
+import { setBlockedListener } from './privacy';
 import * as Onboarding from './onboarding';
 import * as Tabs from './tabs';
 import * as Profiles from './profiles';
@@ -22,6 +23,8 @@ if (process.platform === 'win32') app.setAppUserModelId('ru.multibrowser.desktop
 
 // Никаких отчётов и фоновых запросов Chromium.
 app.commandLine.appendSwitch('disable-features', 'SpareRendererForSitePerProcess,MediaRouter,DialMediaRouteProvider,AutofillServerCommunication,OptimizationHints');
+// Хранилища сайтов в чужих рамках разделены по сайту верхнего уровня (изоляция сторонних данных).
+app.commandLine.appendSwitch('enable-features', 'ThirdPartyStoragePartitioning,PartitionedCookies');
 app.commandLine.appendSwitch('disable-background-networking');
 
 registerScheme();
@@ -43,6 +46,11 @@ if (!app.requestSingleInstanceLock()) {
     applyTheme();
     installIpc();
     nativeTheme.on('updated', () => { for (const w of windows) w.refreshLook(); });
+    // Счётчик заблокированных трекеров в адресной строке.
+    setBlockedListener((wcId) => { for (const w of windows) if (w.liveTabs().some((v) => v.wc.id === wcId)) w.push(); });
+    // Блокировка Windows или сон — при возврате нужен PIN.
+    powerMonitor.on('lock-screen', lockAll);
+    powerMonitor.on('suspend', lockAll);
     if (process.env.OS_TEST_DELAY) setTimeout(createMain, Number(process.env.OS_TEST_DELAY));
     else createMain();
   });
@@ -54,6 +62,7 @@ if (!app.requestSingleInstanceLock()) {
 
 function createMain(): OsWindow {
   const w = new OsWindow();
+  w.lock();
   // Первый запуск — обучение; потом — последний открытый профиль (вкладки восстанавливаются).
   if (Onboarding.shouldShow()) {
     w.profile = null;
