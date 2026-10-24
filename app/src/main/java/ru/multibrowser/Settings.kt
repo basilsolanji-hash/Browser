@@ -52,6 +52,14 @@ object Settings {
         prefs(ctx).edit().putBoolean("secure", on).apply()
     }
 
+    /** Только HTTPS: незащищённые адреса повышаются до HTTPS, без него сайт не откроется. */
+    fun httpsOnly(ctx: Context) = prefs(ctx).getBoolean("https_only", false)
+
+    fun setHttpsOnly(ctx: Context, on: Boolean) {
+        prefs(ctx).edit().putBoolean("https_only", on).apply()
+        Gecko.applyHttpsOnly(ctx)
+    }
+
     /** Прятать панели браузера при прокрутке. */
     fun autoHideBars(ctx: Context) = prefs(ctx).getBoolean("autohide", true)
 

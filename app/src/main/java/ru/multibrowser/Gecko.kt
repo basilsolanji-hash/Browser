@@ -45,6 +45,7 @@ object Gecko {
             .consoleOutput(ctx.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0)
             // Масштаб пальцами разрешён на любом сайте.
             .forceUserScalableEnabled(true)
+            .allowInsecureConnections(httpsMode(ctx))
             // Защита как в стандартном режиме Firefox: блокируются соцтрекеры, майнеры и сборщики
             // отпечатков, сторонние cookies изолируются по сайтам (вход через Google работает),
             // фишинг — с предупреждением. Рекламу и аналитику не режем: на них завязаны
@@ -62,6 +63,13 @@ object Gecko {
             )
             .build(),
     ).also { runtime = it }
+
+    private fun httpsMode(ctx: Context) =
+        if (Settings.httpsOnly(ctx)) GeckoRuntimeSettings.HTTPS_ONLY else GeckoRuntimeSettings.ALLOW_ALL
+
+    fun applyHttpsOnly(ctx: Context) {
+        runtime?.settings?.setAllowInsecureConnections(httpsMode(ctx))
+    }
 
     fun applyZoom(ctx: Context) {
         runtime?.settings?.fontSizeFactor = Settings.zoom(ctx) / 100f
