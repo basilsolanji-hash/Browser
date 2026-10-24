@@ -49,7 +49,7 @@ class TranslationsTest(private val key: String) {
     @Test
     fun formattingDoesNotThrow() {
         val row = Tr.M.getValue(key)
-        val args = specs(row[0]).sortedBy { it.dropLast(1).toInt() }.map { if (it.last() == 'd') 3 else "x" }.toTypedArray()
+        val args = specs(row[0]).sortedBy { it.dropLast(1).toInt() }.map<String, Any> { if (it.last() == 'd') 3 else "x" }.toTypedArray()
         if (args.isEmpty()) return
         row.forEach { String.format(it, *args) }
     }
