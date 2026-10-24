@@ -9,6 +9,7 @@ import android.text.format.Formatter
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
@@ -24,11 +25,26 @@ import java.util.Locale
 class DownloadsActivity : AppCompatActivity() {
 
     private lateinit var list: LinearLayout
+    private var shownActive = 0
+
+    // Пока идут загрузки — обновляем проценты; закончилась — перерисовываем список.
+    private val ticker = object : Runnable {
+        override fun run() {
+            if (Downloads.active.isNotEmpty() || shownActive > 0) render()
+            list.postDelayed(this, 700)
+        }
+    }
 
     override fun onResume() {
         super.onResume()
         AppLock.onResume(this)
         render()
+        list.postDelayed(ticker, 700)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        list.removeCallbacks(ticker)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,8 +90,12 @@ class DownloadsActivity : AppCompatActivity() {
             }, LinearLayout.LayoutParams(dp(40), dp(40)))
         })
 
+        val running = Downloads.active.toList()
+        shownActive = running.size
+        running.forEach { list.addView(activeRow(it)) }
+
         val items = DownloadLog.list(this)
-        if (items.isEmpty()) {
+        if (items.isEmpty() && running.isEmpty()) {
             list.addView(TextView(this).apply {
                 text = Tr.t("downloads_empty")
                 textSize = 14f
@@ -89,6 +109,47 @@ class DownloadsActivity : AppCompatActivity() {
         items.forEachIndexed { index, d ->
             list.addView(row(d, index, fmt.format(Date(d.time))))
         }
+    }
+
+    /** Идущая загрузка: имя, полоса прогресса, «45% · 2,1 из 4,6 МБ» и отмена. */
+    private fun activeRow(t: Downloads.Task): View = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1), Ui.ACCENT)
+        setPadding(dp(14), dp(10), dp(6), dp(10))
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply { topMargin = dp(8) }
+        addView(LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(TextView(context).apply {
+                text = t.name
+                textSize = 15f
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+                setTextColor(Ui.TEXT)
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.MIDDLE
+            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(TextView(context).apply {
+                text = "\u2715"
+                textSize = 16f
+                gravity = Gravity.CENTER
+                setTextColor(Ui.MUTED)
+                contentDescription = Tr.t("cancel")
+                setOnClickListener { Downloads.cancel(t.id) }
+            }, LinearLayout.LayoutParams(dp(40), dp(40)))
+        })
+        addView(ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+            isIndeterminate = t.total <= 0
+            max = 100
+            progress = t.percent.coerceAtLeast(0)
+            progressTintList = android.content.res.ColorStateList.valueOf(Ui.ACCENT)
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(8)).apply { marginEnd = dp(8) })
+        addView(TextView(context).apply {
+            text = DownloadProgress.label(this@DownloadsActivity, t)
+            textSize = 12f
+            setTextColor(Ui.MUTED)
+            setPadding(0, dp(4), 0, 0)
+        })
     }
 
     private fun row(d: Download, index: Int, when_: String): View {

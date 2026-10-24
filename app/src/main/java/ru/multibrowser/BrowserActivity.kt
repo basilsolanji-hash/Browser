@@ -19,7 +19,6 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
-import android.widget.PopupMenu
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -643,33 +642,48 @@ class BrowserActivity : AppCompatActivity() {
             .show()
     }
 
+    /** Меню ⋮: частые действия сверху, ниже разделы с иконками (BrowserMenu). */
+    @Suppress("UNUSED_PARAMETER")
     private fun showMenu(anchor: View) {
-        val menu = PopupMenu(this, anchor)
-        val items = listOf<Pair<String, () -> Unit>>(
-            Tr.t("new_tab") to { newTab() },
-            Tr.t("search") to { focusSearch() },
-            Tr.t("new_incognito") to { openIncognito(Pins.START) },
-            Tr.t("tabs") to { showTabs() },
-            Tr.t("new_tab_group") to { showTabs(TabsActivity.MODE_NEW_GROUP) },
-            Tr.t("select_tabs") to { showTabs(TabsActivity.MODE_SELECT) },
-            Tr.t("close_all_tabs") to { confirmCloseAll() },
-            BookmarksActivity.menuLabel(this, currentUrl) to {
+        fun item(icon: Int, title: String, action: () -> Unit) = BrowserMenu.Item(icon, title, action)
+        fun open(screen: Class<*>) = { startActivity(Intent(this, screen)) }
+        val quick = listOf(
+            item(R.drawable.ic_add, Tr.t("new_tab")) { newTab() },
+            item(R.drawable.ic_star, BookmarksActivity.menuLabel(this, currentUrl)) {
                 BookmarksActivity.toggle(this, currentUrl, pageTitles[key]?.takeIf { it.first == currentUrl }?.second.orEmpty())
             },
-            Tr.t("favorites") to { BookmarksActivity.open(this, profileId) },
-            Tr.t("zoom") to { zoomDialog() },
-            Tr.t("full_screen") to { setUserFullScreen(true) },
-            Tr.t("downloads") to { startActivity(Intent(this, DownloadsActivity::class.java)) },
-            *tools.menuItems().toTypedArray(),
-            Tr.t("copy_link") to { copyUrl() },
-            Tr.t("open_external") to { openExternally() },
-            Tr.t("site_permissions") to { SitePermissions.openFor(this, currentUrl) },
-            Tr.t("diagnostics") to { showDiagnostics() },
-            Tr.t("settings") to { startActivity(Intent(this, SettingsActivity::class.java)) },
+            item(R.drawable.ic_link, Tr.t("copy_link")) { copyUrl() },
+            item(R.drawable.ic_fullscreen, Tr.t("full_screen")) { setUserFullScreen(true) },
+            item(R.drawable.ic_settings, Tr.t("settings"), open(SettingsActivity::class.java)),
         )
-        items.forEachIndexed { i, (title, _) -> menu.menu.add(0, i, i, title) }
-        menu.setOnMenuItemClickListener { items[it.itemId].second(); true }
-        menu.show()
+        val sections = listOf(
+            BrowserMenu.Section(Tr.t("tabs"), listOf(
+                item(R.drawable.ic_incognito, Tr.t("new_incognito")) { openIncognito(Pins.START) },
+                item(R.drawable.ic_tabs, Tr.t("tabs")) { showTabs() },
+                item(R.drawable.ic_group, Tr.t("new_tab_group")) { showTabs(TabsActivity.MODE_NEW_GROUP) },
+                item(R.drawable.ic_check, Tr.t("select_tabs")) { showTabs(TabsActivity.MODE_SELECT) },
+                item(R.drawable.ic_close, Tr.t("close_all_tabs")) { confirmCloseAll() },
+            )),
+            BrowserMenu.Section(Tr.t("menu_page"), listOf(
+                item(R.drawable.ic_search, Tr.t("search")) { focusSearch() },
+                item(R.drawable.ic_book, tools.readerTitle()) { tools.toggleReader() },
+                item(R.drawable.ic_offline, Tr.t("save_page")) { tools.savePage() },
+                item(R.drawable.ic_zoom, Tr.t("zoom")) { zoomDialog() },
+                item(R.drawable.ic_shield, Tr.t("site_permissions")) { SitePermissions.openFor(this, currentUrl) },
+                item(R.drawable.ic_open_external, Tr.t("open_external")) { openExternally() },
+            )),
+            BrowserMenu.Section(Tr.t("my_library"), listOf(
+                item(R.drawable.ic_star, Tr.t("favorites")) { BookmarksActivity.open(this, profileId) },
+                item(R.drawable.ic_download, Tr.t("downloads"), open(DownloadsActivity::class.java)),
+                item(R.drawable.ic_offline, Tr.t("saved_pages"), open(SavedPagesActivity::class.java)),
+                item(R.drawable.ic_note, Tr.t("notes"), open(NotesActivity::class.java)),
+            )),
+            BrowserMenu.Section(Tr.t("menu_app"), listOf(
+                item(R.drawable.ic_help, Tr.t("help_feedback"), open(HelpActivity::class.java)),
+                item(R.drawable.ic_info, Tr.t("diagnostics")) { showDiagnostics() },
+            )),
+        )
+        BrowserMenu(this).show(quick, sections)
     }
 
     private fun showHistory() {

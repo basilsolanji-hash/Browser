@@ -56,19 +56,60 @@ object Downloads {
         val mime = header(response, "Content-Type")?.substringBefore(';')?.trim()
             ?.takeIf { it.isNotEmpty() } ?: "application/octet-stream"
         val app = activity.applicationContext
+        val total = header(response, "Content-Length")?.toLongOrNull()?.takeIf { it > 0 } ?: -1L
+        val task = Task(nextId++, name, total)
+        active += task
         Toast.makeText(app, Tr.t("downloading", name), Toast.LENGTH_SHORT).show()
+        DownloadProgress.update(app, task)
         thread(name = "download") {
-            val uri = runCatching { body.use { write(app, name, mime, it) } }.getOrNull()
+            val result = runCatching { body.use { write(app, name, mime, it, task) } }
+            active -= task
+            val uri = result.getOrNull()
             if (uri != null) DownloadLog.add(app, name, mime, uri.toString())
+            DownloadProgress.finish(app, task, uri != null)
             activity.runOnUiThread {
-                val msg = if (uri != null) Tr.t("saved_to", FOLDER, name) else Tr.t("download_failed", name)
+                val msg = when {
+                    uri != null -> Tr.t("saved_to", FOLDER, name)
+                    task.cancelled -> Tr.t("dl_cancelled", name)
+                    else -> Tr.t("download_failed", name)
+                }
                 Toast.makeText(app, msg, Toast.LENGTH_LONG).show()
             }
         }
     }
 
+    /** Идущая загрузка: сколько скачано из скольких (total = -1 — сайт не сообщил размер). */
+    class Task(val id: Int, val name: String, val total: Long) {
+        @Volatile var done = 0L
+        @Volatile var cancelled = false
+        val percent get() = if (total > 0) (done * 100 / total).toInt().coerceIn(0, 100) else -1
+    }
+
+    /** Загрузки, которые идут сейчас (для уведомления и экрана «Загрузки»). */
+    val active = java.util.concurrent.CopyOnWriteArrayList<Task>()
+    private var nextId = 1
+
+    fun cancel(id: Int) {
+        active.firstOrNull { it.id == id }?.cancelled = true
+    }
+
+    /** Копирование с подсчётом байтов; отмена — исключение, частичный файл удаляет вызывающий. */
+    private fun copy(ctx: Context, input: InputStream, out: java.io.OutputStream, task: Task) {
+        val buf = ByteArray(64 * 1024)
+        var last = 0L
+        while (true) {
+            if (task.cancelled) throw java.io.InterruptedIOException("cancelled")
+            val n = input.read(buf)
+            if (n < 0) break
+            out.write(buf, 0, n)
+            task.done += n
+            val now = System.currentTimeMillis()
+            if (now - last > 400) { last = now; DownloadProgress.update(ctx, task) }
+        }
+    }
+
     /** Записывает файл и возвращает uri для открытия из списка загрузок. */
-    private fun write(ctx: Context, name: String, mime: String, input: InputStream): Uri {
+    private fun write(ctx: Context, name: String, mime: String, input: InputStream, task: Task): Uri {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Downloads.DISPLAY_NAME, name)
@@ -77,7 +118,8 @@ object Downloads {
             }
             val uri = ctx.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
                 ?: error("MediaStore insert failed")
-            ctx.contentResolver.openOutputStream(uri)!!.use { input.copyTo(it) }
+            runCatching { ctx.contentResolver.openOutputStream(uri)!!.use { copy(ctx, input, it, task) } }
+                .onFailure { ctx.contentResolver.delete(uri, null, null); throw it }
             return uri
         } else {
             // С разрешением — общая папка «Загрузки/Ось», без него — папка приложения.
@@ -88,7 +130,8 @@ object Downloads {
                 else ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
             val dir = File(base, FOLDER).apply { mkdirs() }
             val file = File(dir, name)
-            file.outputStream().use { input.copyTo(it) }
+            runCatching { file.outputStream().use { copy(ctx, input, it, task) } }
+                .onFailure { file.delete(); throw it }
             return Uri.fromFile(file)
         }
     }

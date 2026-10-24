@@ -68,6 +68,7 @@
         <activity android:name=".StatsActivity" />
         <activity android:name=".ProfileActivity" android:windowSoftInputMode="adjustResize" />
 
+        <receiver android:name=".DownloadProgress$CancelReceiver" android:exported="false" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.files"
