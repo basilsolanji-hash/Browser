@@ -176,10 +176,10 @@ class OnboardingActivity : AppCompatActivity() {
         layoutParams = LinearLayout.LayoutParams(dp(112), dp(112))
     }
 
-    /** Две строки профилей-примеров, как на главном экране. */
+    /** Строки профилей-примеров, как на главном экране. */
     private fun profilesArt() = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        listOf(1, 2).forEach { id ->
+        (1..minOf(4, Settings.profileCount(this@OnboardingActivity))).forEach { id ->
             val p = Profiles.get(this@OnboardingActivity, id)
             addView(LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL

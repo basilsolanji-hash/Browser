@@ -19,7 +19,7 @@ settings() { adb shell am start -n "$PKG/ru.multibrowser.SettingsActivity" "$@" 
 rotate() { adb shell settings put system accelerometer_rotation 0; adb shell settings put system user_rotation "$1"; }
 
 # --- Сценарии ---
-# Первый запуск: обучение (6 экранов) и профили-примеры «My mail» / «My company».
+# Первый запуск: обучение (6 экранов) и профили-примеры «Personal», «Work», «Shopping», «Social».
 main;                                                                     shot 00-onboarding-1 10
 OB="$OUT/onboarding.txt"; : > "$OB"
 # Координаты кнопки по тексту (uiautomator), пусто — не найдена.
@@ -123,13 +123,13 @@ tap_text "Ось start"; sleep 1
 browser --ei profile 7 --es url https://example.com; sleep 15
 menu_item "Full screen";                                                    shot 32-fullscreen 3
 tap_text "Exit full screen";                                                shot 33-fullscreen-exit 3
-# Профили: перетаскивание («My mail» → на место «My company»), описание профиля.
+# Профили: перетаскивание («Personal» → на место «Work»), описание профиля.
 adb shell am force-stop "$PKG"; main; sleep 6
-from=$(find_xy "My mail"); to=$(find_xy "My company")
+from=$(find_xy "Personal"); to=$(find_xy "Work")
 echo "drag: '$from' -> '$to'" >> "$X"
 [ -n "$from" ] && [ -n "$to" ] && adb shell input draganddrop $from $to 2500
                                                                             shot 34-profiles-reordered 3
-adb shell am start -n "$PKG/ru.multibrowser.ProfileActivity" --ei profile 3 >/dev/null; sleep 4
+adb shell am start -n "$PKG/ru.multibrowser.ProfileActivity" --ei profile 5 >/dev/null; sleep 4
 tap_text "What this profile is for" && adb shell input text "Work%smail"
                                                                             shot 35-profile-info 2
 adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 2
@@ -213,8 +213,8 @@ check "№34 режим чтения отрисовал статью" 'grep -q "
 check "№35 PDF сохранён и открыт"      'grep -q "page_.*\.pdf" "$X" && grep -q "tap .Moon" "$X"'
 check "Полный экран: кнопка выхода"       'grep -q "tap .Exit full screen" "$X"'
 check "Профили: порядок изменён"         'grep -q "name=\"order\"" "$X"'
-check "Профили: описание сохранено"      'grep -q "desc_3\">Work mail" "$X"'
-check "Первый запуск: примеры профилей"   'grep -q "name_1\">My mail" "$X" && grep -q "list_1" "$X"'
+check "Профили: описание сохранено"      'grep -q "desc_5\">Work mail" "$X"'
+check "Первый запуск: примеры профилей"   'grep -q "name_1\">Personal" "$X" && grep -q "name_4\">Social" "$X" && grep -q "list_2" "$X"'
 check "Первый запуск: обучение пройдено"  'grep -q "name=\"done\" value=\"true\"" "$X" && [ "$(grep -c "next .: [0-9]" "$OB")" -ge 5 ] && grep -q "start: [0-9]" "$OB"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 [ "$ext_fail" = 0 ] || echo "ПРИЁМКА НЕ ПРОЙДЕНА — блоки D/E/F"

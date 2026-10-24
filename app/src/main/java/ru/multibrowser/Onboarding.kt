@@ -3,7 +3,7 @@ package ru.multibrowser
 import android.content.Context
 
 /**
- * Первый запуск: обучение и профили-примеры «Моя почта» и «Моя компания» со своими вкладками.
+ * Первый запуск: обучение и профили-примеры («Личное», «Работа», «Покупки», «Соцсети») со своими вкладками.
  * Примеры создаются только на чистой установке — у тех, кто уже пользуется Осью, ничего не меняем.
  */
 object Onboarding {
@@ -28,15 +28,21 @@ object Onboarding {
         return true
     }
 
+    /** Типовой набор для нового пользователя: личное, работа, покупки, соцсети — со своими вкладками. */
     private fun seedExamples(ctx: Context) {
         val start = Pin("start", "Старт", Pins.START)
-        Profiles.rename(ctx, 1, Tr.t("ex_mail_name"))
-        Profiles.setDescription(ctx, 1, Tr.t("ex_mail_desc"))
-        Pins.save(ctx, listOf(start, Pin("mail", Tr.t("tab_mail"), "https://mail.google.com/")), 1)
-        if (Settings.profileCount(ctx) >= 2) {
-            Profiles.rename(ctx, 2, Tr.t("ex_company_name"))
-            Profiles.setDescription(ctx, 2, Tr.t("ex_company_desc"))
-            Pins.save(ctx, listOf(start, Pin("mail", Tr.t("tab_mail"), "https://mail.google.com/")), 2)
+        val mail = Pin("mail", Tr.t("tab_mail"), "https://mail.google.com/")
+        val calendar = Pin("calendar", Tr.t("tab_calendar"), "https://calendar.google.com/")
+        listOf(
+            Triple("ex_personal", listOf(start, mail), 1),
+            Triple("ex_work", listOf(start, mail, calendar), 2),
+            Triple("ex_shopping", listOf(start), 3),
+            Triple("ex_social", listOf(start), 4),
+        ).forEach { (key, pins, id) ->
+            if (id > Settings.profileCount(ctx)) return@forEach
+            Profiles.rename(ctx, id, Tr.t("${key}_name"))
+            Profiles.setDescription(ctx, id, Tr.t("${key}_desc"))
+            Pins.save(ctx, pins, id)
         }
     }
 }

@@ -50,6 +50,18 @@ jobs:
           { echo '```'; grep -E "^e: " build.log || true; grep -A40 "What went wrong" build.log || true; echo '```'; } > errors.md
           gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" -F body=@errors.md > /dev/null
 
+      # Тестовая сборка ветки feat/** по ручному запуску — пре-релиз со ссылкой на APK (не «последний» релиз).
+      - name: Publish pre-release
+        if: github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/feat/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="test-$(echo '${{ github.ref_name }}' | tr '/' '-')-${{ github.run_number }}"
+          cp app/build/outputs/apk/release/app-release.apk "Os-Browser-${TAG}.apk"
+          gh release create "$TAG" "Os-Browser-${TAG}.apk" --target "${{ github.sha }}" --prerelease --latest=false \
+            --title "ОсьBrowser, тестовая сборка ${{ github.ref_name }} #${{ github.run_number }}" \
+            --notes "Тестовая сборка ветки ${{ github.ref_name }} из ${{ github.sha }}. Подпись: ${SIGNING}."
+
       # Релиз — только из main; ветки feat/** лишь проверяют компиляцию.
       - name: Publish release
         if: github.ref == 'refs/heads/main'
