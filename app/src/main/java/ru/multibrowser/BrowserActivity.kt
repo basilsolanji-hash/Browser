@@ -290,7 +290,7 @@ class BrowserActivity : AppCompatActivity() {
                 typeface = Typeface.DEFAULT_BOLD
                 gravity = Gravity.CENTER
                 maxLines = 1
-                maxWidth = dp(160)
+                maxWidth = dp(110)
                 ellipsize = TextUtils.TruncateAt.END
                 setPadding(dp(8), 0, dp(8), 0)
                 background = Ui.rounded(Ui.ACCENT, dpf(5), if (group != null) dp(2) else 0, group?.color ?: Ui.ACCENT)

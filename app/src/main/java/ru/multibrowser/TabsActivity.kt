@@ -409,6 +409,9 @@ class TabsActivity : AppCompatActivity() {
                     marginStart = dp(5); marginEnd = dp(5)
                 }
                 val tab = rowTabs.getOrNull(i)
+                // Пустое место в неполном ряду — нулевой высоты, иначе View растягивается на весь экран
+                // и прячет следующие секции.
+                if (tab == null) lp.height = 0
                 row.addView(if (tab != null) cell(tab, group) else View(this), lp)
             }
             content.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
