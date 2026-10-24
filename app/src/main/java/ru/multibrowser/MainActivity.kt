@@ -46,9 +46,11 @@ class MainActivity : AppCompatActivity() {
         list.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            addView(ImageView(context).apply { setImageResource(R.drawable.ic_logo) })
-            addView(logoText().apply { setPadding(dp(10), 0, 0, 0) },
-                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(ImageView(context).apply {
+                setImageResource(R.drawable.ic_wordmark)
+                contentDescription = "Ось"
+                scaleType = ImageView.ScaleType.FIT_START
+            }, LinearLayout.LayoutParams(0, dp(34), 1f))
             addView(iconButton(R.drawable.ic_settings, "Настройки") {
                 startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
             }, LinearLayout.LayoutParams(dp(40), dp(40)))

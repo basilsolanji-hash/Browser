@@ -2,6 +2,7 @@ package ru.multibrowser
 
 import android.content.Context
 import android.net.Uri
+import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoRuntimeSettings
 import org.mozilla.geckoview.GeckoSession
@@ -33,6 +34,17 @@ object Gecko {
         ctx.applicationContext,
         GeckoRuntimeSettings.Builder()
             .preferredColorScheme(colorScheme(Settings.theme(ctx)))
+            // Масштаб пальцами разрешён на любом сайте.
+            .forceUserScalableEnabled(true)
+            // Защита как в Firefox: трекеры блокируются, сторонние cookies изолируются по сайтам
+            // (вход через Google при этом работает), фишинг и вредоносные сайты — с предупреждением.
+            .contentBlocking(
+                ContentBlocking.Settings.Builder()
+                    .antiTracking(ContentBlocking.AntiTracking.DEFAULT)
+                    .safeBrowsing(ContentBlocking.SafeBrowsing.DEFAULT)
+                    .cookieBehavior(ContentBlocking.CookieBehavior.ACCEPT_FIRST_PARTY_AND_ISOLATE_OTHERS)
+                    .build()
+            )
             .build(),
     ).also { runtime = it }
 

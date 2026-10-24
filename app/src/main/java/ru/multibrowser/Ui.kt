@@ -6,9 +6,6 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
@@ -71,16 +68,6 @@ object Ui {
 
 fun Context.dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 fun Context.dpf(v: Int) = v * resources.displayMetrics.density
-
-/** «Ось» белым + «Browser» акцентом, как «knitERP». */
-fun Context.logoText() = TextView(this).apply {
-    val s = SpannableString("ОсьBrowser")
-    s.setSpan(ForegroundColorSpan(Ui.ACCENT), 3, s.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-    text = s
-    textSize = 20f
-    setTextColor(Ui.TEXT)
-    typeface = Typeface.DEFAULT_BOLD
-}
 
 /**
  * Android 15 рисует приложение под системными панелями; отступаем от них

@@ -8,12 +8,13 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.text.InputType
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
-import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
@@ -25,6 +26,8 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
@@ -49,6 +52,10 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var progress: ProgressBar
     private lateinit var switcher: LinearLayout
     private lateinit var backButton: View
+    private lateinit var urlBar: EditText
+    private lateinit var lockIcon: View
+    private val chrome = mutableListOf<View>() // всё, что прячется в полноэкранном режиме
+    private var fullScreen = false
     private lateinit var forwardButton: View
     private var profileId = 0
     private var site = Site.GMAIL
@@ -76,7 +83,12 @@ class BrowserActivity : AppCompatActivity() {
         buildUi()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (Gecko.canGoBack[key] == true) session?.goBack() else finish()
+                when {
+                    fullScreen -> session?.exitFullScreen()
+                    urlBar.hasFocus() -> urlBar.clearFocus()
+                    Gecko.canGoBack[key] == true -> session?.goBack()
+                    else -> finish()
+                }
             }
         })
         openTab(intent)
@@ -109,7 +121,7 @@ class BrowserActivity : AppCompatActivity() {
         chipDot.background = Ui.oval(p.color)
         chipName.text = p.name
         tabs.forEach { (s, view) -> styleTab(view, s == newSite) }
-        currentUrl = Profiles.lastUrl(this, id, newSite)
+        showUrl(Profiles.lastUrl(this, id, newSite))
         progress.visibility = View.GONE
 
         val s = Gecko.session(this, id, newSite)
@@ -118,6 +130,27 @@ class BrowserActivity : AppCompatActivity() {
         session = s
         renderSwitcher()
         updateNavButtons()
+    }
+
+    /** В покое — только домен и замок для https, при редактировании — полный адрес. */
+    private fun showUrl(url: String) {
+        currentUrl = url
+        lockIcon.visibility = if (url.startsWith("https://")) View.VISIBLE else View.GONE
+        if (!urlBar.hasFocus()) urlBar.setText(Uri.parse(url).host ?: url)
+    }
+
+    private fun setFullScreen(on: Boolean) {
+        fullScreen = on
+        chrome.forEach { it.visibility = if (on) View.GONE else View.VISIBLE }
+        if (!on) progress.visibility = View.GONE
+        WindowInsetsControllerCompat(window, geckoView).apply {
+            if (on) {
+                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                hide(WindowInsetsCompat.Type.systemBars())
+            } else {
+                show(WindowInsetsCompat.Type.systemBars())
+            }
+        }
     }
 
     private fun updateNavButtons() {
@@ -132,7 +165,7 @@ class BrowserActivity : AppCompatActivity() {
             override fun onPageStart(session: GeckoSession, url: String) {
                 if (visible()) {
                     progress.visibility = View.VISIBLE
-                    currentUrl = url
+                    showUrl(url)
                 }
                 Profiles.saveLastUrl(this@BrowserActivity, id, tab, url)
                 History.add(this@BrowserActivity, id, url)
@@ -186,6 +219,11 @@ class BrowserActivity : AppCompatActivity() {
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
                 Downloads.save(this@BrowserActivity, response)
             }
+
+            // Видео и игры на весь экран: прячем панели браузера и системы.
+            override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) {
+                if (visible()) setFullScreen(fullScreen)
+            }
         }
         s.promptDelegate = PromptHandler()
     }
@@ -232,7 +270,6 @@ class BrowserActivity : AppCompatActivity() {
     private fun showMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
         val items = listOf<Pair<String, () -> Unit>>(
-            "Открыть адрес…" to { askUrl() },
             "Копировать ссылку" to { copyUrl() },
             "Открыть в другом браузере" to { openExternally() },
             "Настройки" to { startActivity(Intent(this, SettingsActivity::class.java)) },
@@ -295,37 +332,6 @@ class BrowserActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun askUrl() {
-        val input = EditText(this).apply {
-            setText(currentUrl)
-            setSingleLine()
-            setTextColor(Ui.TEXT)
-            imeOptions = EditorInfo.IME_ACTION_GO
-            setSelectAllOnFocus(true)
-        }
-        val box = LinearLayout(this).apply {
-            setPadding(dp(20), dp(8), dp(20), 0)
-            addView(input, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
-        }
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Адрес или поиск")
-            .setView(box)
-            .setPositiveButton("Открыть") { _, _ -> session?.loadUri(toUrl(input.text.toString())) }
-            .setNegativeButton("Отмена", null)
-            .create()
-        input.setOnEditorActionListener { _, action, event ->
-            val enter = event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
-            if (action == EditorInfo.IME_ACTION_GO || enter) {
-                session?.loadUri(toUrl(input.text.toString()))
-                dialog.dismiss()
-                true
-            } else false
-        }
-        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
-        dialog.show()
-        input.requestFocus()
-    }
-
     private fun copyUrl() {
         getSystemService(ClipboardManager::class.java)
             ?.setPrimaryClip(ClipData.newPlainText("url", currentUrl))
@@ -380,14 +386,64 @@ class BrowserActivity : AppCompatActivity() {
         val more = iconButton(R.drawable.ic_more, "Меню") { showMenu(it) }
 
         val h = dp(40)
-        val toolbar = LinearLayout(this).apply {
+        val tabRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setBackgroundColor(Ui.BG)
-            setPadding(dp(10), dp(8), dp(10), dp(8))
             addView(chip, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, h))
             addView(tabBar, LinearLayout.LayoutParams(0, h, 1f).apply { marginStart = dp(8) })
             addView(more, LinearLayout.LayoutParams(h, h).apply { marginStart = dp(8) })
+        }
+
+        // Адресная строка: домен с замком; нажатие — полный адрес для правки или поиска.
+        lockIcon = icon(R.drawable.ic_lock, Ui.MUTED, 14)
+        urlBar = EditText(this).apply {
+            setSingleLine()
+            textSize = 14f
+            setTextColor(Ui.TEXT)
+            setHintTextColor(Ui.MUTED)
+            hint = "Адрес или поиск в Google"
+            imeOptions = EditorInfo.IME_ACTION_GO
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            background = null
+            setPadding(dp(8), 0, dp(8), 0)
+            setOnEditorActionListener { _, action, event ->
+                val enter = event != null &&
+                    event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
+                if (action == EditorInfo.IME_ACTION_GO || enter) {
+                    val url = toUrl(text.toString())
+                    session?.loadUri(url)
+                    currentUrl = url
+                    clearFocus()
+                    true
+                } else false
+            }
+        }
+        val addressBox = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
+            setPadding(dp(12), 0, dp(4), 0)
+            addView(lockIcon)
+            addView(urlBar, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
+        }
+        urlBar.setOnFocusChangeListener { v, focused ->
+            addressBox.background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1), if (focused) Ui.ACCENT else Ui.BORDER)
+            if (focused) {
+                urlBar.setText(currentUrl)
+                urlBar.post { urlBar.selectAll() }
+            } else {
+                urlBar.setText(Uri.parse(currentUrl).host ?: currentUrl)
+                getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(v.windowToken, 0)
+            }
+        }
+
+        val toolbar = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Ui.BG)
+            setPadding(dp(10), dp(8), dp(10), dp(8))
+            addView(tabRow)
+            addView(addressBox, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(38))
+                .apply { topMargin = dp(8) })
         }
 
         progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
@@ -398,16 +454,11 @@ class BrowserActivity : AppCompatActivity() {
 
         geckoView = GeckoView(this).apply { coverUntilFirstPaint(Ui.BG) }
 
-        // Нижняя панель: быстрое переключение между 15 профилями без возврата к списку.
-        switcher = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(dp(10), dp(8), dp(2), dp(8))
-        }
         // Панель действий: как в обычном браузере, всё под большим пальцем.
         val actions = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setBackgroundColor(Ui.BG)
-            setPadding(dp(4), dp(4), dp(4), 0)
+            setPadding(dp(4), dp(2), dp(4), 0)
         }
         fun action(iconRes: Int, label: String, onClick: () -> Unit) = actionButton(iconRes, label, onClick).also {
             actions.addView(it, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
@@ -419,25 +470,42 @@ class BrowserActivity : AppCompatActivity() {
         action(R.drawable.ic_delete, "Очистка") { showClear() }
         action(R.drawable.ic_refresh, "Обновить") { session?.reload() }
 
+        // Нижняя полоса: быстрое переключение между профилями без возврата к списку.
+        switcher = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(dp(10), dp(6), dp(2), dp(8))
+        }
         val switcherScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             setBackgroundColor(Ui.BG)
             addView(switcher)
         }
 
+        fun divider() = View(this).apply { setBackgroundColor(Ui.BORDER) }
+        val match = LinearLayout.LayoutParams.MATCH_PARENT
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(Ui.BG)
-            addView(toolbar)
-            addView(View(context).apply { setBackgroundColor(Ui.BORDER) },
-                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)))
-            addView(progress, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(2)))
-            addView(geckoView, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
-            addView(View(context).apply { setBackgroundColor(Ui.BORDER) },
-                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)))
-            addView(actions)
-            addView(switcherScroll)
         }
+        val top = Settings.barPosition(this) == Settings.BarPosition.TOP
+        val topDivider = divider()
+        val bottomDivider = divider()
+        if (top) {
+            root.addView(toolbar)
+            root.addView(topDivider, LinearLayout.LayoutParams(match, dp(1)))
+            root.addView(progress, LinearLayout.LayoutParams(match, dp(2)))
+            root.addView(geckoView, LinearLayout.LayoutParams(match, 0, 1f))
+            root.addView(bottomDivider, LinearLayout.LayoutParams(match, dp(1)))
+        } else {
+            root.addView(geckoView, LinearLayout.LayoutParams(match, 0, 1f))
+            root.addView(progress, LinearLayout.LayoutParams(match, dp(2)))
+            root.addView(bottomDivider, LinearLayout.LayoutParams(match, dp(1)))
+            root.addView(toolbar.apply { setPadding(dp(10), dp(6), dp(10), dp(2)) })
+        }
+        root.addView(actions)
+        root.addView(switcherScroll)
+        chrome += listOf(toolbar, topDivider, bottomDivider, actions, switcherScroll)
+
         setContentView(root)
         applyEdgeToEdge(root)
     }

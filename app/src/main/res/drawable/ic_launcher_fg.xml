@@ -1,8 +1,10 @@
+<!-- Иконка: кольцо «О» на оси с точкой и квадратом, как в логотипе «Ось». -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#E8E8EA"
-        android:pathData="M36,30h22a6,6 0 0 1 6,6v22a6,6 0 0 1 -6,6h-22a6,6 0 0 1 -6,-6v-22a6,6 0 0 1 6,-6z" />
-    <path android:fillColor="#2BA89A"
-        android:pathData="M50,44h22a6,6 0 0 1 6,6v22a6,6 0 0 1 -6,6h-22a6,6 0 0 1 -6,-6v-22a6,6 0 0 1 6,-6z" />
+    <path android:fillColor="#2BA89A" android:pathData="M27,52.5H80V55.5H27Z" />
+    <path android:fillColor="#2BA89A" android:pathData="M20,54a6,6 0 1,0 12,0a6,6 0 1,0 -12,0z" />
+    <path android:fillColor="#2BA89A" android:pathData="M77,49H86V58H77Z" />
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="7"
+        android:pathData="M35,54a19,17.5 0 1,0 38,0a19,17.5 0 1,0 -38,0z" />
 </vector>

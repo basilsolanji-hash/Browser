@@ -14,6 +14,11 @@ object Settings {
         SYSTEM("Как в системе"),
     }
 
+    enum class BarPosition(val title: String) {
+        TOP("Сверху"),
+        BOTTOM("Снизу"),
+    }
+
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
     fun profileCount(ctx: Context) =
@@ -29,6 +34,13 @@ object Settings {
     fun setTheme(ctx: Context, theme: Theme) {
         prefs(ctx).edit().putString("theme", theme.name).apply()
         applyTheme(ctx)
+    }
+
+    fun barPosition(ctx: Context): BarPosition =
+        runCatching { BarPosition.valueOf(prefs(ctx).getString("bar", null)!!) }.getOrDefault(BarPosition.TOP)
+
+    fun setBarPosition(ctx: Context, position: BarPosition) {
+        prefs(ctx).edit().putString("bar", position.name).apply()
     }
 
     /** Тема приложения (AppCompat пересоздаст открытые экраны) и цветовая схема сайтов. */

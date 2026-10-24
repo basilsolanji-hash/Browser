@@ -42,6 +42,11 @@ class SettingsActivity : AppCompatActivity() {
         content.addView(header())
         content.addView(sectionTitle("Тема"))
         content.addView(themeSelector())
+        content.addView(sectionTitle("Адресная строка и вкладки"))
+        content.addView(segmented(Settings.BarPosition.values().toList(), Settings.barPosition(this), { it.title }) {
+            Settings.setBarPosition(this, it)
+            recreate()
+        })
         content.addView(sectionTitle("Количество профилей"))
         content.addView(countSelector())
         content.addView(sectionTitle("Названия профилей"))
@@ -75,24 +80,29 @@ class SettingsActivity : AppCompatActivity() {
         })
     }
 
-    private fun themeSelector(): View {
+    // Смена темы пересоздаёт экраны с новыми цветами.
+    private fun themeSelector() =
+        segmented(Settings.Theme.values().toList(), Settings.theme(this), { it.title }) {
+            Settings.setTheme(this, it)
+        }
+
+    /** Сегментированный переключатель в стиле вкладок Gmail/Claude. */
+    private fun <T> segmented(options: List<T>, current: T, label: (T) -> String, onPick: (T) -> Unit): View {
         val bar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
             setPadding(dp(3), dp(3), dp(3), dp(3))
         }
-        val current = Settings.theme(this)
-        Settings.Theme.values().forEach { t ->
+        options.forEach { option ->
+            val selected = option == current
             bar.addView(TextView(this).apply {
-                text = t.title
+                text = label(option)
                 textSize = 13f
                 typeface = Typeface.DEFAULT_BOLD
                 gravity = Gravity.CENTER
-                val selected = t == current
                 background = if (selected) Ui.rounded(Ui.ACCENT, dpf(5)) else null
                 setTextColor(if (selected) Ui.ON_ACCENT else Ui.MUTED)
-                // Смена темы пересоздаёт экраны с новыми цветами.
-                setOnClickListener { if (!selected) Settings.setTheme(this@SettingsActivity, t) }
+                setOnClickListener { if (!selected) onPick(option) }
             }, LinearLayout.LayoutParams(0, dp(38), 1f))
         }
         return bar
