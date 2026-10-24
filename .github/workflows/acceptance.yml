@@ -40,12 +40,15 @@ jobs:
           script: bash .github/scripts/acceptance.sh
 
       # Результаты — в отдельную ветку, чтобы их можно было забрать через git.
+      # Для main — ветка acceptance-results, для feat/x — acceptance-results-feat-x (параллельные прогоны не мешают).
       - name: Publish results
         if: always()
         run: |
+          BR=acceptance-results
+          [ "${{ github.ref_name }}" != main ] && BR="acceptance-results-$(echo '${{ github.ref_name }}' | tr '/' '-')"
           mkdir -p results
           cd results
-          git init -q -b acceptance-results
+          git init -q -b "$BR"
           git add -A
           git -c user.name=ci -c user.email=ci@localhost commit -q -m "Acceptance ${{ github.run_number }} (${{ github.sha }})"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" acceptance-results

@@ -30,7 +30,10 @@ object Tr {
         return if (args.isEmpty()) s else String.format(s, *args)
     }
 
-    private val M = mapOf(
+    // Строки разнесены по модулям (по блокам работ), чтобы правки разных экранов не конфликтовали.
+    private val M by lazy { CORE + TrTabs.M + TrLibrary.M + TrSecurity.M + TrExtras.M }
+
+    private val CORE = mapOf(
         "profiles" to listOf("Profiles", "Профили", "Perfiles", "Perfis", "Profils", "Profile", "الملفات", "प्रोफ़ाइल", "Profiller", "配置文件"),
         "profiles_desc" to listOf("%d isolated profiles: each has its own accounts and cookies. Long-press for the profile menu.", "%d изолированных профилей: в каждом свои аккаунты и cookies. Долгое нажатие — меню профиля.", "%d perfiles aislados: cada uno con sus cuentas y cookies. Mantén pulsado para el menú.", "%d perfis isolados: cada um com suas contas e cookies. Toque longo para o menu.", "%d profils isolés : chacun avec ses comptes et cookies. Appui long pour le menu.", "%d isolierte Profile: jedes mit eigenen Konten und Cookies. Lang drücken für das Menü.", "%d ملفات معزولة: لكل منها حساباته وملفات تعريف الارتباط. اضغط مطولاً للقائمة.", "%d अलग प्रोफ़ाइल: हर एक के अपने खाते और कुकीज़। मेन्यू के लिए देर तक दबाएँ।", "%d yalıtılmış profil: her birinin kendi hesapları ve çerezleri var. Menü için uzun basın.", "%d 个独立配置文件：各有自己的账户和 Cookie。长按打开菜单。"),
         "not_signed_in" to listOf("Not signed in", "Вход не выполнен", "Sin iniciar sesión", "Não conectado", "Non connecté", "Nicht angemeldet", "لم يتم تسجيل الدخول", "साइन इन नहीं", "Giriş yapılmadı", "未登录"),
