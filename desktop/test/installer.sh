@@ -44,8 +44,9 @@ taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1; sleep 3
 for i in $(seq 1 30); do [ ! -f "$DIR/Os Browser.exe" ] && break; sleep 2; done
 [ ! -f "$DIR/Os Browser.exe" ]; check "installer: silent uninstall removes the app" $?
 reg query 'HKCU\Software\Clients\StartMenuInternet\OsBrowser' >/dev/null 2>&1; [ $? != 0 ]; check "installer: uninstall removes browser registration" $?
-# Папка с русскими буквами и пробелом (как профиль пользователя «C:\Users\Наталья» на русской Windows).
-CYR_W='C:\Тест Ось\Программы\Os Browser'
+# Папка с русскими буквами (как профиль пользователя «C:\Users\Наталья» на русской Windows).
+# Без пробелов: ключ /D= установщика NSIS не принимает путь в кавычках.
+CYR_W='C:\Тест\Программы\ОсьБраузер'
 CYR="$(cygpath -u "$CYR_W")"
 "$SETUP" //S "//D=$CYR_W"; sleep 5
 for i in $(seq 1 30); do [ -f "$CYR/Os Browser.exe" ] && break; sleep 2; done
