@@ -9,7 +9,7 @@ android {
     defaultConfig {
         applicationId = "ru.multibrowser"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         // Номер сборки GitHub Actions: каждая сборка новее предыдущей.
         val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
         versionCode = build

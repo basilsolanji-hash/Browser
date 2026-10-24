@@ -38,7 +38,8 @@ jobs:
       - name: Build
         run: |
           set -o pipefail
-          ./gradlew assembleRelease --no-daemon --refresh-dependencies 2>&1 | tee build.log
+          # APK — для установки напрямую; AAB (bundle) — для загрузки в Google Play.
+          ./gradlew assembleRelease bundleRelease --no-daemon --refresh-dependencies 2>&1 | tee build.log
 
       # Ошибки сборки — комментарием к коммиту, чтобы их было видно без полного лога.
       - name: Report errors
@@ -56,6 +57,7 @@ jobs:
           TAG="build-${{ github.run_number }}"
           GECKO=$(ls ~/.gradle/caches/modules-2/files-2.1/org.mozilla.geckoview/geckoview/ | sort -V | tail -1)
           cp app/build/outputs/apk/release/app-release.apk "Os-Browser-${TAG}.apk"
-          gh release create "$TAG" "Os-Browser-${TAG}.apk" \
+          cp app/build/outputs/bundle/release/app-release.aab "Os-Browser-${TAG}.aab" 2>/dev/null || true
+          gh release create "$TAG" "Os-Browser-${TAG}.apk" "Os-Browser-${TAG}.aab" \
             --title "ОсьBrowser, сборка ${{ github.run_number }}" \
             --notes "Движок GeckoView (Firefox) ${GECKO}. Подпись: ${SIGNING}. Автосборка из ${{ github.sha }}" --latest
