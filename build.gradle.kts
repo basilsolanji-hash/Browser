@@ -1,4 +1,4 @@
 plugins {
-    id("com.android.application") version "8.10.1" apply false
-    id("org.jetbrains.kotlin.android") version "2.2.20" apply false
+    // С AGP 9 поддержка Kotlin встроена, отдельный плагин kotlin-android не нужен.
+    id("com.android.application") version "9.1.0" apply false
 }
