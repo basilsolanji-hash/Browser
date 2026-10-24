@@ -14,8 +14,7 @@ import org.mozilla.geckoview.StorageController
  * поэтому cookies и хранилища профилей не пересекаются и сохраняются между запусками.
  */
 object Gecko {
-    // Сколько вкладок держать в памяти; остальные «спят» и перезагружаются при открытии.
-    private const val MAX_ACTIVE = 6
+    // Сколько вкладок держать в памяти — Settings.keepAlive; остальные «спят» и перезагружаются при открытии.
 
     // Gmail отдаёт незнакомым браузерам устаревшую «простую» версию, поэтому только для него
     // представляемся мобильным Chrome. Остальным сайтам (вход Google, Claude с защитой Cloudflare)
@@ -80,7 +79,7 @@ object Gecko {
         session.loadUri(url)
         sessions[key] = session
 
-        while (sessions.size > MAX_ACTIVE) {
+        while (sessions.size > Settings.keepAlive(ctx)) {
             drop(sessions.entries.first().key)
         }
         return session

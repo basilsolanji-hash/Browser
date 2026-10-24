@@ -47,6 +47,19 @@ class SettingsActivity : AppCompatActivity() {
             Settings.setBarPosition(this, it)
             recreate()
         })
+        content.addView(sectionTitle("Вкладок в памяти одновременно"))
+        content.addView(segmented(Settings.KEEP_ALIVE_OPTIONS, Settings.keepAlive(this), { it.toString() }) {
+            Settings.setKeepAlive(this, it)
+            recreate()
+        })
+        content.addView(TextView(this).apply {
+            text = "Столько вкладок Gmail/Claude работают в фоне, не перезагружаясь: можно запустить ответ Claude " +
+                "в одном профиле и спокойно переключиться в другой. Больше — удобнее, но нужно больше памяти " +
+                "(10–15 — для телефонов с 8 ГБ и более)."
+            textSize = 12f
+            setTextColor(Ui.MUTED)
+            setPadding(0, dp(6), 0, 0)
+        })
         content.addView(sectionTitle("Количество профилей"))
         content.addView(countSelector())
         content.addView(sectionTitle("Названия профилей"))

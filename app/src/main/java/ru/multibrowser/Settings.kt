@@ -28,6 +28,15 @@ object Settings {
         prefs(ctx).edit().putInt("count", n.coerceIn(MIN_PROFILES, MAX_PROFILES)).apply()
     }
 
+    /** Сколько вкладок держать «живыми» в памяти; варианты для переключателя в настройках. */
+    val KEEP_ALIVE_OPTIONS = listOf(3, 6, 10, 15)
+
+    fun keepAlive(ctx: Context) = prefs(ctx).getInt("keep_alive", 6)
+
+    fun setKeepAlive(ctx: Context, n: Int) {
+        prefs(ctx).edit().putInt("keep_alive", n).apply()
+    }
+
     fun theme(ctx: Context): Theme =
         runCatching { Theme.valueOf(prefs(ctx).getString("theme", null)!!) }.getOrDefault(Theme.DARK)
 
