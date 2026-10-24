@@ -138,6 +138,8 @@ adb shell run-as "$PKG" cat shared_prefs/onboarding.xml shared_prefs/pins.xml >>
 # №23, №25
 act AboutActivity;                                                          shot 30-about 5
 act HelpActivity;                                                           shot 31-help 5
+act StatsActivity;                                                          shot 36-stats 5
+adb shell run-as "$PKG" cat shared_prefs/stats.xml >> "$X" 2>&1
 adb shell run-as "$PKG" ls -la files/saved >> "$X" 2>&1
 adb shell run-as "$PKG" cat shared_prefs/notes.xml >> "$X" 2>&1
 adb shell run-as "$PKG" cat shared_prefs/home.xml shared_prefs/phrases.xml >> "$X" 2>&1
@@ -216,6 +218,7 @@ check "Профили: порядок изменён"         'grep -q "name=\"o
 check "Профили: описание сохранено"      'grep -q "desc_5\">Work mail" "$X"'
 check "Первый запуск: примеры профилей"   'grep -q "name_1\">Personal" "$X" && grep -q "name_4\">Social" "$X" && grep -q "list_2" "$X"'
 check "Первый запуск: обучение пройдено"  'grep -q "name=\"done\" value=\"true\"" "$X" && [ "$(grep -c "next .: [0-9]" "$OB")" -ge 5 ] && grep -q "start: [0-9]" "$OB"'
+check "Статистика: страницы посчитаны"   'grep -q "name=\"pages_1\" value=\"[1-9]" "$X"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 [ "$ext_fail" = 0 ] || echo "ПРИЁМКА НЕ ПРОЙДЕНА — блоки D/E/F"
 [ "$RC" = 0 ] && [ "$ext_fail" = 0 ]
