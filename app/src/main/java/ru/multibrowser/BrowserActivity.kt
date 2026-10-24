@@ -105,7 +105,19 @@ class BrowserActivity : AppCompatActivity() {
     private val pickFiles = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         val (prompt, result) = pendingFile ?: return@registerForActivityResult
         pendingFile = null
-        result.complete(answerFilePrompt(prompt, uris))
+        if (uris.isEmpty()) {
+            result.complete(prompt.dismiss())
+            return@registerForActivityResult
+        }
+        // Копируем в свою папку (GeckoView читает файлы по пути) — в фоне, файлы бывают большими.
+        val app = applicationContext
+        Thread {
+            val files = Uploads.copy(app, uris)
+            runOnUiThread {
+                if (files.isEmpty()) Toast.makeText(this, Tr.t("upload_failed"), Toast.LENGTH_SHORT).show()
+                result.complete(answerFilePrompt(prompt, files))
+            }
+        }.start()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
