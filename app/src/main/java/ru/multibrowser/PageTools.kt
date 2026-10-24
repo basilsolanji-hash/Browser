@@ -100,7 +100,8 @@ private class TextActions(private val activity: Activity, private val pageUrl: (
         const val SHARE = "ru.multibrowser.SHARE"
         const val SEARCH = "ru.multibrowser.SEARCH"
         const val NOTE = "ru.multibrowser.NOTE"
-        val OURS = listOf(SHARE, SEARCH, NOTE)
+        // «Добавить в заметку» — сразу после «Копировать», чтобы не пряталась в переполнение панели.
+        val OURS = listOf(NOTE, SHARE, SEARCH)
     }
 
     private val selected get() = mSelection?.text?.trim().orEmpty()

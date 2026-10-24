@@ -38,6 +38,67 @@ adb shell am force-stop "$PKG"; sleep 2
 main;                                                                     shot 13-relaunch 8
 browser --ei profile 1 --es url https://claude.ai/;                       shot 14-session-restored 35
 
+
+# --- Блоки D/E/F (feat/extras): по умолчанию, главная, чтение, офлайн, фраза, о приложении, справка, заметки ---
+X="$OUT/extras.txt"; : > "$X"
+act() { adb shell am start -n "$PKG/ru.multibrowser.$1" >/dev/null; }
+# Найти на экране элемент по тексту/описанию (uiautomator) и нажать его центр.
+tap_text() {
+  for i in 1 2 3; do
+    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb shell cat /sdcard/ui.xml > "$OUT/ui.xml" 2>/dev/null
+    xy=$(python3 - "$OUT/ui.xml" "$1" <<'PY'
+import sys, re
+xml = open(sys.argv[1], encoding='utf-8', errors='ignore').read(); want = sys.argv[2]
+for m in re.finditer(r'<node [^>]*>', xml):
+    n = m.group(0)
+    t = re.search(r' text="([^"]*)"', n); d = re.search(r'content-desc="([^"]*)"', n)
+    if (t and t.group(1) == want) or (d and d.group(1) == want):
+        b = re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', n)
+        if b:
+            x1, y1, x2, y2 = map(int, b.groups()); print((x1 + x2) // 2, (y1 + y2) // 2); break
+PY
+)
+    if [ -n "$xy" ]; then echo "tap '$1' at $xy" >> "$X"; adb shell input tap $xy; return 0; fi
+    sleep 2
+  done
+  echo "NOT FOUND: '$1'" >> "$X"; return 1
+}
+menu_item() { tap_text "Menu" && sleep 2 && tap_text "$1"; }
+
+browser --ei profile 7;                                                     shot 20-start-phrase 12
+# №26: ссылка из «другого приложения» (неявный VIEW, только наш пакет) открывается в Оси.
+echo "resolve VIEW https:" >> "$X"
+adb shell cmd package resolve-activity --brief -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d https://example.org "$PKG" >> "$X" 2>&1
+adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d https://example.org -p "$PKG" >> "$X" 2>&1
+                                                                            shot 21-view-intent 30
+# №37: долгое нажатие на заголовок example.org — панель выделения с «Добавить в заметку».
+adb shell input swipe 150 296 150 296 1500;                                 shot 22-selection 3
+tap_text "Add to note"; sleep 2
+act NotesActivity;                                                          shot 23-notes 5
+# №34: режим чтения на статье Википедии.
+browser --ei profile 7 --es url https://en.m.wikipedia.org/wiki/Moon;       shot 24-article 30
+menu_item "Reader mode";                                                    shot 25-reader 15
+menu_item "Exit reader mode"; sleep 10
+# №35: сохранить страницу офлайн, список и открытие PDF.
+menu_item "Save page offline"; sleep 15
+act SavedPagesActivity;                                                     shot 26-saved 5
+tap_text "Moon" || tap_text "Moon - Wikipedia" || true;                     shot 27-saved-open 15
+# №27: главная — пустая страница, затем возврат к «Старт Ось».
+settings; sleep 4
+for i in 1 2 3 4 5 6 7 8; do adb shell input swipe 160 560 160 140 300; done; sleep 2
+                                                                            shot 28-settings-extras 2
+tap_text "Blank page"; sleep 2
+browser --ei profile 8 --es url os:start;                                   shot 29-home-blank 10
+settings; sleep 4
+for i in 1 2 3 4 5 6 7 8; do adb shell input swipe 160 560 160 140 300; done; sleep 2
+tap_text "Ось start"; sleep 1
+# №23, №25
+act AboutActivity;                                                          shot 30-about 5
+act HelpActivity;                                                           shot 31-help 5
+adb shell run-as "$PKG" ls -la files/saved >> "$X" 2>&1
+adb shell run-as "$PKG" cat shared_prefs/notes.xml >> "$X" 2>&1
+adb shell run-as "$PKG" cat shared_prefs/home.xml shared_prefs/phrases.xml >> "$X" 2>&1
+
 adb logcat -d -v time > "$OUT/logcat.txt"
 grep -E "OsDiag|GeckoConsole|AndroidRuntime|FATAL|Gecko" "$OUT/logcat.txt" | tail -800 > "$OUT/diag.txt"
 
@@ -76,6 +137,7 @@ def read_png(path):
 outdir=sys.argv[1]
 # Эти экраны обязаны показывать реальную страницу — не пустую.
 must_render={'02-example','03-wikipedia','05-p1-claude','06-p2-claude','07-p4-claude','11-claude-light','14-session-restored'}
+must_render|={'21-view-intent','24-article','25-reader'}  # блоки D/E/F
 fails=[]
 for path in sorted(glob.glob(os.path.join(outdir,'*.png'))):
     name=os.path.splitext(os.path.basename(path))[0]
