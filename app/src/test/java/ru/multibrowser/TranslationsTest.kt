@@ -64,9 +64,13 @@ class TranslationKeysUsedTest {
             Regex("""Tr\.t\("([a-z0-9_]+)"""").findAll(f.readText()).map { it.groupValues[1] to f.name }
         }.toList()
         assertTrue("ключи не найдены в исходниках", used.size > 100)
-        val missing = used.filter { (k, _) -> k !in Tr.M }.distinct()
+        // Ключ, оканчивающийся на «_», составной («phrase_» + номер) — проверяется ниже по фразам.
+        val missing = used.filter { (k, _) -> !k.endsWith("_") && k !in Tr.M }.distinct()
         assertTrue("нет перевода: $missing", missing.isEmpty())
     }
+
+    @Test
+    fun allDailyPhrasesExist() = (1..30).forEach { assertTrue("phrase_$it", "phrase_$it" in Tr.M) }
 
     @Test
     fun localizedExamplesResolve() {

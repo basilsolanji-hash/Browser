@@ -99,6 +99,7 @@ class IncomingUrlTest(private val name: String, private val url: String, private
 }
 
 /** Свои сохранённые страницы открываются по file://, чужие файлы — нет (в том числе через ../). */
+@RunWith(org.robolectric.RobolectricTestRunner::class)
 class SavedPageFileTest {
     private val ctx = ApplicationProvider.getApplicationContext<Context>()
 
