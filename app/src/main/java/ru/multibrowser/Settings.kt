@@ -37,6 +37,13 @@ object Settings {
         prefs(ctx).edit().putInt("keep_alive", n).apply()
     }
 
+    /** Полоса быстрого переключения профилей внизу браузера (по умолчанию скрыта). */
+    fun showSwitcher(ctx: Context) = prefs(ctx).getBoolean("switcher", false)
+
+    fun setShowSwitcher(ctx: Context, show: Boolean) {
+        prefs(ctx).edit().putBoolean("switcher", show).apply()
+    }
+
     fun theme(ctx: Context): Theme =
         runCatching { Theme.valueOf(prefs(ctx).getString("theme", null)!!) }.getOrDefault(Theme.DARK)
 

@@ -587,8 +587,14 @@ class BrowserActivity : AppCompatActivity() {
             root.addView(toolbar.apply { setPadding(dp(10), dp(6), dp(10), dp(2)) })
         }
         root.addView(actions)
-        root.addView(switcherScroll)
-        chrome += listOf(toolbar, topDivider, bottomDivider, actions, switcherScroll)
+        chrome += listOf(toolbar, topDivider, bottomDivider, actions)
+        if (Settings.showSwitcher(this)) {
+            root.addView(switcherScroll)
+            chrome += switcherScroll
+        } else {
+            // Без полосы профилей добавляем нижний отступ панели действий.
+            actions.setPadding(dp(4), dp(2), dp(4), dp(6))
+        }
 
         // Фокус по умолчанию — на корне, иначе адресная строка захватывает его при открытии экрана.
         root.isFocusableInTouchMode = true

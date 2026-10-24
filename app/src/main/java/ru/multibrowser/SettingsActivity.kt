@@ -47,6 +47,11 @@ class SettingsActivity : AppCompatActivity() {
             Settings.setBarPosition(this, it)
             recreate()
         })
+        content.addView(sectionTitle("Полоса профилей внизу браузера"))
+        content.addView(segmented(listOf(false, true), Settings.showSwitcher(this), { if (it) "Показывать" else "Скрыть" }) {
+            Settings.setShowSwitcher(this, it)
+            recreate()
+        })
         content.addView(sectionTitle("Вкладок в памяти одновременно"))
         content.addView(segmented(Settings.KEEP_ALIVE_OPTIONS, Settings.keepAlive(this), { it.toString() }) {
             Settings.setKeepAlive(this, it)
