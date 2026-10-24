@@ -1,0 +1,33 @@
+# Сборка установщика Windows (NSIS). Подписи кода пока нет (§9 ТЗ) — SmartScreen будет предупреждать.
+appId: ru.multibrowser.desktop
+productName: Os Browser
+copyright: Ось Browser
+directories:
+  output: release
+  buildResources: assets
+files:
+  - dist/**/*
+  - "!dist/**/*.map"
+  - package.json
+asar: true
+# Безопасность сборки: без запуска как Node, без NODE_OPTIONS и --inspect, cookies шифруются, код только из asar.
+electronFuses:
+  runAsNode: false
+  enableCookieEncryption: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+win:
+  target: nsis
+  icon: assets/icon.ico
+  artifactName: Os-Browser-Setup-${version}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Ось Browser
+  uninstallDisplayName: Ось Browser
+  deleteAppDataOnUninstall: false

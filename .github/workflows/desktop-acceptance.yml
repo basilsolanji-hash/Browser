@@ -1,0 +1,46 @@
+name: Desktop acceptance
+
+# Жёсткая приёмка версии для Windows (§5 ТЗ): Playwright for Electron на windows-latest.
+# Результаты (checks.txt, steps.txt, логи, PNG) — в ветку acceptance-results-desktop.
+on:
+  push:
+    branches: ['feat/desktop-**']
+    paths: ['desktop/**', 'app/src/main/java/ru/multibrowser/Tr*.kt', '.github/workflows/desktop*.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  acceptance:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: desktop
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install and build
+        run: npm ci && npm run build
+
+      - name: Run scenarios
+        run: node test/acceptance.mjs
+
+      - name: Publish results
+        if: always()
+        run: |
+          mkdir -p test-results
+          cd test-results
+          echo "${{ github.ref_name }} ${{ github.sha }} run ${{ github.run_number }}" > run.txt
+          git init -q -b acceptance-results-desktop
+          git add -A
+          git -c user.name=ci -c user.email=ci@localhost commit -q -m "Desktop acceptance ${{ github.run_number }} (${{ github.sha }})"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/acceptance-results-desktop"

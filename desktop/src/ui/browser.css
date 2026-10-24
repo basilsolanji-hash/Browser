@@ -1,0 +1,91 @@
+/* Шапка браузера: полоса вкладок и панель адреса. Фон страницы прозрачный — под ним вкладка сайта. */
+:root { --row1: 40px; --row2: 44px; --controls: 144px; font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; font-size: 13px; }
+html[data-platform="darwin"] { --controls: 0px; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: transparent; color: var(--text); overflow: hidden; user-select: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: default; }
+.ic { display: inline-flex; align-items: center; justify-content: center; }
+.icon-btn { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--text); flex: none; }
+.icon-btn:hover { background: color-mix(in srgb, var(--text) 10%, transparent); }
+.icon-btn:disabled { opacity: .35; background: none; }
+.icon-btn:focus-visible, .tab:focus-visible, .chip:focus-visible, .menu button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+#bar { position: absolute; inset: 0 0 auto 0; background: var(--surface); border-bottom: 1px solid var(--border); }
+/* Кнопки окна Windows всегда справа (и в RTL), поэтому отступ — физический, справа. */
+#row1 { height: var(--row1); display: flex; align-items: flex-end; gap: 4px; padding: 0 var(--controls) 0 6px; -webkit-app-region: drag; }
+#row1 > * { -webkit-app-region: no-drag; }
+#row1 .grow { flex: 1; -webkit-app-region: drag; height: 100%; min-width: 24px; }
+#row2 { height: var(--row2); display: flex; align-items: center; gap: 2px; padding: 0 8px; background: var(--bg); border-top: 1px solid var(--border); }
+#row2[hidden] { display: none; }
+
+.brand { height: 32px; padding: 0 8px; border-radius: 8px; display: flex; align-items: center; margin-bottom: 4px; }
+.brand:hover { background: color-mix(in srgb, var(--text) 10%, transparent); }
+.brand .mark { width: 34px; height: 24px; display: block; }
+.brand .mark svg { width: 100%; height: 100%; }
+.title1 { font-weight: 600; font-size: 13px; margin: 0 6px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-app-region: drag; }
+.incog { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 15px; margin-bottom: 5px; background: color-mix(in srgb, var(--accent) 22%, transparent); font-weight: 600; white-space: nowrap; }
+
+.chip { height: 30px; max-width: 200px; display: flex; align-items: center; gap: 7px; padding: 0 8px 0 10px; border-radius: 15px; margin-bottom: 5px; border: 1px solid var(--border); background: var(--bg); flex: none; }
+.chip:hover { border-color: var(--muted); }
+.chip .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.chip .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip .ic { color: var(--muted); }
+
+#strip { display: flex; align-items: flex-end; height: 100%; min-width: 0; flex: 0 1 auto; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; padding-top: 6px; }
+#strip::-webkit-scrollbar { display: none; }
+.tab { position: relative; height: 34px; min-width: 52px; flex: 1 1 200px; max-width: 220px; display: flex; align-items: center; gap: 7px; padding: 0 6px 0 10px;
+  border-radius: 9px 9px 0 0; color: var(--muted); white-space: nowrap; }
+.tab.pinned { flex: 0 0 auto; max-width: 150px; min-width: 40px; padding: 0 10px; }
+.tab:hover { background: color-mix(in srgb, var(--text) 7%, transparent); color: var(--text); }
+.tab.active { background: var(--bg); color: var(--text); box-shadow: 0 0 0 1px var(--border); clip-path: inset(-2px -2px 0 -2px); }
+.tab + .tab:not(.active)::before { content: ""; position: absolute; inset-inline-start: 0; top: 9px; bottom: 9px; width: 1px; background: var(--border); }
+.tab.active + .tab::before, .tab:hover + .tab::before { display: none; }
+.tab .fav { width: 16px; height: 16px; flex: none; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--on-accent); background: var(--muted); overflow: hidden; }
+.tab .fav img { width: 16px; height: 16px; }
+.tab .fav.start { background: none; }
+.tab .fav.start svg { width: 18px; height: 14px; }
+.tab .label { overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+.tab .x { width: 22px; height: 22px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; flex: none; color: var(--muted); }
+.tab .x:hover { background: color-mix(in srgb, var(--text) 14%, transparent); color: var(--text); }
+.tab.narrow .label { display: none; }
+.tab.narrow:not(.active) .x { display: none; }
+.tab .spin { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
+.tab .grp { position: absolute; left: 8px; right: 8px; bottom: 0; height: 3px; border-radius: 2px 2px 0 0; }
+.tab.pinned.active::after { content: ""; position: absolute; left: 10px; right: 10px; top: 0; height: 2px; background: var(--accent); border-radius: 0 0 2px 2px; }
+.tab.dragging { opacity: .4; }
+.tab.drop-before { box-shadow: inset 2px 0 0 var(--accent); }
+.gchip { height: 22px; margin: 0 4px 6px; padding: 0 9px; border-radius: 11px; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; flex: none; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.newtab { margin-bottom: 4px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#addr { flex: 1; height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 12px; margin: 0 6px; border-radius: 17px; background: var(--surface); border: 1px solid var(--border); min-width: 120px; }
+#addr:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+#addr .ic { color: var(--muted); flex: none; }
+#addr .ic.secure { color: var(--text); }
+#addr input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: 14px; }
+#addr input::placeholder { color: var(--muted); }
+#addr input.rest { text-align: start; }
+.zoom { height: 26px; padding: 0 9px; border-radius: 13px; border: 1px solid var(--border); color: var(--muted); font-size: 12px; flex: none; }
+.panel-title { flex: 1; font-weight: 600; font-size: 14px; padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+#layer { position: fixed; inset: 0; background: transparent; }
+.drop { position: fixed; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.28); padding: 6px; max-height: calc(100vh - 60px); overflow: auto; }
+.menu { min-width: 260px; }
+.menu button { width: 100%; display: flex; align-items: center; gap: 12px; height: 34px; padding: 0 12px; border-radius: 8px; text-align: start; white-space: nowrap; }
+.menu button:hover, .menu button.sel { background: color-mix(in srgb, var(--text) 9%, transparent); }
+.menu button:disabled { opacity: .4; background: none; }
+.menu button .ic { color: var(--muted); width: 20px; }
+.menu button .kbd { margin-inline-start: auto; color: var(--muted); font-size: 12px; padding-inline-start: 24px; }
+.menu .sep { height: 1px; background: var(--border); margin: 6px 4px; }
+.menu .head { padding: 8px 12px 4px; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.menu .zoomrow { display: flex; align-items: center; gap: 4px; padding: 0 6px 0 12px; height: 38px; }
+.menu .zoomrow .lbl { flex: 1; }
+.menu .zoomrow .val { min-width: 48px; text-align: center; }
+.menu .zoomrow button { width: 32px; height: 30px; padding: 0; justify-content: center; }
+.menu .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.menu .sub { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+.menu .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.menu .mark-cur { color: var(--accent); }
+.sugg { padding: 6px; }
+.sugg button { height: 36px; }
+.sugg .url { color: var(--muted); font-size: 12px; margin-inline-start: 8px; overflow: hidden; text-overflow: ellipsis; }

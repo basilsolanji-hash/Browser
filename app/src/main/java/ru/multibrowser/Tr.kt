@@ -37,7 +37,7 @@ object Tr {
     }
 
     // Строки разнесены по модулям (по блокам работ), чтобы правки разных экранов не конфликтовали.
-    private val M by lazy { CORE + TrTabs.M + TrLibrary.M + TrSecurity.M + TrExtras.M }
+    private val M by lazy { CORE + TrTabs.M + TrLibrary.M + TrSecurity.M + TrExtras.M + TrDesktop.M }
 
     private val CORE = mapOf(
         "profiles" to listOf("Profiles", "Профили", "Perfiles", "Perfis", "Profils", "Profile", "الملفات", "प्रोफ़ाइल", "Profiller", "配置文件"),
