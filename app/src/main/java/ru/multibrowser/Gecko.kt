@@ -11,8 +11,8 @@ import org.mozilla.geckoview.GeckoSessionSettings
  * поэтому cookies и хранилища профилей не пересекаются и сохраняются между запусками.
  */
 object Gecko {
-    // Сколько профилей держать в памяти; остальные «спят» и перезагружаются при открытии.
-    private const val MAX_ACTIVE = 5
+    // Сколько вкладок держать в памяти; остальные «спят» и перезагружаются при открытии.
+    private const val MAX_ACTIVE = 6
 
     // Gmail отдаёт незнакомым браузерам устаревшую «простую» версию, поэтому
     // представляемся мобильным Chrome. На страницах входа — родной UA движка.
@@ -21,17 +21,21 @@ object Gecko {
     private val SIGN_IN_HOSTS = setOf("accounts.google.com", "accounts.youtube.com")
 
     private var runtime: GeckoRuntime? = null
-    private val sessions = LinkedHashMap<Int, GeckoSession>(16, 0.75f, true)
-    val canGoBack = HashMap<Int, Boolean>()
+    private val sessions = LinkedHashMap<String, GeckoSession>(16, 0.75f, true)
+    val canGoBack = HashMap<String, Boolean>()
+    val canGoForward = HashMap<String, Boolean>()
+
+    fun key(id: Int, site: Site) = "$id:${site.name}"
 
     fun runtime(ctx: Context): GeckoRuntime =
         runtime ?: GeckoRuntime.create(ctx.applicationContext).also { runtime = it }
 
-    fun isActive(id: Int) = sessions.containsKey(id)
+    fun isActive(id: Int) = Site.values().any { sessions.containsKey(key(id, it)) }
 
-    fun session(ctx: Context, id: Int): GeckoSession {
-        sessions[id]?.let { return it }
-        val url = Profiles.lastUrl(ctx, id)
+    fun session(ctx: Context, id: Int, site: Site): GeckoSession {
+        val key = key(id, site)
+        sessions[key]?.let { return it }
+        val url = Profiles.lastUrl(ctx, id, site)
         val settings = GeckoSessionSettings.Builder()
             .contextId("profile_$id")
             .usePrivateMode(false)
@@ -40,13 +44,10 @@ object Gecko {
         val session = GeckoSession(settings)
         session.open(runtime(ctx))
         session.loadUri(url)
-        sessions[id] = session
+        sessions[key] = session
 
         while (sessions.size > MAX_ACTIVE) {
-            val eldest = sessions.entries.first()
-            sessions.remove(eldest.key)
-            canGoBack.remove(eldest.key)
-            eldest.value.close()
+            drop(sessions.entries.first().key)
         }
         return session
     }
@@ -56,9 +57,14 @@ object Gecko {
 
     /** Выйти из всех аккаунтов профиля: закрыть вкладку и стереть cookies/хранилище его контекста. */
     fun clearProfile(ctx: Context, id: Int) {
-        sessions.remove(id)?.close()
-        canGoBack.remove(id)
+        Site.values().forEach { drop(key(id, it)) }
         runtime(ctx).storageController.clearDataForSessionContext("profile_$id")
         Profiles.forget(ctx, id)
+    }
+
+    private fun drop(key: String) {
+        sessions.remove(key)?.close()
+        canGoBack.remove(key)
+        canGoForward.remove(key)
     }
 }

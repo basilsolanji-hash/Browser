@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, dp(20), 0, dp(6))
         })
         list.addView(TextView(this).apply {
-            text = "Каждый профиль изолирован: свои аккаунты, cookies и данные. Долгое нажатие — меню профиля."
+            text = "15 изолированных профилей: в каждом свой Gmail и свой Claude. Долгое нажатие — меню профиля."
             textSize = 13f
             setTextColor(Ui.MUTED)
             setPadding(0, 0, 0, dp(12))
@@ -74,10 +74,7 @@ class MainActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
             ).apply { topMargin = dp(8) }
-            setOnClickListener {
-                startActivity(Intent(this@MainActivity, BrowserActivity::class.java)
-                    .putExtra(BrowserActivity.EXTRA_PROFILE, p.id))
-            }
+            setOnClickListener { openSite(p, null) }
             setOnLongClickListener { profileMenu(p); true }
         }
 
@@ -105,27 +102,37 @@ class MainActivity : AppCompatActivity() {
             })
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
 
-        if (p.unread > 0) {
-            row.addView(TextView(this).apply {
-                text = if (p.unread > 999) "999+" else p.unread.toString()
-                textSize = 12f
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(Ui.ON_ACCENT)
-                background = Ui.rounded(Ui.ACCENT, dpf(10))
-                setPadding(dp(8), dp(2), dp(8), dp(2))
-            })
-        }
         if (Gecko.isActive(p.id)) {
             row.addView(View(this).apply { background = Ui.oval(Ui.ACCENT) },
-                LinearLayout.LayoutParams(dp(8), dp(8)).apply { marginStart = dp(10) })
+                LinearLayout.LayoutParams(dp(8), dp(8)).apply { marginEnd = dp(8) })
         }
-        row.addView(TextView(this).apply {
-            text = "›"
-            textSize = 22f
-            setTextColor(Ui.MUTED)
-            setPadding(dp(10), 0, dp(14), dp(2))
-        })
+        val gmail = if (p.unread > 0) "Gmail · ${if (p.unread > 999) "999+" else p.unread}" else "Gmail"
+        row.addView(pill(gmail, p.unread > 0) { openSite(p, Site.GMAIL) })
+        row.addView(pill("Claude", false) { openSite(p, Site.CLAUDE) },
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(32)).apply {
+                marginStart = dp(6)
+                marginEnd = dp(12)
+            })
         return row
+    }
+
+    private fun openSite(p: Profile, site: Site?) {
+        val intent = Intent(this, BrowserActivity::class.java).putExtra(BrowserActivity.EXTRA_PROFILE, p.id)
+        site?.let { intent.putExtra(BrowserActivity.EXTRA_SITE, it.name) }
+        startActivity(intent)
+    }
+
+    /** Кнопка-«пилюля» быстрого входа во вкладку; акцентная — если есть непрочитанные. */
+    private fun pill(label: String, highlight: Boolean, onClick: () -> Unit) = TextView(this).apply {
+        text = label
+        textSize = 12f
+        typeface = Typeface.DEFAULT_BOLD
+        gravity = Gravity.CENTER
+        setTextColor(if (highlight) Ui.ON_ACCENT else Ui.TEXT)
+        background = if (highlight) Ui.rounded(Ui.ACCENT, dpf(5)) else Ui.rounded(Ui.BG, dpf(5), dp(1))
+        setPadding(dp(10), 0, dp(10), 0)
+        minHeight = dp(32)
+        setOnClickListener { onClick() }
     }
 
     private fun profileMenu(p: Profile) {

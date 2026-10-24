@@ -12,7 +12,6 @@ data class Profile(
 
 object Profiles {
     const val COUNT = 15
-    const val HOME_URL = "https://mail.google.com/"
 
     private val COLORS = intArrayOf(
         0xFFE53935.toInt(), 0xFF8E24AA.toInt(), 0xFF3949AB.toInt(), 0xFF1E88E5.toInt(), 0xFF00897B.toInt(),
@@ -42,17 +41,27 @@ object Profiles {
         prefs(ctx).edit().putString("name_$id", name.trim()).apply()
     }
 
-    fun lastUrl(ctx: Context, id: Int): String {
-        val url = prefs(ctx).getString("url_$id", null) ?: return HOME_URL
+    private fun urlKey(id: Int, site: Site) = "url_${id}_${site.name}"
+
+    fun lastUrl(ctx: Context, id: Int, site: Site): String {
+        val url = prefs(ctx).getString(urlKey(id, site), null) ?: return site.home
         // Адреса устаревшей «простой» версии Gmail не восстанавливаем.
-        return if (url.contains("/mail/mu/")) HOME_URL else url
+        return if (url.contains("/mail/mu/")) site.home else url
     }
 
-    fun saveLastUrl(ctx: Context, id: Int, url: String) {
-        // Страницы входа не запоминаем, чтобы профиль не открывался на форме логина.
+    fun saveLastUrl(ctx: Context, id: Int, site: Site, url: String) {
+        // Страницы входа не запоминаем, чтобы вкладка не открывалась на форме логина.
         if (url.startsWith("http") && !url.contains("accounts.google.com")) {
-            prefs(ctx).edit().putString("url_$id", url).apply()
+            prefs(ctx).edit().putString(urlKey(id, site), url).apply()
         }
+    }
+
+    /** Последняя открытая вкладка — с неё стартует профиль. */
+    fun lastSite(ctx: Context): Site =
+        runCatching { Site.valueOf(prefs(ctx).getString("site", null)!!) }.getOrDefault(Site.GMAIL)
+
+    fun saveLastSite(ctx: Context, site: Site) {
+        prefs(ctx).edit().putString("site", site.name).apply()
     }
 
     /** Заголовок Gmail выглядит как «Входящие (3) - name@gmail.com - Gmail»: берём адрес и число непрочитанных. */
@@ -64,6 +73,8 @@ object Profiles {
     }
 
     fun forget(ctx: Context, id: Int) {
-        prefs(ctx).edit().remove("email_$id").remove("unread_$id").remove("url_$id").apply()
+        prefs(ctx).edit().remove("email_$id").remove("unread_$id").apply {
+            Site.values().forEach { remove(urlKey(id, it)) }
+        }.apply()
     }
 }

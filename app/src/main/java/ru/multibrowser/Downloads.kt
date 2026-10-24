@@ -14,9 +14,9 @@ import java.io.InputStream
 import java.net.URLDecoder
 import kotlin.concurrent.thread
 
-/** Сохраняет скачиваемые файлы (вложения Gmail и т.п.) в «Загрузки/MultiBrowser». */
+/** Сохраняет скачиваемые файлы (вложения Gmail и т.п.) в «Загрузки/Ось». */
 object Downloads {
-    private const val FOLDER = "MultiBrowser"
+    private const val FOLDER = "Ось"
 
     fun save(activity: Activity, response: WebResponse) {
         val body = response.body ?: return

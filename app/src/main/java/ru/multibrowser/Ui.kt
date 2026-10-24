@@ -42,10 +42,10 @@ object Ui {
 fun Context.dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 fun Context.dpf(v: Int) = v * resources.displayMetrics.density
 
-/** «Multi» белым + «Browser» акцентом, как «knitERP». */
+/** «Ось» белым + «Browser» акцентом, как «knitERP». */
 fun Context.logoText() = TextView(this).apply {
-    val s = SpannableString("MultiBrowser")
-    s.setSpan(ForegroundColorSpan(Ui.ACCENT), 5, s.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    val s = SpannableString("ОсьBrowser")
+    s.setSpan(ForegroundColorSpan(Ui.ACCENT), 3, s.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
     text = s
     textSize = 20f
     setTextColor(Ui.TEXT)

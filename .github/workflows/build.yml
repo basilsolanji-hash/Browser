@@ -29,7 +29,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="build-${{ github.run_number }}"
-          cp app/build/outputs/apk/debug/app-debug.apk "MultiBrowser-${TAG}.apk"
-          gh release create "$TAG" "MultiBrowser-${TAG}.apk" \
-            --title "Сборка ${{ github.run_number }}" \
+          cp app/build/outputs/apk/debug/app-debug.apk "Os-Browser-${TAG}.apk"
+          gh release create "$TAG" "Os-Browser-${TAG}.apk" \
+            --title "ОсьBrowser, сборка ${{ github.run_number }}" \
             --notes "Автосборка из ${{ github.sha }}" --latest

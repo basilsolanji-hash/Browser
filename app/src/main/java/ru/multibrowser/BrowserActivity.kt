@@ -1,5 +1,7 @@
 package ru.multibrowser
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Typeface
@@ -9,13 +11,15 @@ import android.text.TextUtils
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -31,17 +35,21 @@ class BrowserActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_PROFILE = "profile"
+        const val EXTRA_SITE = "site"
     }
 
     private lateinit var geckoView: GeckoView
     private lateinit var chipDot: View
     private lateinit var chipName: TextView
-    private lateinit var urlBar: EditText
+    private lateinit var tabs: Map<Site, TextView>
     private lateinit var progress: ProgressBar
     private lateinit var switcher: LinearLayout
     private var profileId = 0
+    private var site = Site.GMAIL
     private var session: GeckoSession? = null
     private var currentUrl = ""
+
+    private val key get() = Gecko.key(profileId, site)
 
     // Ожидающий выбор файла (вложения в Gmail и т.п.).
     private var pendingFile: Pair<GeckoSession.PromptDelegate.FilePrompt,
@@ -58,19 +66,15 @@ class BrowserActivity : AppCompatActivity() {
         buildUi()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                when {
-                    urlBar.hasFocus() -> urlBar.clearFocus()
-                    Gecko.canGoBack[profileId] == true -> session?.goBack()
-                    else -> finish()
-                }
+                if (Gecko.canGoBack[key] == true) session?.goBack() else finish()
             }
         })
-        openProfile(intent.getIntExtra(EXTRA_PROFILE, 1))
+        openTab(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        openProfile(intent.getIntExtra(EXTRA_PROFILE, profileId))
+        openTab(intent)
     }
 
     override fun onDestroy() {
@@ -78,53 +82,62 @@ class BrowserActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun openProfile(id: Int) {
-        if (id == profileId && session != null) return
+    private fun openTab(intent: Intent) {
+        val s = intent.getStringExtra(EXTRA_SITE)?.let { runCatching { Site.valueOf(it) }.getOrNull() }
+        openTab(intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1)), s ?: Profiles.lastSite(this))
+    }
+
+    private fun openTab(id: Int, newSite: Site) {
+        if (id == profileId && newSite == site && session != null) return
         geckoView.releaseSession()
         profileId = id
+        site = newSite
+        Profiles.saveLastSite(this, newSite)
+
         val p = Profiles.get(this, id)
         chipDot.background = Ui.oval(p.color)
         chipName.text = p.name
-        showUrl(Profiles.lastUrl(this, id))
+        tabs.forEach { (s, view) -> styleTab(view, s == newSite) }
+        currentUrl = Profiles.lastUrl(this, id, newSite)
         progress.visibility = View.GONE
 
-        val s = Gecko.session(this, id)
-        attachDelegates(s, id)
+        val s = Gecko.session(this, id, newSite)
+        attachDelegates(s, id, newSite)
         geckoView.setSession(s)
         session = s
         renderSwitcher()
     }
 
-    /** В покое показываем только домен, при редактировании — полный адрес. */
-    private fun showUrl(url: String) {
-        currentUrl = url
-        if (!urlBar.hasFocus()) urlBar.setText(Uri.parse(url).host ?: url)
-    }
-
-    private fun attachDelegates(s: GeckoSession, id: Int) {
+    private fun attachDelegates(s: GeckoSession, id: Int, tab: Site) {
+        val k = Gecko.key(id, tab)
+        val visible = { k == key }
         s.progressDelegate = object : GeckoSession.ProgressDelegate {
             override fun onPageStart(session: GeckoSession, url: String) {
-                if (id == profileId) {
+                if (visible()) {
                     progress.visibility = View.VISIBLE
-                    showUrl(url)
+                    currentUrl = url
                 }
-                Profiles.saveLastUrl(this@BrowserActivity, id, url)
+                Profiles.saveLastUrl(this@BrowserActivity, id, tab, url)
             }
 
             override fun onProgressChange(session: GeckoSession, value: Int) {
-                if (id == profileId) progress.progress = value
+                if (visible()) progress.progress = value
             }
 
             override fun onPageStop(session: GeckoSession, success: Boolean) {
-                if (id == profileId) progress.visibility = View.GONE
+                if (visible()) progress.visibility = View.GONE
             }
         }
         s.navigationDelegate = object : GeckoSession.NavigationDelegate {
             override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
-                Gecko.canGoBack[id] = canGoBack
+                Gecko.canGoBack[k] = canGoBack
             }
 
-            // Ссылки «в новом окне» открываем в той же вкладке профиля.
+            override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) {
+                Gecko.canGoForward[k] = canGoForward
+            }
+
+            // Ссылки «в новом окне» открываем в той же вкладке.
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
                 session.loadUri(uri)
                 return null
@@ -144,7 +157,7 @@ class BrowserActivity : AppCompatActivity() {
         }
         s.contentDelegate = object : GeckoSession.ContentDelegate {
             override fun onTitleChange(session: GeckoSession, title: String?) {
-                Profiles.updateFromTitle(this@BrowserActivity, id, title)
+                if (tab == Site.GMAIL) Profiles.updateFromTitle(this@BrowserActivity, id, title)
             }
 
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
@@ -167,9 +180,85 @@ class BrowserActivity : AppCompatActivity() {
                 background = if (current) Ui.oval(p.color, dp(2), Ui.TEXT) else Ui.oval(p.color)
                 alpha = if (current || Gecko.isActive(p.id)) 1f else 0.55f
                 contentDescription = p.name
-                setOnClickListener { openProfile(p.id) }
+                setOnClickListener { openTab(p.id, site) }
             }, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(8) })
         }
+    }
+
+    private fun styleTab(view: TextView, selected: Boolean) {
+        view.background = if (selected) Ui.rounded(Ui.ACCENT, dpf(5)) else null
+        view.setTextColor(if (selected) Ui.ON_ACCENT else Ui.MUTED)
+    }
+
+    private fun iconButton(symbol: String, onClick: (View) -> Unit) = TextView(this).apply {
+        text = symbol
+        textSize = 20f
+        setTextColor(Ui.TEXT)
+        gravity = Gravity.CENTER
+        background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
+        setOnClickListener(onClick)
+    }
+
+    private fun showMenu(anchor: View) {
+        val menu = PopupMenu(this, anchor)
+        val items = listOf(
+            "← Назад" to { session?.goBack() ; Unit },
+            "→ Вперёд" to { session?.goForward(); Unit },
+            "⌂ Главная ${site.title}" to { session?.loadUri(site.home); Unit },
+            "Открыть адрес…" to { askUrl() },
+            "Копировать ссылку" to { copyUrl() },
+            "Открыть в другом браузере" to { openExternally() },
+        )
+        items.forEachIndexed { i, (title, _) ->
+            menu.menu.add(0, i, i, title).isEnabled = when (i) {
+                0 -> Gecko.canGoBack[key] == true
+                1 -> Gecko.canGoForward[key] == true
+                else -> true
+            }
+        }
+        menu.setOnMenuItemClickListener { items[it.itemId].second(); true }
+        menu.show()
+    }
+
+    private fun askUrl() {
+        val input = EditText(this).apply {
+            setText(currentUrl)
+            setSingleLine()
+            setTextColor(Ui.TEXT)
+            imeOptions = EditorInfo.IME_ACTION_GO
+            setSelectAllOnFocus(true)
+        }
+        val box = LinearLayout(this).apply {
+            setPadding(dp(20), dp(8), dp(20), 0)
+            addView(input, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Адрес или поиск")
+            .setView(box)
+            .setPositiveButton("Открыть") { _, _ -> session?.loadUri(toUrl(input.text.toString())) }
+            .setNegativeButton("Отмена", null)
+            .create()
+        input.setOnEditorActionListener { _, action, event ->
+            val enter = event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
+            if (action == EditorInfo.IME_ACTION_GO || enter) {
+                session?.loadUri(toUrl(input.text.toString()))
+                dialog.dismiss()
+                true
+            } else false
+        }
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        dialog.show()
+        input.requestFocus()
+    }
+
+    private fun copyUrl() {
+        getSystemService(ClipboardManager::class.java)
+            ?.setPrimaryClip(ClipData.newPlainText("url", currentUrl))
+        Toast.makeText(this, "Ссылка скопирована", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun openExternally() {
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(currentUrl))) }
     }
 
     private fun buildUi() {
@@ -180,14 +269,14 @@ class BrowserActivity : AppCompatActivity() {
             typeface = Typeface.DEFAULT_BOLD
             setTextColor(Ui.TEXT)
             maxLines = 1
-            maxWidth = dp(110)
+            maxWidth = dp(96)
             ellipsize = TextUtils.TruncateAt.END
         }
         val chip = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
-            setPadding(dp(10), dp(9), dp(12), dp(9))
+            setPadding(dp(10), 0, dp(12), 0)
             addView(chipDot, LinearLayout.LayoutParams(dp(10), dp(10)).apply { marginEnd = dp(8) })
             addView(chipName)
             setOnClickListener {
@@ -196,56 +285,36 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
 
-        urlBar = EditText(this).apply {
-            setSingleLine()
-            textSize = 14f
-            setTextColor(Ui.TEXT)
-            setHintTextColor(Ui.MUTED)
-            hint = "Адрес или поиск"
-            imeOptions = EditorInfo.IME_ACTION_GO
+        // Переключатель вкладок Gmail / Claude.
+        val tabBar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
             background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
-            setPadding(dp(12), dp(9), dp(12), dp(9))
-            setOnFocusChangeListener { _, focused ->
-                background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1), if (focused) Ui.ACCENT else Ui.BORDER)
-                if (focused) {
-                    setText(currentUrl)
-                    post { selectAll() }
-                } else {
-                    setText(Uri.parse(currentUrl).host ?: currentUrl)
-                }
-            }
-            setOnEditorActionListener { _, action, event ->
-                val enter = event != null &&
-                    event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
-                if (action == EditorInfo.IME_ACTION_GO || enter) {
-                    val url = toUrl(text.toString())
-                    currentUrl = url
-                    session?.loadUri(url)
-                    clearFocus()
-                    getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(windowToken, 0)
-                    true
-                } else false
+            setPadding(dp(3), dp(3), dp(3), dp(3))
+        }
+        tabs = Site.values().associateWith { s ->
+            TextView(this).apply {
+                text = s.title
+                textSize = 14f
+                typeface = Typeface.DEFAULT_BOLD
+                gravity = Gravity.CENTER
+                setOnClickListener { openTab(profileId, s) }
+                tabBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
             }
         }
 
-        val reload = TextView(this).apply {
-            text = "⟳"
-            textSize = 20f
-            setTextColor(Ui.MUTED)
-            gravity = Gravity.CENTER
-            setPadding(dp(12), 0, dp(4), 0)
-            setOnClickListener { session?.reload() }
-        }
+        val reload = iconButton("⟳") { session?.reload() }
+        val more = iconButton("⋮") { showMenu(it) }
 
+        val h = dp(40)
         val toolbar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setBackgroundColor(Ui.BG)
             setPadding(dp(10), dp(8), dp(10), dp(8))
-            addView(chip)
-            addView(urlBar, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                .apply { marginStart = dp(8) })
-            addView(reload, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(40)))
+            addView(chip, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, h))
+            addView(tabBar, LinearLayout.LayoutParams(0, h, 1f).apply { marginStart = dp(8) })
+            addView(reload, LinearLayout.LayoutParams(h, h).apply { marginStart = dp(8) })
+            addView(more, LinearLayout.LayoutParams(h, h).apply { marginStart = dp(6) })
         }
 
         progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
