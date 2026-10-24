@@ -11,7 +11,7 @@ SETUP=$(ls release/Os-Browser-Setup-*.exe | head -1)
 [ -f release/latest.yml ]; check "installer: latest.yml for auto-update is generated" $?
 grep -q "sha512:" release/latest.yml 2>/dev/null; check "installer: latest.yml has sha512" $?
 # Путь Windows → путь Git Bash (иначе обратные слеши ломают проверки файлов).
-DIR="$(cygpath -u "$LOCALAPPDATA")/Programs/os-browser"
+DIR="$(cygpath -u "$LOCALAPPDATA")/Programs/Os Browser"
 "$SETUP" //S; sleep 5
 for i in $(seq 1 30); do [ -f "$DIR/Os Browser.exe" ] && break; sleep 2; done
 ls "$(cygpath -u "$LOCALAPPDATA")/Programs" > "$OUT/installer-programs.txt" 2>&1
