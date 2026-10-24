@@ -119,3 +119,21 @@ GitHub Actions: site.yml
 4. Приёмка §7 в CI, исправления, затем домен по решению владельца.
 
 Коммиты — как в `SPEC.md` §5: в конце строки `Co-Authored-By: …` и `Claude-Session: <url текущей сессии>`, без идентификатора модели. Отчёт владельцу — по-русски: что сделано, ссылка на сайт, результат приёмки, готовность в процентах.
+
+## 11. Состояние (24.10.2026)
+- Сайт в `main` (`site/`), этапы 1–3 §10 сделаны, приёмка §7 в CI зелёная: workflow `Site`
+  (`.github/workflows/site.yml`) — 461 проверка Playwright/axe, Lighthouse 100/100/100/100
+  (LCP 0,9–1,2 с), lychee без ошибок; результаты — ветки `site-results` и `site-results-<ветка>`.
+- **Публикация ждёт владельца:** Settings → Pages → Source: GitHub Actions (сейчас Pages выключены,
+  шаг `configure-pages` падает). После этого каждый push в `main` и каждый релиз публикует сайт сам.
+- Решения владельца по ходу работы: сайт светлый (Scarlet Light, тёмная тема только в макетах);
+  на «Скачать» и в журнале — только версия (без размера, даты, движка, SHA-256); посетители с
+  языками kk, be, uz, ky, tg, uk, hy, az, tt, ba, mn попадают на русскую версию.
+- Ссылки на будущее — `site/src/data/links.json` (Google Play, App Store, macOS, Microsoft Store,
+  почта, свой домен): пустое поле — плейсхолдер; правка файла в `main` пересобирает сайт.
+- Шрифты: Unbounded 700 грузится сразу, переменный Inter — через 1,5 с после загрузки
+  (`font-display: optional`, до него системный шрифт с метриками Inter) — иначе LCP > 1,5 с.
+- Скриншоты пресс-кита на 10 языках снимает `site/scripts/press-shots.mjs` с настольной версии
+  (нужны собранный `desktop/` и `xvfb-run`).
+- Локально: `cd site && npm ci && node scripts/prepare.mjs && npm run build && node test/acceptance.mjs`
+  (Astro требует Node ≥ 22.23; в CI — Node 24).
