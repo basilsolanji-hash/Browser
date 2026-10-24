@@ -85,7 +85,8 @@ jobs:
             --title "Ось Browser для Windows — последняя версия (автообновление)" \
             --notes "Служебный релиз для автообновления. Установщик последней сборки из main."
           # Старые установщики убираем, чтобы в релизе лежала только последняя версия.
-          gh release view desktop-latest --json assets -q '.assets[].name' | grep -E '\.(exe|blockmap)$' | while read -r f; do
+          # В пустом релизе grep ничего не находит — это не ошибка.
+          { gh release view desktop-latest --json assets -q '.assets[].name' | grep -E '\.(exe|blockmap)$' || true; } | while read -r f; do
             gh release delete-asset desktop-latest "$f" -y
           done
           gh release upload desktop-latest release/*.exe release/*.blockmap release/latest.yml --clobber
