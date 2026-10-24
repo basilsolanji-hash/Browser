@@ -7,7 +7,8 @@ mkdir -p "$OUT"
 fails=0
 check() { if [ "$2" = 0 ]; then echo "ok $1" | tee -a "$OUT/checks.txt"; else echo "FAIL $1${3:+ — $3}" | tee -a "$OUT/checks.txt"; fails=$((fails+1)); fi; }
 
-SETUP=$(ls release/Os-Browser-Setup-*.exe | head -1)
+SETUP=$(ls release/Os-Browser-Setup-*.exe 2>/dev/null | head -1)
+if [ -z "$SETUP" ]; then echo "FAIL installer: setup exe was not built" | tee -a "$OUT/checks.txt"; exit 1; fi
 [ -f release/latest.yml ]; check "installer: latest.yml for auto-update is generated" $?
 grep -q "sha512:" release/latest.yml 2>/dev/null; check "installer: latest.yml has sha512" $?
 # Путь Windows → путь Git Bash (иначе обратные слеши ломают проверки файлов).
@@ -43,5 +44,41 @@ taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1; sleep 3
 for i in $(seq 1 30); do [ ! -f "$DIR/Os Browser.exe" ] && break; sleep 2; done
 [ ! -f "$DIR/Os Browser.exe" ]; check "installer: silent uninstall removes the app" $?
 reg query 'HKCU\Software\Clients\StartMenuInternet\OsBrowser' >/dev/null 2>&1; [ $? != 0 ]; check "installer: uninstall removes browser registration" $?
+# Установка в выбранную папку (ключ /D=): латиница и кириллица (как профиль «C:\Users\Наталья»).
+try_dir() {
+  local label="$1" winpath="$2" how="$3"
+  local unix; unix="$(cygpath -u "$winpath")"
+  if [ "$how" = ps ]; then
+    # PowerShell передаёт аргументы в Юникоде, без перекодировки Git Bash.
+    powershell -NoProfile -Command "Start-Process -Wait -FilePath '$(cygpath -w "$SETUP")' -ArgumentList '/S','/D=$winpath'"
+  else
+    "$SETUP" //S "//D=$winpath"
+  fi
+  sleep 5
+  for i in $(seq 1 30); do [ -f "$unix/Os Browser.exe" ] && break; sleep 2; done
+  { echo "== $label ($how): $winpath"; ls -la "$unix" 2>&1 | head -5; ls "$(dirname "$unix")" 2>&1 | head -5; } >> "$OUT/installer-programs.txt"
+  [ -f "$unix/Os Browser.exe" ]; check "installer: install into a chosen folder — $label ($how)" $? "$winpath"
+  if [ -f "$unix/Os Browser.exe" ]; then
+    OS_USER_DATA="$(cygpath -w "$(mktemp -d)")" "$unix/Os Browser.exe" & sleep 12
+    tasklist //FI "IMAGENAME eq Os Browser.exe" | grep -qi "Os Browser.exe"; check "installer: app starts from the chosen folder — $label" $?
+    taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1; sleep 3
+    "$unix/Uninstall Os Browser.exe" //S; sleep 6
+  fi
+}
+try_dir latin 'C:\OsTest\OsBrowser' ps
+try_dir cyrillic 'C:\Тест\Программы\ОсьБраузер' ps
+
+# Портативная версия: распаковать в папку с русскими буквами и запустить.
+ZIP=$(ls release/Os-Browser-Portable-*.zip 2>/dev/null | head -1)
+[ -n "$ZIP" ]; check "portable: zip is built" $? "$ZIP"
+if [ -n "$ZIP" ]; then
+  PORT="$(cygpath -u 'C:\Портативная Ось')"
+  rm -rf "$PORT"; mkdir -p "$PORT"
+  powershell -NoProfile -Command "Expand-Archive -Path '$(cygpath -w "$ZIP")' -DestinationPath '$(cygpath -w "$PORT")' -Force"
+  [ -f "$PORT/Os Browser.exe" ]; check "portable: unpacked Os Browser.exe" $?
+  OS_USER_DATA="$(cygpath -w "$(mktemp -d)")" "$PORT/Os Browser.exe" & sleep 15
+  tasklist //FI "IMAGENAME eq Os Browser.exe" | grep -qi "Os Browser.exe"; check "portable: app starts from the zip" $?
+  taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1
+fi
 echo "installer: $fails failed" | tee -a "$OUT/checks.txt"
 exit $fails
