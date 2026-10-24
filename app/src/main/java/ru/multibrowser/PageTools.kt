@@ -162,9 +162,10 @@ object DefaultBrowser {
         val uri = raw?.let { Uri.parse(it) } ?: return null
         return when (uri.scheme?.lowercase()) {
             "http", "https" -> raw
+            // Свои файлы: сохранённые страницы и скачанные файлы, открытые для просмотра в Оси.
             "file" -> raw.takeIf {
-                val path = uri.path ?: return@takeIf false
-                java.io.File(path).canonicalPath.startsWith(SavedPages.dir(ctx).canonicalPath + "/")
+                val path = java.io.File(uri.path ?: return@takeIf false).canonicalPath
+                listOf(SavedPages.dir(ctx), Downloads.viewDir(ctx)).any { path.startsWith(it.canonicalPath + "/") }
             }
             else -> raw.takeIf { it == Pins.START }
         }

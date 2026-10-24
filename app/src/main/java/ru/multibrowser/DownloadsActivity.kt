@@ -283,11 +283,12 @@ class DownloadsActivity : AppCompatActivity() {
     private fun fileMenu(d: Download) {
         AlertDialog.Builder(this)
             .setTitle(d.name)
-            .setItems(arrayOf(Tr.t("open"), Tr.t("share"), Tr.t("delete"))) { _, which ->
+            .setItems(arrayOf(Tr.t("open"), Tr.t("open_with"), Tr.t("share"), Tr.t("delete"))) { _, which ->
                 when (which) {
                     0 -> open(d)
-                    1 -> share(d)
-                    2 -> { DownloadLog.remove(this, d); render() }
+                    1 -> openWith(d)
+                    2 -> share(d)
+                    3 -> { DownloadLog.remove(this, d); render() }
                 }
             }
             .show()
@@ -299,7 +300,7 @@ class DownloadsActivity : AppCompatActivity() {
         android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(name.substringAfterLast('.', "").lowercase()).orEmpty()
 
     private fun kindOf(mime: String, name: String): Kind {
-        val m = mime.ifEmpty { guessMime(name) }
+        val m = Downloads.effectiveMime(mime, name)
         return when {
             m.startsWith("image/") -> Kind.IMAGES
             m.startsWith("audio/") -> Kind.AUDIO
@@ -337,14 +338,42 @@ class DownloadsActivity : AppCompatActivity() {
         } else uri
     }
 
+    /** Нажатие на файл: PDF, картинки и тексты — в Оси, APK — установка, остальное — подходящим приложением. */
     private fun open(d: Download) {
+        val mime = Downloads.effectiveMime(d.mime, d.name)
+        if (Downloads.viewableInOs(mime)) openInOs(d) else openWith(d, mime)
+    }
+
+    /** Копия во временную папку и новая вкладка в последнем профиле (движок читает файлы по пути). */
+    private fun openInOs(d: Download) {
+        val app = applicationContext
+        Thread {
+            val file = runCatching {
+                val target = File(Downloads.viewDir(app), Uploads.safeName(d.name))
+                contentResolver.openInputStream(Uri.parse(d.uri))!!.use { input -> target.outputStream().use { input.copyTo(it) } }
+                target
+            }.getOrNull()
+            runOnUiThread {
+                if (file == null) { openWith(d, Downloads.effectiveMime(d.mime, d.name)); return@runOnUiThread }
+                startActivity(Intent(this, BrowserActivity::class.java)
+                    .putExtra(BrowserActivity.EXTRA_PROFILE, Profiles.lastProfile(this))
+                    .putExtra(BrowserActivity.EXTRA_ACTION, BrowserActivity.ACTION_NEW_TAB)
+                    .putExtra(BrowserActivity.EXTRA_URL, Uri.fromFile(file).toString()))
+            }
+        }.start()
+    }
+
+    /** Системное приложение для этого типа; APK — установщик Android (спросит разрешение один раз). */
+    private fun openWith(d: Download, mime: String = Downloads.effectiveMime(d.mime, d.name)) {
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(shareableUri(d), d.mime.ifEmpty { "*/*" })
+                setDataAndType(shareableUri(d), mime)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(intent)
         } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, Tr.t("cant_open_file"), Toast.LENGTH_SHORT).show()
+        } catch (e: SecurityException) {
             Toast.makeText(this, Tr.t("cant_open_file"), Toast.LENGTH_SHORT).show()
         }
     }
@@ -352,7 +381,7 @@ class DownloadsActivity : AppCompatActivity() {
     private fun share(d: Download) {
         try {
             val intent = Intent(Intent.ACTION_SEND).apply {
-                type = d.mime.ifEmpty { "*/*" }
+                type = Downloads.effectiveMime(d.mime, d.name)
                 putExtra(Intent.EXTRA_STREAM, shareableUri(d))
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }

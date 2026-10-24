@@ -33,8 +33,7 @@ object Downloads {
     fun request(activity: AppCompatActivity, pageUrl: String?, response: WebResponse, privateMode: Boolean = false) {
         val body = response.body ?: return
         val name = fileName(response)
-        val mime = header(response, "Content-Type")?.substringBefore(';')?.trim()
-            ?.takeIf { it.isNotEmpty() } ?: "application/octet-stream"
+        val mime = effectiveMime(header(response, "Content-Type")?.substringBefore(';')?.trim().orEmpty(), name)
         val total = header(response, "Content-Length")?.toLongOrNull()?.takeIf { it > 0 } ?: -1L
         val host = SitePermissions.hostOf(pageUrl)
         if (host != null && SitePermissions.mode(activity, host, SitePermissions.Kind.DOWNLOADS) == SitePermissions.Mode.BLOCK) {
@@ -93,6 +92,25 @@ object Downloads {
             ActivityResultContracts.RequestPermission()) { launcher.unregister(); then() }
         runCatching { launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) }.onFailure { launcher.unregister(); then() }
     }
+
+    /** Папка копий скачанных файлов, открытых для просмотра в Оси (PDF, картинки, тексты). */
+    fun viewDir(ctx: Context) = File(ctx.cacheDir, "view").apply { mkdirs() }
+
+    /**
+     * Настоящий тип файла: сайты часто отдают «application/octet-stream» (GitHub — APK и PDF),
+     * тогда берём тип по расширению — иначе файл нечем открыть.
+     */
+    fun effectiveMime(mime: String, name: String): String {
+        val byExt = android.webkit.MimeTypeMap.getSingleton()
+            .getMimeTypeFromExtension(name.substringAfterLast('.', "").lowercase())
+        val generic = mime.isBlank() || mime == "application/octet-stream" || mime == "binary/octet-stream" ||
+            mime == "application/force-download" || mime == "application/x-download"
+        return if (generic) byExt ?: "application/octet-stream" else mime
+    }
+
+    /** Типы, которые Ось показывает сама (движок умеет PDF, картинки, текст и страницы). */
+    fun viewableInOs(mime: String) = mime == "application/pdf" || mime.startsWith("image/") ||
+        mime.startsWith("text/") || mime == "application/json" || mime == "application/xhtml+xml"
 
     /** Идущая загрузка: сколько скачано из скольких (total = -1 — сайт не сообщил размер). */
     class Task(val id: Int, val name: String, val total: Long) {

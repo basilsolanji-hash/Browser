@@ -79,3 +79,31 @@ class SafeNameLimitsTest {
         assertTrue(n.isNotEmpty())
     }
 }
+
+/** Тип скачанного файла: «неизвестный» от сайта заменяется типом по расширению. */
+@RunWith(ParameterizedRobolectricTestRunner::class)
+class EffectiveMimeTest(private val mime: String, private val name: String, private val expected: String, private val inOs: Boolean) {
+    companion object {
+        @JvmStatic
+        @Parameters(name = "{1} ({0})")
+        fun cases(): List<Array<Any>> = listOf(
+            arrayOf("application/octet-stream", "Os-Browser-build-123.apk", "application/vnd.android.package-archive", false),
+            arrayOf("application/octet-stream", "report.pdf", "application/pdf", true),
+            arrayOf("", "photo.jpg", "image/jpeg", true),
+            arrayOf("binary/octet-stream", "notes.txt", "text/plain", true),
+            arrayOf("application/force-download", "song.mp3", "audio/mpeg", false),
+            arrayOf("application/pdf", "file.bin", "application/pdf", true),
+            arrayOf("text/csv", "data.csv", "text/csv", true),
+            arrayOf("application/octet-stream", "blob.unknownext", "application/octet-stream", false),
+            arrayOf("application/zip", "a.zip", "application/zip", false),
+            arrayOf("image/png", "x.png", "image/png", true),
+        )
+    }
+
+    @Test
+    fun mimeAndViewer() {
+        val m = Downloads.effectiveMime(mime, name)
+        assertEquals(expected, m)
+        assertEquals(inOs, Downloads.viewableInOs(m))
+    }
+}
