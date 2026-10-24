@@ -51,4 +51,4 @@ jobs:
           git init -q -b "$BR"
           git add -A
           git -c user.name=ci -c user.email=ci@localhost commit -q -m "Acceptance ${{ github.run_number }} (${{ github.sha }})"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" acceptance-results
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "$BR"
