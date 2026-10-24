@@ -70,6 +70,8 @@ class BrowserActivity : AppCompatActivity() {
 
     private val key get() = if (incognito) "incognito" else Gecko.key(profileId, pin)
 
+    private val tools by lazy { PageTools(this, { session }, { currentUrl }, { if (incognito) null else profileId }) }
+
     // Адрес, загружаемый сейчас в каждой вкладке, — чтобы подписать запись истории заголовком страницы.
     private val pageUrls = HashMap<String, String>()
 
@@ -128,6 +130,7 @@ class BrowserActivity : AppCompatActivity() {
             it.navigationDelegate = null
             it.contentDelegate = null
             it.promptDelegate = null
+            it.selectionActionDelegate = null
         }
         attached.clear()
         pendingFile?.let { (prompt, result) -> result.complete(prompt.dismiss()) }
@@ -140,7 +143,7 @@ class BrowserActivity : AppCompatActivity() {
         openTab(
             intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1)),
             Pins.resolve(this, pinId),
-            intent.getStringExtra(EXTRA_URL),
+            DefaultBrowser.incomingUrl(this, intent),
         )
     }
 
@@ -199,7 +202,7 @@ class BrowserActivity : AppCompatActivity() {
         currentUrl = url
         val internal = url.startsWith("data:") || url.startsWith("os:") || url == Pins.START
         lockIcon.visibility = if (url.startsWith("https://")) View.VISIBLE else View.GONE
-        if (!urlBar.hasFocus()) urlBar.setText(if (internal) "" else Uri.parse(url).host ?: url)
+        if (!urlBar.hasFocus()) urlBar.setText(if (internal) "" else Uri.parse(Reader.original(url)).host ?: url)
     }
 
     private fun setBarsHidden(hidden: Boolean) {
@@ -336,6 +339,7 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
         s.promptDelegate = PromptHandler()
+        s.selectionActionDelegate = tools.textActions()
         attached += s
     }
 
@@ -419,6 +423,7 @@ class BrowserActivity : AppCompatActivity() {
             override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) { setFullScreen(fullScreen) }
         }
         s.promptDelegate = PromptHandler()
+        s.selectionActionDelegate = tools.textActions()
         geckoView.setSession(s)
         incognitoSession = s
         session = s
@@ -467,6 +472,7 @@ class BrowserActivity : AppCompatActivity() {
             Tr.t("new_incognito") to { openIncognito(Pins.START) },
             Tr.t("zoom") to { zoomDialog() },
             Tr.t("downloads") to { startActivity(Intent(this, DownloadsActivity::class.java)) },
+            *tools.menuItems().toTypedArray(),
             Tr.t("copy_link") to { copyUrl() },
             Tr.t("open_external") to { openExternally() },
             Tr.t("diagnostics") to { showDiagnostics() },
@@ -652,10 +658,10 @@ class BrowserActivity : AppCompatActivity() {
         urlBar.setOnFocusChangeListener { v, focused ->
             addressBox.background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1), if (focused) Ui.ACCENT else Ui.BORDER)
             if (focused) {
-                urlBar.setText(if (currentUrl.startsWith("data:")) "" else currentUrl)
+                urlBar.setText(if (currentUrl.startsWith("data:")) "" else Reader.original(currentUrl))
                 urlBar.post { urlBar.selectAll() }
             } else {
-                urlBar.setText(Uri.parse(currentUrl).host ?: currentUrl)
+                urlBar.setText(Uri.parse(Reader.original(currentUrl)).host ?: currentUrl)
                 getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(v.windowToken, 0)
             }
         }

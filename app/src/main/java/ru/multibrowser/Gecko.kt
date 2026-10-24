@@ -31,9 +31,9 @@ object Gecko {
 
     fun key(id: Int, pin: Pin) = "$id:${pin.id}"
 
-    /** Загружает адрес; встроенную стартовую страницу рендерит локализованно. */
+    /** Загружает адрес; маркер стартовой страницы — по выбору «Главная страница» (Home). */
     fun loadUrl(session: GeckoSession, url: String) {
-        if (url == Pins.START) session.load(GeckoSession.Loader().data(StartPage.html(), "text/html")) else session.loadUri(url)
+        if (url == Pins.START) Home.load(session) else session.loadUri(url)
     }
 
     fun runtime(ctx: Context): GeckoRuntime = runtime ?: GeckoRuntime.create(

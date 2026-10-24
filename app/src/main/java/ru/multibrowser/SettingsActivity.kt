@@ -115,6 +115,7 @@ class SettingsActivity : AppCompatActivity() {
                 toast(Tr.t("history_cleared"))
             }
         })
+        ExtrasSettings.addTo(this, content)
     }
 
     private fun header() = LinearLayout(this).apply {

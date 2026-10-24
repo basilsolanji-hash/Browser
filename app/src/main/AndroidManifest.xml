@@ -23,14 +23,28 @@
         <activity
             android:name=".BrowserActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:exported="true"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize">
+            <!-- Браузер по умолчанию (№26): открываем ссылки http/https из других приложений. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".SettingsActivity"
             android:windowSoftInputMode="adjustResize" />
 
         <activity android:name=".DownloadsActivity" />
+        <activity android:name=".NotesActivity" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".SavedPagesActivity" />
+        <activity android:name=".AboutActivity" />
+        <activity android:name=".HelpActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
