@@ -1,6 +1,7 @@
 ---
 // Для команд: только факты о продукте; условия и цены — плейсхолдер до решения владельца (§9 ТЗ).
 import Layout from '../../layouts/Layout.astro';
+import Contact from '../../components/Contact.astro';
 import { t } from '../../lib/i18n';
 import { langPaths } from '../../lib/paths';
 export const getStaticPaths = langPaths;
@@ -17,7 +18,7 @@ const L = (k: string, v?: Record<string, string>) => t(lang, k, v);
 <section class="box">
 <h2>{L('biz_terms_t')}</h2>
 <p class="placeholder">{L('biz_terms_d')}</p>
-<p class="placeholder">{L('biz_contact', { email: L('placeholder_email') })}</p>
+<Contact lang={lang} k="biz_contact" />
 </section>
 <div class="pad-end"></div>
 </div>

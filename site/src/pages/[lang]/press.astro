@@ -2,6 +2,7 @@
 // Пресс-кит: логотипы, реальные скриншоты настольной версии на языке страницы (scripts/press-shots.mjs), факты.
 import { existsSync } from 'node:fs';
 import Layout from '../../layouts/Layout.astro';
+import Contact from '../../components/Contact.astro';
 import { LANGS, t, asset } from '../../lib/i18n';
 import { langPaths } from '../../lib/paths';
 export const getStaticPaths = langPaths;
@@ -37,6 +38,6 @@ const shots = [['home', 'press_shot_home'], ['start', 'press_shot_start'], ['onb
 {shots.map((s) => <figure><a href={asset(`press/shots/${s.l}/${s.name}.png`)}><img src={asset(`press/shots/${s.l}/${s.name}.png`)} width="1200" height="760" loading="lazy" alt={L(s.key)}></a><figcaption>{L(s.key)}</figcaption></figure>)}
 </div>
 
-<p class="placeholder top-40">{L('press_contact', { email: L('placeholder_email') })}</p>
+<div class="top-40"><Contact lang={lang} k="press_contact" /></div>
 </div>
 </Layout>

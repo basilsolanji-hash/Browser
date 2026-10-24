@@ -4,7 +4,9 @@
   // Текстовый шрифт Inter — после загрузки страницы (см. fonts-inter.css рядом с js/).
   var base = (document.currentScript && document.currentScript.src || '').replace(/js\/site\.js.*$/, '');
   function fonts() { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + 'fonts-inter.css'; document.head.appendChild(l); }
-  if (document.readyState === 'complete') fonts(); else addEventListener('load', fonts);
+  // С паузой после load: первый экран гарантированно нарисован системным шрифтом, шрифт ему не мешает.
+  function later() { setTimeout(fonts, 1500); }
+  if (document.readyState === 'complete') later(); else addEventListener('load', later);
 
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[data-lang]');

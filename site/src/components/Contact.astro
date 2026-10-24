@@ -1,0 +1,9 @@
+---
+// Фраза с {email}: адрес из links.json ссылкой mailto, без него — плейсхолдер.
+import links from '../lib/links';
+import { t } from '../lib/i18n';
+const { lang, k } = Astro.props;
+const [before, after = ''] = t(lang, k).split('{email}');
+const email = links.contactEmail;
+---
+<p class:list={[{ placeholder: !email }]}>{before}{email ? <a href={`mailto:${email}`} class="ltr">{email}</a> : t(lang, 'placeholder_email')}{after}</p>

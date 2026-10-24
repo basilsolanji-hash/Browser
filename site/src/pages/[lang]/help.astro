@@ -1,6 +1,7 @@
 ---
 // Справка: вопросы и ответы дословно из приложения (help_q*/help_a* в Tr*.kt) и с главной.
 import Layout from '../../layouts/Layout.astro';
+import Contact from '../../components/Contact.astro';
 import { t, appText } from '../../lib/i18n';
 import { langPaths } from '../../lib/paths';
 export const getStaticPaths = langPaths;
@@ -18,7 +19,7 @@ const qa = [
 <div class="top-40">{qa.map(([q, a]) => <details><summary>{q}</summary><p>{a}</p></details>)}</div>
 <section id="feedback" class="box">
 <h2>{L('help_feedback_t')}</h2>
-<p class="placeholder">{L('help_feedback_d', { email: L('placeholder_email') })}</p>
+<Contact lang={lang} k="help_feedback_d" />
 </section>
 <div class="pad-end"></div>
 </div>

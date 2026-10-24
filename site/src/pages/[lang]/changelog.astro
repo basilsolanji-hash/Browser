@@ -1,7 +1,7 @@
 ---
 // Журнал изменений: Android и Windows отдельными лентами, данные из релизов при сборке.
 import Layout from '../../layouts/Layout.astro';
-import { t, fmtDate, fmtSize } from '../../lib/i18n';
+import { t, fmtDate } from '../../lib/i18n';
 import { langPaths } from '../../lib/paths';
 import { android, windows } from '../../lib/releases';
 export const getStaticPaths = langPaths;
@@ -18,9 +18,9 @@ const feeds = [['android', 'Android', android], ['windows', 'Windows', windows]]
 <h2 id={`h-${id}`}>{name}</h2>
 {p ? p.releases.map((r) => <article class="rel">
 <h3>{L('cl_build', { n: r.build })}{r.version && <> · {L('cl_version', { version: r.version })}</>}</h3>
-<p class="muted"><time datetime={r.date}>{fmtDate(lang, r.date)}</time>{r.engine && <> · <span class="ltr">{r.engine}</span></>}</p>
+<p class="muted"><time datetime={r.date}>{fmtDate(lang, r.date)}</time></p>
 {r.changes.length ? <ul lang="en" dir="ltr">{r.changes.map((c) => <li>{c}</li>)}</ul> : <p class="muted">{L('cl_none')}</p>}
-<p class="links">{r.assets.filter((a) => !/\.aab$/.test(a.name)).map((a) => <a href={a.url} class="ltr">{a.name} ({fmtSize(lang, a.size)})</a>)}<a href={r.page}>{L('cl_page')}</a></p>
+<p class="links">{r.assets.filter((a) => !/\.aab$/.test(a.name)).map((a) => <a href={a.url} class="ltr">{a.name}</a>)}<a href={r.page}>{L('cl_page')}</a></p>
 </article>) : <p class="muted">{L('dl_unavailable')}</p>}
 </section>)}
 </div>

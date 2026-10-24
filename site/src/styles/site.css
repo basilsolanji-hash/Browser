@@ -206,6 +206,7 @@ h1, h2, h3 { line-height: 1.15; }
 .dl-cards { margin-top: 56px; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
 .dl-cards h2 { margin: 0; font-size: 22px; }
 .dl-cards ul { margin: 14px 0 0; padding-inline-start: 20px; color: var(--text-2); font-size: 15px; }
+.dl-cards .rec-meta { margin: 6px 0 0; }
 .dl-cards .card-soon p { margin: 14px 0 0; color: var(--muted); font-size: 15px; }
 .dl-cards .card.hl { border-color: var(--accent); }
 .row { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }

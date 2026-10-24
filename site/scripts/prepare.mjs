@@ -1,5 +1,5 @@
 // Подготовка перед сборкой: шрифты со своего хостинга и строки из переводов приложения.
-import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { load } from '../../desktop/scripts/gen-i18n.mjs';
@@ -24,4 +24,9 @@ LANGS.forEach((lang, i) => {
   for (const [k, v] of Object.entries(all)) if (APP_KEYS.test(k)) out[lang][k] = v[i] || v[0];
 });
 writeFileSync(join(root, 'src/i18n/app.generated.json'), JSON.stringify(out, null, 1));
+// Свой домен для GitHub Pages — файл CNAME (пока домена нет, файла нет).
+const links = JSON.parse(readFileSync(join(root, 'src/data/links.json'), 'utf8'));
+if (links.siteUrl) writeFileSync(join(root, 'public/CNAME'), new URL(links.siteUrl).host + '\n');
+else rmSync(join(root, 'public/CNAME'), { force: true });
+
 console.log(`prepare: ${fonts.length} шрифтов, ${Object.keys(out.en).length} строк приложения`);

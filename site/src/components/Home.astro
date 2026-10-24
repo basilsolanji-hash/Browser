@@ -2,6 +2,7 @@
 // Главная по прототипу docs/site-prototype/index.html.
 import Icon from './Icon.astro';
 import { t, href, asset } from '../lib/i18n';
+import links from '../lib/links';
 const { lang } = Astro.props;
 const L = (k: string, v?: Record<string, string>) => t(lang, k, v);
 // Заголовок первого экрана: *слово* выделяется акцентом.
@@ -80,8 +81,12 @@ const features = [['profiles', 'f1'], ['tabs', 'f2'], ['shield', 'f3'], ['book',
 <div class="grid cards-4 top-40">
 <div class="card plat"><b>Android</b><span class="muted">{L('plat_android_d')}</span><span class="spacer"></span><a class="btn btn-primary" href={href(lang, 'download') + '#android'}>{L('plat_android_cta')}</a></div>
 <div class="card plat"><b>Windows</b><span class="muted">{L('plat_windows_d')}</span><span class="spacer"></span><a class="btn btn-primary" href={href(lang, 'download') + '#windows'}>{L('plat_windows_cta')}</a></div>
-<div class="card card-soon plat"><b>{L('plat_ios')}</b><span class="muted">{L('plat_dev')}</span><span class="spacer"></span><span class="btn btn-soon">{L('plat_ios_cta')}</span></div>
-<div class="card card-soon plat"><b>{L('plat_mac')}</b><span class="muted">{L('plat_dev')}</span><span class="spacer"></span><span class="btn btn-soon">{L('plat_soon')}</span></div>
+{links.appStore
+  ? <div class="card plat"><b>{L('plat_ios')}</b><span class="muted">App Store</span><span class="spacer"></span><a class="btn btn-primary" href={links.appStore}>App Store</a></div>
+  : <div class="card card-soon plat"><b>{L('plat_ios')}</b><span class="muted">{L('plat_dev')}</span><span class="spacer"></span><span class="btn btn-soon">{L('plat_ios_cta')}</span></div>}
+{links.macDownload
+  ? <div class="card plat"><b>{L('plat_mac')}</b><span class="muted">macOS</span><span class="spacer"></span><a class="btn btn-primary" href={href(lang, 'download') + '#mac'}>{L('nav_download')}</a></div>
+  : <div class="card card-soon plat"><b>{L('plat_mac')}</b><span class="muted">{L('plat_dev')}</span><span class="spacer"></span><span class="btn btn-soon">{L('plat_soon')}</span></div>}
 </div>
 </section>
 
