@@ -209,6 +209,8 @@ on(['page'], 'downloads', () => ({ list: Downloads.list(), folder: Downloads.fol
 on(['page'], 'dlOpen', (_w, id) => Downloads.open(str(id, 100)));
 on(['page'], 'dlShow', (_w, id) => Downloads.show(str(id, 100)));
 on(['page'], 'dlCancel', (_w, id) => Downloads.cancel(str(id, 100)));
+on(['page'], 'dlPause', (_w, id) => Downloads.pause(str(id, 100)));
+on(['page'], 'dlResume', (_w, id) => Downloads.resume(str(id, 100)));
 on(['page'], 'dlRemove', (_w, id) => Downloads.remove(str(id, 100)));
 on(['page'], 'dlClear', () => Downloads.clear());
 

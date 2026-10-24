@@ -2,7 +2,7 @@ import { boot, h, icon, iconButton, os, t } from '../shared/ui';
 import { confirmDialog, contextMenu, toast } from './common';
 
 /** Загрузки (DownloadsActivity.kt): список, ход загрузки, открыть, показать в папке, убрать, очистить. */
-interface Download { id: string; name: string; path: string; url: string; time: number; size: number; state: string; received: number }
+interface Download { id: string; name: string; path: string; url: string; time: number; size: number; state: string; received: number; resumable?: boolean }
 const app = document.getElementById('app')!;
 app.className = 'wrap';
 
@@ -13,17 +13,25 @@ async function render(): Promise<void> {
   const { list, folder } = await os.call<{ list: Download[]; folder: string }>('downloads');
   const row = (d: Download) => {
     const pct = d.size > 0 ? Math.min(100, Math.round((d.received / d.size) * 100)) : 0;
-    const sub = d.state === 'progress' ? t('downloading', `${size(d.received)}${d.size ? ' / ' + size(d.size) : ''}`)
+    const amount = `${size(d.received)}${d.size ? ' / ' + size(d.size) : ''}`;
+    const sub = d.state === 'progress' ? t('downloading', amount)
+      : d.state === 'paused' ? t('dt_dl_paused', amount)
+      : d.state === 'interrupted' ? (d.resumable ? t('dt_dl_interrupted', amount) : t('download_failed', d.name))
       : d.state === 'completed' ? `${size(d.size)} · ${new Date(d.time).toLocaleString(document.documentElement.lang)}`
       : t('download_failed', d.name);
     const open = async () => { if (!(await os.call<boolean>('dlOpen', d.id))) toast(t('cant_open_file')); };
-    return h('div', { class: 'item', 'data-state': d.state, oncontextmenu: (e: MouseEvent) => { e.preventDefault(); menu(d, open, e.clientX, e.clientY); } },
+    const resume = async () => { if (!(await os.call<boolean>('dlResume', d.id))) toast(t('download_failed', d.name)); };
+    const going = d.state === 'progress' || d.state === 'paused' || (d.state === 'interrupted' && d.resumable);
+    const actions: (HTMLElement | string)[] = [];
+    if (d.state === 'progress') actions.push(h('button', { class: 'btn dl-pause', onclick: () => void os.call('dlPause', d.id) }, t('dt_pause')));
+    if (d.state === 'paused' || (d.state === 'interrupted' && d.resumable)) actions.push(h('button', { class: 'btn accent dl-resume', onclick: () => void resume() }, t('dt_resume')));
+    if (going) actions.push(h('button', { class: 'btn dl-cancel', onclick: () => void os.call('dlCancel', d.id) }, t('cancel')));
+    if (d.state === 'completed') actions.push(h('button', { class: 'btn', onclick: open }, t('open')));
+    return h('div', { class: 'item', 'data-state': d.state, 'data-id': d.id, oncontextmenu: (e: MouseEvent) => { e.preventDefault(); menu(d, open, e.clientX, e.clientY); } },
       icon('file'),
       h('div', { class: 'grow' }, h('div', { class: 't' }, d.name), h('div', { class: 'u' }, sub),
-        d.state === 'progress' ? h('div', { class: 'bar' }, h('span', { style: `width:${pct}%` })) : ''),
-      d.state === 'progress'
-        ? h('button', { class: 'btn', onclick: () => void os.call('dlCancel', d.id) }, t('cancel'))
-        : d.state === 'completed' ? h('button', { class: 'btn', onclick: open }, t('open')) : '',
+        going ? h('div', { class: 'bar' + (d.state === 'progress' ? '' : ' stopped') }, h('span', { style: `width:${pct}%` })) : ''),
+      ...actions,
       iconButton('more', t('menu'), (e) => menu(d, open, e.clientX, e.clientY)));
   };
   app.replaceChildren(
