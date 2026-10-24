@@ -15,5 +15,12 @@ void boot(async () => {
     h('div', { class: 'ver' }, t('dt_engine', a.chromium, a.electron)),
     h('p', { class: 'hint', style: 'text-align:center' }, t('about_desc')),
     ...section(t('privacy_security'), h('p', { class: 'hint' }, t('about_privacy'))),
+    ...section(t('licenses'), h('div', { class: 'hint' }, t('dt_licenses_desc')),
+      h('div', { class: 'card' }, ...[
+        ['Electron', 'MIT'], ['Chromium', 'BSD-3-Clause …'], ['Mozilla Readability', 'Apache-2.0'],
+        ['EasyPrivacy (easylist.to)', 'GPL-3.0 / CC BY-SA 3.0'], ['Node.js', 'MIT'],
+      ].map(([name, lic]) => h('div', { class: 'setting' }, h('div', { class: 'label' }, name), h('span', { class: 'hint' }, lic)))),
+      h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', onclick: () => void os.call('openLicenses') }, t('dt_licenses_open')))),
+    h('div', { style: 'margin-top:16px' }, h('a', { class: 'btn', href: 'os://help/', style: 'text-decoration:none;color:inherit' }, t('help_feedback'))),
   );
 });

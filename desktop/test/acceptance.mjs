@@ -67,6 +67,11 @@ const server = createServer((req, res) => {
   } else if (u.pathname === '/set3p') {
     res.setHeader('set-cookie', 'os_3p=1; Path=/; Max-Age=86400; SameSite=None; Secure');
     res.end('<title>3p</title>');
+  } else if (u.pathname === '/article') {
+    const para = (n) => `<p>Параграф ${n}: деловой браузер Ось хранит данные на компьютере и не отправляет их на свои серверы. ` +
+      'Профили изолированы друг от друга, у каждого свои входы, cookies и история посещений, а трекеры блокируются.</p>';
+    res.end(`<title>Article page</title><body><nav>menu menu menu</nav><article><h1>Ось reader test</h1>${[1, 2, 3, 4, 5, 6, 7, 8].map(para).join('')}</article>` +
+      '<aside>ads</aside><script>document.title = "JS ran"</script></body>');
   } else if (u.pathname === '/notify') {
     res.end('<title>Notify</title><p>permissions</p>');
   } else if (u.pathname === '/open') {
@@ -326,7 +331,7 @@ try {
     return { ci: prefs.contextIsolation, sb: prefs.sandbox, ni: prefs.nodeIntegration, ws: prefs.webSecurity, preload: prefs.preload ?? null, bridge, before, after: tab.getURL() };
   });
   check('tab webPreferences: contextIsolation, sandbox, no node, webSecurity', sec.ci === true && sec.sb === true && sec.ni === false && sec.ws !== false, JSON.stringify(sec));
-  check('sites get no preload bridge', !sec.preload && sec.bridge === 'undefined/undefined/undefined', sec.bridge);
+  check('sites get no preload bridge (only the notification shim)', (!sec.preload || /tab\.js$/.test(sec.preload)) && sec.bridge === 'undefined/undefined/undefined', `${sec.preload} ${sec.bridge}`);
   check('site cannot navigate to os:// or file://', sec.after === sec.before, `${sec.before} → ${sec.after}`);
   const ua = await main(() => globalThis.osTest.windows()[0].activeWebContents().getUserAgent());
   check('user agent has no Electron token', !/Electron|os-browser/i.test(ua), ua);
@@ -730,6 +735,105 @@ try {
     await lp.click('#unlock');
     check('correct PIN unlocks', await waitFor(async () => (await state()).locked === false));
     check('tab visible again after unlock', await main(() => globalThis.osTest.windows()[0].liveTabs().some((v) => v.view.getVisible())));
+  }
+  if (STAGE >= 4) {
+    // --- 20. Режим чтения ---
+    step('20. Режим чтения (Readability) без скриптов страницы');
+    await main(() => globalThis.osTest.windows()[0].openProfile(1));
+    await key('Ctrl+T');
+    await typeAddress(`${SITE}/article`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/article') && !x.loading; });
+    await key('Ctrl+Alt+R');
+    const rd = await waitFor(async () => { const x = await state(); return x.reader && !x.loading && x; }, 10000);
+    check('reader mode opens', rd);
+    check('address bar keeps the article address in reader mode', rd && rd.url.endsWith('/article'), rd?.url);
+    const rtext = await main(() => globalThis.osTest.windows()[0].activeWebContents().executeJavaScript('document.body.innerText'));
+    check('reader shows the article text', rtext.includes('Ось reader test') && rtext.includes('Параграф 8'), rtext.slice(0, 80));
+    const scriptsLeft = await main(() => globalThis.osTest.windows()[0].activeWebContents().executeJavaScript('document.scripts.length + document.querySelectorAll("iframe,object,embed,[onclick]").length'));
+    check('reader page has no site scripts or embeds', scriptsLeft === 0, `${scriptsLeft}`);
+    await keyScreen('20-reader', 'tab');
+    await key('Ctrl+Alt+R');
+    check('reader mode exits', await waitFor(async () => { const x = await state(); return !x.reader && x.url.endsWith('/article'); }));
+
+    // --- 21. Выделенный текст → заметка, поиск ---
+    step('21. Действия с выделенным текстом');
+    await main(() => {
+      const w = globalThis.osTest.windows()[0];
+      const tab = w.liveTabs().find((v) => v.wc === w.activeWebContents());
+      w.addNote('Цитата из статьи', tab.url());
+      w.searchText('ось браузер', tab);
+    });
+    await flush();
+    check('«Add to note» saves the selection with its page', (readJson('notes')?.list ?? []).some((n) => n.text === 'Цитата из статьи' && n.source.endsWith('/article')));
+    check('«Search» opens a search tab', await waitFor(async () => (await state()).tabs.some((x) => /duckduckgo\.com\/\?q=/.test(x.url))));
+
+    // --- 22. Уведомления сайтов → Windows ---
+    step('22. Уведомления сайтов с именем профиля, нажатие открывает вкладку');
+    await typeAddress(`${SITE}/notify`);
+    await waitFor(async () => (await state()).url.endsWith('/notify') && !(await state()).loading);
+    const nt = app.windows().filter((p) => p.url() === `${SITE}/notify`).pop();
+    await nt.evaluate(() => { window.__clicked = false; const n = new window.Notification('Hello', { body: 'World' }); n.onclick = () => { window.__clicked = true; }; });
+    const shownN = await waitFor(async () => (await main(() => globalThis.osTest.notifications())).find((n) => n.title.endsWith('Hello')), 5000);
+    const pname = (await state()).profile.name;
+    check('site notification shown with the profile name', shownN && shownN.title === `${pname} · Hello` && shownN.body === 'World', JSON.stringify(shownN));
+    const notifTab = (await state()).active;
+    await main(() => globalThis.osTest.windows()[0].activate('start'));
+    await main(() => globalThis.osTest.clickNotification());
+    check('click opens the tab', await waitFor(async () => (await state()).active === notifTab));
+    check('page gets the click event', await waitFor(() => nt.evaluate(() => window.__clicked === true)));
+    await main(() => globalThis.osTest.windows()[0].openProfile(4));
+    await key('Ctrl+T');
+    await typeAddress(`${SITE}/notify`);
+    await waitFor(async () => (await state()).url.endsWith('/notify') && (await state()).profile.id === 4);
+    const nt4 = app.windows().filter((p) => p.url() === `${SITE}/notify`).pop();
+    await nt4.evaluate(() => window.dispatchEvent(new window.CustomEvent('os-notify', { detail: JSON.stringify({ id: 'f', title: 'Forged' }) })));
+    await sleep(500);
+    check('no notification without permission (forged event ignored)', !(await main(() => globalThis.osTest.notifications())).some((n) => n.title.endsWith('Forged')));
+
+    // --- 23. Полный экран ---
+    step('23. Полный экран F11');
+    await key('F11');
+    check('F11 enters full screen and hides the chrome', await waitFor(() => main(() => { const w = globalThis.osTest.windows()[0]; return w.win.isFullScreen() && !w.chrome.getVisible(); })));
+    await key('F11', 0, 'tab');
+    check('F11 again leaves full screen', await waitFor(() => main(() => !globalThis.osTest.windows()[0].win.isFullScreen())));
+
+    // --- 24. Ссылка из другой программы ---
+    step('24. Открытие ссылок, переданных при запуске');
+    await main(({ app: a }, url) => a.emit('second-instance', {}, ['os.exe', '--flag', 'file:///C:/Windows/win.ini', url], process.cwd()), `${SITE}/page/external`);
+    check('URL from another program opens in a new tab', await waitFor(async () => (await state()).tabs.some((x) => x.url.endsWith('/page/external'))));
+    const bad = await main(({ app: a }) => { a.emit('second-instance', {}, ['os.exe', 'javascript:alert(1)'], process.cwd()); return 1; });
+    void bad;
+    await sleep(400);
+    check('dangerous schemes from the command line are ignored', !(await state()).tabs.some((x) => /^(javascript|file):/.test(x.url)));
+
+    // --- 25. О приложении, справка ---
+    step('25. О приложении и «Справка и отзывы»');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://about/'));
+    const ab = await page('os://about/');
+    await ab.waitForSelector('.ver');
+    const abText = await ab.textContent('body');
+    check('about shows version and Chromium engine', /Chromium \d+/.test(abText) && /Electron \d+/.test(abText));
+    check('about lists open-source licenses', abText.includes('Readability') && abText.includes('EasyPrivacy'));
+    await keyScreen('25-about', 'page');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://help/'));
+    const hp4 = await page('os://help/');
+    await hp4.waitForSelector('.qa');
+    check('help has 6 answers and a feedback address', (await hp4.$$eval('.qa', (e) => e.length)) === 6 && (await hp4.textContent('body')).includes('@gmail.com'));
+    await keyScreen('25-help', 'page');
+
+    // --- 26. Язык во всех окнах сразу ---
+    step('26. Смена языка сразу во всех окнах');
+    await key('Ctrl+Shift+N');
+    await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) === 2);
+    const iui4 = await waitFor(() => app.windows().filter((p) => p.url().startsWith('os://ui/?incognito')).pop());
+    await iui4.waitForSelector('#address');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    const st4 = await page('os://settings/');
+    await st4.waitForSelector('#lang');
+    await st4.selectOption('#lang', 'de');
+    check('incognito window switched language too', await waitFor(async () => (await iui4.getAttribute('#address', 'placeholder')) === 'Adresse oder Suche'));
+    await st4.selectOption('#lang', 'ru');
+    await main(() => globalThis.osTest.windows()[1].win.close());
   }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));

@@ -453,7 +453,10 @@ function mainMenu(anchor: DOMRect): void {
     { sep: true },
     { label: t('copy_link'), icon: 'globe', disabled: !st.url, run: () => void os.call('copy', st!.url) },
   );
-  items.push({ label: t('save_page'), icon: 'saved', kbd: 'Ctrl+S', disabled: !st.url, run: () => void os.call('savePage') });
+  items.push(
+    { label: st.reader ? t('reader_exit') : t('reader_mode'), icon: 'note', kbd: 'Ctrl+Alt+R', disabled: !st.url, run: () => void os.call('reader') },
+    { label: t('save_page'), icon: 'saved', kbd: 'Ctrl+S', disabled: !st.url, run: () => void os.call('savePage') },
+  );
   if (!st.incognito && st.profile) {
     const id = st.profile.id;
     items.push(
@@ -476,6 +479,7 @@ function mainMenu(anchor: DOMRect): void {
       { label: t('site_settings'), icon: 'lock', disabled: !st.profile, run: () => void os.call('openPanel', `os://site/?profile=${st!.profile!.id}${st!.url ? '&host=' + encodeURIComponent(host(st!.url)) : ''}`) },
       { label: t('security_check'), icon: 'check', run: () => void os.call('openPanel', 'os://security/') },
       { label: t('dt_lock_now'), icon: 'lock', disabled: !st.lockEnabled, run: () => void os.call('lockNow') },
+      { label: t('help_feedback'), icon: 'info', run: () => void os.call('openPanel', 'os://help/') },
       { label: t('about'), icon: 'info2', run: () => void os.call('openPanel', 'os://about/') },
       { label: t('settings'), icon: 'settings', run: () => void os.call('openPanel', 'os://settings/') },
     );

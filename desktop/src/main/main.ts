@@ -7,6 +7,8 @@ import { flushAll } from './store';
 import { installIpc, applyTheme } from './ipc';
 import { OsWindow, lockAll, mainWindow, windows } from './window';
 import { setBlockedListener } from './privacy';
+import { installNotifications, shownForTest, clickLastForTest } from './notify';
+import { incomingUrl } from './defaultbrowser';
 import * as Onboarding from './onboarding';
 import * as Tabs from './tabs';
 import * as Profiles from './profiles';
@@ -32,10 +34,13 @@ registerScheme();
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  // Ссылка из другой программы (Ось — браузер по умолчанию) приходит вторым запуском.
+  app.on('second-instance', (_e, argv) => {
     const w = mainWindow() ?? createMain();
     if (w.win.isMinimized()) w.win.restore();
     w.win.focus();
+    const url = incomingUrl(argv);
+    if (url) w.openUrl(url);
   });
 
   app.whenReady().then(() => {
@@ -45,6 +50,7 @@ if (!app.requestSingleInstanceLock()) {
     applyLanguage();
     applyTheme();
     installIpc();
+    installNotifications();
     nativeTheme.on('updated', () => { for (const w of windows) w.refreshLook(); });
     // Счётчик заблокированных трекеров в адресной строке.
     setBlockedListener((wcId) => { for (const w of windows) if (w.liveTabs().some((v) => v.wc.id === wcId)) w.push(); });
@@ -71,6 +77,8 @@ function createMain(): OsWindow {
     const last = Tabs.tabsFile.get().lastProfile;
     if (last != null && Profiles.exists(last)) w.openProfile(last);
     else w.showHome();
+    const url = incomingUrl(process.argv);
+    if (url) w.openUrl(url);
   }
   return w;
 }
@@ -82,5 +90,7 @@ if (process.env.OS_TEST === '1') {
     flush: () => flushAll(),
     userData: () => app.getPath('userData'),
     dist: () => join(__dirname, '..'),
+    notifications: () => shownForTest(),
+    clickNotification: () => clickLastForTest(),
   };
 }

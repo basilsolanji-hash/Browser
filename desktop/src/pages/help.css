@@ -1,0 +1,5 @@
+.qa { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.qa:last-child { border-bottom: 0; }
+.qa .q { font-weight: 600; margin-bottom: 4px; }
+.qa .a { color: var(--muted); line-height: 1.45; }
+.links { display: flex; gap: 8px; flex-wrap: wrap; }
