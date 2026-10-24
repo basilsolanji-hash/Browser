@@ -5,6 +5,9 @@ name: Scenarios
 # в ветку scenario-results-<ветка>-<часть>.
 on:
   workflow_dispatch:
+  # Запуск из любой ветки: git push origin HEAD:test/scenarios
+  push:
+    branches: ['test/scenarios']
 
 permissions:
   contents: write
