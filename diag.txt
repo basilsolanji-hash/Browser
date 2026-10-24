@@ -1,0 +1,800 @@
+10-24 14:03:24.746 D/GeckoLoader( 7019): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:24.746 E/GeckoLibLoad( 7019): Load nss start
+10-24 14:03:24.746 E/GeckoLibLoad( 7019): Load nss done
+10-24 14:03:24.747 D/GeckoLoader( 7019): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:24.754 E/GeckoLibLoad( 7019): Loaded libs in 7.497531ms total, 6ms(4ms) user, 0ms(1ms) system, 0(0) faults
+10-24 14:03:24.754 D/GeckoThread( 7019): State changed to LIBS_READY
+10-24 14:03:24.755 W/GeckoThread( 7019): zerdatime 273361 - runGecko
+10-24 14:03:24.807 D/GeckoThread( 7019): State changed to RUNNING
+10-24 14:03:24.861 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://claude.ai/login
+10-24 14:03:24.877 D/GeckoSession( 3787): handleMessage GeckoView:SecurityChanged uri=null
+10-24 14:03:25.205 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 14:03:25.251 D/GeckoSession( 3787): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:03:25.272 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab6 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:03:25.275 I/ActivityManager(  520): Start proc 7075:ru.multibrowser.test:tab_disable_art_image_6/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab6}
+10-24 14:03:25.539 D/GeckoThread( 7075): State changed to LAUNCHED
+10-24 14:03:25.541 I/GeckoThread( 7075): preparing to run Gecko
+10-24 14:03:25.560 D/GeckoThread( 7075): State changed to MOZGLUE_READY
+10-24 14:03:25.561 D/GeckoLoader( 7075): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:25.561 D/GeckoLoader( 7075): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:25.576 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab6 updateBindings: BACKGROUND priority, 3 importance, 7075 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 14:03:25.576 E/GeckoLibLoad( 7075): Load sqlite start
+10-24 14:03:25.578 E/GeckoLibLoad( 7075): Load sqlite done
+10-24 14:03:25.578 D/GeckoLoader( 7075): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:25.578 E/GeckoLibLoad( 7075): Load nss start
+10-24 14:03:25.578 E/GeckoLibLoad( 7075): Load nss done
+10-24 14:03:25.579 D/GeckoLoader( 7075): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:25.589 E/GeckoLibLoad( 7075): Loaded libs in 10.018117ms total, 0ms(5ms) user, 5ms(1ms) system, 16(16) faults
+10-24 14:03:25.591 D/GeckoThread( 7075): State changed to LIBS_READY
+10-24 14:03:25.592 W/GeckoThread( 7075): zerdatime 274198 - runGecko
+10-24 14:03:25.645 D/GeckoThread( 7075): State changed to RUNNING
+10-24 14:03:25.649 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://claude.ai/login
+10-24 14:03:25.935 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 14:03:26.130 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 14:03:26.167 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab6 updateBindings: FOREGROUND priority, 2 importance, 7075 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:03:26.295 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=challenge&id=0fbhx8zknnh8&host=claude.ai&sentry=true&reportapi=https%3A%2F%2Faccounts.hcaptcha.com&recaptchacompat=off&custom=false&hl=en&tplinks=on&andint=off&pstissuer=https%3A%2F%2Fpst-issuer.hcaptcha.com&sitekey=a8086506-2036-46f4-ae50-00d8be805efa&size=invisible&theme=light&origin=https%3A%2F%2Fclaude.ai&clientOptions=%7B%22sentry%22%3Atrue%2C%22reportapi%22%3A%22https%3A%2F%2Faccounts.hcaptcha.com%22%2C%22recaptchacompat%22%3A%22off%22%2C%22custom%22%3Afalse%2C%22hl%22%3A%22en-US%22%2C%22tplinks%22%3A%22on%22%2C%22andint%22%3A%22off%22%2C%22pat%22%3A%22on%22%2C%22pstissuer%22%3A%22https%3A%2F%2Fpst-issuer.hcaptcha.com%22%2C%22endpoint%22%3A%22https%3A%2F%2Fapi.hcaptcha.com%22%2C%22theme%22%3A%22light%22%2C%22size%22%3A%22normal%22%2C%22confirm-nav%22%3Afalse%7D
+10-24 14:03:26.457 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=challenge&id=13i7wdagi7b9&host=claude.ai&sentry=true&reportapi=https%3A%2F%2Faccounts.hcaptcha.com&recaptchacompat=off&custom=false&hl=en&tplinks=on&andint=off&pstissuer=https%3A%2F%2Fpst-issuer.hcaptcha.com&sitekey=f1b21a9c-9100-4022-a928-8d5c29de2e6a&size=invisible&theme=light&origin=https%3A%2F%2Fclaude.ai&clientOptions=%7B%22sentry%22%3Atrue%2C%22reportapi%22%3A%22https%3A%2F%2Faccounts.hcaptcha.com%22%2C%22recaptchacompat%22%3A%22off%22%2C%22custom%22%3Afalse%2C%22hl%22%3A%22en-US%22%2C%22tplinks%22%3A%22on%22%2C%22andint%22%3A%22off%22%2C%22pat%22%3A%22on%22%2C%22pstissuer%22%3A%22https%3A%2F%2Fpst-issuer.hcaptcha.com%22%2C%22endpoint%22%3A%22https%3A%2F%2Fapi.hcaptcha.com%22%2C%22theme%22%3A%22light%22%2C%22size%22%3A%22normal%22%2C%22confirm-nav%22%3Afalse%7D
+10-24 14:03:26.477 W/GeckoEditableChild( 7075): No editable parent
+10-24 14:03:26.480 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=checkbox-invisible
+10-24 14:03:26.489 W/GeckoEditableChild( 7075): No editable parent
+10-24 14:03:26.491 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=checkbox-invisible
+10-24 14:03:26.558 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:03:26.558 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_frag_depth' : extension is not supported
+10-24 14:03:26.558 I/Gecko   ( 4398): 
+10-24 14:03:26.563 I/Gecko   ( 4398): source ->
+10-24 14:03:26.563 I/Gecko   ( 4398): 
+10-24 14:03:26.563 I/Gecko   ( 4398): #extension GL_EXT_frag_depth: require
+10-24 14:03:26.563 I/Gecko   ( 4398): void main() {}
+10-24 14:03:26.563 I/Gecko   ( 4398): 
+10-24 14:03:26.567 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:03:26.567 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_shader_texture_lod' : extension is not supported
+10-24 14:03:26.567 I/Gecko   ( 4398): 
+10-24 14:03:26.567 I/Gecko   ( 4398): source ->
+10-24 14:03:26.567 I/Gecko   ( 4398): 
+10-24 14:03:26.567 I/Gecko   ( 4398): #extension GL_EXT_shader_texture_lod: require
+10-24 14:03:26.567 I/Gecko   ( 4398): void main() {}
+10-24 14:03:26.567 I/Gecko   ( 4398): 
+10-24 14:03:26.584 I/Gecko   ( 7019): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:03:26.740 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab13 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:03:26.767 I/ActivityManager(  520): Start proc 7136:ru.multibrowser.test:tab_disable_art_image_13/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab13}
+10-24 14:03:27.195 D/GeckoThread( 7136): State changed to LAUNCHED
+10-24 14:03:27.212 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab13 updateBindings: FOREGROUND priority, 2 importance, 7136 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:03:27.214 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab2 updateBindings: IDLE priority, 6 importance, 6765 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 14:03:27.216 I/GeckoThread( 7136): preparing to run Gecko
+10-24 14:03:27.224 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab0 updateBindings: IDLE priority, 6 importance, 6822 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 14:03:27.229 D/GeckoThread( 7136): State changed to MOZGLUE_READY
+10-24 14:03:27.241 D/GeckoLoader( 7136): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:27.241 D/GeckoLoader( 7136): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:27.245 E/GeckoLibLoad( 7136): Load sqlite start
+10-24 14:03:27.246 E/GeckoLibLoad( 7136): Load sqlite done
+10-24 14:03:27.248 D/GeckoLoader( 7136): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:27.248 E/GeckoLibLoad( 7136): Load nss start
+10-24 14:03:27.248 E/GeckoLibLoad( 7136): Load nss done
+10-24 14:03:27.248 D/GeckoLoader( 7136): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:27.311 E/GeckoLibLoad( 7136): Loaded libs in 63.163739ms total, 2ms(6ms) user, 9ms(6ms) system, 59(59) faults
+10-24 14:03:27.311 D/GeckoThread( 7136): State changed to LIBS_READY
+10-24 14:03:27.312 W/GeckoThread( 7136): zerdatime 275918 - runGecko
+10-24 14:03:27.474 D/GeckoThread( 7136): State changed to RUNNING
+10-24 14:03:27.579 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://accounts.google.com/gsi/iframe/select?client_id=1062961139910-l2m55cb9h51u5cuc9c56eb3fevouidh9.apps.googleusercontent.com&auto_select=true&ux_mode=popup&ui_mode=bottom_sheet&context=use&as=cv2STUPIxapocAsr4huCBa5eonlJd8mGSOvLvDe-qr0&bs=jPuicvBc56n0VWqatxpnI7dwnhv2yS5UikAXPlOg%2BYI&auto_dismiss_duration_ms=20000&is_itp=true&channel_id=b581010e1e568ec4ac32f163f815311fc32a3b7858755352b65bc182db5e7485&origin=https%3A%2F%2Fclaude.ai&oauth2_auth_url=https%3A%2F%2Faccounts.google.com%2Fo%2Foauth2%2Fv2%2Fauth
+10-24 14:03:27.636 D/GeckoSession( 3787): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:03:27.656 D/GeckoSession( 3787): handleMessage GeckoView:PageStop uri=null
+10-24 14:03:27.659 I/OsDiag  ( 3787): [4:start] загружено
+10-24 14:03:28.010 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:03:28.010 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_frag_depth' : extension is not supported
+10-24 14:03:28.010 I/Gecko   ( 4398): 
+10-24 14:03:28.012 I/Gecko   ( 4398): source ->
+10-24 14:03:28.012 I/Gecko   ( 4398): 
+10-24 14:03:28.012 I/Gecko   ( 4398): #extension GL_EXT_frag_depth: require
+10-24 14:03:28.012 I/Gecko   ( 4398): void main() {}
+10-24 14:03:28.012 I/Gecko   ( 4398): 
+10-24 14:03:28.013 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:03:28.013 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_shader_texture_lod' : extension is not supported
+10-24 14:03:28.013 I/Gecko   ( 4398): 
+10-24 14:03:28.014 I/Gecko   ( 4398): source ->
+10-24 14:03:28.014 I/Gecko   ( 4398): 
+10-24 14:03:28.014 I/Gecko   ( 4398): #extension GL_EXT_shader_texture_lod: require
+10-24 14:03:28.014 I/Gecko   ( 4398): void main() {}
+10-24 14:03:28.014 I/Gecko   ( 4398): 
+10-24 14:03:28.274 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab16 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:03:28.277 I/ActivityManager(  520): Start proc 7197:ru.multibrowser.test:tab_disable_art_image_16/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab16}
+10-24 14:03:28.545 I/Gecko   ( 7075): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:03:28.546 I/Gecko   ( 7075): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:03:28.574 I/Gecko   ( 7075): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:03:28.737 D/GeckoThread( 7197): State changed to LAUNCHED
+10-24 14:03:28.775 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab16 updateBindings: BACKGROUND priority, 3 importance, 7197 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 14:03:28.815 I/GeckoThread( 7197): preparing to run Gecko
+10-24 14:03:28.823 D/GeckoThread( 7197): State changed to MOZGLUE_READY
+10-24 14:03:28.828 D/GeckoLoader( 7197): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:28.828 D/GeckoLoader( 7197): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:28.844 E/GeckoLibLoad( 7197): Load sqlite start
+10-24 14:03:28.844 E/GeckoLibLoad( 7197): Load sqlite done
+10-24 14:03:28.844 D/GeckoLoader( 7197): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:28.844 E/GeckoLibLoad( 7197): Load nss start
+10-24 14:03:28.844 E/GeckoLibLoad( 7197): Load nss done
+10-24 14:03:28.845 D/GeckoLoader( 7197): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:03:28.873 E/GeckoLibLoad( 7197): Loaded libs in 28.798247ms total, 3ms(3ms) user, 2ms(3ms) system, 0(0) faults
+10-24 14:03:28.874 D/GeckoThread( 7197): State changed to LIBS_READY
+10-24 14:03:28.876 W/GeckoThread( 7197): zerdatime 277482 - runGecko
+10-24 14:03:28.988 D/GeckoThread( 7197): State changed to RUNNING
+10-24 14:03:29.029 D/GeckoSession( 3787): handleMessage: GeckoView:ContentPermission
+10-24 14:03:29.030 D/GeckoSession( 3787): handleMessage: GeckoView:ContentPermission
+10-24 14:03:29.080 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:03:29.080 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_frag_depth' : extension is not supported
+10-24 14:03:29.080 I/Gecko   ( 4398): 
+10-24 14:03:29.080 I/Gecko   ( 4398): source ->
+10-24 14:03:29.080 I/Gecko   ( 4398): 
+10-24 14:03:29.080 I/Gecko   ( 4398): #extension GL_EXT_frag_depth: require
+10-24 14:03:29.080 I/Gecko   ( 4398): void main() {}
+10-24 14:03:29.080 I/Gecko   ( 4398): 
+10-24 14:03:29.082 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:03:29.082 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_shader_texture_lod' : extension is not supported
+10-24 14:03:29.082 I/Gecko   ( 4398): 
+10-24 14:03:29.082 I/Gecko   ( 4398): source ->
+10-24 14:03:29.082 I/Gecko   ( 4398): 
+10-24 14:03:29.082 I/Gecko   ( 4398): #extension GL_EXT_shader_texture_lod: require
+10-24 14:03:29.082 I/Gecko   ( 4398): void main() {}
+10-24 14:03:29.082 I/Gecko   ( 4398): 
+10-24 14:03:29.228 I/Gecko   ( 7075): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:03:29.229 I/Gecko   ( 7075): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:03:29.238 I/Gecko   ( 7075): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:03:35.292 D/GeckoSession( 3787): handleMessage GeckoView:StateUpdated uri=null
+10-24 14:03:36.757 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:03:36.757 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:03:36.757 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:03:36.757 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:03:36.757 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:03:36.757 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:03:36.757 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:03:36.757 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:03:36.757 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:03:36.757 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:03:36.757 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:03:36.757 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:03:36.757 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:03:36.757 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:03:36.757 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:03:36.758 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:03:36.758 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:03:36.758 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:03:36.758 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:03:36.758 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:03:38.048 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:03:38.048 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:03:38.048 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:03:38.048 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:03:38.048 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:03:48.348 I/ServiceChildProcess( 7136): Destroying GeckoServiceChildProcess
+10-24 14:04:04.590 D/GeckoScreenOrientation( 3787): updating to new orientation LANDSCAPE_PRIMARY
+10-24 14:04:13.675 D/GeckoScreenOrientation( 3787): updating to new orientation PORTRAIT_PRIMARY
+10-24 14:04:15.198 D/GeckoSession( 3787): handleMessage GeckoView:StateUpdated uri=null
+10-24 14:04:17.047 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:04:17.047 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:04:17.047 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:04:17.047 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:04:17.047 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:04:17.053 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:04:17.053 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:04:17.053 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:04:17.053 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:04:17.053 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:04:17.056 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:04:17.056 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:04:17.056 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:04:17.056 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:04:17.056 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:04:17.056 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:04:17.056 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:04:17.056 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:04:17.056 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:04:17.056 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:04:17.059 D/GeckoSession( 3787): handleMessage GeckoView:StateUpdated uri=null
+10-24 14:04:17.062 D/GeckoSession( 3787): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 14:04:20.044 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab28 updateBindings: IDLE priority, 6 importance, 7019 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 14:04:20.046 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab6 updateBindings: IDLE priority, 6 importance, 7075 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 14:04:21.864 D/NetworkMonitor/101(  995): PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 time=31ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Safari/537.36]} headers={null=[HTTP/1.1 204 No Content], Connection=[close], Content-Length=[0], Cross-Origin-Resource-Policy=[cross-origin], Date=[Sat, 24 Oct 2026 14:04:22 GMT], X-Android-Received-Millis=[1792850661864], X-Android-Response-Source=[NETWORK 204], X-Android-Selected-Protocol=[http/1.1], X-Android-Sent-Millis=[1792850661853]}
+10-24 14:04:21.908 D/NetworkMonitor/101(  995): PROBE_HTTPS https://www.google.com/generate_204 time=64ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Safari/537.36]} headers={null=[HTTP/1.1 204 No Content], Alt-Svc=[h3=":443"; ma=2592000,h3-29=":443"; ma=2592000], Connection=[close], Content-Length=[0], Cross-Origin-Resource-Policy=[cross-origin], Date=[Sat, 24 Oct 2026 14:04:22 GMT], X-Android-Received-Millis=[1792850661908], X-Android-Response-Source=[NETWORK 204], X-Android-Selected-Protocol=[http/1.1], X-Android-Sent-Millis=[1792850661895]}
+10-24 14:04:28.242 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab16 updateBindings: FOREGROUND priority, 2 importance, 7197 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:04:28.257 I/GeckoSession( 3787): zerdatime 336863 - chrome startup finished
+10-24 14:04:28.261 W/GeckoEditableChild( 7197): No editable parent
+10-24 14:04:28.321 D/GeckoSession( 3787): handleMessage GeckoView:PageStart uri=about:blank
+10-24 14:04:28.321 I/OsDiag  ( 3787): [5:start] начало: about:blank
+10-24 14:04:28.321 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 14:04:28.327 D/GeckoSession( 3787): handleMessage GeckoView:PageStop uri=null
+10-24 14:04:28.327 I/OsDiag  ( 3787): [5:start] загружено
+10-24 14:04:28.328 D/GeckoSession( 3787): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:04:28.329 D/GeckoSession( 3787): handleMessage GeckoView:PageStart uri=https://claude.ai/
+10-24 14:04:28.329 I/OsDiag  ( 3787): [5:start] начало: https://claude.ai/
+10-24 14:04:28.453 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab24 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:04:28.456 I/ActivityManager(  520): Start proc 7367:ru.multibrowser.test:tab_disable_art_image_24/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab24}
+10-24 14:04:28.738 D/GeckoThread( 7367): State changed to LAUNCHED
+10-24 14:04:28.739 I/GeckoThread( 7367): preparing to run Gecko
+10-24 14:04:28.744 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab24 updateBindings: FOREGROUND priority, 2 importance, 7367 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:04:28.753 D/GeckoThread( 7367): State changed to MOZGLUE_READY
+10-24 14:04:28.754 I/ServiceChildProcess( 7197): Destroying GeckoServiceChildProcess
+10-24 14:04:28.758 D/GeckoLoader( 7367): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:28.758 D/GeckoLoader( 7367): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:28.758 E/GeckoLibLoad( 7367): Load sqlite start
+10-24 14:04:28.759 E/GeckoLibLoad( 7367): Load sqlite done
+10-24 14:04:28.759 D/GeckoLoader( 7367): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:28.760 E/GeckoLibLoad( 7367): Load nss start
+10-24 14:04:28.760 E/GeckoLibLoad( 7367): Load nss done
+10-24 14:04:28.760 D/GeckoLoader( 7367): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:28.781 E/GeckoLibLoad( 7367): Loaded libs in 21.595978ms total, 0ms(1ms) user, 11ms(11ms) system, 58(58) faults
+10-24 14:04:28.782 D/GeckoThread( 7367): State changed to LIBS_READY
+10-24 14:04:28.782 W/GeckoThread( 7367): zerdatime 337388 - runGecko
+10-24 14:04:28.830 D/GeckoThread( 7367): State changed to RUNNING
+10-24 14:04:28.858 W/GeckoEditableChild( 7367): No editable parent
+10-24 14:04:28.860 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://claude.ai/login
+10-24 14:04:28.866 D/GeckoSession( 3787): handleMessage GeckoView:SecurityChanged uri=null
+10-24 14:04:29.208 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 14:04:29.256 D/GeckoSession( 3787): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:04:29.295 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab38 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:04:29.296 I/ActivityManager(  520): Start proc 7424:ru.multibrowser.test:tab_disable_art_image_38/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab38}
+10-24 14:04:29.651 D/GeckoThread( 7424): State changed to LAUNCHED
+10-24 14:04:29.655 I/GeckoThread( 7424): preparing to run Gecko
+10-24 14:04:29.669 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab38 updateBindings: BACKGROUND priority, 3 importance, 7424 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 14:04:29.669 D/GeckoThread( 7424): State changed to MOZGLUE_READY
+10-24 14:04:29.681 D/GeckoLoader( 7424): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:29.681 D/GeckoLoader( 7424): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:29.696 E/GeckoLibLoad( 7424): Load sqlite start
+10-24 14:04:29.696 E/GeckoLibLoad( 7424): Load sqlite done
+10-24 14:04:29.697 D/GeckoLoader( 7424): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:29.697 E/GeckoLibLoad( 7424): Load nss start
+10-24 14:04:29.697 E/GeckoLibLoad( 7424): Load nss done
+10-24 14:04:29.697 D/GeckoLoader( 7424): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:29.704 E/GeckoLibLoad( 7424): Loaded libs in 6.744211ms total, 3ms(1ms) user, 2ms(4ms) system, 0(0) faults
+10-24 14:04:29.704 D/GeckoThread( 7424): State changed to LIBS_READY
+10-24 14:04:29.704 W/GeckoThread( 7424): zerdatime 338310 - runGecko
+10-24 14:04:29.752 D/GeckoThread( 7424): State changed to RUNNING
+10-24 14:04:29.862 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://claude.ai/login
+10-24 14:04:30.242 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 14:04:30.445 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 14:04:30.493 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab38 updateBindings: FOREGROUND priority, 2 importance, 7424 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:04:30.566 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=challenge&id=0sz9c4j2je8f&host=claude.ai&sentry=true&reportapi=https%3A%2F%2Faccounts.hcaptcha.com&recaptchacompat=off&custom=false&hl=en&tplinks=on&andint=off&pstissuer=https%3A%2F%2Fpst-issuer.hcaptcha.com&sitekey=a8086506-2036-46f4-ae50-00d8be805efa&size=invisible&theme=light&origin=https%3A%2F%2Fclaude.ai&clientOptions=%7B%22sentry%22%3Atrue%2C%22reportapi%22%3A%22https%3A%2F%2Faccounts.hcaptcha.com%22%2C%22recaptchacompat%22%3A%22off%22%2C%22custom%22%3Afalse%2C%22hl%22%3A%22en-US%22%2C%22tplinks%22%3A%22on%22%2C%22andint%22%3A%22off%22%2C%22pat%22%3A%22on%22%2C%22pstissuer%22%3A%22https%3A%2F%2Fpst-issuer.hcaptcha.com%22%2C%22endpoint%22%3A%22https%3A%2F%2Fapi.hcaptcha.com%22%2C%22theme%22%3A%22light%22%2C%22size%22%3A%22normal%22%2C%22confirm-nav%22%3Afalse%7D
+10-24 14:04:30.802 W/GeckoEditableChild( 7424): No editable parent
+10-24 14:04:30.810 W/GeckoEditableChild( 7424): No editable parent
+10-24 14:04:30.812 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=checkbox-invisible
+10-24 14:04:30.816 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=checkbox-invisible
+10-24 14:04:30.818 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=challenge&id=1169pz7jyq4b&host=claude.ai&sentry=true&reportapi=https%3A%2F%2Faccounts.hcaptcha.com&recaptchacompat=off&custom=false&hl=en&tplinks=on&andint=off&pstissuer=https%3A%2F%2Fpst-issuer.hcaptcha.com&sitekey=f1b21a9c-9100-4022-a928-8d5c29de2e6a&size=invisible&theme=light&origin=https%3A%2F%2Fclaude.ai&clientOptions=%7B%22sentry%22%3Atrue%2C%22reportapi%22%3A%22https%3A%2F%2Faccounts.hcaptcha.com%22%2C%22recaptchacompat%22%3A%22off%22%2C%22custom%22%3Afalse%2C%22hl%22%3A%22en-US%22%2C%22tplinks%22%3A%22on%22%2C%22andint%22%3A%22off%22%2C%22pat%22%3A%22on%22%2C%22pstissuer%22%3A%22https%3A%2F%2Fpst-issuer.hcaptcha.com%22%2C%22endpoint%22%3A%22https%3A%2F%2Fapi.hcaptcha.com%22%2C%22theme%22%3A%22light%22%2C%22size%22%3A%22normal%22%2C%22confirm-nav%22%3Afalse%7D
+10-24 14:04:31.050 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:04:31.050 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_frag_depth' : extension is not supported
+10-24 14:04:31.050 I/Gecko   ( 4398): 
+10-24 14:04:31.051 I/Gecko   ( 4398): source ->
+10-24 14:04:31.051 I/Gecko   ( 4398): 
+10-24 14:04:31.051 I/Gecko   ( 4398): #extension GL_EXT_frag_depth: require
+10-24 14:04:31.051 I/Gecko   ( 4398): void main() {}
+10-24 14:04:31.051 I/Gecko   ( 4398): 
+10-24 14:04:31.054 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:04:31.054 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_shader_texture_lod' : extension is not supported
+10-24 14:04:31.054 I/Gecko   ( 4398): 
+10-24 14:04:31.054 I/Gecko   ( 4398): source ->
+10-24 14:04:31.054 I/Gecko   ( 4398): 
+10-24 14:04:31.054 I/Gecko   ( 4398): #extension GL_EXT_shader_texture_lod: require
+10-24 14:04:31.054 I/Gecko   ( 4398): void main() {}
+10-24 14:04:31.054 I/Gecko   ( 4398): 
+10-24 14:04:31.075 I/Gecko   ( 7367): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:04:31.325 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab1 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:04:31.363 I/ActivityManager(  520): Start proc 7494:ru.multibrowser.test:tab_disable_art_image_1/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab1}
+10-24 14:04:31.942 D/GeckoThread( 7494): State changed to LAUNCHED
+10-24 14:04:31.958 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab1 updateBindings: FOREGROUND priority, 2 importance, 7494 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:04:31.965 I/GeckoThread( 7494): preparing to run Gecko
+10-24 14:04:31.989 D/GeckoThread( 7494): State changed to MOZGLUE_READY
+10-24 14:04:32.022 D/GeckoLoader( 7494): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:32.022 D/GeckoLoader( 7494): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:32.023 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:04:32.023 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_frag_depth' : extension is not supported
+10-24 14:04:32.023 I/Gecko   ( 4398): 
+10-24 14:04:32.023 I/Gecko   ( 4398): source ->
+10-24 14:04:32.023 I/Gecko   ( 4398): 
+10-24 14:04:32.023 I/Gecko   ( 4398): #extension GL_EXT_frag_depth: require
+10-24 14:04:32.023 I/Gecko   ( 4398): void main() {}
+10-24 14:04:32.023 I/Gecko   ( 4398): 
+10-24 14:04:32.024 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:04:32.024 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_shader_texture_lod' : extension is not supported
+10-24 14:04:32.024 I/Gecko   ( 4398): 
+10-24 14:04:32.028 I/Gecko   ( 4398): source ->
+10-24 14:04:32.028 I/Gecko   ( 4398): 
+10-24 14:04:32.028 I/Gecko   ( 4398): #extension GL_EXT_shader_texture_lod: require
+10-24 14:04:32.028 I/Gecko   ( 4398): void main() {}
+10-24 14:04:32.028 I/Gecko   ( 4398): 
+10-24 14:04:32.036 E/GeckoLibLoad( 7494): Load sqlite start
+10-24 14:04:32.037 E/GeckoLibLoad( 7494): Load sqlite done
+10-24 14:04:32.038 D/GeckoLoader( 7494): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:32.038 E/GeckoLibLoad( 7494): Load nss start
+10-24 14:04:32.038 E/GeckoLibLoad( 7494): Load nss done
+10-24 14:04:32.039 D/GeckoLoader( 7494): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:32.070 E/GeckoLibLoad( 7494): Loaded libs in 31.191351ms total, 11ms(10ms) user, 0ms(1ms) system, 59(59) faults
+10-24 14:04:32.070 D/GeckoThread( 7494): State changed to LIBS_READY
+10-24 14:04:32.070 W/GeckoThread( 7494): zerdatime 340677 - runGecko
+10-24 14:04:32.164 D/GeckoThread( 7494): State changed to RUNNING
+10-24 14:04:32.213 D/GeckoSession( 3787): handleMessage GeckoView:LocationChange uri=https://accounts.google.com/gsi/iframe/select?client_id=1062961139910-l2m55cb9h51u5cuc9c56eb3fevouidh9.apps.googleusercontent.com&auto_select=true&ux_mode=popup&ui_mode=bottom_sheet&context=use&as=fv4WSiFhEO59g1kVSGmRNMikLyk2rtiyZzHu5piphEE&bs=3ZkjyujbVEVMVzaEnIBzPQzYv%2FsFippsexEBXR2Zgqw&auto_dismiss_duration_ms=20000&is_itp=true&channel_id=9fa07daf118308fa843c65fb750f7709eb62c297b44f6e430b21d10f7768de8f&origin=https%3A%2F%2Fclaude.ai&oauth2_auth_url=https%3A%2F%2Faccounts.google.com%2Fo%2Foauth2%2Fv2%2Fauth
+10-24 14:04:32.270 D/GeckoSession( 3787): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:04:32.292 D/GeckoSession( 3787): handleMessage GeckoView:PageStop uri=null
+10-24 14:04:32.292 I/OsDiag  ( 3787): [5:start] загружено
+10-24 14:04:32.590 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab12 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:04:32.594 I/ActivityManager(  520): Start proc 7547:ru.multibrowser.test:tab_disable_art_image_12/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab12}
+10-24 14:04:32.614 I/Gecko   ( 7424): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:04:32.615 I/Gecko   ( 7424): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:04:32.776 I/Gecko   ( 7424): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:04:33.197 D/GeckoThread( 7547): State changed to LAUNCHED
+10-24 14:04:33.202 I/GeckoThread( 7547): preparing to run Gecko
+10-24 14:04:33.210 D/ServiceAllocator( 3787): org.mozilla.gecko.process.GeckoChildProcessServices$tab12 updateBindings: BACKGROUND priority, 3 importance, 7547 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 14:04:33.214 D/GeckoThread( 7547): State changed to MOZGLUE_READY
+10-24 14:04:33.218 D/GeckoLoader( 7547): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:33.218 D/GeckoLoader( 7547): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:33.219 E/GeckoLibLoad( 7547): Load sqlite start
+10-24 14:04:33.220 E/GeckoLibLoad( 7547): Load sqlite done
+10-24 14:04:33.220 D/GeckoLoader( 7547): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:33.220 E/GeckoLibLoad( 7547): Load nss start
+10-24 14:04:33.221 E/GeckoLibLoad( 7547): Load nss done
+10-24 14:04:33.221 D/GeckoLoader( 7547): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:04:33.227 E/GeckoLibLoad( 7547): Loaded libs in 5.995283ms total, 2ms(3ms) user, 0ms(2ms) system, 0(0) faults
+10-24 14:04:33.227 D/GeckoThread( 7547): State changed to LIBS_READY
+10-24 14:04:33.228 W/GeckoThread( 7547): zerdatime 341834 - runGecko
+10-24 14:04:33.314 D/GeckoThread( 7547): State changed to RUNNING
+10-24 14:04:33.380 D/GeckoSession( 3787): handleMessage: GeckoView:ContentPermission
+10-24 14:04:33.381 D/GeckoSession( 3787): handleMessage: GeckoView:ContentPermission
+10-24 14:04:33.443 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:04:33.443 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_frag_depth' : extension is not supported
+10-24 14:04:33.443 I/Gecko   ( 4398): 
+10-24 14:04:33.444 I/Gecko   ( 4398): source ->
+10-24 14:04:33.444 I/Gecko   ( 4398): 
+10-24 14:04:33.444 I/Gecko   ( 4398): #extension GL_EXT_frag_depth: require
+10-24 14:04:33.444 I/Gecko   ( 4398): void main() {}
+10-24 14:04:33.444 I/Gecko   ( 4398): 
+10-24 14:04:33.445 I/Gecko   ( 4398): GetShaderInfoLog() ->
+10-24 14:04:33.445 I/Gecko   ( 4398): ERROR: 0:2: 'GL_EXT_shader_texture_lod' : extension is not supported
+10-24 14:04:33.445 I/Gecko   ( 4398): 
+10-24 14:04:33.445 I/Gecko   ( 4398): source ->
+10-24 14:04:33.445 I/Gecko   ( 4398): 
+10-24 14:04:33.445 I/Gecko   ( 4398): #extension GL_EXT_shader_texture_lod: require
+10-24 14:04:33.445 I/Gecko   ( 4398): void main() {}
+10-24 14:04:33.445 I/Gecko   ( 4398): 
+10-24 14:04:33.627 I/Gecko   ( 7424): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:04:33.628 I/Gecko   ( 7424): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:04:33.642 I/Gecko   ( 7424): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:04:39.268 D/GeckoSession( 3787): handleMessage GeckoView:StateUpdated uri=null
+10-24 14:04:41.055 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:04:41.055 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:04:41.055 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:04:41.055 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:04:41.055 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:04:41.055 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:04:41.055 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:04:41.055 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:04:41.055 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:04:41.055 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:04:41.055 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:04:41.055 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:04:41.055 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:04:41.055 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:04:41.055 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:04:41.055 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:04:41.055 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:04:41.055 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:04:41.055 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:04:41.055 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:04:42.651 E/GeckoConsole( 3787): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:04:42.651 E/GeckoConsole( 3787): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:04:42.651 E/GeckoConsole( 3787): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:04:42.651 E/GeckoConsole( 3787): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:04:42.651 E/GeckoConsole( 3787): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:05:24.338 D/GeckoThread( 7624): State changed to LAUNCHED
+10-24 14:05:24.340 I/GeckoThread( 7624): preparing to run Gecko
+10-24 14:05:24.340 D/GeckoRuntime( 7624): Lifecycle: onCreate
+10-24 14:05:24.341 D/GeckoRuntime( 7624): Lifecycle: onStart
+10-24 14:05:24.341 D/GeckoRuntime( 7624): Lifecycle: onResume
+10-24 14:05:24.342 D/GeckoNetworkManager( 7624): Incoming event start for state OffNoListeners -> OnNoListeners
+10-24 14:05:24.343 D/GeckoNetworkManager( 7624): New network state: UP, WIFI, WIFI
+10-24 14:05:24.361 D/GeckoThread( 7624): State changed to MOZGLUE_READY
+10-24 14:05:24.394 D/GeckoNetworkManager( 7624): Incoming event receivedUpdate for state OnNoListeners -> OnNoListeners
+10-24 14:05:24.394 D/GeckoNetworkManager( 7624): New network state: UP, WIFI, WIFI
+10-24 14:05:24.410 D/GeckoLoader( 7624): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:24.486 D/GeckoLoader( 7624): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:24.512 E/GeckoLibLoad( 7624): Load sqlite start
+10-24 14:05:24.514 E/GeckoLibLoad( 7624): Load sqlite done
+10-24 14:05:24.514 D/GeckoLoader( 7624): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:24.515 E/GeckoLibLoad( 7624): Load nss start
+10-24 14:05:24.515 E/GeckoLibLoad( 7624): Load nss done
+10-24 14:05:24.515 D/GeckoLoader( 7624): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:24.631 E/GeckoLibLoad( 7624): Loaded libs in 115.437797ms total, 0ms(1ms) user, 14ms(119ms) system, 99(99) faults
+10-24 14:05:24.631 D/GeckoThread( 7624): State changed to LIBS_READY
+10-24 14:05:24.631 W/GeckoThread( 7624): zerdatime 393237 - runGecko
+10-24 14:05:24.812 I/Gecko:DumpUtils( 7624): Fifo watcher disabled via pref.
+10-24 14:05:24.864 D/GeckoThread( 7624): State changed to JNI_READY
+10-24 14:05:24.898 I/GeckoConsole( 7624): No chrome package registered for chrome://browser/content/built_in_addons.json
+10-24 14:05:24.900 I/GeckoConsole( 7624): 1792850724900	addons.xpi	WARN	Force scan SCOPE_ALL locations on empty XPIStates locations data
+10-24 14:05:24.905 D/GeckoThread( 7624): State changed to PROFILE_READY
+10-24 14:05:24.910 D/GeckoThread( 7624): State changed to RUNNING
+10-24 14:05:25.022 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$gpu updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:05:25.025 I/ActivityManager(  520): Start proc 7722:ru.multibrowser.test:gpu_disable_art_image_/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$gpu}
+10-24 14:05:25.035 W/Gecko   ( 7624): type=1400 audit(0.0:167): avc:  denied  { read } for  name="product_name" dev="sysfs" ino=781 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-24 14:05:25.035 W/Gecko   ( 7624): type=1400 audit(0.0:168): avc:  denied  { read } for  name="product_sku" dev="sysfs" ino=785 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-24 14:05:25.043 D/GeckoNetworkManager( 7624): Incoming event enableNotifications for state OnNoListeners -> OnWithListeners
+10-24 14:05:25.044 D/GeckoNetworkManager( 7624): New network state: UP, WIFI, WIFI
+10-24 14:05:25.045 D/GeckoNetworkManager( 7624): Incoming event receivedUpdate for state OnWithListeners -> OnWithListeners
+10-24 14:05:25.046 D/GeckoNetworkManager( 7624): New network state: UP, WIFI, WIFI
+10-24 14:05:25.077 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$tab8 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:05:25.081 I/ActivityManager(  520): Start proc 7737:ru.multibrowser.test:tab_disable_art_image_8/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab8}
+10-24 14:05:25.248 D/GeckoThread( 7722): State changed to LAUNCHED
+10-24 14:05:25.250 I/GeckoThread( 7722): preparing to run Gecko
+10-24 14:05:25.253 D/GeckoThread( 7722): State changed to MOZGLUE_READY
+10-24 14:05:25.255 D/GeckoLoader( 7722): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.255 D/GeckoLoader( 7722): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.255 E/GeckoLibLoad( 7722): Load sqlite start
+10-24 14:05:25.256 E/GeckoLibLoad( 7722): Load sqlite done
+10-24 14:05:25.256 D/GeckoLoader( 7722): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.256 E/GeckoLibLoad( 7722): Load nss start
+10-24 14:05:25.256 E/GeckoLibLoad( 7722): Load nss done
+10-24 14:05:25.257 D/GeckoLoader( 7722): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.262 E/GeckoLibLoad( 7722): Loaded libs in 5.045701ms total, 0ms(0ms) user, 2ms(4ms) system, 0(0) faults
+10-24 14:05:25.262 D/GeckoThread( 7722): State changed to LIBS_READY
+10-24 14:05:25.262 W/GeckoThread( 7722): zerdatime 393869 - runGecko
+10-24 14:05:25.268 D/GeckoThread( 7722): State changed to RUNNING
+10-24 14:05:25.303 D/GeckoThread( 7737): State changed to LAUNCHED
+10-24 14:05:25.303 I/GeckoThread( 7737): preparing to run Gecko
+10-24 14:05:25.308 D/GeckoThread( 7737): State changed to MOZGLUE_READY
+10-24 14:05:25.310 D/GeckoLoader( 7737): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.310 D/GeckoLoader( 7737): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.310 E/GeckoLibLoad( 7737): Load sqlite start
+10-24 14:05:25.311 E/GeckoLibLoad( 7737): Load sqlite done
+10-24 14:05:25.311 D/GeckoLoader( 7737): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.312 E/GeckoLibLoad( 7737): Load nss start
+10-24 14:05:25.312 E/GeckoLibLoad( 7737): Load nss done
+10-24 14:05:25.312 D/GeckoLoader( 7737): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.313 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$tab8 updateBindings: FOREGROUND priority, 2 importance, 7737 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:05:25.320 E/GeckoLibLoad( 7737): Loaded libs in 7.908562ms total, 0ms(0ms) user, 4ms(5ms) system, 0(0) faults
+10-24 14:05:25.320 D/GeckoThread( 7737): State changed to LIBS_READY
+10-24 14:05:25.321 W/GeckoThread( 7737): zerdatime 393927 - runGecko
+10-24 14:05:25.375 I/GeckoSession( 7624): zerdatime 393981 - chrome startup finished
+10-24 14:05:25.405 D/GeckoSession( 7624): handleMessage GeckoView:PageStart uri=about:blank
+10-24 14:05:25.406 I/OsDiag  ( 7624): [1:start] начало: about:blank
+10-24 14:05:25.409 D/GeckoSession( 7624): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 14:05:25.418 D/GeckoThread( 7737): State changed to RUNNING
+10-24 14:05:25.426 D/GeckoSession( 7624): handleMessage GeckoView:PageStop uri=null
+10-24 14:05:25.426 I/OsDiag  ( 7624): [1:start] загружено
+10-24 14:05:25.500 D/GeckoSession( 7624): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:05:25.501 D/GeckoSession( 7624): handleMessage GeckoView:PageStart uri=https://claude.ai/
+10-24 14:05:25.501 I/OsDiag  ( 7624): [1:start] начало: https://claude.ai/
+10-24 14:05:25.515 D/GeckoIdleService( 7624): Setting timer a day from now
+10-24 14:05:25.524 D/GeckoIdleService( 7624): Register idle observer 0x7f54cad84ed8 for 5 seconds
+10-24 14:05:25.525 D/GeckoIdleService( 7624): Register: adjusting next switch from -1 to 5 seconds
+10-24 14:05:25.525 D/GeckoIdleService( 7624): next timeout 4990 msec from now
+10-24 14:05:25.525 D/GeckoIdleService( 7624): SetTimerExpiryIfBefore: next timeout 4990 msec from now
+10-24 14:05:25.525 D/GeckoIdleService( 7624): reset timer expiry to 5000 msec from now
+10-24 14:05:25.661 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$tab9 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:05:25.665 I/ActivityManager(  520): Start proc 7841:ru.multibrowser.test:tab_disable_art_image_9/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab9}
+10-24 14:05:25.955 D/GeckoThread( 7841): State changed to LAUNCHED
+10-24 14:05:25.955 I/GeckoThread( 7841): preparing to run Gecko
+10-24 14:05:25.959 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$tab9 updateBindings: FOREGROUND priority, 2 importance, 7841 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:05:25.977 I/ServiceChildProcess( 7737): Destroying GeckoServiceChildProcess
+10-24 14:05:25.980 D/GeckoThread( 7841): State changed to MOZGLUE_READY
+10-24 14:05:25.985 D/GeckoLoader( 7841): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.986 D/GeckoLoader( 7841): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.986 E/GeckoLibLoad( 7841): Load sqlite start
+10-24 14:05:25.987 E/GeckoLibLoad( 7841): Load sqlite done
+10-24 14:05:25.987 D/GeckoLoader( 7841): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.987 E/GeckoLibLoad( 7841): Load nss start
+10-24 14:05:25.987 E/GeckoLibLoad( 7841): Load nss done
+10-24 14:05:25.987 D/GeckoLoader( 7841): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:25.996 E/GeckoLibLoad( 7841): Loaded libs in 8.769951ms total, 2ms(0ms) user, 5ms(7ms) system, 0(0) faults
+10-24 14:05:25.996 D/GeckoThread( 7841): State changed to LIBS_READY
+10-24 14:05:25.996 W/GeckoThread( 7841): zerdatime 394602 - runGecko
+10-24 14:05:26.047 D/GeckoThread( 7841): State changed to RUNNING
+10-24 14:05:26.067 W/GeckoEditableChild( 7841): No editable parent
+10-24 14:05:26.073 D/GeckoSession( 7624): handleMessage GeckoView:LocationChange uri=https://claude.ai/login
+10-24 14:05:26.114 D/GeckoSession( 7624): handleMessage GeckoView:SecurityChanged uri=null
+10-24 14:05:26.494 D/GeckoSession( 7624): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:05:26.595 D/GeckoSession( 7624): handleMessage GeckoView:LocationChange uri=https://claude.ai/login
+10-24 14:05:26.631 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$tab18 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:05:26.635 I/ActivityManager(  520): Start proc 7909:ru.multibrowser.test:tab_disable_art_image_18/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab18}
+10-24 14:05:26.890 D/GeckoThread( 7909): State changed to LAUNCHED
+10-24 14:05:26.891 I/GeckoThread( 7909): preparing to run Gecko
+10-24 14:05:26.912 D/GeckoThread( 7909): State changed to MOZGLUE_READY
+10-24 14:05:26.920 D/GeckoLoader( 7909): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:26.921 D/GeckoLoader( 7909): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:26.922 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$tab18 updateBindings: BACKGROUND priority, 3 importance, 7909 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 14:05:26.927 D/GeckoSession( 7624): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 14:05:26.936 E/GeckoLibLoad( 7909): Load sqlite start
+10-24 14:05:26.937 E/GeckoLibLoad( 7909): Load sqlite done
+10-24 14:05:26.937 D/GeckoLoader( 7909): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:26.937 E/GeckoLibLoad( 7909): Load nss start
+10-24 14:05:26.937 E/GeckoLibLoad( 7909): Load nss done
+10-24 14:05:26.937 D/GeckoLoader( 7909): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:26.950 E/GeckoLibLoad( 7909): Loaded libs in 12.683639ms total, 0ms(0ms) user, 7ms(7ms) system, 0(0) faults
+10-24 14:05:26.951 D/GeckoThread( 7909): State changed to LIBS_READY
+10-24 14:05:26.951 W/GeckoThread( 7909): zerdatime 395557 - runGecko
+10-24 14:05:27.031 D/GeckoThread( 7909): State changed to RUNNING
+10-24 14:05:27.112 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$tab18 updateBindings: FOREGROUND priority, 2 importance, 7909 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:05:27.154 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$tab11 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:05:27.160 I/ActivityManager(  520): Start proc 7953:ru.multibrowser.test:tab_disable_art_image_11/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab11}
+10-24 14:05:27.179 D/GeckoSession( 7624): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=challenge&id=0gxspz0urt2&host=claude.ai&sentry=true&reportapi=https%3A%2F%2Faccounts.hcaptcha.com&recaptchacompat=off&custom=false&hl=en&tplinks=on&andint=off&pstissuer=https%3A%2F%2Fpst-issuer.hcaptcha.com&sitekey=a8086506-2036-46f4-ae50-00d8be805efa&size=invisible&theme=light&origin=https%3A%2F%2Fclaude.ai&clientOptions=%7B%22sentry%22%3Atrue%2C%22reportapi%22%3A%22https%3A%2F%2Faccounts.hcaptcha.com%22%2C%22recaptchacompat%22%3A%22off%22%2C%22custom%22%3Afalse%2C%22hl%22%3A%22en-US%22%2C%22tplinks%22%3A%22on%22%2C%22andint%22%3A%22off%22%2C%22pat%22%3A%22on%22%2C%22pstissuer%22%3A%22https%3A%2F%2Fpst-issuer.hcaptcha.com%22%2C%22endpoint%22%3A%22https%3A%2F%2Fapi.hcaptcha.com%22%2C%22theme%22%3A%22light%22%2C%22size%22%3A%22normal%22%2C%22confirm-nav%22%3Afalse%7D
+10-24 14:05:27.511 D/GeckoThread( 7953): State changed to LAUNCHED
+10-24 14:05:27.512 I/GeckoThread( 7953): preparing to run Gecko
+10-24 14:05:27.517 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$tab11 updateBindings: BACKGROUND priority, 3 importance, 7953 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 14:05:27.520 D/GeckoThread( 7953): State changed to MOZGLUE_READY
+10-24 14:05:27.529 D/GeckoLoader( 7953): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:27.529 D/GeckoLoader( 7953): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:27.548 E/GeckoLibLoad( 7953): Load sqlite start
+10-24 14:05:27.548 E/GeckoLibLoad( 7953): Load sqlite done
+10-24 14:05:27.549 D/GeckoLoader( 7953): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:27.549 E/GeckoLibLoad( 7953): Load nss start
+10-24 14:05:27.549 E/GeckoLibLoad( 7953): Load nss done
+10-24 14:05:27.549 D/GeckoLoader( 7953): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:27.566 E/GeckoLibLoad( 7953): Loaded libs in 17.085409ms total, 0ms(0ms) user, 6ms(7ms) system, 0(0) faults
+10-24 14:05:27.567 D/GeckoThread( 7953): State changed to LIBS_READY
+10-24 14:05:27.567 W/GeckoThread( 7953): zerdatime 396173 - runGecko
+10-24 14:05:27.665 D/GeckoThread( 7953): State changed to RUNNING
+10-24 14:05:27.705 W/GeckoEditableChild( 7909): No editable parent
+10-24 14:05:27.707 D/GeckoSession( 7624): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=challenge&id=11d4d1mprxc1j&host=claude.ai&sentry=true&reportapi=https%3A%2F%2Faccounts.hcaptcha.com&recaptchacompat=off&custom=false&hl=en&tplinks=on&andint=off&pstissuer=https%3A%2F%2Fpst-issuer.hcaptcha.com&sitekey=f1b21a9c-9100-4022-a928-8d5c29de2e6a&size=invisible&theme=light&origin=https%3A%2F%2Fclaude.ai&clientOptions=%7B%22sentry%22%3Atrue%2C%22reportapi%22%3A%22https%3A%2F%2Faccounts.hcaptcha.com%22%2C%22recaptchacompat%22%3A%22off%22%2C%22custom%22%3Afalse%2C%22hl%22%3A%22en-US%22%2C%22tplinks%22%3A%22on%22%2C%22andint%22%3A%22off%22%2C%22pat%22%3A%22on%22%2C%22pstissuer%22%3A%22https%3A%2F%2Fpst-issuer.hcaptcha.com%22%2C%22endpoint%22%3A%22https%3A%2F%2Fapi.hcaptcha.com%22%2C%22theme%22%3A%22light%22%2C%22size%22%3A%22normal%22%2C%22confirm-nav%22%3Afalse%7D
+10-24 14:05:27.733 D/GeckoSession( 7624): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=checkbox-invisible
+10-24 14:05:27.750 W/GeckoEditableChild( 7909): No editable parent
+10-24 14:05:27.751 D/GeckoSession( 7624): handleMessage GeckoView:LocationChange uri=https://newassets.hcaptcha.com/captcha/v1/aca5f59ac1dedd238fa84e3f3225f622e5735959/static/hcaptcha.html#frame=checkbox-invisible
+10-24 14:05:28.679 I/GeckoSpeechSynthesis( 7624): SpeechSynthesisService::Setup
+10-24 14:05:28.691 I/GeckoConsole( 7624): While creating services from category 'speech-synth-started', service for entry 'Android Speech Synth', contract ID '@mozilla.org/androidspeechsynth;1' does not implement nsIObserver.
+10-24 14:05:30.555 D/GeckoIdleService( 7624): Get idle time: time since reset 5040 msec
+10-24 14:05:30.555 D/GeckoIdleService( 7624): Idle timer callback: current idle time 5040 msec
+10-24 14:05:30.555 D/GeckoIdleService( 7624): next timeout 4294967289959 msec from now
+10-24 14:05:30.556 D/GeckoIdleService( 7624): SetTimerExpiryIfBefore: next timeout 4294967289959 msec from now
+10-24 14:05:30.556 D/GeckoIdleService( 7624): reset timer expiry to 4294967289969 msec from now
+10-24 14:05:30.556 D/GeckoIdleService( 7624): Idle timer callback: tell observer 0x7f54cad84ed8 user is idle
+10-24 14:05:30.949 I/Gecko   ( 7722): GetShaderInfoLog() ->
+10-24 14:05:30.949 I/Gecko   ( 7722): ERROR: 0:2: 'GL_EXT_frag_depth' : extension is not supported
+10-24 14:05:30.949 I/Gecko   ( 7722): 
+10-24 14:05:30.949 I/Gecko   ( 7722): source ->
+10-24 14:05:30.949 I/Gecko   ( 7722): 
+10-24 14:05:30.949 I/Gecko   ( 7722): #extension GL_EXT_frag_depth: require
+10-24 14:05:30.949 I/Gecko   ( 7722): void main() {}
+10-24 14:05:30.949 I/Gecko   ( 7722): 
+10-24 14:05:30.950 I/Gecko   ( 7722): GetShaderInfoLog() ->
+10-24 14:05:30.950 I/Gecko   ( 7722): ERROR: 0:2: 'GL_EXT_shader_texture_lod' : extension is not supported
+10-24 14:05:30.950 I/Gecko   ( 7722): 
+10-24 14:05:30.950 I/Gecko   ( 7722): source ->
+10-24 14:05:30.950 I/Gecko   ( 7722): 
+10-24 14:05:30.950 I/Gecko   ( 7722): #extension GL_EXT_shader_texture_lod: require
+10-24 14:05:30.950 I/Gecko   ( 7722): void main() {}
+10-24 14:05:30.950 I/Gecko   ( 7722): 
+10-24 14:05:31.328 D/ServiceAllocator( 7624): org.mozilla.gecko.process.GeckoChildProcessServices$utility updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:05:31.333 I/ActivityManager(  520): Start proc 8019:ru.multibrowser.test:utility_disable_art_image_/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$utility}
+10-24 14:05:31.623 D/GeckoThread( 8019): State changed to LAUNCHED
+10-24 14:05:31.624 I/GeckoThread( 8019): preparing to run Gecko
+10-24 14:05:31.629 D/GeckoThread( 8019): State changed to MOZGLUE_READY
+10-24 14:05:31.633 D/GeckoLoader( 8019): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:31.634 D/GeckoLoader( 8019): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:31.640 E/GeckoLibLoad( 8019): Load sqlite start
+10-24 14:05:31.640 E/GeckoLibLoad( 8019): Load sqlite done
+10-24 14:05:31.641 D/GeckoLoader( 8019): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:31.641 E/GeckoLibLoad( 8019): Load nss start
+10-24 14:05:31.641 E/GeckoLibLoad( 8019): Load nss done
+10-24 14:05:31.641 D/GeckoLoader( 8019): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:05:31.653 E/GeckoLibLoad( 8019): Loaded libs in 11.518024ms total, 3ms(1ms) user, 4ms(6ms) system, 0(0) faults
+10-24 14:05:31.653 D/GeckoThread( 8019): State changed to LIBS_READY
+10-24 14:05:31.653 W/GeckoThread( 8019): zerdatime 400259 - runGecko
+10-24 14:05:31.669 D/GeckoThread( 8019): State changed to RUNNING
+10-24 14:05:32.026 I/Gecko   ( 7722): GetShaderInfoLog() ->
+10-24 14:05:32.026 I/Gecko   ( 7722): ERROR: 0:2: 'GL_EXT_frag_depth' : extension is not supported
+10-24 14:05:32.026 I/Gecko   ( 7722): 
+10-24 14:05:32.026 I/Gecko   ( 7722): source ->
+10-24 14:05:32.026 I/Gecko   ( 7722): 
+10-24 14:05:32.026 I/Gecko   ( 7722): #extension GL_EXT_frag_depth: require
+10-24 14:05:32.026 I/Gecko   ( 7722): void main() {}
+10-24 14:05:32.026 I/Gecko   ( 7722): 
+10-24 14:05:32.027 I/Gecko   ( 7722): GetShaderInfoLog() ->
+10-24 14:05:32.027 I/Gecko   ( 7722): ERROR: 0:2: 'GL_EXT_shader_texture_lod' : extension is not supported
+10-24 14:05:32.027 I/Gecko   ( 7722): 
+10-24 14:05:32.028 I/Gecko   ( 7722): source ->
+10-24 14:05:32.028 I/Gecko   ( 7722): 
+10-24 14:05:32.028 I/Gecko   ( 7722): #extension GL_EXT_shader_texture_lod: require
+10-24 14:05:32.028 I/Gecko   ( 7722): void main() {}
+10-24 14:05:32.028 I/Gecko   ( 7722): 
+10-24 14:05:32.058 I/Gecko   ( 7841): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:05:32.077 I/Gecko   ( 7909): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:05:32.080 I/Gecko   ( 7909): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:05:32.081 D/GeckoSession( 7624): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:05:32.086 D/GeckoSession( 7624): handleMessage GeckoView:PageStop uri=null
+10-24 14:05:32.086 I/OsDiag  ( 7624): [1:start] загружено
+10-24 14:05:32.113 I/Gecko   ( 7909): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:05:32.516 D/GeckoSession( 7624): handleMessage: GeckoView:ContentPermission
+10-24 14:05:32.524 D/GeckoSession( 7624): handleMessage: GeckoView:ContentPermission
+10-24 14:05:32.568 I/Gecko   ( 7722): GetShaderInfoLog() ->
+10-24 14:05:32.568 I/Gecko   ( 7722): ERROR: 0:2: 'GL_EXT_frag_depth' : extension is not supported
+10-24 14:05:32.568 I/Gecko   ( 7722): 
+10-24 14:05:32.568 I/Gecko   ( 7722): source ->
+10-24 14:05:32.568 I/Gecko   ( 7722): 
+10-24 14:05:32.568 I/Gecko   ( 7722): #extension GL_EXT_frag_depth: require
+10-24 14:05:32.568 I/Gecko   ( 7722): void main() {}
+10-24 14:05:32.568 I/Gecko   ( 7722): 
+10-24 14:05:32.569 I/Gecko   ( 7722): GetShaderInfoLog() ->
+10-24 14:05:32.569 I/Gecko   ( 7722): ERROR: 0:2: 'GL_EXT_shader_texture_lod' : extension is not supported
+10-24 14:05:32.569 I/Gecko   ( 7722): 
+10-24 14:05:32.569 I/Gecko   ( 7722): source ->
+10-24 14:05:32.569 I/Gecko   ( 7722): 
+10-24 14:05:32.569 I/Gecko   ( 7722): #extension GL_EXT_shader_texture_lod: require
+10-24 14:05:32.569 I/Gecko   ( 7722): void main() {}
+10-24 14:05:32.569 I/Gecko   ( 7722): 
+10-24 14:05:32.673 I/Gecko   ( 7909): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:05:32.674 I/Gecko   ( 7909): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:05:32.681 I/Gecko   ( 7909): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-24 14:05:36.419 D/GeckoSession( 7624): handleMessage GeckoView:StateUpdated uri=null
+10-24 14:05:38.606 E/GeckoConsole( 7624): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:05:38.606 E/GeckoConsole( 7624): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:05:38.606 E/GeckoConsole( 7624): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:05:38.606 E/GeckoConsole( 7624): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:05:38.606 E/GeckoConsole( 7624): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:05:38.607 E/GeckoConsole( 7624): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:05:38.607 E/GeckoConsole( 7624): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:05:38.607 E/GeckoConsole( 7624): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:05:38.607 E/GeckoConsole( 7624): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:05:38.607 E/GeckoConsole( 7624): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:05:38.607 E/GeckoConsole( 7624): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:05:38.607 E/GeckoConsole( 7624): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:05:38.607 E/GeckoConsole( 7624): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:05:38.607 E/GeckoConsole( 7624): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:05:38.607 E/GeckoConsole( 7624): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:05:38.607 E/GeckoConsole( 7624): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-24 14:05:38.607 E/GeckoConsole( 7624): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-24 14:05:38.607 E/GeckoConsole( 7624): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-24 14:05:38.607 E/GeckoConsole( 7624): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-24 14:05:38.607 E/GeckoConsole( 7624): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-24 14:05:49.637 D/NetworkMonitor/101(  995): PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 time=30ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Safari/537.36]} headers={null=[HTTP/1.1 204 No Content], Connection=[close], Content-Length=[0], Cross-Origin-Resource-Policy=[cross-origin], Date=[Sat, 24 Oct 2026 14:05:49 GMT], X-Android-Received-Millis=[1792850749637], X-Android-Response-Source=[NETWORK 204], X-Android-Selected-Protocol=[http/1.1], X-Android-Sent-Millis=[1792850749622]}
+10-24 14:05:49.651 D/NetworkMonitor/101(  995): PROBE_HTTPS https://www.google.com/generate_204 time=57ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Safari/537.36]} headers={null=[HTTP/1.1 204 No Content], Alt-Svc=[h3=":443"; ma=2592000,h3-29=":443"; ma=2592000], Connection=[close], Content-Length=[0], Cross-Origin-Resource-Policy=[cross-origin], Date=[Sat, 24 Oct 2026 14:05:49 GMT], X-Android-Received-Millis=[1792850749650], X-Android-Response-Source=[NETWORK 204], X-Android-Selected-Protocol=[http/1.1], X-Android-Sent-Millis=[1792850749638]}
+10-24 14:06:16.810 D/AndroidRuntime( 8195): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 14:06:16.821 I/AndroidRuntime( 8195): Using default boot image
+10-24 14:06:16.821 I/AndroidRuntime( 8195): Leaving lock profiling enabled
+10-24 14:06:16.990 D/AndroidRuntime( 8195): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 14:06:18.058 D/AndroidRuntime( 8195): Shutting down VM
+10-24 14:06:26.414 D/GeckoThread( 8130): State changed to LAUNCHED
+10-24 14:06:26.415 I/GeckoThread( 8130): preparing to run Gecko
+10-24 14:06:26.417 D/GeckoRuntime( 8130): Lifecycle: onCreate
+10-24 14:06:26.417 D/GeckoRuntime( 8130): Lifecycle: onStart
+10-24 14:06:26.417 D/GeckoRuntime( 8130): Lifecycle: onResume
+10-24 14:06:26.418 D/GeckoNetworkManager( 8130): Incoming event start for state OffNoListeners -> OnNoListeners
+10-24 14:06:26.419 D/GeckoNetworkManager( 8130): New network state: UP, WIFI, WIFI
+10-24 14:06:26.431 D/GeckoThread( 8130): State changed to MOZGLUE_READY
+10-24 14:06:26.453 D/GeckoNetworkManager( 8130): Incoming event receivedUpdate for state OnNoListeners -> OnNoListeners
+10-24 14:06:26.453 D/GeckoNetworkManager( 8130): New network state: UP, WIFI, WIFI
+10-24 14:06:26.461 D/GeckoLoader( 8130): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:26.472 D/GeckoLoader( 8130): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:26.477 E/GeckoLibLoad( 8130): Load sqlite start
+10-24 14:06:26.478 E/GeckoLibLoad( 8130): Load sqlite done
+10-24 14:06:26.478 D/GeckoLoader( 8130): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:26.478 E/GeckoLibLoad( 8130): Load nss start
+10-24 14:06:26.480 E/GeckoLibLoad( 8130): Load nss done
+10-24 14:06:26.491 D/GeckoLoader( 8130): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:26.674 E/GeckoLibLoad( 8130): Loaded libs in 182.815241ms total, 4ms(12ms) user, 12ms(178ms) system, 0(0) faults
+10-24 14:06:26.676 D/GeckoThread( 8130): State changed to LIBS_READY
+10-24 14:06:26.676 W/GeckoThread( 8130): zerdatime 455282 - runGecko
+10-24 14:06:26.751 I/Gecko:DumpUtils( 8130): Fifo watcher disabled via pref.
+10-24 14:06:26.766 D/GeckoThread( 8130): State changed to JNI_READY
+10-24 14:06:26.794 I/GeckoConsole( 8130): No chrome package registered for chrome://browser/content/built_in_addons.json
+10-24 14:06:26.795 I/GeckoConsole( 8130): 1792850786795	addons.xpi	WARN	Force scan SCOPE_ALL locations on empty XPIStates locations data
+10-24 14:06:26.797 D/GeckoThread( 8130): State changed to PROFILE_READY
+10-24 14:06:26.803 D/GeckoThread( 8130): State changed to RUNNING
+10-24 14:06:26.881 D/ServiceAllocator( 8130): org.mozilla.gecko.process.GeckoChildProcessServices$gpu updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:06:26.885 I/ActivityManager(  520): Start proc 8346:ru.multibrowser.test:gpu_disable_art_image_/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$gpu}
+10-24 14:06:26.902 D/GeckoNetworkManager( 8130): Incoming event enableNotifications for state OnNoListeners -> OnWithListeners
+10-24 14:06:26.903 D/GeckoNetworkManager( 8130): New network state: UP, WIFI, WIFI
+10-24 14:06:26.904 D/GeckoNetworkManager( 8130): Incoming event receivedUpdate for state OnWithListeners -> OnWithListeners
+10-24 14:06:26.904 D/GeckoNetworkManager( 8130): New network state: UP, WIFI, WIFI
+10-24 14:06:26.899 W/Gecko   ( 8130): type=1400 audit(0.0:194): avc:  denied  { read } for  name="product_name" dev="sysfs" ino=781 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-24 14:06:26.899 W/Gecko   ( 8130): type=1400 audit(0.0:195): avc:  denied  { read } for  name="product_sku" dev="sysfs" ino=785 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-24 14:06:26.922 D/ServiceAllocator( 8130): org.mozilla.gecko.process.GeckoChildProcessServices$tab33 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:06:26.928 I/ActivityManager(  520): Start proc 8364:ru.multibrowser.test:tab_disable_art_image_33/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab33}
+10-24 14:06:27.108 D/GeckoThread( 8346): State changed to LAUNCHED
+10-24 14:06:27.111 I/GeckoThread( 8346): preparing to run Gecko
+10-24 14:06:27.114 D/GeckoThread( 8346): State changed to MOZGLUE_READY
+10-24 14:06:27.116 D/GeckoLoader( 8346): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.116 D/GeckoLoader( 8346): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.119 E/GeckoLibLoad( 8346): Load sqlite start
+10-24 14:06:27.120 E/GeckoLibLoad( 8346): Load sqlite done
+10-24 14:06:27.120 D/GeckoLoader( 8346): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.120 E/GeckoLibLoad( 8346): Load nss start
+10-24 14:06:27.120 E/GeckoLibLoad( 8346): Load nss done
+10-24 14:06:27.121 D/GeckoLoader( 8346): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.126 E/GeckoLibLoad( 8346): Loaded libs in 4.928564ms total, 0ms(0ms) user, 2ms(4ms) system, 0(0) faults
+10-24 14:06:27.126 D/GeckoThread( 8346): State changed to LIBS_READY
+10-24 14:06:27.126 W/GeckoThread( 8346): zerdatime 455732 - runGecko
+10-24 14:06:27.131 D/GeckoThread( 8346): State changed to RUNNING
+10-24 14:06:27.131 D/GeckoThread( 8364): State changed to LAUNCHED
+10-24 14:06:27.131 I/GeckoThread( 8364): preparing to run Gecko
+10-24 14:06:27.141 D/ServiceAllocator( 8130): org.mozilla.gecko.process.GeckoChildProcessServices$tab33 updateBindings: FOREGROUND priority, 2 importance, 8364 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:06:27.142 D/GeckoThread( 8364): State changed to MOZGLUE_READY
+10-24 14:06:27.143 D/GeckoLoader( 8364): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.143 D/GeckoLoader( 8364): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.144 E/GeckoLibLoad( 8364): Load sqlite start
+10-24 14:06:27.144 E/GeckoLibLoad( 8364): Load sqlite done
+10-24 14:06:27.145 D/GeckoLoader( 8364): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.145 E/GeckoLibLoad( 8364): Load nss start
+10-24 14:06:27.145 E/GeckoLibLoad( 8364): Load nss done
+10-24 14:06:27.145 D/GeckoLoader( 8364): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.150 E/GeckoLibLoad( 8364): Loaded libs in 4.884982ms total, 0ms(0ms) user, 3ms(4ms) system, 0(0) faults
+10-24 14:06:27.151 D/GeckoThread( 8364): State changed to LIBS_READY
+10-24 14:06:27.151 W/GeckoThread( 8364): zerdatime 455757 - runGecko
+10-24 14:06:27.196 D/GeckoThread( 8364): State changed to RUNNING
+10-24 14:06:27.202 I/GeckoSession( 8130): zerdatime 455808 - chrome startup finished
+10-24 14:06:27.243 D/GeckoSession( 8130): handleMessage GeckoView:PageStart uri=about:blank
+10-24 14:06:27.244 I/OsDiag  ( 8130): [7:start] начало: about:blank
+10-24 14:06:27.260 D/GeckoIdleService( 8130): Setting timer a day from now
+10-24 14:06:27.271 D/ServiceAllocator( 8130): org.mozilla.gecko.process.GeckoChildProcessServices$tab37 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:06:27.280 I/ActivityManager(  520): Start proc 8429:ru.multibrowser.test:tab_disable_art_image_37/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab37}
+10-24 14:06:27.356 D/GeckoSession( 8130): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 14:06:27.374 D/GeckoIdleService( 8130): Register idle observer 0x7f54ca94b078 for 5 seconds
+10-24 14:06:27.374 D/GeckoIdleService( 8130): Register: adjusting next switch from -1 to 5 seconds
+10-24 14:06:27.374 D/GeckoIdleService( 8130): next timeout 4886 msec from now
+10-24 14:06:27.374 D/GeckoIdleService( 8130): SetTimerExpiryIfBefore: next timeout 4886 msec from now
+10-24 14:06:27.374 D/GeckoIdleService( 8130): reset timer expiry to 4896 msec from now
+10-24 14:06:27.379 D/GeckoSession( 8130): handleMessage GeckoView:PageStop uri=null
+10-24 14:06:27.379 I/OsDiag  ( 8130): [7:start] загружено
+10-24 14:06:27.407 D/GeckoSession( 8130): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:06:27.408 D/GeckoSession( 8130): handleMessage GeckoView:PageStart uri=http://localhost:8765/geo.html
+10-24 14:06:27.408 I/OsDiag  ( 8130): [7:start] начало: http://localhost:8765/geo.html
+10-24 14:06:27.604 D/GeckoThread( 8429): State changed to LAUNCHED
+10-24 14:06:27.604 I/GeckoThread( 8429): preparing to run Gecko
+10-24 14:06:27.608 D/ServiceAllocator( 8130): org.mozilla.gecko.process.GeckoChildProcessServices$tab37 updateBindings: FOREGROUND priority, 2 importance, 8429 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:06:27.611 D/GeckoThread( 8429): State changed to MOZGLUE_READY
+10-24 14:06:27.612 D/GeckoLoader( 8429): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.612 D/GeckoLoader( 8429): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.612 E/GeckoLibLoad( 8429): Load sqlite start
+10-24 14:06:27.613 E/GeckoLibLoad( 8429): Load sqlite done
+10-24 14:06:27.613 D/GeckoLoader( 8429): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.613 E/GeckoLibLoad( 8429): Load nss start
+10-24 14:06:27.613 E/GeckoLibLoad( 8429): Load nss done
+10-24 14:06:27.613 D/GeckoLoader( 8429): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:27.618 I/ServiceChildProcess( 8364): Destroying GeckoServiceChildProcess
+10-24 14:06:27.625 E/GeckoLibLoad( 8429): Loaded libs in 11.446692ms total, 0ms(1ms) user, 4ms(4ms) system, 0(0) faults
+10-24 14:06:27.625 D/GeckoThread( 8429): State changed to LIBS_READY
+10-24 14:06:27.625 W/GeckoThread( 8429): zerdatime 456231 - runGecko
+10-24 14:06:27.678 D/GeckoThread( 8429): State changed to RUNNING
+10-24 14:06:27.704 D/GeckoSession( 8130): handleMessage GeckoView:LocationChange uri=http://localhost:8765/geo.html
+10-24 14:06:27.719 D/GeckoSession( 8130): handleMessage GeckoView:SecurityChanged uri=null
+10-24 14:06:27.721 D/GeckoSession( 8130): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:06:27.736 D/GeckoSession( 8130): handleMessage GeckoView:ProgressChanged uri=null
+10-24 14:06:27.736 D/GeckoSession( 8130): handleMessage GeckoView:PageStop uri=null
+10-24 14:06:27.736 I/OsDiag  ( 8130): [7:start] загружено
+10-24 14:06:27.737 D/GeckoSession( 8130): handleMessage: GeckoView:ContentPermission
+10-24 14:06:27.939 D/ServiceAllocator( 8130): org.mozilla.gecko.process.GeckoChildProcessServices$tab24 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:06:27.970 I/ActivityManager(  520): Start proc 8498:ru.multibrowser.test:tab_disable_art_image_24/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab24}
+10-24 14:06:28.286 D/GeckoThread( 8498): State changed to LAUNCHED
+10-24 14:06:28.288 I/GeckoThread( 8498): preparing to run Gecko
+10-24 14:06:28.292 D/ServiceAllocator( 8130): org.mozilla.gecko.process.GeckoChildProcessServices$tab24 updateBindings: BACKGROUND priority, 3 importance, 8498 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 14:06:28.293 D/GeckoThread( 8498): State changed to MOZGLUE_READY
+10-24 14:06:28.294 D/GeckoLoader( 8498): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:28.295 D/GeckoLoader( 8498): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:28.295 E/GeckoLibLoad( 8498): Load sqlite start
+10-24 14:06:28.296 E/GeckoLibLoad( 8498): Load sqlite done
+10-24 14:06:28.296 D/GeckoLoader( 8498): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:28.296 E/GeckoLibLoad( 8498): Load nss start
+10-24 14:06:28.296 E/GeckoLibLoad( 8498): Load nss done
+10-24 14:06:28.296 D/GeckoLoader( 8498): Library base=/data/app/~~pT3dWb2S2PeGKUBtPE0K7g==/ru.multibrowser.test-qcYZIfb4Dm4-iKH-hbjalg==/base.apk!/lib/x86_64
+10-24 14:06:28.302 E/GeckoLibLoad( 8498): Loaded libs in 5.460454ms total, 0ms(0ms) user, 2ms(5ms) system, 0(0) faults
+10-24 14:06:28.302 D/GeckoThread( 8498): State changed to LIBS_READY
+10-24 14:06:28.302 W/GeckoThread( 8498): zerdatime 456908 - runGecko
+10-24 14:06:28.346 D/GeckoThread( 8498): State changed to RUNNING
+10-24 14:06:32.487 D/GeckoIdleService( 8130): Get idle time: time since reset 5226 msec
+10-24 14:06:32.487 D/GeckoIdleService( 8130): Idle timer callback: current idle time 5226 msec
+10-24 14:06:32.487 D/GeckoIdleService( 8130): next timeout 4294967289774 msec from now
+10-24 14:06:32.487 D/GeckoIdleService( 8130): SetTimerExpiryIfBefore: next timeout 4294967289773 msec from now
+10-24 14:06:32.487 D/GeckoIdleService( 8130): reset timer expiry to 4294967289783 msec from now
+10-24 14:06:32.487 D/GeckoIdleService( 8130): Idle timer callback: tell observer 0x7f54ca94b078 user is idle
+10-24 14:06:37.722 D/GeckoSession( 8130): handleMessage GeckoView:StateUpdated uri=null
+10-24 14:06:41.473 D/AndroidRuntime( 8537): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 14:06:41.477 I/AndroidRuntime( 8537): Using default boot image
+10-24 14:06:41.477 I/AndroidRuntime( 8537): Leaving lock profiling enabled
+10-24 14:06:41.546 D/AndroidRuntime( 8537): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 14:06:42.593 D/AndroidRuntime( 8537): Shutting down VM
+10-24 14:06:43.626 D/GeckoSession( 8130): handleMessage: GeckoView:AndroidPermission
+10-24 14:06:44.381 D/GeckoRuntime( 8130): Lifecycle: onPause
+10-24 14:06:44.381 D/GeckoNetworkManager( 8130): Incoming event stop for state OnWithListeners -> OffWithListeners
+10-24 14:06:44.393 D/ServiceAllocator( 8130): org.mozilla.gecko.process.GeckoChildProcessServices$gpu updateBindings: IDLE priority, 0 importance, 8346 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 14:06:48.638 D/AndroidRuntime( 8577): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 14:06:48.641 I/AndroidRuntime( 8577): Using default boot image
+10-24 14:06:48.641 I/AndroidRuntime( 8577): Leaving lock profiling enabled
+10-24 14:06:48.714 D/AndroidRuntime( 8577): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 14:06:49.746 D/AndroidRuntime( 8577): Shutting down VM
+10-24 14:06:50.657 D/GeckoRuntime( 8130): Lifecycle: onResume
+10-24 14:06:50.661 D/ServiceAllocator( 8130): org.mozilla.gecko.process.GeckoChildProcessServices$gpu updateBindings: FOREGROUND priority, 0 importance, 8346 pid, 2 successful binds, 0 failed binds, 0 successful unbinds
+10-24 14:06:50.697 D/GeckoNetworkManager( 8130): Incoming event start for state OffWithListeners -> OnWithListeners
+10-24 14:06:50.722 D/GeckoNetworkManager( 8130): Incoming event receivedUpdate for state OnWithListeners -> OnWithListeners
+10-24 14:06:50.723 D/GeckoNetworkManager( 8130): New network state: UP, WIFI, WIFI
+10-24 14:07:03.890 D/GeckoSession( 8130): handleMessage GeckoView:StateUpdated uri=null
+10-24 14:07:06.880 D/ServiceAllocator( 8130): org.mozilla.gecko.process.GeckoChildProcessServices$tab37 updateBindings: IDLE priority, 6 importance, 8429 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
