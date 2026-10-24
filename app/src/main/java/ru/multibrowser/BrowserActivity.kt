@@ -16,6 +16,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
@@ -58,7 +59,9 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var urlBar: EditText
     private lateinit var lockIcon: View
     private val chrome = mutableListOf<View>() // всё, что прячется в полноэкранном режиме
-    private var fullScreen = false
+    private var fullScreen = false // полный экран по запросу сайта (видео)
+    private var userFullScreen = false // полный экран, включённый пользователем из меню
+    private lateinit var exitFullButton: View
     private lateinit var forwardButton: View
     private var profileId = 0
     private var pin: Pin = Pin("gmail", "Gmail", "https://mail.google.com/")
@@ -98,6 +101,7 @@ class BrowserActivity : AppCompatActivity() {
             override fun handleOnBackPressed() {
                 when {
                     fullScreen -> session?.exitFullScreen()
+                    userFullScreen -> setUserFullScreen(false)
                     urlBar.hasFocus() -> urlBar.clearFocus()
                     Gecko.canGoBack[key] == true -> session?.goBack()
                     incognito -> { exitIncognito(); openTab(profileId, pin) }
@@ -213,9 +217,22 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun setFullScreen(on: Boolean) {
         fullScreen = on
+        applyFullScreen()
+    }
+
+    private fun setUserFullScreen(on: Boolean) {
+        userFullScreen = on
+        if (on) urlBar.clearFocus()
+        applyFullScreen()
+    }
+
+    /** Панели и системные полосы прячутся, пока активен любой из двух полноэкранных режимов. */
+    private fun applyFullScreen() {
+        val on = fullScreen || userFullScreen
         barsHidden = false
         chrome.forEach { it.visibility = if (on) View.GONE else View.VISIBLE }
         if (!on) progress.visibility = View.GONE
+        exitFullButton.visibility = if (userFullScreen && !fullScreen) View.VISIBLE else View.GONE
         WindowInsetsControllerCompat(window, geckoView).apply {
             if (on) {
                 systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -472,6 +489,7 @@ class BrowserActivity : AppCompatActivity() {
             Tr.t("new_tab") to { openTab(profileId, Pins.resolve(this, "start"), Pins.START) },
             Tr.t("new_incognito") to { openIncognito(Pins.START) },
             Tr.t("zoom") to { zoomDialog() },
+            Tr.t("full_screen") to { setUserFullScreen(true) },
             Tr.t("downloads") to { startActivity(Intent(this, DownloadsActivity::class.java)) },
             *tools.menuItems().toTypedArray(),
             Tr.t("copy_link") to { copyUrl() },
@@ -759,13 +777,26 @@ class BrowserActivity : AppCompatActivity() {
 
         // Листаем вниз — панели прячутся, ведём пальцем вниз — возвращаются.
         if (Settings.autoHideBars(this)) {
-            geckoView.onContentScrolledUp = { if (!fullScreen && !urlBar.hasFocus()) setBarsHidden(true) }
-            geckoView.onContentScrolledDown = { if (!fullScreen) setBarsHidden(false) }
+            geckoView.onContentScrolledUp = { if (!fullScreen && !userFullScreen && !urlBar.hasFocus()) setBarsHidden(true) }
+            geckoView.onContentScrolledDown = { if (!fullScreen && !userFullScreen) setBarsHidden(false) }
         }
 
         // Фокус по умолчанию — на корне, иначе адресная строка захватывает его при открытии экрана.
         root.isFocusableInTouchMode = true
-        setContentView(root)
+        // Полупрозрачная кнопка выхода из полного экрана — поверх страницы, в углу.
+        exitFullButton = iconButton(R.drawable.ic_fullscreen_exit, Tr.t("exit_full_screen")) { setUserFullScreen(false) }.apply {
+            background = Ui.rounded(Ui.SURFACE, dpf(20))
+            alpha = 0.7f
+            visibility = View.GONE
+        }
+        val frame = FrameLayout(this).apply {
+            setBackgroundColor(Ui.BG)
+            addView(root, FrameLayout.LayoutParams(match, match))
+            addView(exitFullButton, FrameLayout.LayoutParams(dp(40), dp(40), Gravity.TOP or Gravity.END).apply {
+                setMargins(dp(12), dp(12), dp(12), dp(12))
+            })
+        }
+        setContentView(frame)
         applyEdgeToEdge(root)
         root.requestFocus()
     }

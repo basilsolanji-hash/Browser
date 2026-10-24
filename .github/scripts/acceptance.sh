@@ -95,6 +95,10 @@ browser --ei profile 8 --es url os:start;                                   shot
 settings; sleep 4
 for i in 1 2 3 4 5 6 7 8; do adb shell input swipe 160 560 160 140 300; done; sleep 2
 tap_text "Ось start"; sleep 1
+# Полный экран из меню: панели скрыты, в углу кнопка выхода.
+browser --ei profile 7 --es url https://example.com; sleep 15
+menu_item "Full screen";                                                    shot 32-fullscreen 3
+tap_text "Exit full screen";                                                shot 33-fullscreen-exit 3
 # №23, №25
 act AboutActivity;                                                          shot 30-about 5
 act HelpActivity;                                                           shot 31-help 5
@@ -171,6 +175,7 @@ ext_fail=0
 check() { if eval "$2"; then echo "ok    $1"; else echo "FAIL  $1"; ext_fail=1; fi; }
 check "№34 режим чтения отрисовал статью" 'grep -q "os-reader: ok" "$OUT/logcat.txt"'
 check "№35 PDF сохранён в files/saved"   'grep -q "page_.*\.pdf" "$X"'
+check "Полный экран: кнопка выхода"       'grep -q "tap .Exit full screen" "$X"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 [ "$ext_fail" = 0 ] || echo "ПРИЁМКА НЕ ПРОЙДЕНА — блоки D/E/F"
 [ "$RC" = 0 ] && [ "$ext_fail" = 0 ]
