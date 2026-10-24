@@ -44,17 +44,29 @@ taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1; sleep 3
 for i in $(seq 1 30); do [ ! -f "$DIR/Os Browser.exe" ] && break; sleep 2; done
 [ ! -f "$DIR/Os Browser.exe" ]; check "installer: silent uninstall removes the app" $?
 reg query 'HKCU\Software\Clients\StartMenuInternet\OsBrowser' >/dev/null 2>&1; [ $? != 0 ]; check "installer: uninstall removes browser registration" $?
-# Папка с русскими буквами (как профиль пользователя «C:\Users\Наталья» на русской Windows).
-# Без пробелов: ключ /D= установщика NSIS не принимает путь в кавычках.
-CYR_W='C:\Тест\Программы\ОсьБраузер'
-CYR="$(cygpath -u "$CYR_W")"
-"$SETUP" //S "//D=$CYR_W"; sleep 5
-for i in $(seq 1 30); do [ -f "$CYR/Os Browser.exe" ] && break; sleep 2; done
-[ -f "$CYR/Os Browser.exe" ]; check "installer: install into a Cyrillic folder" $? "$CYR"
-OS_USER_DATA="$(cygpath -w "$(mktemp -d)")" "$CYR/Os Browser.exe" & sleep 15
-tasklist //FI "IMAGENAME eq Os Browser.exe" | grep -qi "Os Browser.exe"; check "installer: app starts from a Cyrillic folder" $?
-taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1; sleep 3
-[ -f "$CYR/Uninstall Os Browser.exe" ] && "$CYR/Uninstall Os Browser.exe" //S; sleep 5
+# Установка в выбранную папку (ключ /D=): латиница и кириллица (как профиль «C:\Users\Наталья»).
+try_dir() {
+  local label="$1" winpath="$2" how="$3"
+  local unix; unix="$(cygpath -u "$winpath")"
+  if [ "$how" = ps ]; then
+    # PowerShell передаёт аргументы в Юникоде, без перекодировки Git Bash.
+    powershell -NoProfile -Command "Start-Process -Wait -FilePath '$(cygpath -w "$SETUP")' -ArgumentList '/S','/D=$winpath'"
+  else
+    "$SETUP" //S "//D=$winpath"
+  fi
+  sleep 5
+  for i in $(seq 1 30); do [ -f "$unix/Os Browser.exe" ] && break; sleep 2; done
+  { echo "== $label ($how): $winpath"; ls -la "$unix" 2>&1 | head -5; ls "$(dirname "$unix")" 2>&1 | head -5; } >> "$OUT/installer-programs.txt"
+  [ -f "$unix/Os Browser.exe" ]; check "installer: install into a chosen folder — $label ($how)" $? "$winpath"
+  if [ -f "$unix/Os Browser.exe" ]; then
+    OS_USER_DATA="$(cygpath -w "$(mktemp -d)")" "$unix/Os Browser.exe" & sleep 12
+    tasklist //FI "IMAGENAME eq Os Browser.exe" | grep -qi "Os Browser.exe"; check "installer: app starts from the chosen folder — $label" $?
+    taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1; sleep 3
+    "$unix/Uninstall Os Browser.exe" //S; sleep 6
+  fi
+}
+try_dir latin 'C:\OsTest\OsBrowser' bash
+try_dir cyrillic 'C:\Тест\Программы\ОсьБраузер' ps
 
 # Портативная версия: распаковать в папку с русскими буквами и запустить.
 ZIP=$(ls release/Os-Browser-Portable-*.zip 2>/dev/null | head -1)
