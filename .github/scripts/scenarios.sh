@@ -123,14 +123,22 @@ case "$SHARD" in
   start BrowserActivity --ei profile 3 --es url os:start; sleep 8
   while IFS='|' read -r input expected <&3; do
     [ -z "$input" ] && continue
-    adb logcat -c
     # Адресная строка (320×640: под полосой вкладок); при фокусе адрес выделяется — ввод его заменяет.
-    adb shell input tap 160 99; sleep 1
-    adb shell input text "$(printf '%s' "$input" | sed 's/ /%s/g')"
-    adb shell input keyevent 66; sleep 5
-    shot "A-$(printf '%s' "$input" | tr -c 'a-zA-Z0-9.' '_')"
+    type_url() {
+      adb logcat -c
+      adb shell input tap 160 99; sleep 2
+      adb shell input text "$(printf '%s' "$input" | sed 's/ /%s/g')"
+      adb shell input keyevent 66; sleep 6
+    }
+    type_url
     N=$((N + 1))
-    check "A: «$input» → $expected" 'diag | grep -qF "начало: $expected"'
+    if diag | grep -qF "начало: $expected"; then ok "A: «$input» → $expected"
+    else
+      # Тяжёлая страница ещё грузилась и забрала нажатие — одна повторная попытка, помечается отдельно.
+      type_url
+      check "A: «$input» → $expected (со второй попытки)" 'diag | grep -qF "начало: $expected"'
+    fi
+    shot "A-$(printf '%s' "$input" | tr -c 'a-zA-Z0-9.' '_')"
   done 3<<'CASES'
 example.com|https://example.com/
 https://example.org|https://example.org/
@@ -212,10 +220,10 @@ CASES
   first=1
   for f in report.pdf data.csv photo.png notes.txt archive.zip music.mp3 table.xlsx doc.docx config.json blob.bin; do
     sc "D-$f" "start BrowserActivity --ei profile 6 --es url http://localhost:8770/file/$f; sleep 5"
-    if [ $first = 1 ]; then
-      for w in 1 2 3 4 5 6; do xy=$(find_xy "Allow"); [ -n "$xy" ] && { adb shell input tap $xy; break; }; sleep 2; done
-      first=0; sleep 4
-    fi
+    # Первый раз ждём вопрос о разрешении; дальше — отвечаем, если он всё же показан.
+    tries=1; [ $first = 1 ] && tries=6
+    for w in $(seq $tries); do xy=$(find_xy "Allow"); [ -n "$xy" ] && { adb shell input tap $xy; sleep 3; break; }; [ $tries = 1 ] || sleep 2; done
+    first=0
   done
   sleep 3
   adb shell run-as "$PKG" cat shared_prefs/downloads.xml > "$OUT/downloads.txt" 2>&1
@@ -230,13 +238,23 @@ CASES
     adb shell settings put system user_rotation 0; sleep 1
   done
   # Каждый пункт меню ⋮ открывается без падения.
-  for key in new_tab copy_link new_incognito tabs new_tab_group select_tabs search reader_mode save_page zoom \
-    site_permissions open_external favorites downloads saved_pages notes help_feedback diagnostics full_screen settings; do
+  for key in new_tab new_incognito new_tab_group history clear_title site_permissions dl_title favorites tabs saved_pages \
+    notes zoom share find_in_page reader_mode copy_link open_external desktop_site full_screen settings help_feedback diagnostics \
+    save_page refresh; do
     item=$(tr_text "$key" en | sed 's/&amp;/\&/g')
-    start BrowserActivity --ei profile 8 --es url https://example.com; sleep 6
-    tap_text "Menu"; sleep 2
-    xy=$(find_xy "$item")
-    if [ -z "$xy" ]; then adb shell input swipe 220 520 220 160 400; sleep 1; xy=$(find_xy "$item"); fi
+    xy=""
+    # Меню длиннее экрана: ищем, прокручивая вниз; не нашли — открываем заново (экран мог не успеть).
+    for attempt in 1 2; do
+      start BrowserActivity --ei profile 8 --es url https://example.com; sleep 6
+      tap_text "Menu"; sleep 2
+      xy=$(find_xy "$item")
+      for sw in 1 2 3 4; do
+        [ -n "$xy" ] && break
+        adb shell input swipe 160 520 160 200 400; sleep 1; xy=$(find_xy "$item")
+      done
+      [ -n "$xy" ] && break
+      adb shell input keyevent 4; sleep 1
+    done
     N=$((N + 1))
     if [ -n "$xy" ]; then
       sc "M-$(echo "$item" | tr -c 'a-zA-Z' '_')" "adb shell input tap $xy; sleep 3"

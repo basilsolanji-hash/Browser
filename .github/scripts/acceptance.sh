@@ -292,6 +292,14 @@ xtap "Ось start"; sleep 1
 browser --ei profile 7 --es url https://example.com; sleep 15
 menu_item "Full screen";                                                    shot 62-fullscreen 3
 xtap "Exit full screen";                                                shot 63-fullscreen-exit 3
+# Найти на странице: «Example» на example.com — счётчик «N of M».
+menu_item "Find in page"; sleep 2; adb shell input text "Example"; sleep 3;     shot 63a-find 1
+adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb shell cat /sdcard/ui.xml > "$OUT/ui-find.xml"
+adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 1
+# Панель адресной строки: карточка страницы с «Поделиться / Копировать / Изменить».
+adb shell input tap 160 99; sleep 2;                                         shot 63b-address-panel 1
+adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb shell cat /sdcard/ui.xml > "$OUT/ui-address.xml"
+adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 1
 # Профили: перетаскивание («Personal» → на место «Work»), описание профиля.
 adb shell am force-stop "$PKG"; main; sleep 6
 from=$(find_xy "Personal"); to=$(find_xy "Work")
@@ -399,6 +407,8 @@ check "№27 главная: пустая страница выбрана"  'gre
 check "Скачивание: уведомление «Скачано»" 'grep -q "report.bin" "$OUT/notifications_dl.txt"'
 check "Быстрый поиск: вкладка открыта" 'grep -q "example.org" "$OUT/tabs_qs.txt"'
 check "Отправка файла сайту (кнопка «+»)" 'grep -q "UPLOAD report.bin 4096" "$OUT/logcat.txt"'
+check "Найти на странице: счётчик совпадений" 'grep -Eq "text=\"[0-9]+ of [0-9]+\"" "$OUT/ui-find.xml"'
+check "Адресная строка: карточка страницы" 'grep -q "content-desc=\"Edit address\"" "$OUT/ui-address.xml"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 
 # --- Автопроверка на белый экран: центральная область не должна быть почти вся белой/пустой ---

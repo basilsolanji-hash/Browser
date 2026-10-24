@@ -33,8 +33,7 @@ object Downloads {
     fun request(activity: AppCompatActivity, pageUrl: String?, response: WebResponse, privateMode: Boolean = false) {
         val body = response.body ?: return
         val name = fileName(response)
-        val mime = header(response, "Content-Type")?.substringBefore(';')?.trim()
-            ?.takeIf { it.isNotEmpty() } ?: "application/octet-stream"
+        val mime = effectiveMime(header(response, "Content-Type")?.substringBefore(';')?.trim().orEmpty(), name)
         val total = header(response, "Content-Length")?.toLongOrNull()?.takeIf { it > 0 } ?: -1L
         val host = SitePermissions.hostOf(pageUrl)
         if (host != null && SitePermissions.mode(activity, host, SitePermissions.Kind.DOWNLOADS) == SitePermissions.Mode.BLOCK) {
@@ -68,7 +67,7 @@ object Downloads {
                     val uri = if (error == null) runCatching { temp.inputStream().use { write(app, name, mime, it) } }.getOrNull() else null
                     temp.delete()
                     active -= task
-                    if (uri != null) DownloadLog.add(app, name, mime, uri.toString())
+                    if (uri != null) DownloadLog.add(app, name, mime, uri.toString(), task.done)
                     DownloadProgress.finish(app, task, uri != null)
                     activity.runOnUiThread {
                         val msg = when {
@@ -94,11 +93,54 @@ object Downloads {
         runCatching { launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) }.onFailure { launcher.unregister(); then() }
     }
 
+    /** Папка копий скачанных файлов, открытых для просмотра в Оси (PDF, картинки, тексты). */
+    fun viewDir(ctx: Context) = File(ctx.cacheDir, "view").apply { mkdirs() }
+
+    /**
+     * Настоящий тип файла: сайты часто отдают «application/octet-stream» (GitHub — APK и PDF),
+     * тогда берём тип по расширению — иначе файл нечем открыть.
+     */
+    fun effectiveMime(mime: String, name: String): String {
+        val ext = name.substringAfterLast('.', "").lowercase()
+        // Своя таблица частых типов (на устройствах системная бывает неполной), потом — системная.
+        val byExt = EXT_TYPES[ext] ?: android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
+        val generic = mime.isBlank() || mime == "application/octet-stream" || mime == "binary/octet-stream" ||
+            mime == "application/force-download" || mime == "application/x-download"
+        return if (generic) byExt ?: "application/octet-stream" else mime
+    }
+
+    private val EXT_TYPES = mapOf(
+        "apk" to "application/vnd.android.package-archive", "pdf" to "application/pdf",
+        "jpg" to "image/jpeg", "jpeg" to "image/jpeg", "png" to "image/png", "gif" to "image/gif",
+        "webp" to "image/webp", "svg" to "image/svg+xml", "heic" to "image/heic",
+        "txt" to "text/plain", "csv" to "text/csv", "html" to "text/html", "htm" to "text/html",
+        "json" to "application/json", "xml" to "text/xml", "md" to "text/markdown",
+        "mp3" to "audio/mpeg", "m4a" to "audio/mp4", "ogg" to "audio/ogg", "wav" to "audio/wav",
+        "mp4" to "video/mp4", "webm" to "video/webm", "mkv" to "video/x-matroska", "mov" to "video/quicktime",
+        "zip" to "application/zip", "rar" to "application/vnd.rar", "7z" to "application/x-7z-compressed",
+        "doc" to "application/msword", "xls" to "application/vnd.ms-excel", "ppt" to "application/vnd.ms-powerpoint",
+        "docx" to "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "xlsx" to "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "pptx" to "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    )
+
+    /** Типы, которые Ось показывает сама (движок умеет PDF, картинки, текст и страницы). */
+    fun viewableInOs(mime: String) = mime == "application/pdf" || mime.startsWith("image/") ||
+        mime.startsWith("text/") || mime == "application/json" || mime == "application/xhtml+xml"
+
     /** Идущая загрузка: сколько скачано из скольких (total = -1 — сайт не сообщил размер). */
     class Task(val id: Int, val name: String, val total: Long) {
         @Volatile var done = 0L
         @Volatile var cancelled = false
+        val started = System.currentTimeMillis()
         val percent get() = if (total > 0) (done * 100 / total).toInt().coerceIn(0, 100) else -1
+
+        /** Сколько секунд осталось по средней скорости; -1 — пока не понять (размер неизвестен, мало данных). */
+        val secondsLeft: Long get() {
+            val elapsed = (System.currentTimeMillis() - started) / 1000.0
+            if (total <= 0 || done <= 0 || elapsed < 1) return -1
+            return ((total - done) / (done / elapsed)).toLong().coerceAtLeast(0)
+        }
     }
 
     /** Загрузки, которые идут сейчас (для уведомления и экрана «Загрузки»). */

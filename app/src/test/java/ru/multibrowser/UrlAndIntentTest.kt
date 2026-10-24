@@ -111,6 +111,13 @@ class SavedPageFileTest {
     }
 
     @Test
+    fun downloadedFileViewAllowed() {
+        val f = File(Downloads.viewDir(ctx), "report.pdf").apply { writeText("x") }
+        val url = Uri.fromFile(f).toString()
+        assertEquals(url, DefaultBrowser.incomingUrl(ctx, Intent().putExtra(BrowserActivity.EXTRA_URL, url)))
+    }
+
+    @Test
     fun traversalOutOfSavedRejected() {
         val url = "file://" + SavedPages.dir(ctx).path + "/../shared_prefs/profiles.xml"
         assertNull(DefaultBrowser.incomingUrl(ctx, Intent(Intent.ACTION_VIEW, Uri.parse(url))))
