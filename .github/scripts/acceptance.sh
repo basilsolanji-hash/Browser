@@ -88,7 +88,9 @@ browser --ei profile 7 --es url https://en.m.wikipedia.org/wiki/Moon;       shot
 menu_item "Reader mode";                                                    shot 25-reader 15
 menu_item "Exit reader mode"; sleep 10
 # №35: сохранить страницу офлайн, список и открытие PDF.
-menu_item "Save page offline"; sleep 15
+menu_item "Save page offline"
+# Длинная статья пишется в PDF до полуминуты — ждём файл, а не фиксированное время.
+for i in $(seq 30); do adb shell run-as "$PKG" cat shared_prefs/saved_pages.xml 2>/dev/null | grep -q 'page_' && break; sleep 3; done; sleep 2
 act SavedPagesActivity;                                                     shot 26-saved 5
 tap_text "Moon" || true;                                                    shot 27-saved-open 15
 # №27: главная — пустая страница, затем возврат к «Старт Ось».
@@ -160,7 +162,7 @@ def read_png(path):
 outdir=sys.argv[1]
 # Эти экраны обязаны показывать реальную страницу — не пустую.
 must_render={'02-example','03-wikipedia','05-p1-claude','06-p2-claude','07-p4-claude','11-claude-light','14-session-restored'}
-must_render|={'21-view-intent','24-article','25-reader'}  # блоки D/E/F
+must_render|={'21-view-intent','24-article','25-reader','27-saved-open'}  # блоки D/E/F
 fails=[]
 for path in sorted(glob.glob(os.path.join(outdir,'*.png'))):
     name=os.path.splitext(os.path.basename(path))[0]
@@ -190,7 +192,7 @@ PY
 ext_fail=0
 check() { if eval "$2"; then echo "ok    $1"; else echo "FAIL  $1"; ext_fail=1; fi; }
 check "№34 режим чтения отрисовал статью" 'grep -q "os-reader: ok" "$OUT/logcat.txt"'
-check "№35 PDF сохранён в files/saved"   'grep -q "page_.*\.pdf" "$X"'
+check "№35 PDF сохранён и открыт"      'grep -q "page_.*\.pdf" "$X" && grep -q "tap .Moon" "$X"'
 check "Полный экран: кнопка выхода"       'grep -q "tap .Exit full screen" "$X"'
 check "Профили: порядок изменён"         'grep -q "name=\"order\"" "$X"'
 check "Профили: описание сохранено"      'grep -q "desc_2\">Work mail" "$X"'
