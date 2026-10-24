@@ -26,15 +26,17 @@ object Downloads {
         val app = activity.applicationContext
         Toast.makeText(app, Tr.t("downloading", name), Toast.LENGTH_SHORT).show()
         thread(name = "download") {
-            val ok = runCatching { body.use { write(app, name, mime, it) } }.isSuccess
+            val uri = runCatching { body.use { write(app, name, mime, it) } }.getOrNull()
+            if (uri != null) DownloadLog.add(app, name, mime, uri.toString())
             activity.runOnUiThread {
-                val msg = if (ok) Tr.t("saved_to", FOLDER, name) else Tr.t("download_failed", name)
+                val msg = if (uri != null) Tr.t("saved_to", FOLDER, name) else Tr.t("download_failed", name)
                 Toast.makeText(app, msg, Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private fun write(ctx: Context, name: String, mime: String, input: InputStream) {
+    /** Записывает файл и возвращает uri для открытия из списка загрузок. */
+    private fun write(ctx: Context, name: String, mime: String, input: InputStream): Uri {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Downloads.DISPLAY_NAME, name)
@@ -44,9 +46,12 @@ object Downloads {
             val uri = ctx.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
                 ?: error("MediaStore insert failed")
             ctx.contentResolver.openOutputStream(uri)!!.use { input.copyTo(it) }
+            return uri
         } else {
             val dir = File(ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), FOLDER).apply { mkdirs() }
-            File(dir, name).outputStream().use { input.copyTo(it) }
+            val file = File(dir, name)
+            file.outputStream().use { input.copyTo(it) }
+            return Uri.fromFile(file)
         }
     }
 
