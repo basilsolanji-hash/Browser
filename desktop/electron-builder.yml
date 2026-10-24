@@ -36,3 +36,7 @@ nsis:
   uninstallDisplayName: Ось Browser
   deleteAppDataOnUninstall: false
   include: assets/installer.nsh
+  # Значок Оси на установщике и деинсталляторе (а не стандартный значок NSIS).
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  installerHeaderIcon: assets/icon.ico
