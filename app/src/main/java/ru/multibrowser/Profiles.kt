@@ -111,6 +111,11 @@ object Profiles {
         prefs(ctx).edit().putString("email_$id", email).putInt("unread_$id", unread).apply()
     }
 
+    /** Забыть последний адрес вкладки (вкладку закрыли). */
+    fun forgetUrl(ctx: Context, id: Int, pinId: String) {
+        prefs(ctx).edit().remove("url_${id}_$pinId").apply()
+    }
+
     fun forget(ctx: Context, id: Int) {
         prefs(ctx).edit().remove("email_$id").remove("unread_$id").apply {
             Pins.all(ctx, id).forEach { remove(urlKey(id, it)) }

@@ -121,6 +121,7 @@ object Gecko {
         runtime(ctx).storageController.clearData(StorageController.ClearFlags.ALL_CACHES)
     }
 
+    /** Есть ли у профиля вкладки в памяти (закреплённые или обычные). */
     fun isActive(ctx: Context, id: Int) = sessions.keys.any { it.startsWith("$id:") }
 
     /** @param initialUrl — если задан, открываем его вместо последней/домашней страницы (один load, без гонки). */
@@ -153,6 +154,7 @@ object Gecko {
     /** Выйти из всех аккаунтов профиля: закрыть вкладку и стереть cookies/хранилище его контекста. */
     fun clearProfile(ctx: Context, id: Int) {
         sessions.keys.filter { it.startsWith("$id:") }.forEach { drop(it) }
+        Tabs.forgetProfile(ctx, id)
         runtime(ctx).storageController.clearDataForSessionContext("profile_$id")
         Profiles.forget(ctx, id)
         History.clear(ctx, id)
@@ -160,6 +162,9 @@ object Gecko {
 
     /** Вкладка упала или выгружена системой — забываем её, чтобы следующий вызов session() создал новую. */
     fun forget(key: String) = drop(key)
+
+    /** Закрыть обычную вкладку профиля: выгрузить её сессию. */
+    fun close(id: Int, tabId: String) = drop("$id:$tabId")
 
     private fun drop(key: String) {
         sessions.remove(key)?.close()

@@ -5,6 +5,8 @@ set -u
 PKG=ru.multibrowser.test
 OUT=results
 mkdir -p "$OUT"
+# Ход сценариев (нажатия, состояние вкладок) — в results/steps.txt.
+exec > >(tee -a "$OUT/steps.txt") 2>&1
 
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 for a in window_animation_scale transition_animation_scale animator_duration_scale; do
@@ -18,6 +20,30 @@ browser() { adb shell am start -n "$PKG/ru.multibrowser.BrowserActivity" "$@" >/
 settings() { adb shell am start -n "$PKG/ru.multibrowser.SettingsActivity" "$@" >/dev/null; }
 bookmarks() { adb shell am start -n "$PKG/ru.multibrowser.BookmarksActivity" "$@" >/dev/null; }
 back() { adb shell input keyevent 4; sleep 1; }
+tabs() { adb shell am start -n "$PKG/ru.multibrowser.TabsActivity" "$@" >/dev/null; }
+# Сохранённые вкладки и группы (debug-сборка допускает run-as).
+tabstate() { echo "== tabs state: $1"; adb shell run-as "$PKG" cat shared_prefs/tabs.xml; echo; }
+# Нажать на элемент по тексту или contentDescription (без учёта регистра) через дамп uiautomator.
+tap() {
+  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+  adb shell cat /sdcard/ui.xml > "$OUT/ui.xml" 2>/dev/null
+  local xy
+  xy=$(python3 - "$OUT/ui.xml" "$1" <<'PY'
+import sys, re, xml.etree.ElementTree as ET
+q = sys.argv[2].lower()
+try:
+    root = ET.parse(sys.argv[1]).getroot()
+except Exception:
+    sys.exit(0)
+for n in root.iter('node'):
+    if (n.get('text') or '').lower() == q or (n.get('content-desc') or '').lower() == q:
+        x1, y1, x2, y2 = map(int, re.findall(r'\d+', n.get('bounds')))
+        print((x1 + x2) // 2, (y1 + y2) // 2)
+        break
+PY
+)
+  if [ -n "$xy" ]; then adb shell input tap $xy; echo "tap '$1' at $xy"; else echo "TAP NOT FOUND: '$1'"; fi
+}
 # Тап по центру элемента с текстом/описанием (первое найденное из вариантов) через uiautomator.
 # Не нашли — пишем FAIL в checks.txt (приёмка падает).
 tap_text() {
@@ -72,6 +98,34 @@ browser --ei profile 2 --es url https://claude.ai/;                       shot 0
 browser --ei profile 4 --es url https://claude.ai/;                       shot 07-p4-claude 40
 rotate 1; sleep 3;                                                        shot 08-claude-landscape 6
 rotate 0; sleep 3
+# --- Вкладки (блок A): профиль 7 — чистый ---
+tabs --ei profile 7;                                                      shot 70-tabs-empty 5
+browser --ei profile 7 --es action new_tab --es url https://example.com;  shot 71-newtab-example 25
+browser --ei profile 7 --es action new_tab --es url https://ru.wikipedia.org; sleep 20
+browser --ei profile 7 --es action new_tab;                               shot 72-newtab-start 8
+tap "Menu";                                                               shot 73-menu 3
+adb shell input keyevent KEYCODE_BACK; sleep 1
+tap "Tabs";                                                               shot 74-tabs-grid 4
+adb shell input keyevent KEYCODE_BACK; sleep 1
+tabs --ei profile 7 --es demo_group Work;                                 shot 75-tabs-group 4
+tabs --ei profile 7 --es filter wiki;                                     shot 76-tabs-search 4
+tabs --ei profile 7 --es filter zzzz;                                     shot 77-tabs-notfound 4
+tabs --ei profile 7 --es mode select --ez select_all true;                shot 78-tabs-select 4
+tabs --ei profile 7;                                                      sleep 3
+tap "Example Domain";                                                     shot 79-tab-switched 8
+browser --ei profile 7 --es action new_group;                             shot 80-new-group-dialog 4
+adb shell input keyevent KEYCODE_BACK; sleep 1
+adb shell input keyevent KEYCODE_BACK; sleep 1
+tabstate before-close
+tabs --ei profile 7;                                                      shot 81a-before-close 3
+tap "Close tab";                                                          shot 81-tab-closed 3
+adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb shell cat /sdcard/ui.xml > "$OUT/ui-81.xml"
+tabstate after-close
+browser --ei profile 7 --es action close_all;                             shot 82-close-all-dialog 4
+tap "Close";                                                              shot 83-after-close-all 6
+tabstate after-close-all
+tabs --ei profile 7;                                                      shot 84-tabs-after-close 4
+adb shell input keyevent KEYCODE_BACK; sleep 1
 settings;                                                                 shot 09-settings 6
 # Светлая тема (2-й пункт переключателя «Тема» рядом с верхом). Тап по координате сегмента «Светлая».
 adb shell input tap 540 340; sleep 2;                                     shot 10-settings-light 3
@@ -192,7 +246,15 @@ xtap() {
   if [ -n "$xy" ]; then echo "tap '$1' at $xy" >> "$X"; adb shell input tap $xy; return 0; fi
   echo "NOT FOUND: '$1'" >> "$X"; return 1
 }
-menu_item() { xtap "Menu" && sleep 2 && xtap "$1"; }
+# Пункт меню ⋮; меню длинное — если пункта не видно, прокручиваем его вниз.
+menu_item() {
+  xtap "Menu" && sleep 2 || return 1
+  for i in 1 2 3; do
+    xy=$(find_xy "$1") && [ -n "$xy" ] && { echo "tap '$1' at $xy" >> "$X"; adb shell input tap $xy; return 0; }
+    adb shell input swipe 220 520 220 160 400; sleep 1
+  done
+  echo "NOT FOUND: '$1'" >> "$X"; return 1
+}
 
 browser --ei profile 7;                                                     shot 50-start-phrase 12
 # №26: ссылка из «другого приложения» (неявный VIEW, только наш пакет) открывается в Оси.
@@ -305,7 +367,7 @@ def read_png(path):
 
 outdir=sys.argv[1]
 # Эти экраны обязаны показывать реальную страницу — не пустую.
-must_render={'21-fav-opened','51-view-intent','54-article','55-reader','57-saved-open','02-example','03-wikipedia','05-p1-claude','06-p2-claude','07-p4-claude','11-claude-light','14-session-restored'}
+must_render={'21-fav-opened','71-newtab-example','74-tabs-grid','75-tabs-group','78-tabs-select','79-tab-switched','51-view-intent','54-article','55-reader','57-saved-open','02-example','03-wikipedia','05-p1-claude','06-p2-claude','07-p4-claude','11-claude-light','14-session-restored'}
 fails=[]
 for path in sorted(glob.glob(os.path.join(outdir,'*.png'))):
     name=os.path.splitext(os.path.basename(path))[0]
