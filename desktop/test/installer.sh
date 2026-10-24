@@ -10,16 +10,18 @@ check() { if [ "$2" = 0 ]; then echo "ok $1" | tee -a "$OUT/checks.txt"; else ec
 SETUP=$(ls release/Os-Browser-Setup-*.exe | head -1)
 [ -f release/latest.yml ]; check "installer: latest.yml for auto-update is generated" $?
 grep -q "sha512:" release/latest.yml 2>/dev/null; check "installer: latest.yml has sha512" $?
-DIR="$LOCALAPPDATA/Programs/os-browser"
+# Путь Windows → путь Git Bash (иначе обратные слеши ломают проверки файлов).
+DIR="$(cygpath -u "$LOCALAPPDATA")/Programs/os-browser"
 "$SETUP" //S; sleep 5
 for i in $(seq 1 30); do [ -f "$DIR/Os Browser.exe" ] && break; sleep 2; done
+ls "$(cygpath -u "$LOCALAPPDATA")/Programs" > "$OUT/installer-programs.txt" 2>&1
 [ -f "$DIR/Os Browser.exe" ]; check "installer: silent install puts the app into Programs" $? "$DIR"
 reg query 'HKCU\Software\Clients\StartMenuInternet\OsBrowser\Capabilities\URLAssociations' //v https 2>/dev/null | grep -q OsBrowserURL
 check "installer: registered for Windows default apps (https → OsBrowserURL)" $?
 reg query 'HKCU\Software\RegisteredApplications' //v 'Os Browser' >/dev/null 2>&1; check "installer: listed in RegisteredApplications" $?
-ls "$APPDATA/Microsoft/Windows/Start Menu/Programs/" 2>/dev/null | grep -qi "Ось Browser\|Os Browser"; check "installer: Start menu shortcut" $?
+ls "$(cygpath -u "$APPDATA")/Microsoft/Windows/Start Menu/Programs/" 2>/dev/null | grep -qi "Ось Browser\|Os Browser"; check "installer: Start menu shortcut" $?
 # Запуск установленной программы: окно должно появиться и процесс — работать.
-export OS_USER_DATA="$(mktemp -d)"
+export OS_USER_DATA="$(cygpath -w "$(mktemp -d)")"
 "$DIR/Os Browser.exe" & PID=$!
 sleep 15
 tasklist //FI "IMAGENAME eq Os Browser.exe" | grep -qi "Os Browser.exe"; check "installer: installed app starts" $?
