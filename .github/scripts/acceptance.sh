@@ -144,6 +144,11 @@ adb shell run-as "$PKG" ls -la files/saved >> "$X" 2>&1
 adb shell run-as "$PKG" cat shared_prefs/notes.xml >> "$X" 2>&1
 adb shell run-as "$PKG" cat shared_prefs/home.xml shared_prefs/phrases.xml >> "$X" 2>&1
 
+# Смена языка: сразу меняются и настройки, и главный экран под ними (и имена профилей-примеров).
+settings; sleep 4
+tap_text "System"; sleep 2; tap_text "Русский"; sleep 4;                    shot 37-lang-settings-ru 1
+adb shell input keyevent 4; sleep 3;                                        shot 38-lang-main-ru 1
+echo "lang ru main: $(find_xy "Личное")" >> "$X"
 adb logcat -d -v time > "$OUT/logcat.txt"
 grep -E "OsDiag|GeckoConsole|AndroidRuntime|FATAL|Gecko" "$OUT/logcat.txt" | tail -800 > "$OUT/diag.txt"
 
@@ -216,9 +221,10 @@ check "№35 PDF сохранён и открыт"      'grep -q "page_.*\.pdf" 
 check "Полный экран: кнопка выхода"       'grep -q "tap .Exit full screen" "$X"'
 check "Профили: порядок изменён"         'grep -q "name=\"order\"" "$X"'
 check "Профили: описание сохранено"      'grep -q "desc_5\">Work mail" "$X"'
-check "Первый запуск: примеры профилей"   'grep -q "name_1\">Personal" "$X" && grep -q "name_4\">Social" "$X" && grep -q "list_2" "$X"'
+check "Первый запуск: примеры профилей"   'grep -q "name_1\">@ex_personal_name" "$X" && grep -q "name_4\">@ex_social_name" "$X" && grep -q "list_2" "$X"'
 check "Первый запуск: обучение пройдено"  'grep -q "name=\"done\" value=\"true\"" "$X" && [ "$(grep -c "next .: [0-9]" "$OB")" -ge 5 ] && grep -q "start: [0-9]" "$OB"'
 check "Статистика: страницы посчитаны"   'grep -q "name=\"pages_1\" value=\"[1-9]" "$X"'
+check "Язык: главный экран сразу на русском" 'grep -q "lang ru main: [0-9]" "$X"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 [ "$ext_fail" = 0 ] || echo "ПРИЁМКА НЕ ПРОЙДЕНА — блоки D/E/F"
 [ "$RC" = 0 ] && [ "$ext_fail" = 0 ]

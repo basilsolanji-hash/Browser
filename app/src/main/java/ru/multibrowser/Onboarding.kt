@@ -31,8 +31,9 @@ object Onboarding {
     /** Типовой набор для нового пользователя: личное, работа, покупки, соцсети — со своими вкладками. */
     private fun seedExamples(ctx: Context) {
         val start = Pin("start", "Старт", Pins.START)
-        val mail = Pin("mail", Tr.t("tab_mail"), "https://mail.google.com/")
-        val calendar = Pin("calendar", Tr.t("tab_calendar"), "https://calendar.google.com/")
+        // Названия — ключами перевода («@…»): примеры меняют язык вместе с интерфейсом.
+        val mail = Pin("mail", "@tab_mail", "https://mail.google.com/")
+        val calendar = Pin("calendar", "@tab_calendar", "https://calendar.google.com/")
         listOf(
             Triple("ex_personal", listOf(start, mail), 1),
             Triple("ex_work", listOf(start, mail, calendar), 2),
@@ -40,8 +41,8 @@ object Onboarding {
             Triple("ex_social", listOf(start), 4),
         ).forEach { (key, pins, id) ->
             if (id > Settings.profileCount(ctx)) return@forEach
-            Profiles.rename(ctx, id, Tr.t("${key}_name"))
-            Profiles.setDescription(ctx, id, Tr.t("${key}_desc"))
+            Profiles.rename(ctx, id, "@${key}_name")
+            Profiles.setDescription(ctx, id, "@${key}_desc")
             Pins.save(ctx, pins, id)
         }
     }

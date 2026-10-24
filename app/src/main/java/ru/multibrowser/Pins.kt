@@ -42,7 +42,8 @@ object Pins {
             }
         }.getOrDefault(DEFAULT).ifEmpty { DEFAULT }
         // Название встроенной стартовой вкладки показываем на языке интерфейса.
-        return list.map { if (it.url == START) it.copy(title = Tr.t("start")) else it }
+        // Как и названия из примеров первого запуска («@tab_mail» → «Почта»).
+        return list.map { if (it.url == START) it.copy(title = Tr.t("start")) else it.copy(title = Tr.local(it.title)!!) }
     }
 
     fun byId(ctx: Context, id: String?, profile: Int? = null): Pin? = all(ctx, profile).firstOrNull { it.id == id }

@@ -24,6 +24,12 @@ object Tr {
 
     private val idx = mapOf("en" to 0, "ru" to 1, "es" to 2, "pt" to 3, "fr" to 4, "de" to 5, "ar" to 6, "hi" to 7, "tr" to 8, "zh" to 9)
 
+    /**
+     * Текст, сохранённый как ключ перевода («@ex_work_name») — так хранятся примеры первого запуска,
+     * чтобы они меняли язык вместе с интерфейсом, пока пользователь их не переименовал.
+     */
+    fun local(stored: String?): String? = if (stored != null && stored.startsWith("@")) t(stored.drop(1)) else stored
+
     fun t(key: String, vararg args: Any?): String {
         val row = M[key] ?: return key
         val s = row.getOrNull(idx[lang] ?: 0) ?: row[0]

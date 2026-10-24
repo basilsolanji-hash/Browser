@@ -270,6 +270,7 @@ class BrowserActivity : AppCompatActivity() {
         s.progressDelegate = object : GeckoSession.ProgressDelegate {
             override fun onPageStart(session: GeckoSession, url: String) {
                 Diag.log(k, "начало: $url")
+                if (!url.startsWith("data:")) Gecko.onStartPage -= session
                 if (visible()) {
                     progress.visibility = View.VISIBLE
                     setBarsHidden(false)
@@ -294,6 +295,7 @@ class BrowserActivity : AppCompatActivity() {
                 hasUserGesture: Boolean,
             ) {
                 if (url == null) return
+                if (!url.startsWith("data:")) Gecko.onStartPage -= session
                 if (visible()) showUrl(url)
                 // В историю и восстановление — без метки режима чтения.
                 Profiles.saveLastUrl(this@BrowserActivity, id, tab, Reader.original(url))

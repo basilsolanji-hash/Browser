@@ -72,7 +72,9 @@ class ProfileActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        Profiles.setDescription(this, id, description.text.toString())
+        // Не трогаем, если не меняли: описание-пример хранится ключом и переводится вместе с языком.
+        val text = description.text.toString()
+        if (text != Profiles.get(this, id).description) Profiles.setDescription(this, id, text)
     }
 
     private fun render() {

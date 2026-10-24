@@ -1,5 +1,6 @@
 package ru.multibrowser
 
+import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Editable
@@ -295,7 +296,14 @@ class SettingsActivity : AppCompatActivity() {
             .setTitle(Tr.t("language"))
             .setItems(labels) { _, i ->
                 Settings.setLanguage(this, codes[i])
-                recreate()
+                Tr.apply(this)
+                Gecko.onLanguageChanged()
+                // Пересоздаём весь стек экранов (главный под настройками), чтобы язык сменился сразу везде.
+                androidx.core.app.TaskStackBuilder.create(this)
+                    .addNextIntent(Intent(this, MainActivity::class.java))
+                    .addNextIntent(Intent(this, SettingsActivity::class.java))
+                    .startActivities()
+                @Suppress("DEPRECATION") overridePendingTransition(0, 0)
             }
             .show()
     }

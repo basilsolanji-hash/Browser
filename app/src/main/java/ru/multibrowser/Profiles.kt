@@ -64,11 +64,11 @@ object Profiles {
         val p = prefs(ctx)
         return Profile(
             id = id,
-            name = p.getString("name_$id", null) ?: Tr.t("profile_n", id),
+            name = Tr.local(p.getString("name_$id", null)) ?: Tr.t("profile_n", id),
             color = color(id),
             email = p.getString("email_$id", null),
             unread = p.getInt("unread_$id", 0),
-            description = p.getString("desc_$id", null).orEmpty(),
+            description = Tr.local(p.getString("desc_$id", null)).orEmpty(),
         )
     }
 
@@ -79,7 +79,7 @@ object Profiles {
         edit.apply()
     }
 
-    fun customName(ctx: Context, id: Int): String = prefs(ctx).getString("name_$id", null).orEmpty()
+    fun customName(ctx: Context, id: Int): String = Tr.local(prefs(ctx).getString("name_$id", null)).orEmpty()
 
     private fun urlKey(id: Int, pin: Pin) = "url_${id}_${pin.id}"
 

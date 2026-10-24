@@ -74,6 +74,14 @@ object Gecko {
         }, { err -> Diag.log("reader", "extension: ${err?.message}") })
     }
 
+    /** Вкладки, где сейчас стартовая страница Оси — её перерисовываем при смене языка. */
+    val onStartPage: MutableSet<GeckoSession> = java.util.Collections.newSetFromMap(java.util.WeakHashMap())
+
+    /** Сменился язык интерфейса: стартовые страницы — на новом языке. */
+    fun onLanguageChanged() {
+        onStartPage.toList().forEach { Home.load(it) }
+    }
+
     fun applyZoom(ctx: Context) {
         runtime?.settings?.fontSizeFactor = Settings.zoom(ctx) / 100f
     }

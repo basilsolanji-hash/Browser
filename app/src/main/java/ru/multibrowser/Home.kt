@@ -40,8 +40,10 @@ object Home {
         }
     }
 
-    private fun loadStart(session: GeckoSession) =
+    private fun loadStart(session: GeckoSession) {
+        Gecko.onStartPage += session
         session.load(GeckoSession.Loader().data(StartPage.html(), "text/html"))
+    }
 
     /** Позитивная фраза дня (№36) или null, если контекст ещё не готов. */
     fun phrase(): String? = app?.let { Phrases.today(it) }
