@@ -181,8 +181,10 @@ class BrowserActivity : AppCompatActivity() {
                 setPadding(dp(8), 0, dp(8), 0)
                 background = if (selected) Ui.rounded(Ui.ACCENT, dpf(5)) else null
                 setTextColor(if (selected) Ui.ON_ACCENT else Ui.MUTED)
+                minWidth = dp(72)
                 setOnClickListener { openTab(profileId, p) }
-            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
+            }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT)
+                .apply { marginEnd = dp(2) })
         }
     }
 
