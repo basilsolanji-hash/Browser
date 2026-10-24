@@ -835,6 +835,23 @@ try {
     await st4.selectOption('#lang', 'ru');
     await main(() => globalThis.osTest.windows()[1].win.close());
   }
+  if (STAGE >= 5) {
+    // --- 27. Обновления ---
+    step('27. Автообновление: настройка и состояние');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    const st5 = await page('os://settings/');
+    await st5.waitForSelector('#auto-update');
+    check('updates section present (installed-only notice in dev build)', (await st5.isDisabled('#update-check')) === true);
+    await st5.click('#auto-update button >> nth=1');
+    await sleep(300);
+    await flush();
+    check('automatic updates can be turned off', readJson('settings')?.autoUpdate === false);
+    await st5.click('#auto-update button >> nth=0');
+    await sleep(300);
+    await flush();
+    check('automatic updates on by default and saved', readJson('settings')?.autoUpdate === true);
+    await keyScreen('27-settings-updates', 'page');
+  }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));
 } finally {

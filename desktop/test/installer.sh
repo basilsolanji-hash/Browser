@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Проверка установщика на windows-latest (этап 5): тихая установка, регистрация браузера, запуск, удаление.
+# Результаты дописываются в test-results/checks.txt, как у основной приёмки.
+set -u
+OUT=test-results
+mkdir -p "$OUT"
+fails=0
+check() { if [ "$2" = 0 ]; then echo "ok $1" | tee -a "$OUT/checks.txt"; else echo "FAIL $1${3:+ — $3}" | tee -a "$OUT/checks.txt"; fails=$((fails+1)); fi; }
+
+SETUP=$(ls release/Os-Browser-Setup-*.exe | head -1)
+[ -f release/latest.yml ]; check "installer: latest.yml for auto-update is generated" $?
+grep -q "sha512:" release/latest.yml 2>/dev/null; check "installer: latest.yml has sha512" $?
+DIR="$LOCALAPPDATA/Programs/os-browser"
+"$SETUP" //S; sleep 5
+for i in $(seq 1 30); do [ -f "$DIR/Os Browser.exe" ] && break; sleep 2; done
+[ -f "$DIR/Os Browser.exe" ]; check "installer: silent install puts the app into Programs" $? "$DIR"
+reg query 'HKCU\Software\Clients\StartMenuInternet\OsBrowser\Capabilities\URLAssociations' //v https 2>/dev/null | grep -q OsBrowserURL
+check "installer: registered for Windows default apps (https → OsBrowserURL)" $?
+reg query 'HKCU\Software\RegisteredApplications' //v 'Os Browser' >/dev/null 2>&1; check "installer: listed in RegisteredApplications" $?
+ls "$APPDATA/Microsoft/Windows/Start Menu/Programs/" 2>/dev/null | grep -qi "Ось Browser\|Os Browser"; check "installer: Start menu shortcut" $?
+# Запуск установленной программы: окно должно появиться и процесс — работать.
+export OS_USER_DATA="$(mktemp -d)"
+"$DIR/Os Browser.exe" & PID=$!
+sleep 15
+tasklist //FI "IMAGENAME eq Os Browser.exe" | grep -qi "Os Browser.exe"; check "installer: installed app starts" $?
+taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1; sleep 3
+"$DIR/Uninstall Os Browser.exe" //S; sleep 5
+for i in $(seq 1 30); do [ ! -f "$DIR/Os Browser.exe" ] && break; sleep 2; done
+[ ! -f "$DIR/Os Browser.exe" ]; check "installer: silent uninstall removes the app" $?
+reg query 'HKCU\Software\Clients\StartMenuInternet\OsBrowser' >/dev/null 2>&1; [ $? != 0 ]; check "installer: uninstall removes browser registration" $?
+echo "installer: $fails failed" | tee -a "$OUT/checks.txt"
+exit $fails
