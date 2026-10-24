@@ -1,0 +1,12 @@
+---
+// Корень: английская главная (так она открывается без JavaScript) и короткий скрипт,
+// который переводит на язык посетителя по navigator.languages или по сохранённому выбору.
+import Layout from '../layouts/Layout.astro';
+import Home from '../components/Home.astro';
+import { t, href } from '../lib/i18n';
+import { appJsonLd } from '../lib/jsonld';
+const site = Astro.site!.toString().replace(/\/$/, '');
+---
+<Layout lang="en" page="" title={t('en', 'home_title')} desc={t('en', 'home_desc')} canonical={site + href('en')} scripts={['lang-detect.js']} jsonld={appJsonLd('en', site + href('en'))}>
+<Home lang="en" />
+</Layout>

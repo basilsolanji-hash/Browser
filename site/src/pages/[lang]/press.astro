@@ -1,0 +1,43 @@
+---
+// Пресс-кит: логотипы, реальные скриншоты настольной версии на языке страницы (scripts/press-shots.mjs), факты.
+import { existsSync } from 'node:fs';
+import Layout from '../../layouts/Layout.astro';
+import Contact from '../../components/Contact.astro';
+import { LANGS, t, asset } from '../../lib/i18n';
+import { langPaths } from '../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.params;
+const L = (k: string, v?: Record<string, string>) => t(lang, k, v);
+const shotLang = (name: string) => [lang, 'en'].find((l) => existsSync(`public/press/shots/${l}/${name}.png`));
+const shots = [['home', 'press_shot_home'], ['start', 'press_shot_start'], ['onboarding', 'press_shot_onboarding']]
+  .map(([name, key]) => ({ key, l: shotLang(name), name })).filter((s) => s.l);
+---
+<Layout lang={lang} page="press" title={L('press_title')} desc={L('press_desc')}>
+<div class="wrap page-head prose">
+<h1 class="h1">{L('press_title')}</h1>
+<p class="lead">{L('press_lead')}</p>
+
+<h2>{L('press_about_t')}</h2>
+<p>{L('press_about_d')}</p>
+
+<h2>{L('press_facts_t')}</h2>
+<dl class="kv">
+<dt>{L('press_f_platforms')}</dt><dd>{L('press_f_platforms_v')}</dd>
+<dt>{L('press_f_engines')}</dt><dd>{L('press_f_engines_v')}</dd>
+<dt>{L('press_f_langs')}</dt><dd>{LANGS.map((l) => t(l, 'lang_name')).join(', ')}</dd>
+</dl>
+
+<h2>{L('press_logo_t')}</h2>
+<div class="logos">
+<div class="logo-tile dark"><img src={asset('press/os-logo-dark-bg.svg')} width="300" height="90" alt="Ось"><span>{L('press_logo_dark')}</span><span class="links"><a href={asset('press/os-logo-dark-bg.svg')} download>SVG</a><a href={asset('press/os-logo-dark-bg.png')} download>PNG</a></span></div>
+<div class="logo-tile light"><img src={asset('press/os-logo-light-bg.svg')} width="300" height="90" alt="Ось"><span>{L('press_logo_light')}</span><span class="links"><a href={asset('press/os-logo-light-bg.svg')} download>SVG</a><a href={asset('press/os-logo-light-bg.png')} download>PNG</a></span></div>
+</div>
+
+<h2>{L('press_shots_t')}</h2>
+<div class="shots">
+{shots.map((s) => <figure><a href={asset(`press/shots/${s.l}/${s.name}.png`)}><img src={asset(`press/shots/${s.l}/${s.name}.png`)} width="1200" height="760" loading="lazy" alt={L(s.key)}></a><figcaption>{L(s.key)}</figcaption></figure>)}
+</div>
+
+<div class="top-40"><Contact lang={lang} k="press_contact" /></div>
+</div>
+</Layout>

@@ -1,0 +1,12 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Home from '../../components/Home.astro';
+import { t, href } from '../../lib/i18n';
+import { langPaths } from '../../lib/paths';
+import { appJsonLd } from '../../lib/jsonld';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.params;
+---
+<Layout lang={lang} page="" title={t(lang, 'home_title')} desc={t(lang, 'home_desc')} jsonld={appJsonLd(lang, Astro.site + href(lang).slice(1))}>
+<Home lang={lang} />
+</Layout>

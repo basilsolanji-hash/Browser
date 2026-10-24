@@ -1,0 +1,25 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { LANGS, t, href } from '../lib/i18n';
+const { lang, page } = Astro.props;
+const links = [['features', 'nav_features'], ['privacy-security', 'nav_privacy'], ['business', 'nav_business'], ['changelog', 'nav_changelog'], ['help', 'nav_help']];
+const here = page ?? '';
+---
+<header class="header">
+<nav class="wrap nav" aria-label={t(lang, 'nav_label')}>
+<a class="brand" href={href(lang)} aria-label={t(lang, 'home_aria')}><Logo /><span class="brand-name">Ось</span></a>
+<ul class="nav-links">
+{links.map(([p, k]) => <li><a href={href(lang, p)} aria-current={page === p ? 'page' : undefined}>{t(lang, k)}</a></li>)}
+</ul>
+<div class="nav-tools">
+<details class="lang">
+<summary><Icon name="globe" size={18} /><span class="sr-only">{t(lang, 'lang_aria', { name: t(lang, 'lang_name') })}</span><span aria-hidden="true">{lang}</span></summary>
+<ul>
+{LANGS.map((l) => <li><a href={href(l, here)} hreflang={l} lang={l} data-lang={l} aria-current={l === lang ? 'true' : undefined}>{t(l, 'lang_name')}<span>{l}</span></a></li>)}
+</ul>
+</details>
+<a class="btn btn-primary" href={href(lang, 'download')}>{t(lang, 'nav_download')}</a>
+</div>
+</nav>
+</header>

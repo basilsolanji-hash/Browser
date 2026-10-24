@@ -1,0 +1,24 @@
+---
+import { t, href, asset } from '../lib/i18n';
+const { lang } = Astro.props;
+// Год сборки — не выдуманная цифра, а дата публикации страницы.
+const year = new Date().getUTCFullYear();
+---
+<footer class="footer">
+<div class="wrap">
+<div>
+<p>© {year} Ось Browser</p>
+<p>{t(lang, 'footer_note')}</p>
+</div>
+<nav aria-label={t(lang, 'footer_label')}>
+<ul>
+<li><a href={href(lang, 'download')}>{t(lang, 'nav_download')}</a></li>
+<li><a href={href(lang, 'changelog')}>{t(lang, 'nav_changelog')}</a></li>
+<li><a href={asset('privacy.html')}>{t(lang, 'footer_policy')}</a></li>
+<li><a href={href(lang, 'help')}>{t(lang, 'nav_help')}</a></li>
+<li><a href={href(lang, 'press')}>{t(lang, 'footer_press')}</a></li>
+<li><a href={href(lang, 'help') + '#feedback'}>{t(lang, 'footer_contact')}</a></li>
+</ul>
+</nav>
+</div>
+</footer>

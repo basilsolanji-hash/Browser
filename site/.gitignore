@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+test-results/
+lhci-reports/
+.lighthouseci/
+# Генерируются scripts/prepare.mjs при каждой сборке
+public/fonts/
+src/i18n/app.generated.json
+lychee-report.md

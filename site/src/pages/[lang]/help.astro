@@ -1,0 +1,26 @@
+---
+// Справка: вопросы и ответы дословно из приложения (help_q*/help_a* в Tr*.kt) и с главной.
+import Layout from '../../layouts/Layout.astro';
+import Contact from '../../components/Contact.astro';
+import { t, appText } from '../../lib/i18n';
+import { langPaths } from '../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.params;
+const L = (k: string, v?: Record<string, string>) => t(lang, k, v);
+const qa = [
+  ...[1, 2, 3, 4, 5, 6].map((i) => [appText(lang, `help_q${i}`), appText(lang, `help_a${i}`)]),
+  ...[2, 3, 4].map((i) => [L(`faq${i}_q`), L(`faq${i}_a`)]),
+];
+---
+<Layout lang={lang} page="help" title={L('help_title')} desc={L('help_desc')}>
+<div class="wrap narrow page-head faq">
+<h1 class="h1">{L('help_title')}</h1>
+<p class="lead">{L('help_lead')}</p>
+<div class="top-40">{qa.map(([q, a]) => <details><summary>{q}</summary><p>{a}</p></details>)}</div>
+<section id="feedback" class="box">
+<h2>{L('help_feedback_t')}</h2>
+<Contact lang={lang} k="help_feedback_d" />
+</section>
+<div class="pad-end"></div>
+</div>
+</Layout>

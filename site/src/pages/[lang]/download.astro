@@ -1,0 +1,94 @@
+---
+// «Скачать» по прототипу docs/site-prototype/download.html. Файлы — из releases.json,
+// магазины — из links.json (пока не заданы, на их месте плейсхолдер). Показываем только версию.
+import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
+import { t, href } from '../../lib/i18n';
+import { langPaths } from '../../lib/paths';
+import { android, windows, apk, exe, zip, repoReleases } from '../../lib/releases';
+import links from '../../lib/links';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.params;
+const L = (k: string, v?: Record<string, string | number>) => t(lang, k, v);
+const ver = (r: typeof android) => (r ? L('dl_meta', { version: r.latest.version ?? r.latest.tag }) : L('dl_unavailable'));
+const soon = href(lang, 'changelog');
+const rec = [
+  { id: 'android', name: L('dl_name_android'), meta: ver(android), cta: L('dl_cta_android'), url: apk?.url ?? repoReleases },
+  { id: 'windows', name: L('dl_name_windows'), meta: ver(windows), cta: L('dl_cta_windows'), url: exe?.url ?? repoReleases },
+  links.appStore
+    ? { id: 'ios', name: `Ось — ${L('plat_ios')}`, meta: 'App Store', cta: 'App Store', url: links.appStore }
+    : { id: 'ios', name: L('dl_name_ios'), meta: L('dl_soon_meta'), cta: L('dl_cta_soon'), url: soon },
+  links.macDownload
+    ? { id: 'mac', name: 'Ось — macOS', meta: 'macOS', cta: L('nav_download'), url: links.macDownload }
+    : { id: 'mac', name: L('dl_name_mac'), meta: L('dl_soon_meta'), cta: L('dl_cta_soon'), url: soon },
+];
+const tabs = [['android', 'Android'], ['windows', 'Windows'], ['ios', L('plat_ios')], ['mac', 'macOS']];
+---
+<Layout lang={lang} page="download" title={L('dl_title')} desc={L('dl_desc')} scripts={['download.js']}>
+<div class="wrap page-head">
+<h1 class="h1">{L('dl_title')}</h1>
+<p class="lead">{L('dl_lead')}</p>
+
+<section class="rec" aria-label={L('dl_rec')} data-rec>
+{rec.map((r) => <div class="rec-panel" data-panel={r.id} hidden={r.id !== 'android'}>
+<div class="rec-row">
+<div>
+<p class="rec-label">{L('dl_for_device')}</p>
+<p class="rec-name">{r.name}</p>
+<p class="rec-meta">{r.meta}</p>
+</div>
+<a class="btn btn-primary btn-lg" href={r.url} data-platform-cta={r.id}><Icon name="download" size={20} />{r.cta}</a>
+</div>
+</div>)}
+</section>
+
+<div class="tabs" role="group" aria-label={L('dl_show_for')} data-tabs hidden>
+{tabs.map(([id, label]) => <button type="button" class="tab" data-id={id} aria-pressed={id === 'android' ? 'true' : 'false'}>{label}</button>)}
+</div>
+
+<div class="grid dl-cards">
+<article id="android" class="card" data-card="android">
+<h2>Android</h2>
+<p class="rec-meta">{ver(android)}</p>
+<ul><li>{L('dl_android_r1')}</li><li>{L('dl_android_r2')}</li>{!links.googlePlay && <li class="placeholder">{L('dl_android_r3')}</li>}</ul>
+<div class="row">
+<a class="btn btn-primary" href={apk?.url ?? repoReleases}>{L('dl_cta_android')}</a>
+{links.googlePlay && <a class="btn btn-ghost" href={links.googlePlay}>Google Play</a>}
+<a class="btn btn-ghost" href="#install-android">{L('dl_how')}</a>
+</div>
+</article>
+<article id="windows" class="card" data-card="windows">
+<h2>Windows</h2>
+<p class="rec-meta">{ver(windows)}</p>
+<ul><li>{L('dl_win_r1')}</li><li>{L('dl_win_r2')}</li><li>{L('dl_win_r3')}</li></ul>
+<div class="row">
+<a class="btn btn-primary" href={exe?.url ?? repoReleases}>{L('dl_win_exe')}</a>
+<a class="btn btn-ghost" href={zip?.url ?? repoReleases}>{L('dl_win_zip')}</a>
+{links.microsoftStore && <a class="btn btn-ghost" href={links.microsoftStore}>Microsoft Store</a>}
+</div>
+<p class="small">{L('dl_smartscreen')}</p>
+</article>
+{links.appStore
+  ? <article id="ios" class="card" data-card="ios"><h2>{L('plat_ios')}</h2><div class="row"><a class="btn btn-primary" href={links.appStore}>App Store</a></div></article>
+  : <article id="ios" class="card card-soon" data-card="ios"><h2>{L('plat_ios')}</h2><p>{L('dl_ios_d')}</p></article>}
+{links.macDownload
+  ? <article id="mac" class="card" data-card="mac"><h2>macOS</h2><div class="row"><a class="btn btn-primary" href={links.macDownload}>{L('nav_download')}</a></div></article>
+  : <article id="mac" class="card card-soon" data-card="mac"><h2>macOS</h2><p>{L('dl_mac_d')}</p></article>}
+</div>
+
+<section class="install" aria-labelledby="h-install">
+<h2 id="h-install">{L('dl_install_title')}</h2>
+<h3 id="install-android">{L('dl_inst_android')}</h3>
+<ol>{[1, 2, 3, 4].map((i) => <li>{L(`inst_a${i}`)}</li>)}</ol>
+<h3 id="install-windows">{L('dl_inst_windows')}</h3>
+<ol>{[1, 2, 3, 4].map((i) => <li>{L(`inst_w${i}`)}</li>)}</ol>
+</section>
+
+<section class="box">
+<h2>{L('dl_all_title')}</h2>
+<p>{L('dl_all_d')}</p>
+<a href={href(lang, 'changelog')}>{L('dl_all_link')}</a>
+</section>
+<div class="pad-end"></div>
+</div>
+</Layout>

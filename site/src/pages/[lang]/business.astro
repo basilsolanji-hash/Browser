@@ -1,0 +1,25 @@
+---
+// Для команд: только факты о продукте; условия и цены — плейсхолдер до решения владельца (§9 ТЗ).
+import Layout from '../../layouts/Layout.astro';
+import Contact from '../../components/Contact.astro';
+import { t } from '../../lib/i18n';
+import { langPaths } from '../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.params;
+const L = (k: string, v?: Record<string, string>) => t(lang, k, v);
+---
+<Layout lang={lang} page="business" title={L('biz_title')} desc={L('biz_desc')}>
+<div class="wrap page-head">
+<h1 class="h1">{L('biz_title')}</h1>
+<p class="lead">{L('biz_lead')}</p>
+<div class="grid cards-3">
+{[1, 2, 3, 4].map((i) => <section class="card"><h2 class="card-h">{L(`biz_${i}_t`)}</h2><p>{L(`biz_${i}_d`)}</p></section>)}
+</div>
+<section class="box">
+<h2>{L('biz_terms_t')}</h2>
+<p class="placeholder">{L('biz_terms_d')}</p>
+<Contact lang={lang} k="biz_contact" />
+</section>
+<div class="pad-end"></div>
+</div>
+</Layout>
