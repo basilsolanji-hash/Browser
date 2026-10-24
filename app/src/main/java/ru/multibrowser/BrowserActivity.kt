@@ -466,6 +466,7 @@ class BrowserActivity : AppCompatActivity() {
             Tr.t("new_tab") to { openTab(profileId, Pins.resolve(this, "start"), Pins.START) },
             Tr.t("new_incognito") to { openIncognito(Pins.START) },
             Tr.t("zoom") to { zoomDialog() },
+            Tr.t("downloads") to { startActivity(Intent(this, DownloadsActivity::class.java)) },
             Tr.t("copy_link") to { copyUrl() },
             Tr.t("open_external") to { openExternally() },
             Tr.t("diagnostics") to { showDiagnostics() },
