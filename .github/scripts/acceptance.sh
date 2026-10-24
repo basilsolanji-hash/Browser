@@ -278,13 +278,15 @@ for i in $(seq 30); do adb shell run-as "$PKG" cat shared_prefs/saved_pages.xml 
 act SavedPagesActivity;                                                     shot 56-saved 5
 xtap "Moon" || true;                                                    shot 57-saved-open 15
 # №27: главная — пустая страница, затем возврат к «Старт Ось».
+# Раздел «Главная страница» — через поиск в настройках (их стало много, листать ненадёжно).
 settings; sleep 4
-for i in 1 2 3 4 5 6 7 8; do adb shell input swipe 160 560 160 140 300; done; sleep 2
+tap_any "Search settings" || true; adb shell input text "Home"; sleep 2; adb shell input keyevent 111
                                                                             shot 58-settings-extras 2
 xtap "Blank page"; sleep 2
+adb shell run-as "$PKG" cat shared_prefs/home.xml > "$OUT/home_blank.txt" 2>&1
 browser --ei profile 8 --es url os:start;                                   shot 59-home-blank 10
 settings; sleep 4
-for i in 1 2 3 4 5 6 7 8; do adb shell input swipe 160 560 160 140 300; done; sleep 2
+tap_any "Search settings" || true; adb shell input text "Home"; sleep 2; adb shell input keyevent 111
 xtap "Ось start"; sleep 1
 # Полный экран из меню: панели скрыты, в углу кнопка выхода.
 browser --ei profile 7 --es url https://example.com; sleep 15
@@ -368,6 +370,7 @@ check "Статистика: страницы посчитаны"   'grep -q "na
 check "Язык: главный экран сразу на русском" 'grep -q "lang ru main: [0-9]" "$X"'
 check "Уведомление сайта показано системой" 'grep -q "Os test" "$OUT/notifications.txt"'
 check "Скачивание: разрешение и файл в загрузках" 'grep -q "report.bin" "$OUT/downloads.txt"'
+check "№27 главная: пустая страница выбрана"  'grep -q "BLANK" "$OUT/home_blank.txt"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 
 # --- Автопроверка на белый экран: центральная область не должна быть почти вся белой/пустой ---
