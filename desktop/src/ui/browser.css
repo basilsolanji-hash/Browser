@@ -89,3 +89,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .sugg { padding: 6px; }
 .sugg button { height: 36px; }
 .sugg .url { color: var(--muted); font-size: 12px; margin-inline-start: 8px; overflow: hidden; text-overflow: ellipsis; }
+#addr #star { width: 28px; height: 28px; margin-inline-end: -6px; }
+#addr #star.off .ic { color: var(--muted); }
+#addr #star.on .ic { color: var(--accent); }
+.toast { position: fixed; top: calc(var(--row1) + 6px); right: 48px; background: var(--text); color: var(--bg); padding: 6px 14px; border-radius: 15px; font-size: 12px; font-weight: 600; z-index: 10; max-width: 60vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

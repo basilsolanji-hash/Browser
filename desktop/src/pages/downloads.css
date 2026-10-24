@@ -1,0 +1,7 @@
+.item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.item:last-child { border-bottom: 0; }
+.item .ic { color: var(--muted); }
+.item .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.item .u { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--accent); }

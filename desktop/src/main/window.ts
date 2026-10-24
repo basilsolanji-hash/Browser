@@ -12,6 +12,9 @@ import * as Tabs from './tabs';
 import * as Pins from './pins';
 import * as Profiles from './profiles';
 import * as History from './history';
+import * as Downloads from './downloads';
+import * as Bookmarks from './bookmarks';
+import * as Saved from './saved';
 import type { Palette, ProfileInfo, StripTab, WindowState } from '../shared/types';
 
 /** Высота шапки: верхний ряд (вкладки + кнопки окна) и панель адреса. */
@@ -36,10 +39,16 @@ export function uiSes(): Session {
 
 export function profileSession(id: number): Session {
   const ses = session.fromPartition(Profiles.partition(id));
-  hardenSession(ses);
-  handleWebSession(ses, false);
+  if (!attached.has(ses)) {
+    attached.add(ses);
+    hardenSession(ses);
+    handleWebSession(ses, false);
+    Downloads.attach(ses, id);
+  }
   return ses;
 }
+
+const attached = new WeakSet<Session>();
 
 let incognitoSeq = 0;
 
@@ -157,6 +166,7 @@ export class OsWindow implements TabHost {
         this.incogSession = session.fromPartition(`incognito_${++incognitoSeq}`);
         hardenSession(this.incogSession);
         handleWebSession(this.incogSession, true);
+        Downloads.attach(this.incogSession, null);
       }
       return this.incogSession;
     }
@@ -237,6 +247,7 @@ export class OsWindow implements TabHost {
       panelCanBack: this.panel ? pageWc.navigationHistory.canGoBack() && this.profile == null : false,
       maximized: this.win.isMaximized(),
       zoom: wc ? Math.round(wc.getZoomFactor() * 100) : 100,
+      bookmarked: isWebUrl(url) && !!Bookmarks.findByUrl(url),
     };
   }
 
@@ -525,6 +536,31 @@ export class OsWindow implements TabHost {
     this.push();
   }
 
+  /** В избранное / убрать из избранного (Ctrl+D). Возвращает новое состояние или null, если страницу нельзя добавить. */
+  toggleBookmark(): boolean | null {
+    const v = this.shown;
+    const url = v?.url() ?? '';
+    if (!v || !isWebUrl(url) || this.panel) return null;
+    const has = !!Bookmarks.findByUrl(url);
+    if (has) Bookmarks.removeByUrl(url);
+    else Bookmarks.add(v.wc.getTitle() || url, url);
+    this.push();
+    return !has;
+  }
+
+  /** Сохранить страницу в PDF для чтения без интернета (SavedPages.kt). */
+  async savePage(): Promise<Saved.SavedPage | null> {
+    const v = this.shown;
+    if (!v || !isWebUrl(v.url()) || this.panel) return null;
+    const pdf = await v.wc.printToPDF({ printBackground: true, generateDocumentOutline: true, generateTaggedPDF: true });
+    return Saved.store(v.wc.getTitle(), v.url(), pdf);
+  }
+
+  /** Сообщение в шапке (как Toast на Android). */
+  toast(text: string): void {
+    this.chrome.webContents.send('os:event', 'toast', text);
+  }
+
   activeWebContents(): WebContents | null {
     return this.shown?.wc ?? null;
   }
@@ -639,6 +675,15 @@ export class OsWindow implements TabHost {
     if (ctrl && (k === '=' || k === '+' || code === 'NumpadAdd')) { this.zoom(1); return true; }
     if (ctrl && (k === '-' || code === 'NumpadSubtract')) { this.zoom(-1); return true; }
     if (ctrl && (code === 'Digit0' || code === 'Numpad0')) { this.zoom(0); return true; }
+    if (ctrl && !input.shift && code === 'KeyH' && !this.incognito) { this.openPanel(`os://history/?profile=${this.profile ?? Profiles.order()[0]}`); return true; }
+    if (ctrl && !input.shift && code === 'KeyJ') { this.openPanel('os://downloads/'); return true; }
+    if (ctrl && input.shift && code === 'KeyO' && !this.incognito) { this.openPanel('os://favorites/'); return true; }
+    if (ctrl && !input.shift && code === 'KeyD') {
+      const r = this.toggleBookmark();
+      if (r != null) this.toast(t(r ? 'added_favorite' : 'fav_removed'));
+      return true;
+    }
+    if (ctrl && !input.shift && code === 'KeyS') { void saveWithToast(this); return true; }
     if (k === 'F11') { this.win.setFullScreen(!this.win.isFullScreen()); return true; }
     if (ctrl && input.shift && code === 'KeyA' && this.profile != null) { this.openPanel(`os://tabs/?profile=${this.profile}`); return true; }
     if (k === 'Escape' && !fromChrome) {
@@ -664,6 +709,16 @@ export class OsWindow implements TabHost {
       void this.incogSession.clearCache();
       this.incogSession = null;
     }
+  }
+}
+
+export async function saveWithToast(w: OsWindow): Promise<void> {
+  if (!w.activeWebContents() || !isWebUrl(w.activeWebContents()!.getURL())) { w.toast(t('web_only')); return; }
+  w.toast(t('saving_page'));
+  try {
+    w.toast((await w.savePage()) ? t('page_saved') : t('save_failed'));
+  } catch {
+    w.toast(t('save_failed'));
   }
 }
 

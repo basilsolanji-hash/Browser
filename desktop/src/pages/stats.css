@@ -1,0 +1,8 @@
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.tile { padding: 18px; }
+.tile .n { font-size: 32px; font-weight: 700; color: var(--accent); }
+.tile .l { color: var(--muted); }
+.line { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.line:last-child { border-bottom: 0; }
+.line .dot { width: 10px; height: 10px; border-radius: 50%; }
+.line .v { color: var(--muted); }
