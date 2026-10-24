@@ -1,5 +1,6 @@
 package ru.multibrowser
 
+import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
@@ -7,7 +8,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.content.pm.PackageManager
+import android.text.format.Formatter
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import org.mozilla.geckoview.WebResponse
 import java.io.File
 import java.io.InputStream
@@ -17,6 +23,32 @@ import kotlin.concurrent.thread
 /** Сохраняет скачиваемые файлы (вложения Gmail и т.п.) в «Загрузки/Ось». */
 object Downloads {
     private const val FOLDER = "Ось"
+    private var permissionSeq = 0
+
+    /**
+     * Скачивание по разрешению сайта (SitePermissions.DOWNLOADS: спросить/разрешить/запретить).
+     * [pageUrl] — страница, с которой скачивают. Отказ — поток ответа закрывается.
+     */
+    fun request(activity: AppCompatActivity, pageUrl: String?, response: WebResponse, privateMode: Boolean = false) {
+        val name = fileName(response)
+        val size = header(response, "Content-Length")?.toLongOrNull()?.let { " (${Formatter.formatShortFileSize(activity, it)})" }.orEmpty()
+        SitePermissions.check(activity, pageUrl, SitePermissions.Kind.DOWNLOADS,
+            { host -> Tr.t("perm_q_downloads", host, name + size) }, privateMode) { ok ->
+            if (!ok) { runCatching { response.body?.close() }; return@check }
+            withStorage(activity) { save(activity, response) }
+        }
+    }
+
+    /** Android 8–9: в общую папку «Загрузки» можно писать только с разрешением — спрашиваем один раз. */
+    private fun withStorage(activity: AppCompatActivity, then: () -> Unit) {
+        val legacy = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+        if (!legacy || ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
+            PackageManager.PERMISSION_GRANTED || activity.isFinishing) return then()
+        lateinit var launcher: androidx.activity.result.ActivityResultLauncher<String>
+        launcher = activity.activityResultRegistry.register("os_storage_${permissionSeq++}",
+            ActivityResultContracts.RequestPermission()) { launcher.unregister(); then() }
+        runCatching { launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) }.onFailure { launcher.unregister(); then() }
+    }
 
     fun save(activity: Activity, response: WebResponse) {
         val body = response.body ?: return
@@ -48,7 +80,13 @@ object Downloads {
             ctx.contentResolver.openOutputStream(uri)!!.use { input.copyTo(it) }
             return uri
         } else {
-            val dir = File(ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), FOLDER).apply { mkdirs() }
+            // С разрешением — общая папка «Загрузки/Ось», без него — папка приложения.
+            val granted = ContextCompat.checkSelfPermission(ctx, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED
+            @Suppress("DEPRECATION")
+            val base = if (granted) Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                else ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            val dir = File(base, FOLDER).apply { mkdirs() }
             val file = File(dir, name)
             file.outputStream().use { input.copyTo(it) }
             return Uri.fromFile(file)

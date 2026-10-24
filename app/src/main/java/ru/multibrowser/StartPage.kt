@@ -21,7 +21,7 @@ h1{font-size:22px;margin:14px 0 4px}.t{color:$accent}
 p{color:$muted;font-size:14px;max-width:320px;line-height:1.5}
 .q{color:$text;font-size:16px;font-style:italic;margin:22px 0 0;padding-top:16px;border-top:1px solid $accent}</style></head>
 <body><div class="ring"><div class="axis"></div><div class="dot"></div></div>
-<h1>Ось<span class="t">Browser</span></h1>
+<h1>Ось</h1>
 <p class="b">$tagline</p>
 <p>$hint</p>$phrase</body></html>"""
         return s.toByteArray(Charsets.UTF_8)

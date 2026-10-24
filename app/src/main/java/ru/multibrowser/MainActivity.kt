@@ -94,10 +94,12 @@ class MainActivity : AppCompatActivity() {
                 Tr.t("about") to AboutActivity::class.java,
             ).forEachIndexed { i, (label, screen) ->
                 // Поровну на всю ширину: длинные подписи (ru, de) переносятся, а не обрезаются.
+                // Одинаковая высота у всех трёх, даже если одна подпись в две строки.
                 addView(pill(label, false) { startActivity(Intent(this@MainActivity, screen)) }.apply {
                     maxLines = 2
+                    minHeight = dp(44)
                     setPadding(dp(6), dp(4), dp(6), dp(4))
-                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f).apply {
                     if (i > 0) marginStart = dp(6)
                 })
             }
