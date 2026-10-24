@@ -23,6 +23,12 @@ import androidx.appcompat.app.AppCompatActivity
 class MainActivity : AppCompatActivity() {
 
     private lateinit var list: LinearLayout
+    private var expanded = false // показаны все профили, а не первые VISIBLE
+
+    companion object {
+        /** Сколько профилей видно сразу; остальные — под «Показать все». */
+        const val VISIBLE = 5
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,15 +58,42 @@ class MainActivity : AppCompatActivity() {
 
         list.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            addView(ImageView(context).apply {
-                setImageResource(R.drawable.ic_wordmark)
-                contentDescription = "Ось"
-                scaleType = ImageView.ScaleType.FIT_START
-            }, LinearLayout.LayoutParams(0, dp(34), 1f))
+            gravity = Gravity.CENTER_VERTICAL or Gravity.END
             addView(iconButton(R.drawable.ic_settings, Tr.t("settings")) {
                 startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
             }, LinearLayout.LayoutParams(dp(40), dp(40)))
+        })
+        // Логотип, «бизнес-браузер» и коротко о приложении — как на стартовой странице и в «О приложении».
+        list.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            addView(ImageView(context).apply {
+                setImageResource(R.drawable.ic_wordmark)
+                contentDescription = "Ось"
+                scaleType = ImageView.ScaleType.FIT_CENTER
+            }, LinearLayout.LayoutParams(dp(180), dp(52)))
+            addView(ExtrasUi.paragraph(context, Tr.t("start_tagline"), 12f, Ui.MUTED, bold = true).apply {
+                gravity = Gravity.CENTER
+                letterSpacing = 0.14f
+                setPadding(0, dp(8), 0, 0)
+            })
+            addView(ExtrasUi.paragraph(context, Tr.t("about_desc"), 13f, Ui.MUTED).apply { gravity = Gravity.CENTER })
+        })
+        // Быстрый доступ к библиотеке и сведениям о приложении.
+        list.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(0, dp(6), 0, 0)
+            listOf(
+                Tr.t("notes") to NotesActivity::class.java,
+                Tr.t("saved_pages") to SavedPagesActivity::class.java,
+                Tr.t("about") to AboutActivity::class.java,
+            ).forEachIndexed { i, (label, screen) ->
+                addView(pill(label, false) { startActivity(Intent(this@MainActivity, screen)) },
+                    LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(32)).apply {
+                        if (i > 0) marginStart = dp(6)
+                    })
+            }
         })
         list.addView(TextView(this).apply {
             text = Tr.t("profiles")
@@ -76,7 +109,14 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, 0, 0, dp(12))
         })
         list.addView(ExtrasUi.hint(this, Tr.t("profiles_reorder_hint")).apply { setPadding(0, 0, 0, dp(4)) })
-        Profiles.all(this).forEach { list.addView(row(it)) }
+        val all = Profiles.all(this)
+        all.take(if (expanded) all.size else VISIBLE).forEach { list.addView(row(it)) }
+        if (all.size > VISIBLE) {
+            list.addView(ExtrasUi.button(this, if (expanded) Tr.t("profiles_fewer") else Tr.t("profiles_all", all.size)) {
+                expanded = !expanded
+                render()
+            })
+        }
     }
 
     // --- Перетаскивание профилей ---
@@ -118,8 +158,9 @@ class MainActivity : AppCompatActivity() {
         row.elevation = 0f
         row.animate().translationY(0f).scaleX(1f).scaleY(1f).setDuration(150).start()
         if (dragMoved) {
+            // Переставляли только видимые; скрытые профили остаются за ними в прежнем порядке.
             val ids = (0 until list.childCount).mapNotNull { list.getChildAt(it).getTag(R.id.profile_row) as? Int }
-            Profiles.setOrder(this, ids)
+            Profiles.setOrder(this, ids + Profiles.order(this).filterNot { it in ids })
         } else {
             profileMenu(p)
         }

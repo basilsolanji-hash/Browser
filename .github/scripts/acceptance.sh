@@ -104,9 +104,9 @@ tap_text "Ось start"; sleep 1
 browser --ei profile 7 --es url https://example.com; sleep 15
 menu_item "Full screen";                                                    shot 32-fullscreen 3
 tap_text "Exit full screen";                                                shot 33-fullscreen-exit 3
-# Профили: перетаскивание (Profile 1 → на место Profile 3), описание профиля.
+# Профили: перетаскивание (Profile 1 → на место Profile 2), описание профиля.
 adb shell am force-stop "$PKG"; main; sleep 6
-from=$(find_xy "Profile 1"); to=$(find_xy "Profile 3")
+from=$(find_xy "Profile 1"); to=$(find_xy "Profile 2")
 echo "drag: '$from' -> '$to'" >> "$X"
 [ -n "$from" ] && [ -n "$to" ] && adb shell input draganddrop $from $to 2500
                                                                             shot 34-profiles-reordered 3
