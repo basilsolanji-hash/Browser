@@ -1,0 +1,160 @@
+name: Site
+
+# Сайт пересобирается при правке исходников, переводов приложения (строки берутся из Tr*.kt
+# через gen-i18n.mjs) и после каждого успешного релиза — ссылки на скачивание и журнал
+# изменений берутся из GitHub Releases на этапе сборки (§2 ТЗ).
+on:
+  # Ветки feat/site-*: только сборка и проверки, без публикации (см. условие deploy).
+  # Фильтр путей общий для обеих — у push может быть только один набор фильтров.
+  push:
+    branches: [main, 'feat/site-*']
+    paths:
+      - 'site/**'
+      - 'app/src/main/java/ru/multibrowser/Tr*.kt'
+      - 'desktop/scripts/gen-i18n.mjs'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Build APK', 'Desktop (Windows)']
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write # пуш результатов в ветку site-results
+  pages: write
+  id-token: write
+
+# Публикацию не прерываем на середине: следующий прогон дождётся текущего.
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-test:
+    # После релиза — только если сам релиз собрался.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - run: npm ci
+
+      # Chromium нужен и для OG-картинок, и для приёмки, и для Lighthouse — ставим один раз.
+      - run: npx playwright install --with-deps chromium
+
+      - name: Prepare (fonts, app strings)
+        run: node scripts/prepare.mjs
+
+      - name: Fetch releases
+        run: node scripts/fetch-releases.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CI: 'true'
+
+      - name: OG images
+        run: node scripts/og.mjs
+
+      - run: npm run build
+
+      # Проверки не останавливают друг друга: важно получить все результаты разом,
+      # а упасть — в самом конце, после публикации отчётов.
+      - name: Acceptance (Playwright, axe, budgets)
+        id: acceptance
+        continue-on-error: true
+        run: node test/acceptance.mjs
+
+      - name: Lighthouse CI
+        id: lhci
+        continue-on-error: true
+        run: |
+          export CHROME_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")"
+          npx lhci autorun
+
+      # lychee проверяет файлы, а ссылки на сайте абсолютные (/Browser/…): кладём dist в
+      # _lychee/Browser и даём корень _lychee. Канонические адреса github.io сводим к тем же файлам,
+      # иначе до первой публикации они были бы «битыми».
+      - name: Stage dist for link check
+        run: rm -rf ../_lychee && mkdir -p ../_lychee && cp -r dist ../_lychee/Browser
+
+      - name: Link check (lychee)
+        id: lychee
+        continue-on-error: true
+        uses: lycheeverse/lychee-action@v2
+        with:
+          lycheeVersion: v0.24.2
+          fail: true
+          jobSummary: true
+          output: site/lychee-report.md
+          args: >-
+            --no-progress
+            --root-dir ${{ github.workspace }}/_lychee
+            --index-files index.html
+            --accept 200,429
+            --max-concurrency 8
+            --remap 'https://basilsolanji-hash\.github\.io/Browser file://${{ github.workspace }}/_lychee/Browser'
+            '_lychee/Browser/**/*.html'
+
+      # Результаты — в отдельную ветку, как у Android-приёмки: site-results для main,
+      # site-results-feat-x для веток (параллельные прогоны не мешают друг другу).
+      - name: Publish results
+        if: always()
+        run: |
+          BR=site-results
+          [ "${{ github.ref_name }}" != main ] && BR="site-results-$(echo '${{ github.ref_name }}' | tr '/' '-')"
+          rm -rf ../results && mkdir -p ../results
+          [ -d test-results ] && cp -r test-results ../results/
+          [ -d lhci-reports ] && cp -r lhci-reports ../results/lighthouse
+          [ -f lychee-report.md ] && cp lychee-report.md ../results/
+          cat > ../results/summary.txt <<EOF
+          run: ${{ github.run_number }} (${{ github.sha }})
+          acceptance: ${{ steps.acceptance.outcome }}
+          lighthouse: ${{ steps.lhci.outcome }}
+          lychee: ${{ steps.lychee.outcome }}
+          EOF
+          cd ../results
+          git init -q -b "$BR"
+          git add -A
+          git -c user.name=ci -c user.email=ci@localhost commit -q -m "Site ${{ github.run_number }} (${{ github.sha }})"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/$BR"
+
+      - name: Fail if any check failed
+        if: steps.acceptance.outcome == 'failure' || steps.lhci.outcome == 'failure' || steps.lychee.outcome == 'failure'
+        run: |
+          echo "acceptance=${{ steps.acceptance.outcome }} lighthouse=${{ steps.lhci.outcome }} lychee=${{ steps.lychee.outcome }}"
+          exit 1
+
+      # Артефакт для Pages — только с main: ветки сайта лишь проверяются.
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build-test
+    # push в main, ручной запуск с main и workflow_run (он всегда идёт от ветки по умолчанию).
+    if: github.ref == 'refs/heads/main' && needs.build-test.result == 'success'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # Pages в репозитории пока выключены. enablement пытается включить их сам, но токену
+      # GITHUB_TOKEN на это обычно не хватает прав — тогда владелец один раз выставляет
+      # Settings → Pages → Source: GitHub Actions, и дальше всё работает само.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

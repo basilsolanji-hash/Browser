@@ -7,3 +7,4 @@ lhci-reports/
 # Генерируются scripts/prepare.mjs при каждой сборке
 public/fonts/
 src/i18n/app.generated.json
+lychee-report.md

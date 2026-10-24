@@ -2,6 +2,7 @@
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname } from 'node:path';
+import { gzipSync } from 'node:zlib';
 
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.json': 'application/json', '.xml': 'application/xml', '.txt': 'text/plain' };
 
@@ -15,8 +16,14 @@ export function serve(dist, base = '/Browser', port = 0) {
         if (!url.endsWith('/')) { res.writeHead(301, { location: url + '/' }); return res.end(); }
         p = join(p, 'index.html');
       }
-      const body = await readFile(p);
-      res.writeHead(200, { 'content-type': TYPES[extname(p)] ?? 'application/octet-stream' });
+      let body = await readFile(p);
+      const headers = { 'content-type': TYPES[extname(p)] ?? 'application/octet-stream' };
+      // Текст сжимаем, как GitHub Pages, чтобы Lighthouse мерил то же, что увидит посетитель.
+      if (/text|javascript|svg|json|xml/.test(headers['content-type']) && /gzip/.test(req.headers['accept-encoding'] ?? '')) {
+        body = gzipSync(body);
+        headers['content-encoding'] = 'gzip';
+      }
+      res.writeHead(200, headers);
       return res.end(req.method === 'HEAD' ? undefined : body);
     } catch {
       res.writeHead(404, { 'content-type': TYPES['.html'] });

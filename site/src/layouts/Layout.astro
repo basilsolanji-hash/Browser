@@ -10,7 +10,7 @@ const { lang, page = '', title, desc, jsonld, scripts = [], canonical } = Astro.
 const site = Astro.site!.toString().replace(/\/$/, '');
 const abs = (p: string) => site + p;
 const fontSubset = lang === 'ru' ? 'cyrillic' : 'latin';
-const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'";
+const csp = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'";
 ---
 <!doctype html>
 <html lang={lang} dir={isRtl(lang) ? 'rtl' : 'ltr'}>
@@ -24,7 +24,6 @@ const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 's
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#F6F5F4">
 <link rel="icon" href={asset('favicon.svg')} type="image/svg+xml">
-<link rel="preload" href={asset(`fonts/inter-${fontSubset}-400-normal.woff2`)} as="font" type="font/woff2" crossorigin>
 {!['ar', 'hi', 'zh'].includes(lang) && <link rel="preload" href={asset(`fonts/unbounded-${fontSubset}-700-normal.woff2`)} as="font" type="font/woff2" crossorigin>}
 {page !== null && <>
 <link rel="canonical" href={canonical ?? abs(href(lang, page))}>

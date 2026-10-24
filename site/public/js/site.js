@@ -1,6 +1,11 @@
 // Общий скрипт сайта: запоминание выбранного языка (localStorage, не cookie),
 // закрытие меню языков и мягкое появление секций при прокрутке.
 (function () {
+  // Текстовый шрифт Inter — после загрузки страницы (см. fonts-inter.css рядом с js/).
+  var base = (document.currentScript && document.currentScript.src || '').replace(/js\/site\.js.*$/, '');
+  function fonts() { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + 'fonts-inter.css'; document.head.appendChild(l); }
+  if (document.readyState === 'complete') fonts(); else addEventListener('load', fonts);
+
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[data-lang]');
     if (a) { try { localStorage.setItem('os-lang', a.getAttribute('data-lang')); } catch (err) {} }

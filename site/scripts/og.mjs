@@ -12,8 +12,8 @@ const pub = join(root, 'public');
 const font = (f) => 'data:font/woff2;base64,' + readFileSync(join(pub, 'fonts', f)).toString('base64');
 const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
 const css = `
-@font-face{font-family:Inter;font-weight:400;src:url(${font('inter-latin-400-normal.woff2')})}
-@font-face{font-family:Inter;font-weight:400;src:url(${font('inter-cyrillic-400-normal.woff2')});unicode-range:U+0400-045F}
+@font-face{font-family:Inter;font-weight:400;src:url(${font('inter-latin-wght-normal.woff2')})}
+@font-face{font-family:Inter;font-weight:400;src:url(${font('inter-cyrillic-wght-normal.woff2')});unicode-range:U+0400-045F}
 @font-face{font-family:Unbounded;font-weight:700;src:url(${font('unbounded-latin-700-normal.woff2')})}
 @font-face{font-family:Unbounded;font-weight:700;src:url(${font('unbounded-cyrillic-700-normal.woff2')});unicode-range:U+0400-045F}
 *{box-sizing:border-box}body{margin:0;width:1200px;height:630px;background:#F6F5F4;color:#1B1A19;font-family:Inter,'Noto Sans','Noto Sans Devanagari','Noto Sans Arabic','WenQuanYi Zen Hei',sans-serif}
