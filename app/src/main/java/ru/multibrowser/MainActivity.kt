@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, dp(20), 0, dp(6))
         })
         list.addView(TextView(this).apply {
-            text = "${Settings.profileCount(this@MainActivity)} изолированных профилей: в каждом свой Gmail и свой Claude. Долгое нажатие — меню профиля."
+            text = "${Settings.profileCount(this@MainActivity)} изолированных профилей: в каждом свои аккаунты и cookies. Долгое нажатие — меню профиля."
             textSize = 13f
             setTextColor(Ui.MUTED)
             setPadding(0, 0, 0, dp(12))
