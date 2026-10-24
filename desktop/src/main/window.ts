@@ -1,4 +1,4 @@
-import { BrowserWindow, WebContentsView, screen, session, type Session, type WebContents } from 'electron';
+import { BrowserWindow, WebContentsView, clipboard, screen, session, type Session, type WebContents } from 'electron';
 import { join } from 'node:path';
 import { JsonFile } from './store';
 import { WEB_PREFS, hardenSession, openExternal } from './security';
@@ -18,6 +18,9 @@ import * as Saved from './saved';
 import * as Perms from './permissions';
 import * as Privacy from './privacy';
 import * as Lock from './lock';
+import * as Reader from './reader';
+import * as Notes from './notes';
+import { searchUrl as searchFor } from './settings';
 import type { Palette, ProfileInfo, StripTab, WindowState } from '../shared/types';
 
 /** Высота шапки: верхний ряд (вкладки + кнопки окна) и панель адреса. */
@@ -95,10 +98,18 @@ const hostOf = (url: string) => {
  * Разрешения сайтов: по умолчанию — спросить; решение запоминается по сайту и профилю.
  * Инкогнито: решения живут только в памяти окна.
  */
+const sessionModes = new WeakMap<Session, (host: string, kind: string) => Perms.Mode>();
+
+/** Решение по разрешению для сайта в этой сессии (профиль или инкогнито). */
+export function permissionMode(ses: Session, host: string, kind: string): Perms.Mode {
+  return sessionModes.get(ses)?.(host, kind) ?? 'BLOCK';
+}
+
 function installPermissions(ses: Session, profile: number | null): void {
   const memory = new Map<string, Perms.Mode>();
   const mode = (host: string, kind: string): Perms.Mode =>
     profile == null ? (memory.get(`${host}|${kind}`) ?? Perms.defaultMode(kind)) : Perms.effective(profile, host, kind);
+  sessionModes.set(ses, mode);
   ses.setPermissionRequestHandler((wc, permission, cb, details) => {
     if (SIMPLE_ALLOW.has(permission)) return cb(true);
     const kinds = kindsFor(permission, details as { mediaTypes?: string[] });
@@ -338,6 +349,7 @@ export class OsWindow implements TabHost {
       blocked: wc ? Privacy.blockedOnTab(wc.id) : 0,
       locked: this.locked,
       lockEnabled: Lock.enabled(),
+      reader: !!v?.reader,
     };
   }
 
@@ -788,6 +800,49 @@ export class OsWindow implements TabHost {
     this.newTab(url, { after: Tabs.isTab(opener.id) || this.incognito ? opener.id : null, foreground });
   }
 
+  addNote(text: string, url: string): void {
+    Notes.save(null, text, this.incognito ? '' : url);
+    this.toast(t('note_added'));
+  }
+
+  searchText(text: string, opener: TabView): void {
+    this.openTab(searchFor(text), opener, true);
+  }
+
+  shareText(text: string, tab: TabView, how: 'copy' | 'mail'): void {
+    const url = tab.url();
+    const quote = `«${text}»\n${url}`;
+    if (how === 'copy') {
+      clipboard.writeText(quote);
+      this.toast(t('copied'));
+    } else {
+      openExternal(`mailto:?subject=${encodeURIComponent(tab.wc.getTitle())}&body=${encodeURIComponent(quote)}`);
+    }
+  }
+
+  /** Режим чтения (№34): статья без лишнего; повторный вызов — выход. */
+  async toggleReader(): Promise<void> {
+    const v = this.shown;
+    if (!v || this.panel) return;
+    if (v.reader) {
+      if (v.wc.navigationHistory.canGoBack()) v.wc.navigationHistory.goBack();
+      else void v.wc.loadURL(v.url());
+      return;
+    }
+    if (!isWebUrl(v.url())) { this.toast(t('web_only')); return; }
+    const url = await Reader.extract(v.wc).catch(() => null);
+    if (!url) { this.toast(t('dt_reader_none')); return; }
+    void v.wc.loadURL(url);
+  }
+
+  tabOf(wc: WebContents): TabView | undefined {
+    return [...this.views.values()].find((v) => v.wc === wc);
+  }
+
+  profileOfTab(tab: TabView): number | null {
+    return this.incognito ? null : Number(tab.key.split(':')[0]);
+  }
+
   popupOptions(): Electron.BrowserWindowConstructorOptions {
     return {
       width: 520,
@@ -817,6 +872,7 @@ export class OsWindow implements TabHost {
     }
     if (ctrl && !input.shift && /^Digit[1-9]$/.test(code)) { this.activateIndex(Number(code.slice(5))); return true; }
     if ((ctrl && code === 'KeyL') || (input.alt && code === 'KeyD') || k === 'F6') { this.focusAddress(); return true; }
+    if (ctrl && input.alt && code === 'KeyR') { void this.toggleReader(); return true; }
     if (k === 'F5' || (ctrl && code === 'KeyR')) { this.reload(input.shift || ctrl && k === 'F5'); return true; }
     if (input.alt && k === 'ArrowLeft') { this.back(); return true; }
     if (input.alt && k === 'ArrowRight') { this.forward(); return true; }

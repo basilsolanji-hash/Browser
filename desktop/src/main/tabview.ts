@@ -1,4 +1,6 @@
 import { Menu, WebContentsView, clipboard, type Session, type WebContents } from 'electron';
+import { join } from 'node:path';
+import { sourceOf } from './reader';
 import { WEB_PREFS, openExternal } from './security';
 import { isWebUrl } from './urls';
 import { t } from './i18n';
@@ -14,6 +16,9 @@ export interface TabHost {
   onTitle(tab: TabView, title: string): void;
   openTab(url: string, opener: TabView, foreground: boolean): void;
   popupOptions(): Electron.BrowserWindowConstructorOptions;
+  addNote(text: string, url: string): void;
+  searchText(text: string, opener: TabView): void;
+  shareText(text: string, tab: TabView, how: 'copy' | 'mail'): void;
   shortcut(input: Electron.Input, wc: WebContents): boolean;
 }
 
@@ -43,7 +48,8 @@ export class TabView {
   failedUrl: string | null = null;
 
   constructor(readonly key: string, readonly id: string, ses: Session, private host: TabHost, bg: string) {
-    this.view = new WebContentsView({ webPreferences: { ...WEB_PREFS, session: ses } });
+    // Preload вкладки — только для веб-уведомлений (см. preload/tab.ts), мостов в window нет.
+    this.view = new WebContentsView({ webPreferences: { ...WEB_PREFS, session: ses, preload: join(__dirname, '..', 'preload', 'tab.js') } });
     this.view.setBackgroundColor(bg);
     const wc = this.view.webContents;
     wc.setWindowOpenHandler(({ url, disposition }) => {
@@ -89,7 +95,13 @@ export class TabView {
   /** Адрес для адресной строки: у страницы ошибки — адрес, который не открылся. */
   url(): string {
     const u = this.wc.getURL();
+    if (u.startsWith('os://reader')) return sourceOf(u) ?? u;
     return u.startsWith('os://error') && this.failedUrl ? this.failedUrl : u;
+  }
+
+  /** Сейчас показан режим чтения. */
+  get reader(): boolean {
+    return this.wc.getURL().startsWith('os://reader');
   }
 
   /** Значок сайта качаем в сессии профиля и отдаём интерфейсу как data: (интерфейс в сеть не ходит). */
@@ -129,7 +141,18 @@ export class TabView {
         { label: t('select_all'), role: 'selectAll' },
       );
     } else if (p.selectionText.trim()) {
-      items.push({ label: t('copy'), role: 'copy' });
+      // Действия с выделенным текстом (PageTools.kt → TextActions): своя фишка — «Добавить в заметку».
+      const text = p.selectionText.trim();
+      const short = text.length > 24 ? text.slice(0, 23) + '…' : text;
+      items.push(
+        { label: t('copy'), role: 'copy' },
+        { label: t('add_to_note'), click: () => this.host.addNote(text, this.url()) },
+        { label: t('share'), submenu: [
+          { label: t('dt_share_copy'), click: () => this.host.shareText(text, this, 'copy') },
+          { label: t('dt_share_mail'), click: () => this.host.shareText(text, this, 'mail') },
+        ] },
+        { label: t('dt_search_for', short), click: () => this.host.searchText(text, this) },
+      );
     }
     if (p.mediaType === 'image' && isWebUrl(p.srcURL)) {
       items.push({ label: t('dt_copy_image_link'), click: () => clipboard.writeText(p.srcURL) });

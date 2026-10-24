@@ -59,6 +59,7 @@ export interface WindowState {
   blocked: number;
   locked: boolean;
   lockEnabled: boolean;
+  reader: boolean;
 }
 
 export interface Suggestion { kind: 'search' | 'history' | 'favorite' | 'url'; title: string; url: string }

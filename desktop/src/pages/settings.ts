@@ -67,6 +67,7 @@ async function render(): Promise<void> {
   document.title = t('settings');
   const s = await os.call<SettingsInfo>('settings');
   const lastProfile = await os.call<number>('lastProfile');
+  const def = await os.call<{ isDefault: boolean; supported: boolean }>('defaultBrowser');
   const v = s.values;
   const homeUrl = h('input', {
     type: 'url', class: 'homeurl', id: 'home-url', value: v.homeUrl, placeholder: t('home_url_hint'),
@@ -103,6 +104,11 @@ async function render(): Promise<void> {
       setting(t('site_permissions'), h('a', { class: 'btn', href: `os://site/?profile=${lastProfile}`, style: 'text-decoration:none;color:inherit' }, t('open'))),
       setting(t('security_check'), h('a', { class: 'btn', id: 'sec-check', href: 'os://security/', style: 'text-decoration:none;color:inherit' }, t('open'))),
     )),
+    sec(t('default_browser'), h('div', { class: 'card' },
+      setting(def.isDefault ? t('default_is') : t('default_not'),
+        def.supported ? h('button', { class: 'btn' + (def.isDefault ? '' : ' accent'), id: 'make-default', onclick: () => void os.call('makeDefault') },
+          def.isDefault ? t('default_change') : t('default_make')) : null,
+        t('default_desc')))),
     sec(t('home_page'), h('div', { class: 'card' },
       h('div', { class: 'setting', style: 'display:block' },
         homeSeg,

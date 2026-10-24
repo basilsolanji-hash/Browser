@@ -6,6 +6,7 @@ import type { ProfileInfo } from '../shared/types';
 const app = document.getElementById('app')!;
 let index = 0;
 let examples: ProfileInfo[] = [];
+let def = false; // предложить «браузер по умолчанию» на последнем экране (как на Android)
 
 interface Page { title: string; body: string; art: () => HTMLElement }
 
@@ -40,7 +41,8 @@ function render(): void {
     h('div', { class: 'stage', 'aria-live': 'polite' },
       h('div', { class: 'art' }, p.art()),
       h('div', { class: 'title', id: 'title' }, p.title),
-      h('div', { class: 'body' }, p.body)),
+      h('div', { class: 'body' }, p.body),
+      last && def ? h('button', { class: 'btn', style: 'margin-top:18px', onclick: () => void os.call('makeDefault') }, t('default_make')) : ''),
     h('div', { class: 'dots' }, ...list.map((_x, i) => h('span', { class: i === index ? 'on' : '' }))),
     h('div', { class: 'nav' },
       h('button', { class: 'btn' + (index === 0 ? ' hidden' : ''), id: 'prev', onclick: () => go(index - 1) }, t('onb_back')),
@@ -64,5 +66,7 @@ document.addEventListener('keydown', (e) => {
 
 void boot(async () => {
   examples = await os.call<ProfileInfo[]>('exampleProfiles');
+  const d = await os.call<{ isDefault: boolean; supported: boolean }>('defaultBrowser');
+  def = d.supported && !d.isDefault;
   render();
 });

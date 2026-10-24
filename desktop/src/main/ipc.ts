@@ -1,7 +1,7 @@
 import { app, clipboard, dialog, ipcMain, nativeTheme, shell, session, type IpcMainInvokeEvent } from 'electron';
 import { copyFile, mkdir, readdir, rename, rm, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { basename, extname, join } from 'node:path';
+import { basename, dirname, extname, join } from 'node:path';
 import { applyLanguage, currentLang, isRtl, strings, t } from './i18n';
 import { settings, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
 import { THEME_IDS, themeNameKey } from './themes';
@@ -20,8 +20,12 @@ import * as Stats from './stats';
 import * as Perms from './permissions';
 import * as Lock from './lock';
 import { blocklistSize } from './privacy';
+import * as DefaultBrowser from './defaultbrowser';
 import { LANGS, LANG_NAMES } from '../shared/format';
 import type { Suggestion, UiInit } from '../shared/types';
+
+/** Адрес для отзывов — тот же, что в Android-версии (HelpActivity.FEEDBACK_EMAIL). */
+const FEEDBACK_EMAIL = 'moonstar20moon19@gmail.com';
 
 /**
  * IPC своих страниц. Каждый вызов проверяет отправителя: это шапка или экран нашего окна,
@@ -109,6 +113,23 @@ on(['chrome'], 'toggleBookmark', (w) => {
 on(['chrome'], 'savePage', (w) => saveWithToast(w));
 on(['chrome'], 'permissionAnswer', (w, id, allow, remember) => w.answerPrompt(int(id), allow === true, remember === true));
 on(['chrome'], 'lockNow', () => { for (const w of windows) w.lock(); });
+on(['chrome'], 'reader', (w) => w.toggleReader());
+
+// --- Браузер по умолчанию, справка ---
+on(['page'], 'defaultBrowser', async () => ({ isDefault: await DefaultBrowser.isDefault(), supported: process.platform === 'win32' }));
+on(['page'], 'makeDefault', () => DefaultBrowser.openSystemSettings());
+on(['page'], 'feedback', (_w, kind) => {
+  const v = app.getVersion();
+  const subject = kind === 'problem' ? t('problem_subject', v) : t('feedback_subject', v);
+  const body = kind === 'problem' ? t('problem_body') + '\n\n' : '';
+  void shell.openExternal(`mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+});
+on(['page'], 'feedbackEmail', () => FEEDBACK_EMAIL);
+on(['page'], 'openLicenses', async () => {
+  // Лицензии Chromium лежат рядом с программой (их кладёт Electron).
+  const file = join(dirname(process.execPath), 'LICENSES.chromium.html');
+  return (await shell.openPath(file)) === '';
+});
 
 // --- Блокировка ---
 on(['page'], 'unlock', (_w, pin) => {
@@ -436,7 +457,7 @@ export function installIpc(): void {
   ipcMain.handle('os', async (e, cmd: unknown, ...args: unknown[]) => {
     const who = sender(e);
     const h = typeof cmd === 'string' ? handlers[cmd] : undefined;
-    if (!who || !h || !h.roles.includes(who.role)) throw new Error('denied');
+    if (!who || !h || !h.roles.includes(who.role)) throw new Error(`denied: ${String(cmd)}`);
     // Под замком работают только экран PIN и загрузка переводов.
     if (who.win.locked && cmd !== 'init' && cmd !== 'unlock') throw new Error('locked');
     return h.fn(who.win, ...args);

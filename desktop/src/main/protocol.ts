@@ -4,6 +4,7 @@ import { join, normalize, sep } from 'node:path';
 import { errorHtml, startHtml } from './startpage';
 import { INCOGNITO_PALETTE, palette } from './themes';
 import { settings } from './settings';
+import { READER_CSP, readerHtml } from './reader';
 
 /**
  * Свои страницы — по схеме os:// (protocol.handle), со строгим CSP. В сессиях сайтов доступны только
@@ -15,7 +16,7 @@ export function registerScheme(): void {
   ]);
 }
 
-const PAGES = new Set(['home', 'settings', 'profile', 'tabs', 'onboarding', 'notes', 'saved', 'about', 'history', 'favorites', 'downloads', 'stats', 'clear', 'lock', 'site', 'security']);
+const PAGES = new Set(['home', 'settings', 'profile', 'tabs', 'onboarding', 'notes', 'saved', 'about', 'history', 'favorites', 'downloads', 'stats', 'clear', 'lock', 'site', 'security', 'help']);
 const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json', '.map': 'application/json',
@@ -58,6 +59,7 @@ export function handleWebSession(ses: Session, incognito: boolean): void {
   ses.protocol.handle('os', (req) => {
     const u = new URL(req.url);
     if (u.host === 'start') return html(startHtml(themed(incognito), incognito), START_CSP);
+    if (u.host === 'reader') return html(readerHtml(Number(u.searchParams.get('id')), themed(incognito)), READER_CSP);
     if (u.host === 'error') {
       return html(errorHtml(themed(incognito), Number(u.searchParams.get('code')), u.searchParams.get('url') ?? ''), START_CSP);
     }

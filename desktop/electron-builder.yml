@@ -31,3 +31,4 @@ nsis:
   shortcutName: Ось Browser
   uninstallDisplayName: Ось Browser
   deleteAppDataOnUninstall: false
+  include: assets/installer.nsh
