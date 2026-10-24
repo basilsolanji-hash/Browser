@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "ru.multibrowser"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "ru.multibrowser"
