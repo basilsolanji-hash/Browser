@@ -19,7 +19,24 @@ settings() { adb shell am start -n "$PKG/ru.multibrowser.SettingsActivity" "$@" 
 rotate() { adb shell settings put system accelerometer_rotation 0; adb shell settings put system user_rotation "$1"; }
 
 # --- Сценарии ---
-main;                                                                     shot 01-main 10
+# Первый запуск: обучение (6 экранов) и профили-примеры «My mail» / «My company».
+main;                                                                     shot 00-onboarding-1 10
+OB="$OUT/onboarding.txt"; : > "$OB"
+# Координаты кнопки по тексту (uiautomator), пусто — не найдена.
+btn_xy() {
+  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+  adb shell cat /sdcard/ui.xml | python3 -c "
+import sys,re
+x=sys.stdin.read()
+m=re.search(r'text=\"'+re.escape(sys.argv[1])+r'\"[^>]*bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]', x)
+print('%d %d'%((int(m[1])+int(m[3]))//2,(int(m[2])+int(m[4]))//2) if m else '')" "$1"
+}
+for i in 2 3 4 5 6; do
+  xy=$(btn_xy Next); echo "next $i: $xy" >> "$OB"
+  [ -n "$xy" ] && adb shell input tap $xy;                                shot 00-onboarding-$i 2
+done
+xy=$(btn_xy "Start browsing"); echo "start: $xy" >> "$OB"; [ -n "$xy" ] && adb shell input tap $xy; sleep 2
+main;                                                                     shot 01-main 6
 browser --ei profile 6;                                                   shot 01b-start 12
 browser --ei profile 3 --es site gmail --es url https://example.com;      shot 02-example 40
 browser --ei profile 3 --es site gmail --es url https://ru.wikipedia.org; shot 03-wikipedia 25
@@ -106,17 +123,18 @@ tap_text "Ось start"; sleep 1
 browser --ei profile 7 --es url https://example.com; sleep 15
 menu_item "Full screen";                                                    shot 32-fullscreen 3
 tap_text "Exit full screen";                                                shot 33-fullscreen-exit 3
-# Профили: перетаскивание (Profile 1 → на место Profile 2), описание профиля.
+# Профили: перетаскивание («My mail» → на место «My company»), описание профиля.
 adb shell am force-stop "$PKG"; main; sleep 6
-from=$(find_xy "Profile 1"); to=$(find_xy "Profile 2")
+from=$(find_xy "My mail"); to=$(find_xy "My company")
 echo "drag: '$from' -> '$to'" >> "$X"
 [ -n "$from" ] && [ -n "$to" ] && adb shell input draganddrop $from $to 2500
                                                                             shot 34-profiles-reordered 3
-adb shell am start -n "$PKG/ru.multibrowser.ProfileActivity" --ei profile 2 >/dev/null; sleep 4
+adb shell am start -n "$PKG/ru.multibrowser.ProfileActivity" --ei profile 3 >/dev/null; sleep 4
 tap_text "What this profile is for" && adb shell input text "Work%smail"
                                                                             shot 35-profile-info 2
 adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 2
-adb shell run-as "$PKG" cat shared_prefs/profiles.xml | grep -E "order|desc_" >> "$X" 2>&1
+adb shell run-as "$PKG" cat shared_prefs/profiles.xml | grep -E "order|desc_|name_" >> "$X" 2>&1
+adb shell run-as "$PKG" cat shared_prefs/onboarding.xml shared_prefs/pins.xml >> "$X" 2>&1
 # №23, №25
 act AboutActivity;                                                          shot 30-about 5
 act HelpActivity;                                                           shot 31-help 5
@@ -195,7 +213,9 @@ check "№34 режим чтения отрисовал статью" 'grep -q "
 check "№35 PDF сохранён и открыт"      'grep -q "page_.*\.pdf" "$X" && grep -q "tap .Moon" "$X"'
 check "Полный экран: кнопка выхода"       'grep -q "tap .Exit full screen" "$X"'
 check "Профили: порядок изменён"         'grep -q "name=\"order\"" "$X"'
-check "Профили: описание сохранено"      'grep -q "desc_2\">Work mail" "$X"'
+check "Профили: описание сохранено"      'grep -q "desc_3\">Work mail" "$X"'
+check "Первый запуск: примеры профилей"   'grep -q "name_1\">My mail" "$X" && grep -q "list_1" "$X"'
+check "Первый запуск: обучение пройдено"  'grep -q "name=\"done\" value=\"true\"" "$X" && [ "$(grep -c "next .: [0-9]" "$OB")" -ge 5 ] && grep -q "start: [0-9]" "$OB"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 [ "$ext_fail" = 0 ] || echo "ПРИЁМКА НЕ ПРОЙДЕНА — блоки D/E/F"
 [ "$RC" = 0 ] && [ "$ext_fail" = 0 ]

@@ -45,6 +45,10 @@ class MainActivity : AppCompatActivity() {
         }
         setContentView(root)
         applyEdgeToEdge(root)
+        // Первый запуск: профили-примеры и обучение.
+        if (savedInstanceState == null && Onboarding.shouldShow(this)) {
+            startActivity(Intent(this, OnboardingActivity::class.java))
+        }
     }
 
     override fun onResume() {

@@ -32,6 +32,9 @@ class HelpActivity : AppCompatActivity() {
         content.addView(ExtrasUi.hint(this, Tr.t("feedback_desc", FEEDBACK_EMAIL)))
 
         content.addView(sectionTitle(Tr.t("help")))
+        content.addView(ExtrasUi.button(this, Tr.t("onb_again")) {
+            startActivity(Intent(this, OnboardingActivity::class.java))
+        })
         (1..TOPICS).forEach { i ->
             content.addView(ExtrasUi.card(this, Tr.t("help_q$i"), Tr.t("help_a$i")))
         }
