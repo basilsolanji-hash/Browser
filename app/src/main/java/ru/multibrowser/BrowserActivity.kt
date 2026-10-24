@@ -131,6 +131,7 @@ class BrowserActivity : AppCompatActivity() {
             it.navigationDelegate = null
             it.contentDelegate = null
             it.promptDelegate = null
+            it.permissionDelegate = null
         }
         attached.clear()
         pendingFile?.let { (prompt, result) -> result.complete(prompt.dismiss()) }
@@ -342,6 +343,7 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
         s.promptDelegate = PromptHandler()
+        s.permissionDelegate = SitePermissions.delegate(this)
         attached += s
     }
 
@@ -428,6 +430,7 @@ class BrowserActivity : AppCompatActivity() {
             override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) { setFullScreen(fullScreen) }
         }
         s.promptDelegate = PromptHandler()
+        s.permissionDelegate = SitePermissions.delegate(this, privateMode = true)
         geckoView.setSession(s)
         incognitoSession = s
         session = s
@@ -482,6 +485,7 @@ class BrowserActivity : AppCompatActivity() {
             Tr.t("downloads") to { startActivity(Intent(this, DownloadsActivity::class.java)) },
             Tr.t("copy_link") to { copyUrl() },
             Tr.t("open_external") to { openExternally() },
+            Tr.t("site_permissions") to { SitePermissions.openFor(this, currentUrl) },
             Tr.t("diagnostics") to { showDiagnostics() },
             Tr.t("settings") to { startActivity(Intent(this, SettingsActivity::class.java)) },
         )
@@ -832,6 +836,10 @@ class BrowserActivity : AppCompatActivity() {
                 .show()
             return result
         }
+
+        // Всплывающие окна без жеста пользователя — по разрешению сайта (только для видимой вкладки).
+        override fun onPopupPrompt(session: GeckoSession, prompt: GeckoSession.PromptDelegate.PopupPrompt) =
+            SitePermissions.onPopup(this@BrowserActivity, currentUrl.takeIf { session === this@BrowserActivity.session }, prompt, incognito)
 
         override fun onFilePrompt(
             session: GeckoSession,

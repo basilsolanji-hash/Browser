@@ -80,6 +80,70 @@ tap_text "Wikipedia";                                                     shot 2
 tap_text "Menu";                                                          shot 22-menu-remove 2
 back
 
+# --- Блок C: настройки сайтов, проверка безопасности, поиск в настройках, запрос геолокации ---
+# NEW_TASK|MULTIPLE_TASK: иначе am start лишь выводит на передний план старую задачу с браузером сверху.
+sitesettings() { adb shell am start -f 0x18000000 -n "$PKG/ru.multibrowser.SiteSettingsActivity" "$@" >/dev/null; }
+seccheck() { adb shell am start -f 0x18000000 -n "$PKG/ru.multibrowser.SecurityCheckActivity" "$@" >/dev/null; }
+# Нажать на первый найденный из нескольких вариантов текста (через дамп uiautomator); 0 — найден и нажат.
+tap_any() {
+  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+  adb shell cat /sdcard/ui.xml > "$OUT/ui.xml" 2>/dev/null
+  local xy
+  xy=$(python3 - "$OUT/ui.xml" "$@" <<'PY'
+import sys, re
+xml = open(sys.argv[1], encoding='utf-8', errors='ignore').read()
+for want in sys.argv[2:]:
+    for m in re.finditer(r'<node [^>]*>', xml):
+        n = m.group(0)
+        t = re.search(r' text="([^"]*)"', n)
+        if t and t.group(1).strip().lower() == want.lower():
+            b = re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', n)
+            if b:
+                x1, y1, x2, y2 = map(int, b.groups())
+                print((x1 + x2) // 2, (y1 + y2) // 2)
+                sys.exit(0)
+sys.exit(1)
+PY
+) || { echo "tap_any: не найдено: $*"; return 1; }
+  adb shell input tap $xy; echo "tap_any $* -> $xy"
+}
+
+adb shell am force-stop "$PKG"; sleep 1
+sitesettings;                                                             shot 30-site-settings 6
+seccheck;                                                                 shot 31-security-check 6
+settings; sleep 4
+# Поле поиска — первое поле ввода экрана, получает фокус; печатаем запрос.
+tap_any "Search settings" || true
+adb shell input text "HTTPS"; sleep 2; adb shell input keyevent 111;       shot 32-settings-search 2
+adb shell input keyevent 4
+
+# Страница, запрашивающая геолокацию: localhost — безопасный контекст, поднимаем сервер на раннере.
+WEB=$(mktemp -d)
+cat > "$WEB/geo.html" <<'HTML'
+<!doctype html><meta name="viewport" content="width=device-width"><title>Geo test</title>
+<body style="font:20px sans-serif;background:#fff;color:#000;padding:24px">
+<h2>Geolocation test</h2><p id="s">requesting...</p>
+<script>
+navigator.geolocation.getCurrentPosition(
+  p => { document.getElementById('s').textContent = 'OK ' + p.coords.latitude + ',' + p.coords.longitude; console.log('GEO ok'); },
+  e => { document.getElementById('s').textContent = 'ERROR ' + e.code + ' ' + e.message; console.log('GEO error ' + e.code); },
+  {timeout: 15000});
+</script></body>
+HTML
+(cd "$WEB" && python3 -m http.server 8765 >/dev/null 2>&1) &
+WEBPID=$!
+adb reverse tcp:8765 tcp:8765
+sleep 2
+browser --ei profile 7 --es url http://localhost:8765/geo.html;          shot 33-geo-prompt 15
+tap_any "Allow" "Разрешить" && sleep 3;                                  shot 34-geo-android 2
+tap_any "While using the app" "Only this time" "Allow" && sleep 5;       shot 35-geo-result 8
+sitesettings;                                                             shot 36-site-settings-after 5
+for i in 1 2 3 4; do adb shell input swipe 160 560 160 80 300; done;       shot 36b-site-settings-sites 2
+sitesettings --es host localhost;                                         shot 37-site-localhost 5
+seccheck;                                                                 shot 38-security-after 5
+adb shell input swipe 160 560 160 80 300;                                 shot 38b-security-after-bottom 2
+kill "$WEBPID" 2>/dev/null || true
+
 adb logcat -d -v time > "$OUT/logcat.txt"
 grep -E "OsDiag|GeckoConsole|AndroidRuntime|FATAL|Gecko" "$OUT/logcat.txt" | tail -800 > "$OUT/diag.txt"
 
