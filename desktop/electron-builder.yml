@@ -23,9 +23,12 @@ electronFuses:
   enableEmbeddedAsarIntegrityValidation: true
   onlyLoadAppFromAsar: true
 win:
-  target: nsis
+  # Установщик и портативная версия (zip: распаковать и запустить, без установки и ярлыков).
+  target: [nsis, zip]
   icon: assets/icon.ico
   artifactName: Os-Browser-Setup-${version}.${ext}
+zip:
+  artifactName: Os-Browser-Portable-${version}.${ext}
 nsis:
   oneClick: false
   perMachine: false

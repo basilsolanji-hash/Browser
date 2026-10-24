@@ -43,5 +43,28 @@ taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1; sleep 3
 for i in $(seq 1 30); do [ ! -f "$DIR/Os Browser.exe" ] && break; sleep 2; done
 [ ! -f "$DIR/Os Browser.exe" ]; check "installer: silent uninstall removes the app" $?
 reg query 'HKCU\Software\Clients\StartMenuInternet\OsBrowser' >/dev/null 2>&1; [ $? != 0 ]; check "installer: uninstall removes browser registration" $?
+# Папка с русскими буквами и пробелом (как профиль пользователя «C:\Users\Наталья» на русской Windows).
+CYR_W='C:\Тест Ось\Программы\Os Browser'
+CYR="$(cygpath -u "$CYR_W")"
+"$SETUP" //S "//D=$CYR_W"; sleep 5
+for i in $(seq 1 30); do [ -f "$CYR/Os Browser.exe" ] && break; sleep 2; done
+[ -f "$CYR/Os Browser.exe" ]; check "installer: install into a Cyrillic folder" $? "$CYR"
+OS_USER_DATA="$(cygpath -w "$(mktemp -d)")" "$CYR/Os Browser.exe" & sleep 15
+tasklist //FI "IMAGENAME eq Os Browser.exe" | grep -qi "Os Browser.exe"; check "installer: app starts from a Cyrillic folder" $?
+taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1; sleep 3
+[ -f "$CYR/Uninstall Os Browser.exe" ] && "$CYR/Uninstall Os Browser.exe" //S; sleep 5
+
+# Портативная версия: распаковать в папку с русскими буквами и запустить.
+ZIP=$(ls release/Os-Browser-Portable-*.zip 2>/dev/null | head -1)
+[ -n "$ZIP" ]; check "portable: zip is built" $? "$ZIP"
+if [ -n "$ZIP" ]; then
+  PORT="$(cygpath -u 'C:\Портативная Ось')"
+  rm -rf "$PORT"; mkdir -p "$PORT"
+  powershell -NoProfile -Command "Expand-Archive -Path '$(cygpath -w "$ZIP")' -DestinationPath '$(cygpath -w "$PORT")' -Force"
+  [ -f "$PORT/Os Browser.exe" ]; check "portable: unpacked Os Browser.exe" $?
+  OS_USER_DATA="$(cygpath -w "$(mktemp -d)")" "$PORT/Os Browser.exe" & sleep 15
+  tasklist //FI "IMAGENAME eq Os Browser.exe" | grep -qi "Os Browser.exe"; check "portable: app starts from the zip" $?
+  taskkill //F //IM "Os Browser.exe" >/dev/null 2>&1
+fi
 echo "installer: $fails failed" | tee -a "$OUT/checks.txt"
 exit $fails
