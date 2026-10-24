@@ -13,8 +13,8 @@ import android.widget.TextView
 
 /**
  * Панель под адресной строкой во время ввода — как в Chrome: карточка текущей страницы
- * (поделиться, копировать, изменить), плитки частых сайтов профиля и подсказки из истории
- * и избранного по мере ввода. Ничего не уходит в сеть: только то, что уже есть на устройстве.
+ * (поделиться, копировать, изменить), плитки частых сайтов профиля и подсказки по мере ввода:
+ * прошлые запросы, избранное и история; стрелка ↖ подставляет подсказку в строку. Ничего не уходит в сеть: только то, что уже есть на устройстве.
  */
 class AddressPanel(
     private val a: Activity,
@@ -22,6 +22,7 @@ class AddressPanel(
     private val onShare: () -> Unit,
     private val onCopy: () -> Unit,
     private val onEdit: () -> Unit,
+    private val onFill: (String) -> Unit,
 ) {
     private val content = LinearLayout(a).apply {
         orientation = LinearLayout.VERTICAL
@@ -78,11 +79,15 @@ class AddressPanel(
             LinearLayout.LayoutParams(a.dp(40), a.dp(40)).apply { marginStart = a.dp(4) })
     }
 
-    /** Частые сайты профиля по истории: до 8 плиток. */
+    /** Частые сайты профиля по истории: до 8 плиток с названием страницы. */
     private fun tiles(): View? {
-        val hosts = History.list(a, profile).mapNotNull { Uri.parse(it.url).host }
+        val visits = History.list(a, profile)
+        val hosts = visits.mapNotNull { Uri.parse(it.url).host }
             .groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.take(8).map { it.key }
         if (hosts.isEmpty()) return null
+        // Название — последний известный заголовок страницы этого сайта, иначе сам адрес.
+        fun label(host: String) = visits.firstOrNull { Uri.parse(it.url).host == host && it.title.isNotBlank() }?.title
+            ?: host.removePrefix("www.").removePrefix("m.")
         return LinearLayout(a).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, a.dp(16), 0, 0)
@@ -95,9 +100,12 @@ class AddressPanel(
                             setPadding(a.dp(4), a.dp(8), a.dp(4), a.dp(8))
                             contentDescription = host
                             setOnClickListener { onOpen("https://$host/") }
-                            addView(letter(host), LinearLayout.LayoutParams(a.dp(52), a.dp(52)))
+                            addView(FrameLayout(a).apply {
+                                background = Ui.oval(Ui.SURFACE)
+                                addView(letter(host), FrameLayout.LayoutParams(a.dp(32), a.dp(32), Gravity.CENTER))
+                            }, LinearLayout.LayoutParams(a.dp(56), a.dp(56)))
                             addView(TextView(a).apply {
-                                text = host.removePrefix("www.").removePrefix("m.")
+                                text = label(host)
                                 textSize = 12f
                                 setTextColor(Ui.MUTED)
                                 gravity = Gravity.CENTER
@@ -113,31 +121,47 @@ class AddressPanel(
         }
     }
 
-    /** Подсказки: избранное и история профиля, где заголовок или адрес содержат введённое. */
+    /** Подсказки в карточке: сам запрос, прошлые запросы, избранное и история профиля. */
     private fun suggestions(q: String) {
+        val visits = History.list(a, profile)
+        val queries = visits.mapNotNull { Search.queryOf(it.url) }
+            .filter { it.contains(q, true) && !it.equals(q, true) }.distinctBy { it.lowercase() }.take(4)
         val marks = Bookmarks.all(a).filter { it.title.contains(q, true) || it.url.contains(q, true) }
             .map { Triple(R.drawable.ic_star, it.title, it.url) }
-        val visits = History.list(a, profile).filter { it.title.contains(q, true) || it.url.contains(q, true) }
+        val pages = visits.filter { Search.queryOf(it.url) == null && (it.title.contains(q, true) || it.url.contains(q, true)) }
             .map { Triple(R.drawable.ic_history, it.title, it.url) }
-        val items = (marks + visits).distinctBy { it.third }.take(8)
+        val items = (marks + pages).distinctBy { it.third }.take(6)
+        val card = LinearLayout(a).apply {
+            orientation = LinearLayout.VERTICAL
+            background = Ui.rounded(Ui.SURFACE, a.dpf(16))
+        }
+        fun add(row: View) {
+            if (card.childCount > 0) card.addView(View(a).apply { setBackgroundColor(Ui.BG) },
+                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, a.dp(2)))
+            card.addView(row)
+        }
         // Первая строка — сам запрос: поиск или переход по адресу.
         val target = Search.toUrl(a, q)
-        content.addView(suggestionRow(R.drawable.ic_search, q, target) { onOpen(target) })
-        items.forEach { (icon, title, url) -> content.addView(suggestionRow(icon, title.ifBlank { url }, url) { onOpen(url) }) }
+        add(suggestionRow(R.drawable.ic_search, q, target, fill = null) { onOpen(target) })
+        queries.forEach { text -> add(suggestionRow(R.drawable.ic_search, text, text, fill = text) { onOpen(Search.queryUrl(a, text)) }) }
+        items.forEach { (icon, title, url) -> add(suggestionRow(icon, title.ifBlank { url }, url, fill = url) { onOpen(url) }) }
+        content.addView(card)
     }
 
-    private fun suggestionRow(icon: Int, title: String, url: String, open: () -> Unit) = LinearLayout(a).apply {
+    private fun suggestionRow(icon: Int, title: String, url: String, fill: String?, open: () -> Unit) = LinearLayout(a).apply {
         gravity = Gravity.CENTER_VERTICAL
-        minimumHeight = a.dp(56)
-        setPadding(a.dp(6), 0, a.dp(6), 0)
+        minimumHeight = a.dp(60)
+        setPadding(a.dp(16), a.dp(6), a.dp(6), a.dp(6))
         setOnClickListener { open() }
-        addView(a.icon(icon, Ui.MUTED, 20))
+        addView(a.icon(icon, Ui.MUTED, 22))
         addView(LinearLayout(a).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(a.dp(16), 0, 0, 0)
+            setPadding(a.dp(18), 0, a.dp(4), 0)
             addView(line(title, Ui.TEXT, 15f))
             if (url != title) addView(line(url, Ui.MUTED, 12f))
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        if (fill != null) addView(a.iconButton(R.drawable.ic_fill, Tr.t("fill_in")) { onFill(fill) },
+            LinearLayout.LayoutParams(a.dp(44), a.dp(44)))
     }
 
     private fun line(text: String, color: Int, size: Float) = TextView(a).apply {

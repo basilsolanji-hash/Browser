@@ -353,7 +353,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun showUrl(url: String) {
         currentUrl = url
         val internal = url.startsWith("data:") || url.startsWith("os:") || url == Pins.START || url == "about:blank"
-        lockIcon.visibility = if (url.startsWith("https://")) View.VISIBLE else View.GONE
+        lockIcon.visibility = if (url.startsWith("https://") && !urlBar.hasFocus()) View.VISIBLE else View.GONE
         if (!urlBar.hasFocus()) urlBar.setText(if (internal) "" else Uri.parse(Reader.original(url)).host ?: url)
     }
 
@@ -922,22 +922,33 @@ class BrowserActivity : AppCompatActivity() {
                 } else false
             }
         }
+        val engineBadge = FrameLayout(this).apply { visibility = View.GONE }
+        val clearButton = iconButton(R.drawable.ic_close, Tr.t("clear_text")) { urlBar.setText("") }
+            .apply { visibility = View.GONE }
         val addressBox = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
             setPadding(dp(12), 0, dp(4), 0)
             addView(lockIcon)
+            addView(engineBadge, LinearLayout.LayoutParams(dp(24), dp(24)))
             addView(urlBar, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
+            addView(clearButton, LinearLayout.LayoutParams(dp(34), dp(34)))
         }
         urlBar.setOnFocusChangeListener { v, focused ->
             addressBox.background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1), if (focused) Ui.ACCENT else Ui.BORDER)
+            // При вводе слева — значок поисковика (куда уйдёт запрос), справа — «Очистить».
+            engineBadge.visibility = if (focused) View.VISIBLE else View.GONE
+            lockIcon.visibility = if (!focused && currentUrl.startsWith("https://")) View.VISIBLE else View.GONE
             if (focused) {
+                engineBadge.removeAllViews()
+                engineBadge.addView(engineLetter(), FrameLayout.LayoutParams(dp(24), dp(24)))
                 urlBar.setText(if (currentUrl.startsWith("data:")) "" else Reader.original(currentUrl))
                 urlBar.post { urlBar.selectAll() }
                 addressPanel.show(if (incognito) 0 else profileId,
                     pageTitles[key]?.takeIf { it.first == currentUrl }?.second.orEmpty(), Reader.original(currentUrl))
             } else {
+                clearButton.visibility = View.GONE
                 addressPanel.hide()
                 urlBar.setText(Uri.parse(Reader.original(currentUrl)).host ?: currentUrl)
                 getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(v.windowToken, 0)
@@ -1013,11 +1024,15 @@ class BrowserActivity : AppCompatActivity() {
             onShare = { urlBar.clearFocus(); sharePage() },
             onCopy = { copyUrl() },
             onEdit = { urlBar.setSelection(urlBar.text.length) },
+            onFill = { text -> urlBar.setText(text); urlBar.setSelection(urlBar.text.length) },
         )
         urlBar.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: android.text.Editable?) { if (urlBar.hasFocus()) addressPanel.render(s?.toString().orEmpty()) }
+            override fun afterTextChanged(s: android.text.Editable?) {
+                clearButton.visibility = if (urlBar.hasFocus() && !s.isNullOrEmpty()) View.VISIBLE else View.GONE
+                if (urlBar.hasFocus()) addressPanel.render(s?.toString().orEmpty())
+            }
         })
         val contentArea = FrameLayout(this).apply {
             addView(refresher, FrameLayout.LayoutParams(match, match))
@@ -1080,6 +1095,18 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun toUrl(input: String): String = Search.toUrl(this, input)
+
+    /** Кружок с первой буквой текущего поисковика — без значков из сети. */
+    private fun engineLetter() = TextView(this).apply {
+        val engine = Search.current(this@BrowserActivity)
+        text = engine.title.take(1)
+        textSize = 13f
+        typeface = android.graphics.Typeface.DEFAULT_BOLD
+        gravity = Gravity.CENTER
+        setTextColor(android.graphics.Color.WHITE)
+        background = Ui.oval(Search.color(engine))
+        contentDescription = engine.title
+    }
 
     private var forwardedUrl: String? = null
     private var forwardedAt = 0L

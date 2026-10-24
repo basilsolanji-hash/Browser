@@ -95,6 +95,8 @@ internal object TrExtras {
         "dl_left" to listOf("%s left", "Осталось %s", "Quedan %s", "Faltam %s", "Encore %s", "Noch %s", "متبقٍ %s", "%s बाकी", "%s kaldı", "剩余 %s"),
         "dl_sec" to listOf("%d sec", "%d сек.", "%d s", "%d s", "%d s", "%d s", "%d ث", "%d सेकंड", "%d sn", "%d 秒"),
         "dl_min" to listOf("%d min", "%d мин.", "%d min", "%d min", "%d min", "%d Min.", "%d د", "%d मिनट", "%d dk", "%d 分钟"),
+        "fill_in" to listOf("Fill in", "Подставить в строку", "Rellenar", "Preencher", "Compléter", "Übernehmen", "إدراج في الشريط", "बार में भरें", "Çubuğa ekle", "填入地址栏"),
+        "clear_text" to listOf("Clear", "Очистить", "Borrar", "Limpar", "Effacer", "Löschen", "مسح", "साफ़ करें", "Temizle", "清除"),
         "edit_address" to listOf("Edit address", "Изменить адрес", "Editar dirección", "Editar endereço", "Modifier l'adresse", "Adresse bearbeiten", "تعديل العنوان", "पता बदलें", "Adresi düzenle", "编辑地址"),
         "find_in_page" to listOf("Find in page", "Найти на странице", "Buscar en la página", "Localizar na página", "Rechercher dans la page", "Auf Seite suchen", "البحث في الصفحة", "पेज में खोजें", "Sayfada bul", "在网页中查找"),
         "find_hint" to listOf("Find in page", "Найти на странице", "Buscar en la página", "Localizar na página", "Rechercher dans la page", "Auf Seite suchen", "البحث في الصفحة", "पेज में खोजें", "Sayfada bul", "在网页中查找"),
