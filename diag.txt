@@ -1,0 +1,800 @@
+10-24 18:02:37.514 D/GeckoSession( 8449): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:02:37.515 D/GeckoSession( 8449): handleMessage GeckoView:PageStop uri=null
+10-24 18:02:37.515 I/OsDiag  ( 8449): [3:start] загружено
+10-24 18:02:38.204 D/ServiceAllocator( 8449): org.mozilla.gecko.process.GeckoChildProcessServices$tab16 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:02:38.208 I/ActivityManager(  520): Start proc 9248:ru.multibrowser.test:tab_disable_art_image_16/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab16}
+10-24 18:02:38.536 D/GeckoThread( 9248): State changed to LAUNCHED
+10-24 18:02:38.541 D/ServiceAllocator( 8449): org.mozilla.gecko.process.GeckoChildProcessServices$tab16 updateBindings: BACKGROUND priority, 3 importance, 9248 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 18:02:38.541 I/GeckoThread( 9248): preparing to run Gecko
+10-24 18:02:38.548 D/GeckoThread( 9248): State changed to MOZGLUE_READY
+10-24 18:02:38.553 D/GeckoLoader( 9248): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:02:38.553 D/GeckoLoader( 9248): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:02:38.554 E/GeckoLibLoad( 9248): Load sqlite start
+10-24 18:02:38.554 E/GeckoLibLoad( 9248): Load sqlite done
+10-24 18:02:38.555 D/GeckoLoader( 9248): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:02:38.555 E/GeckoLibLoad( 9248): Load nss start
+10-24 18:02:38.555 E/GeckoLibLoad( 9248): Load nss done
+10-24 18:02:38.555 D/GeckoLoader( 9248): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:02:38.562 E/GeckoLibLoad( 9248): Loaded libs in 7.628013ms total, 4ms(3ms) user, 0ms(3ms) system, 0(0) faults
+10-24 18:02:38.563 D/GeckoThread( 9248): State changed to LIBS_READY
+10-24 18:02:38.563 W/GeckoThread( 9248): zerdatime 652254 - runGecko
+10-24 18:02:38.640 D/GeckoThread( 9248): State changed to RUNNING
+10-24 18:02:40.142 D/ServiceAllocator( 8449): org.mozilla.gecko.process.GeckoChildProcessServices$tab34 updateBindings: IDLE priority, 6 importance, 8927 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:02:47.870 D/GeckoSession( 8449): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:03:01.989 D/AndroidRuntime( 9283): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:03:01.996 I/AndroidRuntime( 9283): Using default boot image
+10-24 18:03:01.996 I/AndroidRuntime( 9283): Leaving lock profiling enabled
+10-24 18:03:02.141 D/AndroidRuntime( 9283): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:03:03.326 D/AndroidRuntime( 9283): Shutting down VM
+10-24 18:03:24.830 D/AndroidRuntime( 9416): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:03:24.833 I/AndroidRuntime( 9416): Using default boot image
+10-24 18:03:24.833 I/AndroidRuntime( 9416): Leaving lock profiling enabled
+10-24 18:03:24.910 D/AndroidRuntime( 9416): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:03:25.968 D/AndroidRuntime( 9416): Shutting down VM
+10-24 18:03:33.659 D/GeckoThread( 9335): State changed to LAUNCHED
+10-24 18:03:33.662 D/GeckoRuntime( 9335): Lifecycle: onCreate
+10-24 18:03:33.662 D/GeckoRuntime( 9335): Lifecycle: onStart
+10-24 18:03:33.662 D/GeckoRuntime( 9335): Lifecycle: onResume
+10-24 18:03:33.663 I/GeckoThread( 9335): preparing to run Gecko
+10-24 18:03:33.663 D/GeckoNetworkManager( 9335): Incoming event start for state OffNoListeners -> OnNoListeners
+10-24 18:03:33.664 D/GeckoNetworkManager( 9335): New network state: UP, WIFI, WIFI
+10-24 18:03:33.676 D/GeckoThread( 9335): State changed to MOZGLUE_READY
+10-24 18:03:33.696 D/GeckoNetworkManager( 9335): Incoming event receivedUpdate for state OnNoListeners -> OnNoListeners
+10-24 18:03:33.701 D/GeckoNetworkManager( 9335): New network state: UP, WIFI, WIFI
+10-24 18:03:33.708 D/GeckoLoader( 9335): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:33.717 D/GeckoLoader( 9335): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:33.718 E/GeckoLibLoad( 9335): Load sqlite start
+10-24 18:03:33.719 E/GeckoLibLoad( 9335): Load sqlite done
+10-24 18:03:33.720 D/GeckoLoader( 9335): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:33.720 E/GeckoLibLoad( 9335): Load nss start
+10-24 18:03:33.720 E/GeckoLibLoad( 9335): Load nss done
+10-24 18:03:33.720 D/GeckoLoader( 9335): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:33.735 E/GeckoLibLoad( 9335): Loaded libs in 14.823183ms total, 2ms(10ms) user, 3ms(3ms) system, 0(0) faults
+10-24 18:03:33.736 D/GeckoThread( 9335): State changed to LIBS_READY
+10-24 18:03:33.736 W/GeckoThread( 9335): zerdatime 707427 - runGecko
+10-24 18:03:34.055 I/Gecko:DumpUtils( 9335): Fifo watcher disabled via pref.
+10-24 18:03:34.075 D/GeckoThread( 9335): State changed to JNI_READY
+10-24 18:03:34.116 I/GeckoConsole( 9335): No chrome package registered for chrome://browser/content/built_in_addons.json
+10-24 18:03:34.117 I/GeckoConsole( 9335): 1792865014117	addons.xpi	WARN	Force scan SCOPE_APPLICATION (app-builtin-addons location missing from XPIStates)
+10-24 18:03:34.124 D/GeckoThread( 9335): State changed to PROFILE_READY
+10-24 18:03:34.126 D/GeckoThread( 9335): State changed to RUNNING
+10-24 18:03:34.200 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$gpu updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:03:34.203 I/ActivityManager(  520): Start proc 9523:ru.multibrowser.test:gpu_disable_art_image_/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$gpu}
+10-24 18:03:34.220 W/Gecko   ( 9335): type=1400 audit(0.0:269): avc:  denied  { read } for  name="product_name" dev="sysfs" ino=781 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-24 18:03:34.228 W/Gecko   ( 9335): type=1400 audit(0.0:270): avc:  denied  { read } for  name="product_sku" dev="sysfs" ino=785 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-24 18:03:34.247 D/GeckoNetworkManager( 9335): Incoming event enableNotifications for state OnNoListeners -> OnWithListeners
+10-24 18:03:34.250 D/GeckoNetworkManager( 9335): New network state: UP, WIFI, WIFI
+10-24 18:03:34.252 D/GeckoNetworkManager( 9335): Incoming event receivedUpdate for state OnWithListeners -> OnWithListeners
+10-24 18:03:34.253 D/GeckoNetworkManager( 9335): New network state: UP, WIFI, WIFI
+10-24 18:03:34.260 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab8 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:03:34.263 I/ActivityManager(  520): Start proc 9539:ru.multibrowser.test:tab_disable_art_image_8/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab8}
+10-24 18:03:34.447 D/GeckoThread( 9523): State changed to LAUNCHED
+10-24 18:03:34.450 I/GeckoThread( 9523): preparing to run Gecko
+10-24 18:03:34.453 D/GeckoThread( 9523): State changed to MOZGLUE_READY
+10-24 18:03:34.455 D/GeckoLoader( 9523): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:34.455 D/GeckoLoader( 9523): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:34.455 E/GeckoLibLoad( 9523): Load sqlite start
+10-24 18:03:34.456 E/GeckoLibLoad( 9523): Load sqlite done
+10-24 18:03:34.456 D/GeckoLoader( 9523): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:34.456 E/GeckoLibLoad( 9523): Load nss start
+10-24 18:03:34.456 E/GeckoLibLoad( 9523): Load nss done
+10-24 18:03:34.456 D/GeckoLoader( 9523): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:34.463 E/GeckoLibLoad( 9523): Loaded libs in 6.510391ms total, 3ms(2ms) user, 1ms(3ms) system, 0(0) faults
+10-24 18:03:34.463 D/GeckoThread( 9523): State changed to LIBS_READY
+10-24 18:03:34.463 W/GeckoThread( 9523): zerdatime 708155 - runGecko
+10-24 18:03:34.468 D/GeckoThread( 9523): State changed to RUNNING
+10-24 18:03:34.532 D/GeckoThread( 9539): State changed to LAUNCHED
+10-24 18:03:34.532 I/GeckoThread( 9539): preparing to run Gecko
+10-24 18:03:34.539 D/GeckoThread( 9539): State changed to MOZGLUE_READY
+10-24 18:03:34.541 D/GeckoLoader( 9539): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:34.541 D/GeckoLoader( 9539): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:34.541 E/GeckoLibLoad( 9539): Load sqlite start
+10-24 18:03:34.542 E/GeckoLibLoad( 9539): Load sqlite done
+10-24 18:03:34.542 D/GeckoLoader( 9539): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:34.542 E/GeckoLibLoad( 9539): Load nss start
+10-24 18:03:34.542 E/GeckoLibLoad( 9539): Load nss done
+10-24 18:03:34.542 D/GeckoLoader( 9539): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:34.544 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab8 updateBindings: FOREGROUND priority, 2 importance, 9539 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:03:34.550 E/GeckoLibLoad( 9539): Loaded libs in 7.726369ms total, 0ms(2ms) user, 6ms(4ms) system, 0(0) faults
+10-24 18:03:34.550 D/GeckoThread( 9539): State changed to LIBS_READY
+10-24 18:03:34.550 W/GeckoThread( 9539): zerdatime 708242 - runGecko
+10-24 18:03:34.602 D/GeckoThread( 9539): State changed to RUNNING
+10-24 18:03:34.625 I/GeckoSession( 9335): zerdatime 708317 - chrome startup finished
+10-24 18:03:34.638 W/GeckoEditableChild( 9539): No editable parent
+10-24 18:03:34.666 D/GeckoSession( 9335): handleMessage GeckoView:PageStart uri=about:blank
+10-24 18:03:34.667 I/OsDiag  ( 9335): [7:start] начало: about:blank
+10-24 18:03:34.669 D/GeckoSession( 9335): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 18:03:34.674 D/GeckoSession( 9335): handleMessage GeckoView:PageStop uri=null
+10-24 18:03:34.674 I/OsDiag  ( 9335): [7:start] загружено
+10-24 18:03:34.697 D/GeckoIdleService( 9335): Setting timer a day from now
+10-24 18:03:34.710 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:03:34.712 D/GeckoSession( 9335): handleMessage GeckoView:PageStart uri=http://localhost:8765/geo.html
+10-24 18:03:34.712 I/OsDiag  ( 9335): [7:start] начало: http://localhost:8765/geo.html
+10-24 18:03:34.717 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab4 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:03:34.721 I/ActivityManager(  520): Start proc 9610:ru.multibrowser.test:tab_disable_art_image_4/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab4}
+10-24 18:03:34.793 W/GeckoEventDispatcher( 9335): No listener for GeckoView:WebExtension:OnReady
+10-24 18:03:34.807 D/GeckoIdleService( 9335): Register idle observer 0x7f13fda4c1e8 for 5 seconds
+10-24 18:03:34.807 D/GeckoIdleService( 9335): Register: adjusting next switch from -1 to 5 seconds
+10-24 18:03:34.808 D/GeckoIdleService( 9335): next timeout 4889 msec from now
+10-24 18:03:34.808 D/GeckoIdleService( 9335): SetTimerExpiryIfBefore: next timeout 4889 msec from now
+10-24 18:03:34.808 D/GeckoIdleService( 9335): reset timer expiry to 4899 msec from now
+10-24 18:03:35.093 D/GeckoThread( 9610): State changed to LAUNCHED
+10-24 18:03:35.094 I/GeckoThread( 9610): preparing to run Gecko
+10-24 18:03:35.100 D/GeckoThread( 9610): State changed to MOZGLUE_READY
+10-24 18:03:35.101 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab4 updateBindings: FOREGROUND priority, 2 importance, 9610 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:03:35.101 D/GeckoLoader( 9610): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:35.102 D/GeckoLoader( 9610): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:35.102 E/GeckoLibLoad( 9610): Load sqlite start
+10-24 18:03:35.102 E/GeckoLibLoad( 9610): Load sqlite done
+10-24 18:03:35.103 D/GeckoLoader( 9610): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:35.103 E/GeckoLibLoad( 9610): Load nss start
+10-24 18:03:35.103 E/GeckoLibLoad( 9610): Load nss done
+10-24 18:03:35.103 D/GeckoLoader( 9610): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:35.110 E/GeckoLibLoad( 9610): Loaded libs in 6.950743ms total, 7ms(6ms) user, 0ms(0ms) system, 0(0) faults
+10-24 18:03:35.110 D/GeckoThread( 9610): State changed to LIBS_READY
+10-24 18:03:35.110 W/GeckoThread( 9610): zerdatime 708802 - runGecko
+10-24 18:03:35.118 I/ServiceChildProcess( 9539): Destroying GeckoServiceChildProcess
+10-24 18:03:35.177 D/GeckoThread( 9610): State changed to RUNNING
+10-24 18:03:35.204 W/GeckoEditableChild( 9610): No editable parent
+10-24 18:03:35.209 D/GeckoSession( 9335): handleMessage GeckoView:LocationChange uri=http://localhost:8765/geo.html
+10-24 18:03:35.233 D/GeckoSession( 9335): handleMessage GeckoView:SecurityChanged uri=null
+10-24 18:03:35.243 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:03:35.246 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:03:35.247 D/GeckoSession( 9335): handleMessage GeckoView:PageStop uri=null
+10-24 18:03:35.247 I/OsDiag  ( 9335): [7:start] загружено
+10-24 18:03:35.258 D/GeckoSession( 9335): handleMessage: GeckoView:ContentPermission
+10-24 18:03:35.489 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab0 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:03:35.522 I/ActivityManager(  520): Start proc 9680:ru.multibrowser.test:tab_disable_art_image_0/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab0}
+10-24 18:03:36.591 D/GeckoThread( 9680): State changed to LAUNCHED
+10-24 18:03:36.593 I/GeckoThread( 9680): preparing to run Gecko
+10-24 18:03:36.604 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab0 updateBindings: BACKGROUND priority, 3 importance, 9680 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 18:03:36.613 D/GeckoThread( 9680): State changed to MOZGLUE_READY
+10-24 18:03:36.615 D/GeckoLoader( 9680): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:36.617 D/GeckoLoader( 9680): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:36.633 E/GeckoLibLoad( 9680): Load sqlite start
+10-24 18:03:36.633 E/GeckoLibLoad( 9680): Load sqlite done
+10-24 18:03:36.634 D/GeckoLoader( 9680): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:36.634 E/GeckoLibLoad( 9680): Load nss start
+10-24 18:03:36.634 E/GeckoLibLoad( 9680): Load nss done
+10-24 18:03:36.634 D/GeckoLoader( 9680): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:03:36.645 E/GeckoLibLoad( 9680): Loaded libs in 10.763232ms total, 0ms(0ms) user, 7ms(6ms) system, 0(0) faults
+10-24 18:03:36.645 D/GeckoThread( 9680): State changed to LIBS_READY
+10-24 18:03:36.645 W/GeckoThread( 9680): zerdatime 710337 - runGecko
+10-24 18:03:36.709 D/GeckoThread( 9680): State changed to RUNNING
+10-24 18:03:39.707 D/GeckoIdleService( 9335): Get idle time: time since reset 5009 msec
+10-24 18:03:39.707 D/GeckoIdleService( 9335): Idle timer callback: current idle time 5009 msec
+10-24 18:03:39.707 D/GeckoIdleService( 9335): next timeout 4294967289990 msec from now
+10-24 18:03:39.707 D/GeckoIdleService( 9335): SetTimerExpiryIfBefore: next timeout 4294967289990 msec from now
+10-24 18:03:39.707 D/GeckoIdleService( 9335): reset timer expiry to 4294967289999 msec from now
+10-24 18:03:39.707 D/GeckoIdleService( 9335): Idle timer callback: tell observer 0x7f13fda4c1e8 user is idle
+10-24 18:03:45.241 D/GeckoSession( 9335): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:03:48.716 D/AndroidRuntime( 9721): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:03:48.720 I/AndroidRuntime( 9721): Using default boot image
+10-24 18:03:48.720 I/AndroidRuntime( 9721): Leaving lock profiling enabled
+10-24 18:03:48.799 D/AndroidRuntime( 9721): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:03:49.839 D/AndroidRuntime( 9721): Shutting down VM
+10-24 18:03:50.897 D/GeckoSession( 9335): handleMessage: GeckoView:AndroidPermission
+10-24 18:03:51.652 D/GeckoRuntime( 9335): Lifecycle: onPause
+10-24 18:03:51.653 D/GeckoNetworkManager( 9335): Incoming event stop for state OnWithListeners -> OffWithListeners
+10-24 18:03:51.659 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$gpu updateBindings: IDLE priority, 0 importance, 9523 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:03:55.916 D/AndroidRuntime( 9759): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:03:55.919 I/AndroidRuntime( 9759): Using default boot image
+10-24 18:03:55.919 I/AndroidRuntime( 9759): Leaving lock profiling enabled
+10-24 18:03:55.998 D/AndroidRuntime( 9759): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:03:57.033 D/AndroidRuntime( 9759): Shutting down VM
+10-24 18:03:57.955 D/GeckoRuntime( 9335): Lifecycle: onResume
+10-24 18:03:57.957 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$gpu updateBindings: FOREGROUND priority, 0 importance, 9523 pid, 2 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:03:57.971 D/GeckoNetworkManager( 9335): Incoming event start for state OffWithListeners -> OnWithListeners
+10-24 18:03:58.008 D/GeckoNetworkManager( 9335): Incoming event receivedUpdate for state OnWithListeners -> OnWithListeners
+10-24 18:03:58.012 D/GeckoNetworkManager( 9335): New network state: UP, WIFI, WIFI
+10-24 18:04:11.209 D/GeckoSession( 9335): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:04:14.195 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab4 updateBindings: IDLE priority, 6 importance, 9610 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:04:32.450 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab4 updateBindings: FOREGROUND priority, 2 importance, 9610 pid, 2 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:04:44.504 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:04:44.505 D/GeckoSession( 9335): handleMessage GeckoView:PageStart uri=https://example.org/
+10-24 18:04:44.505 I/OsDiag  ( 9335): [7:start] начало: https://example.org/
+10-24 18:04:44.571 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab18 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:04:44.574 I/ActivityManager(  520): Start proc 9901:ru.multibrowser.test:tab_disable_art_image_18/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab18}
+10-24 18:04:44.827 D/GeckoThread( 9901): State changed to LAUNCHED
+10-24 18:04:44.827 I/GeckoThread( 9901): preparing to run Gecko
+10-24 18:04:44.832 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab18 updateBindings: FOREGROUND priority, 2 importance, 9901 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:04:44.834 D/GeckoThread( 9901): State changed to MOZGLUE_READY
+10-24 18:04:44.836 D/GeckoLoader( 9901): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:04:44.837 D/GeckoLoader( 9901): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:04:44.837 E/GeckoLibLoad( 9901): Load sqlite start
+10-24 18:04:44.838 E/GeckoLibLoad( 9901): Load sqlite done
+10-24 18:04:44.838 D/GeckoLoader( 9901): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:04:44.838 E/GeckoLibLoad( 9901): Load nss start
+10-24 18:04:44.838 E/GeckoLibLoad( 9901): Load nss done
+10-24 18:04:44.838 D/GeckoLoader( 9901): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:04:44.844 E/GeckoLibLoad( 9901): Loaded libs in 5.781301ms total, 1ms(1ms) user, 4ms(4ms) system, 0(0) faults
+10-24 18:04:44.844 D/GeckoThread( 9901): State changed to LIBS_READY
+10-24 18:04:44.844 W/GeckoThread( 9901): zerdatime 778536 - runGecko
+10-24 18:04:44.891 D/GeckoThread( 9901): State changed to RUNNING
+10-24 18:04:44.913 W/GeckoEditableChild( 9901): No editable parent
+10-24 18:04:44.917 D/GeckoSession( 9335): handleMessage GeckoView:LocationChange uri=https://example.org/
+10-24 18:04:44.941 D/GeckoSession( 9335): handleMessage GeckoView:SecurityChanged uri=null
+10-24 18:04:44.953 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:04:44.967 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:04:44.968 D/GeckoSession( 9335): handleMessage GeckoView:PageStop uri=null
+10-24 18:04:44.968 I/OsDiag  ( 9335): [7:start] загружено
+10-24 18:04:45.975 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab19 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:04:45.981 I/ActivityManager(  520): Start proc 9938:ru.multibrowser.test:tab_disable_art_image_19/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab19}
+10-24 18:04:46.207 D/GeckoThread( 9938): State changed to LAUNCHED
+10-24 18:04:46.208 I/GeckoThread( 9938): preparing to run Gecko
+10-24 18:04:46.212 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab19 updateBindings: BACKGROUND priority, 3 importance, 9938 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 18:04:46.215 D/GeckoThread( 9938): State changed to MOZGLUE_READY
+10-24 18:04:46.216 D/GeckoLoader( 9938): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:04:46.217 D/GeckoLoader( 9938): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:04:46.217 E/GeckoLibLoad( 9938): Load sqlite start
+10-24 18:04:46.218 E/GeckoLibLoad( 9938): Load sqlite done
+10-24 18:04:46.218 D/GeckoLoader( 9938): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:04:46.218 E/GeckoLibLoad( 9938): Load nss start
+10-24 18:04:46.218 E/GeckoLibLoad( 9938): Load nss done
+10-24 18:04:46.218 D/GeckoLoader( 9938): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:04:46.224 E/GeckoLibLoad( 9938): Loaded libs in 5.555511ms total, 0ms(1ms) user, 1ms(4ms) system, 0(0) faults
+10-24 18:04:46.224 D/GeckoThread( 9938): State changed to LIBS_READY
+10-24 18:04:46.224 W/GeckoThread( 9938): zerdatime 779916 - runGecko
+10-24 18:04:46.288 D/GeckoThread( 9938): State changed to RUNNING
+10-24 18:04:47.833 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab4 updateBindings: IDLE priority, 6 importance, 9610 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:04:54.946 D/GeckoSession( 9335): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:05:14.620 D/GeckoIdleService( 9335): next timeout 5000 msec from now
+10-24 18:05:14.620 D/GeckoIdleService( 9335): SetTimerExpiryIfBefore: next timeout 5000 msec from now
+10-24 18:05:14.620 D/GeckoIdleService( 9335): reset timer expiry to 5010 msec from now
+10-24 18:05:14.620 D/GeckoIdleService( 9335): Reset idle timeout: tell observer 0x7f13fda4c1e8 user is back
+10-24 18:05:14.635 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:05:15.131 D/GeckoSession( 9335): handleMessage: GeckoView:ShowSelectionAction
+10-24 18:05:19.303 D/AndroidRuntime( 9987): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:05:19.307 I/AndroidRuntime( 9987): Using default boot image
+10-24 18:05:19.307 I/AndroidRuntime( 9987): Leaving lock profiling enabled
+10-24 18:05:19.389 D/AndroidRuntime( 9987): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:05:19.632 D/GeckoIdleService( 9335): Get idle time: time since reset 3502 msec
+10-24 18:05:19.632 D/GeckoIdleService( 9335): Idle timer callback: current idle time 3502 msec
+10-24 18:05:19.632 D/GeckoIdleService( 9335): next timeout 1498 msec from now
+10-24 18:05:19.632 D/GeckoIdleService( 9335): SetTimerExpiryIfBefore: next timeout 1498 msec from now
+10-24 18:05:19.632 D/GeckoIdleService( 9335): reset timer expiry to 1508 msec from now
+10-24 18:05:20.464 D/AndroidRuntime( 9987): Shutting down VM
+10-24 18:05:21.139 D/GeckoIdleService( 9335): Get idle time: time since reset 5009 msec
+10-24 18:05:21.139 D/GeckoIdleService( 9335): Idle timer callback: current idle time 5009 msec
+10-24 18:05:21.139 D/GeckoIdleService( 9335): next timeout 4294967289990 msec from now
+10-24 18:05:21.139 D/GeckoIdleService( 9335): SetTimerExpiryIfBefore: next timeout 4294967289990 msec from now
+10-24 18:05:21.139 D/GeckoIdleService( 9335): reset timer expiry to 4294967290000 msec from now
+10-24 18:05:21.139 D/GeckoIdleService( 9335): Idle timer callback: tell observer 0x7f13fda4c1e8 user is idle
+10-24 18:05:23.384 D/AndroidRuntime(10016): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:05:23.387 I/AndroidRuntime(10016): Using default boot image
+10-24 18:05:23.387 I/AndroidRuntime(10016): Leaving lock profiling enabled
+10-24 18:05:23.460 D/AndroidRuntime(10016): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:05:24.544 D/AndroidRuntime(10016): Shutting down VM
+10-24 18:05:27.467 D/AndroidRuntime(10034): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:05:27.471 I/AndroidRuntime(10034): Using default boot image
+10-24 18:05:27.471 I/AndroidRuntime(10034): Leaving lock profiling enabled
+10-24 18:05:27.543 D/AndroidRuntime(10034): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:05:28.603 D/AndroidRuntime(10034): Shutting down VM
+10-24 18:05:31.685 D/GeckoSession( 9335): handleMessage: GeckoView:HideSelectionAction
+10-24 18:05:33.655 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:05:33.664 D/GeckoSession( 9335): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:05:36.651 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab18 updateBindings: IDLE priority, 6 importance, 9901 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:05:38.672 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab18 updateBindings: FOREGROUND priority, 2 importance, 9901 pid, 2 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:05:38.684 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:05:38.685 D/GeckoSession( 9335): handleMessage GeckoView:PageStart uri=https://en.m.wikipedia.org/wiki/Moon
+10-24 18:05:38.685 I/OsDiag  ( 9335): [7:start] начало: https://en.m.wikipedia.org/wiki/Moon
+10-24 18:05:38.776 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:05:39.811 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab19 updateBindings: FOREGROUND priority, 2 importance, 9938 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:05:39.827 D/GeckoSession( 9335): handleMessage GeckoView:LocationChange uri=https://en.wikipedia.org/wiki/Moon
+10-24 18:05:39.863 D/GeckoSession( 9335): handleMessage GeckoView:SecurityChanged uri=null
+10-24 18:05:40.018 D/GeckoSession( 9335): handleMessage: GeckoView:ContentPermission
+10-24 18:05:40.019 D/GeckoSession( 9335): handleMessage: GeckoView:ContentPermission
+10-24 18:05:40.142 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$utility updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:05:40.147 I/ActivityManager(  520): Start proc 10121:ru.multibrowser.test:utility_disable_art_image_/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$utility}
+10-24 18:05:40.204 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:05:40.422 D/GeckoThread(10121): State changed to LAUNCHED
+10-24 18:05:40.424 I/GeckoThread(10121): preparing to run Gecko
+10-24 18:05:40.433 D/GeckoThread(10121): State changed to MOZGLUE_READY
+10-24 18:05:40.435 D/GeckoLoader(10121): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:05:40.435 D/GeckoLoader(10121): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:05:40.436 E/GeckoLibLoad(10121): Load sqlite start
+10-24 18:05:40.437 E/GeckoLibLoad(10121): Load sqlite done
+10-24 18:05:40.438 D/GeckoLoader(10121): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:05:40.439 E/GeckoLibLoad(10121): Load nss start
+10-24 18:05:40.439 E/GeckoLibLoad(10121): Load nss done
+10-24 18:05:40.440 D/GeckoLoader(10121): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:05:40.454 E/GeckoLibLoad(10121): Loaded libs in 13.807739ms total, 0ms(1ms) user, 8ms(8ms) system, 0(0) faults
+10-24 18:05:40.454 D/GeckoThread(10121): State changed to LIBS_READY
+10-24 18:05:40.454 W/GeckoThread(10121): zerdatime 834146 - runGecko
+10-24 18:05:40.467 D/GeckoThread(10121): State changed to RUNNING
+10-24 18:05:40.670 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:05:40.678 D/GeckoSession( 9335): handleMessage GeckoView:PageStop uri=null
+10-24 18:05:40.679 I/OsDiag  ( 9335): [7:start] загружено
+10-24 18:05:40.878 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab34 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:05:40.880 I/ActivityManager(  520): Start proc 10146:ru.multibrowser.test:tab_disable_art_image_34/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab34}
+10-24 18:05:41.197 D/GeckoThread(10146): State changed to LAUNCHED
+10-24 18:05:41.199 I/GeckoThread(10146): preparing to run Gecko
+10-24 18:05:41.204 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab34 updateBindings: BACKGROUND priority, 3 importance, 10146 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 18:05:41.210 D/GeckoThread(10146): State changed to MOZGLUE_READY
+10-24 18:05:41.212 D/GeckoLoader(10146): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:05:41.212 D/GeckoLoader(10146): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:05:41.213 E/GeckoLibLoad(10146): Load sqlite start
+10-24 18:05:41.213 E/GeckoLibLoad(10146): Load sqlite done
+10-24 18:05:41.214 D/GeckoLoader(10146): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:05:41.214 E/GeckoLibLoad(10146): Load nss start
+10-24 18:05:41.214 E/GeckoLibLoad(10146): Load nss done
+10-24 18:05:41.215 D/GeckoLoader(10146): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:05:41.223 E/GeckoLibLoad(10146): Loaded libs in 8.522564ms total, 1ms(4ms) user, 4ms(4ms) system, 0(0) faults
+10-24 18:05:41.224 D/GeckoThread(10146): State changed to LIBS_READY
+10-24 18:05:41.224 W/GeckoThread(10146): zerdatime 834916 - runGecko
+10-24 18:05:41.292 D/GeckoThread(10146): State changed to RUNNING
+10-24 18:05:41.812 I/GeckoConsole( 9335): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “origin-when-cross-origin” for the cross-site request: https://auth.wikimedia.org/metawiki/wiki/Special:CentralAutoLogin/checkLoggedIn?useformat=mobile&wikiid=enwiki&usesul3=1&type=script" {file: "https://auth.wikimedia.org/metawiki/wiki/Special:CentralAutoLogin/checkLoggedIn?useformat=mobile&wikiid=enwiki&usesul3=1&type=script" line: 0}]
+10-24 18:05:42.837 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab18 updateBindings: IDLE priority, 6 importance, 9901 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:05:50.033 D/GeckoSession( 9335): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:06:08.811 D/AndroidRuntime(10186): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:06:08.815 I/AndroidRuntime(10186): Using default boot image
+10-24 18:06:08.815 I/AndroidRuntime(10186): Leaving lock profiling enabled
+10-24 18:06:08.895 D/AndroidRuntime(10186): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:06:10.145 D/AndroidRuntime(10186): Shutting down VM
+10-24 18:06:13.109 D/AndroidRuntime(10214): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:06:13.114 I/AndroidRuntime(10214): Using default boot image
+10-24 18:06:13.114 I/AndroidRuntime(10214): Leaving lock profiling enabled
+10-24 18:06:13.193 D/AndroidRuntime(10214): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:06:14.279 D/AndroidRuntime(10214): Shutting down VM
+10-24 18:06:17.199 D/AndroidRuntime(10232): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:06:17.202 I/AndroidRuntime(10232): Using default boot image
+10-24 18:06:17.202 I/AndroidRuntime(10232): Leaving lock profiling enabled
+10-24 18:06:17.281 D/AndroidRuntime(10232): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:06:18.365 D/AndroidRuntime(10232): Shutting down VM
+10-24 18:06:21.285 D/AndroidRuntime(10250): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:06:21.288 I/AndroidRuntime(10250): Using default boot image
+10-24 18:06:21.288 I/AndroidRuntime(10250): Leaving lock profiling enabled
+10-24 18:06:21.362 D/AndroidRuntime(10250): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:06:22.451 D/AndroidRuntime(10250): Shutting down VM
+10-24 18:06:26.833 D/AndroidRuntime(10275): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:06:26.837 I/AndroidRuntime(10275): Using default boot image
+10-24 18:06:26.837 I/AndroidRuntime(10275): Leaving lock profiling enabled
+10-24 18:06:26.911 D/AndroidRuntime(10275): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:06:27.997 D/AndroidRuntime(10275): Shutting down VM
+10-24 18:06:29.215 D/GeckoSession( 9335): handleMessage GeckoView:LocationChange uri=https://en.wikipedia.org/wiki/Moon#os-reader
+10-24 18:06:29.232 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:06:44.049 D/AndroidRuntime(10309): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:06:44.052 I/AndroidRuntime(10309): Using default boot image
+10-24 18:06:44.052 I/AndroidRuntime(10309): Leaving lock profiling enabled
+10-24 18:06:44.132 D/AndroidRuntime(10309): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:06:44.211 D/GeckoSession( 9335): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:06:45.280 D/AndroidRuntime(10309): Shutting down VM
+10-24 18:06:48.236 D/AndroidRuntime(10338): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:06:48.239 I/AndroidRuntime(10338): Using default boot image
+10-24 18:06:48.239 I/AndroidRuntime(10338): Leaving lock profiling enabled
+10-24 18:06:48.315 D/AndroidRuntime(10338): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:06:49.408 D/AndroidRuntime(10338): Shutting down VM
+10-24 18:06:52.325 D/AndroidRuntime(10357): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:06:52.328 I/AndroidRuntime(10357): Using default boot image
+10-24 18:06:52.328 I/AndroidRuntime(10357): Leaving lock profiling enabled
+10-24 18:06:52.401 D/AndroidRuntime(10357): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:06:53.480 D/AndroidRuntime(10357): Shutting down VM
+10-24 18:06:56.409 D/AndroidRuntime(10375): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:06:56.412 I/AndroidRuntime(10375): Using default boot image
+10-24 18:06:56.412 I/AndroidRuntime(10375): Leaving lock profiling enabled
+10-24 18:06:56.489 D/AndroidRuntime(10375): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:06:57.568 D/AndroidRuntime(10375): Shutting down VM
+10-24 18:07:01.938 D/AndroidRuntime(10398): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:07:01.941 I/AndroidRuntime(10398): Using default boot image
+10-24 18:07:01.941 I/AndroidRuntime(10398): Leaving lock profiling enabled
+10-24 18:07:02.030 D/AndroidRuntime(10398): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:07:03.104 D/AndroidRuntime(10398): Shutting down VM
+10-24 18:07:04.064 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:07:04.064 D/GeckoSession( 9335): handleMessage GeckoView:PageStart uri=https://en.wikipedia.org/wiki/Moon
+10-24 18:07:04.064 I/OsDiag  ( 9335): [7:start] начало: https://en.wikipedia.org/wiki/Moon
+10-24 18:07:04.139 W/GeckoEditableChild( 9938): No editable parent
+10-24 18:07:04.159 I/ServiceChildProcess( 9610): Destroying GeckoServiceChildProcess
+10-24 18:07:04.165 I/AndroidRuntime( 9610): VM exiting with result code 0, cleanup skipped.
+10-24 18:07:04.165 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:07:04.166 D/GeckoSession( 9335): handleMessage GeckoView:LocationChange uri=https://en.wikipedia.org/wiki/Moon
+10-24 18:07:04.175 D/GeckoSession( 9335): handleMessage GeckoView:SecurityChanged uri=null
+10-24 18:07:04.256 D/GeckoSession( 9335): handleMessage: GeckoView:ContentPermission
+10-24 18:07:04.257 D/GeckoSession( 9335): handleMessage: GeckoView:ContentPermission
+10-24 18:07:04.271 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:07:04.349 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:07:04.350 D/GeckoSession( 9335): handleMessage GeckoView:PageStop uri=null
+10-24 18:07:04.350 I/OsDiag  ( 9335): [7:start] загружено
+10-24 18:07:14.042 D/AndroidRuntime(10447): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:07:14.045 I/AndroidRuntime(10447): Using default boot image
+10-24 18:07:14.045 I/AndroidRuntime(10447): Leaving lock profiling enabled
+10-24 18:07:14.116 D/AndroidRuntime(10447): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:07:14.761 D/GeckoSession( 9335): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:07:15.253 D/AndroidRuntime(10447): Shutting down VM
+10-24 18:07:18.212 D/AndroidRuntime(10475): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:07:18.215 I/AndroidRuntime(10475): Using default boot image
+10-24 18:07:18.215 I/AndroidRuntime(10475): Leaving lock profiling enabled
+10-24 18:07:18.287 D/AndroidRuntime(10475): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:07:19.373 D/AndroidRuntime(10475): Shutting down VM
+10-24 18:07:22.298 D/AndroidRuntime(10494): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:07:22.301 I/AndroidRuntime(10494): Using default boot image
+10-24 18:07:22.301 I/AndroidRuntime(10494): Leaving lock profiling enabled
+10-24 18:07:22.378 D/AndroidRuntime(10494): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:07:23.459 D/AndroidRuntime(10494): Shutting down VM
+10-24 18:07:26.385 D/AndroidRuntime(10512): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:07:26.388 I/AndroidRuntime(10512): Using default boot image
+10-24 18:07:26.388 I/AndroidRuntime(10512): Leaving lock profiling enabled
+10-24 18:07:26.465 D/AndroidRuntime(10512): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:07:27.550 D/AndroidRuntime(10512): Shutting down VM
+10-24 18:07:31.919 D/AndroidRuntime(10538): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:07:31.922 I/AndroidRuntime(10538): Using default boot image
+10-24 18:07:31.922 I/AndroidRuntime(10538): Leaving lock profiling enabled
+10-24 18:07:32.004 D/AndroidRuntime(10538): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:07:33.093 D/AndroidRuntime(10538): Shutting down VM
+10-24 18:07:34.051 I/OsDiag  ( 9335): [save] saveAsPdf: https://en.wikipedia.org/wiki/Moon
+10-24 18:07:34.092 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:07:34.093 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:07:34.102 W/GeckoEditableChild( 9938): No editable parent
+10-24 18:07:34.191 W/GeckoEditableChild( 9938): No editable parent
+10-24 18:08:00.187 I/OsDiag  ( 9335): [save] сохранено: page_1792865254097.pdf, 26931848 Б
+10-24 18:08:06.506 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab19 updateBindings: IDLE priority, 6 importance, 9938 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:08:08.508 D/AndroidRuntime(10608): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:08:08.516 I/AndroidRuntime(10608): Using default boot image
+10-24 18:08:08.516 I/AndroidRuntime(10608): Leaving lock profiling enabled
+10-24 18:08:08.666 D/AndroidRuntime(10608): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:08:09.700 D/AndroidRuntime(10608): Shutting down VM
+10-24 18:08:10.608 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab34 updateBindings: FOREGROUND priority, 2 importance, 10146 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:08:10.716 I/Gecko   (10146): console.warn: LoginRecipes: "Falling back to a synchronous message for: file://."
+10-24 18:08:10.718 W/GeckoEventDispatcher( 9335): No listener for GeckoView:RecordExposure
+10-24 18:08:10.719 W/GeckoViewPdfJsParent( 9335): Cannot record experiment exposure: No listener for GeckoView:RecordExposure
+10-24 18:08:10.721 I/ServiceChildProcess( 9901): Destroying GeckoServiceChildProcess
+10-24 18:08:10.722 W/Web Content(10146): [JavaScript Warning: "Layout was forced before the page was fully loaded. If stylesheets are not yet loaded this may cause a flash of unstyled content." {file: "resource:///actors/GeckoViewAutoFillChild.sys.mjs" line: 214}]
+10-24 18:08:10.723 I/AndroidRuntime( 9901): VM exiting with result code 0, cleanup skipped.
+10-24 18:08:10.737 D/AutofillSupport( 9335): handleMessage GeckoView:StartAutofill
+10-24 18:08:10.739 D/AutofillSupport( 9335): handleMessage GeckoView:AddAutofill
+10-24 18:08:10.869 W/GeckoEventDispatcher( 9335): No listener for GeckoView:GetExperimentFeature
+10-24 18:08:10.870 W/GeckoViewPdfJsParent( 9335): Cannot get experiment feature: No listener for GeckoView:GetExperimentFeature
+10-24 18:08:10.968 W/GeckoEventDispatcher( 9335): No listener for GeckoView:Autocomplete:Fetch:Login
+10-24 18:08:11.620 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab29 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:08:11.624 I/ActivityManager(  520): Start proc 10645:ru.multibrowser.test:tab_disable_art_image_29/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab29}
+10-24 18:08:12.071 D/GeckoThread(10645): State changed to LAUNCHED
+10-24 18:08:12.076 I/GeckoThread(10645): preparing to run Gecko
+10-24 18:08:12.095 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab29 updateBindings: BACKGROUND priority, 3 importance, 10645 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 18:08:12.097 D/GeckoThread(10645): State changed to MOZGLUE_READY
+10-24 18:08:12.106 D/GeckoLoader(10645): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:08:12.107 D/GeckoLoader(10645): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:08:12.116 D/AutofillSupport( 9335): handleMessage GeckoView:AddAutofill
+10-24 18:08:12.131 E/GeckoLibLoad(10645): Load sqlite start
+10-24 18:08:12.132 E/GeckoLibLoad(10645): Load sqlite done
+10-24 18:08:12.133 D/GeckoLoader(10645): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:08:12.133 E/GeckoLibLoad(10645): Load nss start
+10-24 18:08:12.133 E/GeckoLibLoad(10645): Load nss done
+10-24 18:08:12.133 D/GeckoLoader(10645): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:08:12.157 E/GeckoLibLoad(10645): Loaded libs in 23.556451ms total, 2ms(2ms) user, 7ms(7ms) system, 0(0) faults
+10-24 18:08:12.159 D/GeckoThread(10645): State changed to LIBS_READY
+10-24 18:08:12.160 W/GeckoThread(10645): zerdatime 985851 - runGecko
+10-24 18:08:12.242 D/GeckoThread(10645): State changed to RUNNING
+10-24 18:08:29.271 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab34 updateBindings: IDLE priority, 6 importance, 10146 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:08:29.999 D/AndroidRuntime(10706): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:08:30.009 I/AndroidRuntime(10706): Using default boot image
+10-24 18:08:30.009 I/AndroidRuntime(10706): Leaving lock profiling enabled
+10-24 18:08:30.111 D/AndroidRuntime(10706): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:08:31.175 D/AndroidRuntime(10706): Shutting down VM
+10-24 18:08:36.492 D/AndroidRuntime(10746): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:08:36.497 I/AndroidRuntime(10746): Using default boot image
+10-24 18:08:36.497 I/AndroidRuntime(10746): Leaving lock profiling enabled
+10-24 18:08:36.575 D/AndroidRuntime(10746): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:08:37.615 D/AndroidRuntime(10746): Shutting down VM
+10-24 18:08:40.588 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab29 updateBindings: FOREGROUND priority, 2 importance, 10645 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:08:40.605 I/GeckoSession( 9335): zerdatime 1014296 - chrome startup finished
+10-24 18:08:40.607 W/GeckoEditableChild(10645): No editable parent
+10-24 18:08:40.620 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:08:40.633 D/GeckoSession( 9335): handleMessage GeckoView:PageStart uri=about:blank
+10-24 18:08:40.633 I/OsDiag  ( 9335): [8:start] начало: about:blank
+10-24 18:08:40.638 D/GeckoSession( 9335): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 18:08:40.640 D/GeckoSession( 9335): handleMessage GeckoView:PageStop uri=null
+10-24 18:08:40.640 I/OsDiag  ( 9335): [8:start] загружено
+10-24 18:08:40.640 D/GeckoSession( 9335): handleMessage GeckoView:PageStart uri=about:blank
+10-24 18:08:40.640 I/OsDiag  ( 9335): [8:start] начало: about:blank
+10-24 18:08:40.640 D/GeckoSession( 9335): handleMessage GeckoView:SecurityChanged uri=null
+10-24 18:08:40.673 D/GeckoSession( 9335): handleMessage GeckoView:PageStop uri=null
+10-24 18:08:40.674 I/OsDiag  ( 9335): [8:start] загружено
+10-24 18:08:40.720 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:08:41.585 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab14 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:08:41.589 I/ActivityManager(  520): Start proc 10785:ru.multibrowser.test:tab_disable_art_image_14/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab14}
+10-24 18:08:41.815 D/GeckoThread(10785): State changed to LAUNCHED
+10-24 18:08:41.816 I/GeckoThread(10785): preparing to run Gecko
+10-24 18:08:41.820 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab14 updateBindings: BACKGROUND priority, 3 importance, 10785 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 18:08:41.823 D/GeckoThread(10785): State changed to MOZGLUE_READY
+10-24 18:08:41.825 D/GeckoLoader(10785): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:08:41.825 D/GeckoLoader(10785): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:08:41.825 E/GeckoLibLoad(10785): Load sqlite start
+10-24 18:08:41.827 E/GeckoLibLoad(10785): Load sqlite done
+10-24 18:08:41.827 D/GeckoLoader(10785): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:08:41.827 E/GeckoLibLoad(10785): Load nss start
+10-24 18:08:41.827 E/GeckoLibLoad(10785): Load nss done
+10-24 18:08:41.828 D/GeckoLoader(10785): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:08:41.843 E/GeckoLibLoad(10785): Loaded libs in 15.775497ms total, 1ms(1ms) user, 12ms(12ms) system, 59(59) faults
+10-24 18:08:41.844 D/GeckoThread(10785): State changed to LIBS_READY
+10-24 18:08:41.844 W/GeckoThread(10785): zerdatime 1015535 - runGecko
+10-24 18:08:41.897 D/GeckoThread(10785): State changed to RUNNING
+10-24 18:08:50.650 D/GeckoSession( 9335): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:08:51.000 D/GeckoSession( 9335): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:08:51.004 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:08:53.987 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab29 updateBindings: IDLE priority, 6 importance, 10645 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:08:54.758 D/AndroidRuntime(10833): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:08:54.761 I/AndroidRuntime(10833): Using default boot image
+10-24 18:08:54.761 I/AndroidRuntime(10833): Leaving lock profiling enabled
+10-24 18:08:54.845 D/AndroidRuntime(10833): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:08:55.917 D/AndroidRuntime(10833): Shutting down VM
+10-24 18:08:57.102 D/NetworkMonitor/100( 1005): PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 time=35ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Safari/537.36]} headers={null=[HTTP/1.1 204 No Content], Connection=[close], Content-Length=[0], Cross-Origin-Resource-Policy=[cross-origin], Date=[Sat, 24 Oct 2026 18:08:57 GMT], X-Android-Received-Millis=[1792865337102], X-Android-Response-Source=[NETWORK 204], X-Android-Selected-Protocol=[http/1.1], X-Android-Sent-Millis=[1792865337086]}
+10-24 18:08:57.117 D/NetworkMonitor/100( 1005): PROBE_HTTPS https://www.google.com/generate_204 time=52ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Safari/537.36]} headers={null=[HTTP/1.1 204 No Content], Alt-Svc=[h3=":443"; ma=2592000,h3-29=":443"; ma=2592000], Connection=[close], Content-Length=[0], Cross-Origin-Resource-Policy=[cross-origin], Date=[Sat, 24 Oct 2026 18:08:57 GMT], X-Android-Received-Millis=[1792865337117], X-Android-Response-Source=[NETWORK 204], X-Android-Selected-Protocol=[http/1.1], X-Android-Sent-Millis=[1792865337106]}
+10-24 18:08:59.084 D/AndroidRuntime(10886): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:08:59.088 I/AndroidRuntime(10886): Using default boot image
+10-24 18:08:59.088 I/AndroidRuntime(10886): Leaving lock profiling enabled
+10-24 18:08:59.162 D/AndroidRuntime(10886): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:09:00.187 D/AndroidRuntime(10886): Shutting down VM
+10-24 18:09:02.174 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab34 updateBindings: FOREGROUND priority, 2 importance, 10146 pid, 2 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:09:02.185 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:09:02.185 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:09:02.186 D/GeckoSession( 9335): handleMessage GeckoView:PageStart uri=about:blank
+10-24 18:09:02.186 I/OsDiag  ( 9335): [7:start] начало: about:blank
+10-24 18:09:02.186 D/GeckoSession( 9335): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 18:09:02.189 D/GeckoSession( 9335): handleMessage GeckoView:PageStop uri=null
+10-24 18:09:02.189 I/OsDiag  ( 9335): [7:start] загружено
+10-24 18:09:02.192 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:09:02.192 D/GeckoSession( 9335): handleMessage GeckoView:PageStart uri=https://example.com/
+10-24 18:09:02.192 I/OsDiag  ( 9335): [7:start] начало: https://example.com/
+10-24 18:09:02.287 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab14 updateBindings: FOREGROUND priority, 2 importance, 10785 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:09:02.348 D/AutofillSupport( 9335): handleMessage GeckoView:ClearAutofill
+10-24 18:09:02.350 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:09:02.383 D/GeckoSession( 9335): handleMessage GeckoView:LocationChange uri=https://example.com/
+10-24 18:09:02.402 D/GeckoSession( 9335): handleMessage GeckoView:SecurityChanged uri=null
+10-24 18:09:02.427 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:09:02.455 D/GeckoSession( 9335): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:09:02.455 D/GeckoSession( 9335): handleMessage GeckoView:PageStop uri=null
+10-24 18:09:02.455 I/OsDiag  ( 9335): [7:start] загружено
+10-24 18:09:03.270 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab20 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:09:03.274 I/ActivityManager(  520): Start proc 10934:ru.multibrowser.test:tab_disable_art_image_20/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab20}
+10-24 18:09:03.508 D/GeckoThread(10934): State changed to LAUNCHED
+10-24 18:09:03.508 I/GeckoThread(10934): preparing to run Gecko
+10-24 18:09:03.514 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab20 updateBindings: BACKGROUND priority, 3 importance, 10934 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 18:09:03.517 D/GeckoThread(10934): State changed to MOZGLUE_READY
+10-24 18:09:03.519 D/GeckoLoader(10934): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:09:03.519 D/GeckoLoader(10934): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:09:03.520 E/GeckoLibLoad(10934): Load sqlite start
+10-24 18:09:03.521 E/GeckoLibLoad(10934): Load sqlite done
+10-24 18:09:03.521 D/GeckoLoader(10934): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:09:03.521 E/GeckoLibLoad(10934): Load nss start
+10-24 18:09:03.521 E/GeckoLibLoad(10934): Load nss done
+10-24 18:09:03.521 D/GeckoLoader(10934): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:09:03.542 E/GeckoLibLoad(10934): Loaded libs in 20.994850ms total, 9ms(9ms) user, 0ms(0ms) system, 61(61) faults
+10-24 18:09:03.543 D/GeckoThread(10934): State changed to LIBS_READY
+10-24 18:09:03.543 W/GeckoThread(10934): zerdatime 1037235 - runGecko
+10-24 18:09:03.591 D/GeckoThread(10934): State changed to RUNNING
+10-24 18:09:05.268 D/ServiceAllocator( 9335): org.mozilla.gecko.process.GeckoChildProcessServices$tab34 updateBindings: IDLE priority, 6 importance, 10146 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:09:12.419 D/GeckoSession( 9335): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:09:17.172 D/AndroidRuntime(10966): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:09:17.177 I/AndroidRuntime(10966): Using default boot image
+10-24 18:09:17.177 I/AndroidRuntime(10966): Leaving lock profiling enabled
+10-24 18:09:17.334 D/AndroidRuntime(10966): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:09:18.426 D/AndroidRuntime(10966): Shutting down VM
+10-24 18:09:21.391 D/AndroidRuntime(10997): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:09:21.395 I/AndroidRuntime(10997): Using default boot image
+10-24 18:09:21.395 I/AndroidRuntime(10997): Leaving lock profiling enabled
+10-24 18:09:21.481 D/AndroidRuntime(10997): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:09:22.553 D/AndroidRuntime(10997): Shutting down VM
+10-24 18:09:23.574 D/GeckoSession( 9335): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:09:26.603 D/AndroidRuntime(11025): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:09:26.605 I/AndroidRuntime(11025): Using default boot image
+10-24 18:09:26.606 I/AndroidRuntime(11025): Leaving lock profiling enabled
+10-24 18:09:26.684 D/AndroidRuntime(11025): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:09:27.727 D/AndroidRuntime(11025): Shutting down VM
+10-24 18:09:34.521 D/NetworkMonitor/100( 1005): PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 time=41ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Safari/537.36]} headers={null=[HTTP/1.1 204 No Content], Connection=[close], Content-Length=[0], Cross-Origin-Resource-Policy=[cross-origin], Date=[Sat, 24 Oct 2026 18:09:34 GMT], X-Android-Received-Millis=[1792865374521], X-Android-Response-Source=[NETWORK 204], X-Android-Selected-Protocol=[http/1.1], X-Android-Sent-Millis=[1792865374504]}
+10-24 18:09:34.532 D/NetworkMonitor/100( 1005): PROBE_HTTPS https://www.google.com/generate_204 time=56ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Safari/537.36]} headers={null=[HTTP/1.1 204 No Content], Alt-Svc=[h3=":443"; ma=2592000,h3-29=":443"; ma=2592000], Connection=[close], Content-Length=[0], Cross-Origin-Resource-Policy=[cross-origin], Date=[Sat, 24 Oct 2026 18:09:34 GMT], X-Android-Received-Millis=[1792865374531], X-Android-Response-Source=[NETWORK 204], X-Android-Selected-Protocol=[http/1.1], X-Android-Sent-Millis=[1792865374521]}
+10-24 18:09:38.192 D/AndroidRuntime(11188): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:09:38.195 I/AndroidRuntime(11188): Using default boot image
+10-24 18:09:38.195 I/AndroidRuntime(11188): Leaving lock profiling enabled
+10-24 18:09:38.268 D/AndroidRuntime(11188): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:09:39.331 D/AndroidRuntime(11188): Shutting down VM
+10-24 18:09:40.249 D/AndroidRuntime(11208): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:09:40.252 I/AndroidRuntime(11208): Using default boot image
+10-24 18:09:40.252 I/AndroidRuntime(11208): Leaving lock profiling enabled
+10-24 18:09:40.325 D/AndroidRuntime(11208): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:09:41.400 D/AndroidRuntime(11208): Shutting down VM
+10-24 18:09:52.118 D/AndroidRuntime(11320): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:09:52.122 I/AndroidRuntime(11320): Using default boot image
+10-24 18:09:52.122 I/AndroidRuntime(11320): Leaving lock profiling enabled
+10-24 18:09:52.222 D/AndroidRuntime(11320): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:09:53.281 D/AndroidRuntime(11320): Shutting down VM
+10-24 18:10:17.834 D/GeckoThread(11070): State changed to LAUNCHED
+10-24 18:10:17.836 I/GeckoThread(11070): preparing to run Gecko
+10-24 18:10:17.838 D/GeckoRuntime(11070): Lifecycle: onCreate
+10-24 18:10:17.838 D/GeckoRuntime(11070): Lifecycle: onStart
+10-24 18:10:17.838 D/GeckoRuntime(11070): Lifecycle: onResume
+10-24 18:10:17.839 D/GeckoNetworkManager(11070): Incoming event start for state OffNoListeners -> OnNoListeners
+10-24 18:10:17.840 D/GeckoNetworkManager(11070): New network state: UP, WIFI, WIFI
+10-24 18:10:17.849 D/GeckoThread(11070): State changed to MOZGLUE_READY
+10-24 18:10:17.877 D/GeckoNetworkManager(11070): Incoming event receivedUpdate for state OnNoListeners -> OnNoListeners
+10-24 18:10:17.878 D/GeckoNetworkManager(11070): New network state: UP, WIFI, WIFI
+10-24 18:10:17.889 D/GeckoLoader(11070): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:17.908 D/GeckoLoader(11070): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:17.908 E/GeckoLibLoad(11070): Load sqlite start
+10-24 18:10:17.910 E/GeckoLibLoad(11070): Load sqlite done
+10-24 18:10:17.910 D/GeckoLoader(11070): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:17.910 E/GeckoLibLoad(11070): Load nss start
+10-24 18:10:17.910 E/GeckoLibLoad(11070): Load nss done
+10-24 18:10:17.917 D/GeckoLoader(11070): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:17.940 E/GeckoLibLoad(11070): Loaded libs in 22.435264ms total, 0ms(10ms) user, 8ms(9ms) system, 0(0) faults
+10-24 18:10:17.940 D/GeckoThread(11070): State changed to LIBS_READY
+10-24 18:10:17.940 W/GeckoThread(11070): zerdatime 1111632 - runGecko
+10-24 18:10:18.254 I/Gecko:DumpUtils(11070): Fifo watcher disabled via pref.
+10-24 18:10:18.291 D/GeckoThread(11070): State changed to JNI_READY
+10-24 18:10:18.326 I/GeckoConsole(11070): No chrome package registered for chrome://browser/content/built_in_addons.json
+10-24 18:10:18.328 I/GeckoConsole(11070): 1792865418328	addons.xpi	WARN	Force scan SCOPE_APPLICATION (app-builtin-addons location missing from XPIStates)
+10-24 18:10:18.337 D/GeckoThread(11070): State changed to PROFILE_READY
+10-24 18:10:18.341 D/GeckoThread(11070): State changed to RUNNING
+10-24 18:10:18.422 D/ServiceAllocator(11070): org.mozilla.gecko.process.GeckoChildProcessServices$gpu updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:10:18.423 I/ActivityManager(  520): Start proc 11524:ru.multibrowser.test:gpu_disable_art_image_/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$gpu}
+10-24 18:10:18.436 W/Gecko   (11070): type=1400 audit(0.0:389): avc:  denied  { read } for  name="product_name" dev="sysfs" ino=781 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-24 18:10:18.448 D/GeckoNetworkManager(11070): Incoming event enableNotifications for state OnNoListeners -> OnWithListeners
+10-24 18:10:18.440 W/Gecko   (11070): type=1400 audit(0.0:390): avc:  denied  { read } for  name="product_sku" dev="sysfs" ino=785 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-24 18:10:18.456 D/GeckoNetworkManager(11070): New network state: UP, WIFI, WIFI
+10-24 18:10:18.469 D/GeckoNetworkManager(11070): Incoming event receivedUpdate for state OnWithListeners -> OnWithListeners
+10-24 18:10:18.470 D/GeckoNetworkManager(11070): New network state: UP, WIFI, WIFI
+10-24 18:10:18.489 I/ActivityManager(  520): Start proc 11543:ru.multibrowser.test:tab_disable_art_image_29/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab29}
+10-24 18:10:18.489 D/ServiceAllocator(11070): org.mozilla.gecko.process.GeckoChildProcessServices$tab29 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:10:18.654 D/GeckoThread(11524): State changed to LAUNCHED
+10-24 18:10:18.655 I/GeckoThread(11524): preparing to run Gecko
+10-24 18:10:18.661 D/GeckoThread(11524): State changed to MOZGLUE_READY
+10-24 18:10:18.662 D/GeckoLoader(11524): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:18.662 D/GeckoLoader(11524): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:18.663 E/GeckoLibLoad(11524): Load sqlite start
+10-24 18:10:18.663 E/GeckoLibLoad(11524): Load sqlite done
+10-24 18:10:18.664 D/GeckoLoader(11524): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:18.664 E/GeckoLibLoad(11524): Load nss start
+10-24 18:10:18.664 E/GeckoLibLoad(11524): Load nss done
+10-24 18:10:18.664 D/GeckoLoader(11524): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:18.670 E/GeckoLibLoad(11524): Loaded libs in 5.478036ms total, 3ms(5ms) user, 0ms(0ms) system, 0(0) faults
+10-24 18:10:18.670 D/GeckoThread(11524): State changed to LIBS_READY
+10-24 18:10:18.670 W/GeckoThread(11524): zerdatime 1112362 - runGecko
+10-24 18:10:18.677 D/GeckoThread(11524): State changed to RUNNING
+10-24 18:10:18.728 D/GeckoThread(11543): State changed to LAUNCHED
+10-24 18:10:18.728 I/GeckoThread(11543): preparing to run Gecko
+10-24 18:10:18.734 D/GeckoThread(11543): State changed to MOZGLUE_READY
+10-24 18:10:18.735 D/ServiceAllocator(11070): org.mozilla.gecko.process.GeckoChildProcessServices$tab29 updateBindings: FOREGROUND priority, 2 importance, 11543 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:10:18.738 D/GeckoLoader(11543): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:18.738 D/GeckoLoader(11543): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:18.739 E/GeckoLibLoad(11543): Load sqlite start
+10-24 18:10:18.740 E/GeckoLibLoad(11543): Load sqlite done
+10-24 18:10:18.740 D/GeckoLoader(11543): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:18.740 E/GeckoLibLoad(11543): Load nss start
+10-24 18:10:18.740 E/GeckoLibLoad(11543): Load nss done
+10-24 18:10:18.740 D/GeckoLoader(11543): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:18.755 E/GeckoLibLoad(11543): Loaded libs in 15.186401ms total, 0ms(1ms) user, 5ms(4ms) system, 0(0) faults
+10-24 18:10:18.755 D/GeckoThread(11543): State changed to LIBS_READY
+10-24 18:10:18.755 W/GeckoThread(11543): zerdatime 1112447 - runGecko
+10-24 18:10:18.806 I/GeckoSession(11070): zerdatime 1112498 - chrome startup finished
+10-24 18:10:18.811 D/GeckoThread(11543): State changed to RUNNING
+10-24 18:10:18.852 D/GeckoSession(11070): handleMessage GeckoView:PageStart uri=about:blank
+10-24 18:10:18.853 I/OsDiag  (11070): [7:start] начало: about:blank
+10-24 18:10:18.854 D/GeckoSession(11070): handleMessage GeckoView:LocationChange uri=about:blank
+10-24 18:10:18.857 D/GeckoSession(11070): handleMessage GeckoView:PageStop uri=null
+10-24 18:10:18.857 I/OsDiag  (11070): [7:start] загружено
+10-24 18:10:18.879 D/GeckoSession(11070): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:10:18.880 D/GeckoSession(11070): handleMessage GeckoView:PageStart uri=http://localhost:8766/notify.html
+10-24 18:10:18.880 I/OsDiag  (11070): [7:start] начало: http://localhost:8766/notify.html
+10-24 18:10:18.901 D/ServiceAllocator(11070): org.mozilla.gecko.process.GeckoChildProcessServices$tab30 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:10:18.905 I/ActivityManager(  520): Start proc 11610:ru.multibrowser.test:tab_disable_art_image_30/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab30}
+10-24 18:10:18.948 W/GeckoEventDispatcher(11070): No listener for GeckoView:WebExtension:OnReady
+10-24 18:10:18.983 D/GeckoIdleService(11070): Setting timer a day from now
+10-24 18:10:18.989 D/GeckoIdleService(11070): Register idle observer 0x7f13dd84bb88 for 5 seconds
+10-24 18:10:18.990 D/GeckoIdleService(11070): Register: adjusting next switch from -1 to 5 seconds
+10-24 18:10:18.992 D/GeckoIdleService(11070): next timeout 4990 msec from now
+10-24 18:10:18.993 D/GeckoIdleService(11070): SetTimerExpiryIfBefore: next timeout 4990 msec from now
+10-24 18:10:18.993 D/GeckoIdleService(11070): reset timer expiry to 5000 msec from now
+10-24 18:10:19.266 D/GeckoThread(11610): State changed to LAUNCHED
+10-24 18:10:19.268 I/GeckoThread(11610): preparing to run Gecko
+10-24 18:10:19.277 D/GeckoThread(11610): State changed to MOZGLUE_READY
+10-24 18:10:19.278 D/ServiceAllocator(11070): org.mozilla.gecko.process.GeckoChildProcessServices$tab30 updateBindings: FOREGROUND priority, 2 importance, 11610 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:10:19.279 D/GeckoLoader(11610): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:19.279 D/GeckoLoader(11610): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:19.279 E/GeckoLibLoad(11610): Load sqlite start
+10-24 18:10:19.280 E/GeckoLibLoad(11610): Load sqlite done
+10-24 18:10:19.280 D/GeckoLoader(11610): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:19.280 E/GeckoLibLoad(11610): Load nss start
+10-24 18:10:19.280 E/GeckoLibLoad(11610): Load nss done
+10-24 18:10:19.280 D/GeckoLoader(11610): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:19.287 E/GeckoLibLoad(11610): Loaded libs in 6.990667ms total, 4ms(6ms) user, 2ms(0ms) system, 0(0) faults
+10-24 18:10:19.288 D/GeckoThread(11610): State changed to LIBS_READY
+10-24 18:10:19.288 W/GeckoThread(11610): zerdatime 1112979 - runGecko
+10-24 18:10:19.321 I/ServiceChildProcess(11543): Destroying GeckoServiceChildProcess
+10-24 18:10:19.333 I/AndroidRuntime(11543): VM exiting with result code 0, cleanup skipped.
+10-24 18:10:19.353 D/GeckoThread(11610): State changed to RUNNING
+10-24 18:10:19.388 W/GeckoEditableChild(11610): No editable parent
+10-24 18:10:19.393 D/GeckoSession(11070): handleMessage GeckoView:LocationChange uri=http://localhost:8766/notify.html
+10-24 18:10:19.408 D/GeckoSession(11070): handleMessage GeckoView:SecurityChanged uri=null
+10-24 18:10:19.436 D/GeckoSession(11070): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:10:19.452 D/GeckoSession(11070): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:10:19.453 D/GeckoSession(11070): handleMessage GeckoView:PageStop uri=null
+10-24 18:10:19.453 I/OsDiag  (11070): [7:start] загружено
+10-24 18:10:19.481 D/ServiceAllocator(11070): org.mozilla.gecko.process.GeckoChildProcessServices$tab34 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:10:19.485 I/ActivityManager(  520): Start proc 11677:ru.multibrowser.test:tab_disable_art_image_34/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab34}
+10-24 18:10:19.792 D/GeckoThread(11677): State changed to LAUNCHED
+10-24 18:10:19.794 I/GeckoThread(11677): preparing to run Gecko
+10-24 18:10:19.798 D/ServiceAllocator(11070): org.mozilla.gecko.process.GeckoChildProcessServices$tab34 updateBindings: BACKGROUND priority, 3 importance, 11677 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-24 18:10:19.801 D/GeckoThread(11677): State changed to MOZGLUE_READY
+10-24 18:10:19.802 D/GeckoLoader(11677): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:19.802 D/GeckoLoader(11677): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:19.803 E/GeckoLibLoad(11677): Load sqlite start
+10-24 18:10:19.803 E/GeckoLibLoad(11677): Load sqlite done
+10-24 18:10:19.803 D/GeckoLoader(11677): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:19.803 E/GeckoLibLoad(11677): Load nss start
+10-24 18:10:19.803 E/GeckoLibLoad(11677): Load nss done
+10-24 18:10:19.804 D/GeckoLoader(11677): Library base=/data/app/~~je8nuBM9QUlhb9wcatU-Gw==/ru.multibrowser.test-rbq4g4Wyh5aAGaup2-gBgw==/base.apk!/lib/x86_64
+10-24 18:10:19.809 E/GeckoLibLoad(11677): Loaded libs in 5.825714ms total, 5ms(5ms) user, 0ms(0ms) system, 0(0) faults
+10-24 18:10:19.810 D/GeckoThread(11677): State changed to LIBS_READY
+10-24 18:10:19.810 W/GeckoThread(11677): zerdatime 1113501 - runGecko
+10-24 18:10:19.856 D/GeckoThread(11677): State changed to RUNNING
+10-24 18:10:23.993 D/GeckoIdleService(11070): Get idle time: time since reset 5009 msec
+10-24 18:10:23.993 D/GeckoIdleService(11070): Idle timer callback: current idle time 5009 msec
+10-24 18:10:23.993 D/GeckoIdleService(11070): next timeout 4294967289990 msec from now
+10-24 18:10:23.993 D/GeckoIdleService(11070): SetTimerExpiryIfBefore: next timeout 4294967289989 msec from now
+10-24 18:10:23.993 D/GeckoIdleService(11070): reset timer expiry to 4294967289999 msec from now
+10-24 18:10:23.993 D/GeckoIdleService(11070): Idle timer callback: tell observer 0x7f13dd84bb88 user is idle
+10-24 18:10:29.431 D/GeckoSession(11070): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:10:29.757 D/GeckoIdleService(11070): next timeout 5000 msec from now
+10-24 18:10:29.757 D/GeckoIdleService(11070): SetTimerExpiryIfBefore: next timeout 5000 msec from now
+10-24 18:10:29.757 D/GeckoIdleService(11070): reset timer expiry to 5010 msec from now
+10-24 18:10:29.757 D/GeckoIdleService(11070): Reset idle timeout: tell observer 0x7f13dd84bb88 user is back
+10-24 18:10:29.769 D/GeckoSession(11070): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:10:29.789 D/GeckoSession(11070): handleMessage: GeckoView:ContentPermission
+10-24 18:10:33.938 D/AndroidRuntime(11723): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:10:33.941 I/AndroidRuntime(11723): Using default boot image
+10-24 18:10:33.941 I/AndroidRuntime(11723): Leaving lock profiling enabled
+10-24 18:10:34.014 D/AndroidRuntime(11723): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:10:35.067 D/AndroidRuntime(11723): Shutting down VM
+10-24 18:10:35.086 D/GeckoIdleService(11070): Get idle time: time since reset 5326 msec
+10-24 18:10:35.086 D/GeckoIdleService(11070): Idle timer callback: current idle time 5326 msec
+10-24 18:10:35.086 D/GeckoIdleService(11070): next timeout 4294967289673 msec from now
+10-24 18:10:35.086 D/GeckoIdleService(11070): SetTimerExpiryIfBefore: next timeout 4294967289673 msec from now
+10-24 18:10:35.086 D/GeckoIdleService(11070): reset timer expiry to 4294967289683 msec from now
+10-24 18:10:35.086 D/GeckoIdleService(11070): Idle timer callback: tell observer 0x7f13dd84bb88 user is idle
+10-24 18:10:36.809 D/GeckoRuntime(11070): Lifecycle: onPause
+10-24 18:10:36.809 D/GeckoNetworkManager(11070): Incoming event stop for state OnWithListeners -> OffWithListeners
+10-24 18:10:36.815 D/ServiceAllocator(11070): org.mozilla.gecko.process.GeckoChildProcessServices$gpu updateBindings: IDLE priority, 0 importance, 11524 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:10:40.126 D/AndroidRuntime(11753): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:10:40.128 I/AndroidRuntime(11753): Using default boot image
+10-24 18:10:40.129 I/AndroidRuntime(11753): Leaving lock profiling enabled
+10-24 18:10:40.203 D/AndroidRuntime(11753): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:10:41.238 D/AndroidRuntime(11753): Shutting down VM
+10-24 18:10:42.138 D/GeckoRuntime(11070): Lifecycle: onResume
+10-24 18:10:42.138 D/GeckoNetworkManager(11070): Incoming event start for state OffWithListeners -> OnWithListeners
+10-24 18:10:42.156 D/GeckoNetworkManager(11070): Incoming event receivedUpdate for state OnWithListeners -> OnWithListeners
+10-24 18:10:42.158 D/ServiceAllocator(11070): org.mozilla.gecko.process.GeckoChildProcessServices$gpu updateBindings: FOREGROUND priority, 0 importance, 11524 pid, 2 successful binds, 0 failed binds, 0 successful unbinds
+10-24 18:10:42.159 D/GeckoNetworkManager(11070): New network state: UP, WIFI, WIFI
+10-24 18:10:42.186 D/GeckoSession(11070): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:10:44.165 I/OsDiag  (11070): [notify] показано: localhost (Profile 7)
+10-24 18:10:59.347 D/GeckoSession(11070): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:11:00.343 E/GeckoConsole(11070): [JavaScript Error: "NS_ERROR_FAILURE: Ignore PDF.js for this download." {file: "resource://pdf.js/PdfStreamConverter.sys.mjs" line: 1}]
+10-24 18:11:00.343 E/GeckoConsole(11070): getConvertedType@resource://pdf.js/PdfStreamConverter.sys.mjs:1:20314
+10-24 18:11:00.345 D/GeckoSession(11070): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:11:00.345 D/GeckoSession(11070): handleMessage GeckoView:PageStart uri=http://localhost:8766/report.bin
+10-24 18:11:00.345 I/OsDiag  (11070): [7:start] начало: http://localhost:8766/report.bin
+10-24 18:11:00.424 D/GeckoSession(11070): handleMessage GeckoView:ProgressChanged uri=null
+10-24 18:11:00.424 D/GeckoSession(11070): handleMessage GeckoView:PageStop uri=null
+10-24 18:11:00.424 I/OsDiag  (11070): [7:start] загружено
+10-24 18:11:09.497 D/AndroidRuntime(11826): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:11:09.499 I/AndroidRuntime(11826): Using default boot image
+10-24 18:11:09.500 I/AndroidRuntime(11826): Leaving lock profiling enabled
+10-24 18:11:09.576 D/AndroidRuntime(11826): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:11:10.346 D/GeckoSession(11070): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:11:10.633 D/AndroidRuntime(11826): Shutting down VM
+10-24 18:11:11.566 D/GeckoSession(11070): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:11:17.909 D/GeckoSession(11070): handleMessage: GeckoView:DismissClipboardPermissionRequest
+10-24 18:11:17.917 D/GeckoSession(11070): handleMessage GeckoView:StateUpdated uri=null
+10-24 18:11:20.902 D/ServiceAllocator(11070): org.mozilla.gecko.process.GeckoChildProcessServices$tab30 updateBindings: IDLE priority, 6 importance, 11610 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-24 18:11:21.619 D/AndroidRuntime(11909): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:11:21.623 I/AndroidRuntime(11909): Using default boot image
+10-24 18:11:21.623 I/AndroidRuntime(11909): Leaving lock profiling enabled
+10-24 18:11:21.698 D/AndroidRuntime(11909): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:11:22.780 D/AndroidRuntime(11909): Shutting down VM
+10-24 18:11:25.731 D/AndroidRuntime(11936): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:11:25.734 I/AndroidRuntime(11936): Using default boot image
+10-24 18:11:25.734 I/AndroidRuntime(11936): Leaving lock profiling enabled
+10-24 18:11:25.808 D/AndroidRuntime(11936): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:11:26.864 D/AndroidRuntime(11936): Shutting down VM
+10-24 18:11:37.051 D/AndroidRuntime(11981): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-24 18:11:37.054 I/AndroidRuntime(11981): Using default boot image
+10-24 18:11:37.054 I/AndroidRuntime(11981): Leaving lock profiling enabled
+10-24 18:11:37.128 D/AndroidRuntime(11981): Calling main entry com.android.commands.uiautomator.Launcher
+10-24 18:11:38.187 D/AndroidRuntime(11981): Shutting down VM
