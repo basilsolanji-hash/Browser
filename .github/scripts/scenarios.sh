@@ -123,14 +123,22 @@ case "$SHARD" in
   start BrowserActivity --ei profile 3 --es url os:start; sleep 8
   while IFS='|' read -r input expected <&3; do
     [ -z "$input" ] && continue
-    adb logcat -c
     # Адресная строка (320×640: под полосой вкладок); при фокусе адрес выделяется — ввод его заменяет.
-    adb shell input tap 160 99; sleep 1
-    adb shell input text "$(printf '%s' "$input" | sed 's/ /%s/g')"
-    adb shell input keyevent 66; sleep 5
-    shot "A-$(printf '%s' "$input" | tr -c 'a-zA-Z0-9.' '_')"
+    type_url() {
+      adb logcat -c
+      adb shell input tap 160 99; sleep 2
+      adb shell input text "$(printf '%s' "$input" | sed 's/ /%s/g')"
+      adb shell input keyevent 66; sleep 6
+    }
+    type_url
     N=$((N + 1))
-    check "A: «$input» → $expected" 'diag | grep -qF "начало: $expected"'
+    if diag | grep -qF "начало: $expected"; then ok "A: «$input» → $expected"
+    else
+      # Тяжёлая страница ещё грузилась и забрала нажатие — одна повторная попытка, помечается отдельно.
+      type_url
+      check "A: «$input» → $expected (со второй попытки)" 'diag | grep -qF "начало: $expected"'
+    fi
+    shot "A-$(printf '%s' "$input" | tr -c 'a-zA-Z0-9.' '_')"
   done 3<<'CASES'
 example.com|https://example.com/
 https://example.org|https://example.org/

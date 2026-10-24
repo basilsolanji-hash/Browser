@@ -32,6 +32,7 @@ import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
+import org.mozilla.geckoview.GeckoSessionSettings
 import org.mozilla.geckoview.GeckoView
 import org.mozilla.geckoview.WebRequestError
 import org.mozilla.geckoview.WebResponse
@@ -462,6 +463,7 @@ class BrowserActivity : AppCompatActivity() {
             // остальные ссылки «в новом окне» открываем в той же вкладке.
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
                 if (Popups.isAuthPopup(uri)) return Popups.open(this@BrowserActivity, session, uri)
+                if (uri.isBlank()) return hiddenWindow(session, pageUrls[k], privateMode = false)
                 session.loadUri(uri)
                 return null
             }
@@ -595,6 +597,7 @@ class BrowserActivity : AppCompatActivity() {
             override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) { Gecko.canGoForward["incognito"] = canGoForward; if (incognito) updateNavButtons() }
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
                 if (Popups.isAuthPopup(uri)) return Popups.open(this@BrowserActivity, session, uri)
+                if (uri.isBlank()) return hiddenWindow(session, currentUrl, privateMode = true)
                 session.loadUri(uri); return null
             }
             override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? {
@@ -1017,6 +1020,38 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun toUrl(input: String): String = Search.toUrl(this, input)
+
+    /**
+     * Окно без адреса (так движок отдаёт, например, PDF «как файл»): скрытая сессия того же профиля.
+     * Пришёл файл — обычное скачивание; пришла страница — открываем её во вкладке.
+     */
+    private fun hiddenWindow(opener: GeckoSession, pageUrl: String?, privateMode: Boolean): GeckoResult<GeckoSession> {
+        val hidden = GeckoSession(GeckoSessionSettings.Builder(opener.settings).build())
+        fun done() { if (hidden.isOpen) hidden.close() }
+        hidden.contentDelegate = object : GeckoSession.ContentDelegate {
+            override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
+                Downloads.request(this@BrowserActivity, pageUrl ?: response.uri, response, privateMode)
+                geckoView.postDelayed({ done() }, 1000)
+            }
+            override fun onCloseRequest(session: GeckoSession) = done()
+        }
+        hidden.navigationDelegate = object : GeckoSession.NavigationDelegate {
+            override fun onLocationChange(
+                session: GeckoSession,
+                url: String?,
+                perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>,
+                hasUserGesture: Boolean,
+            ) {
+                if (url.isNullOrBlank() || url == "about:blank") return
+                opener.loadUri(url)
+                done()
+            }
+        }
+        // Ничего не пришло — не держим лишнюю сессию.
+        geckoView.postDelayed({ done() }, 60_000)
+        Diag.log("window", "окно без адреса — скрытая сессия")
+        return GeckoResult.fromValue(hidden)
+    }
 
     private fun answerFilePrompt(
         prompt: GeckoSession.PromptDelegate.FilePrompt,
