@@ -2,6 +2,7 @@
 <resources>
     <color name="mb_bg">#1B1B1D</color>
     <color name="mb_surface">#232326</color>
-    <color name="mb_accent">#2BA89A</color>
+    <color name="mb_accent">#F0453A</color>
     <color name="mb_text">#E8E8EA</color>
+    <color name="mb_icon_bg">#17181B</color>
 </resources>

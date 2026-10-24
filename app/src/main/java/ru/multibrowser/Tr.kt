@@ -121,6 +121,18 @@ object Tr {
         "no_events" to listOf("No events yet", "Событий пока нет", "Aún no hay eventos", "Ainda sem eventos", "Aucun événement", "Noch keine Ereignisse", "لا أحداث بعد", "अभी कोई इवेंट नहीं", "Henüz olay yok", "暂无事件"),
         "crash_reason" to listOf("page process crashed", "сбой процесса страницы", "fallo del proceso de la página", "falha no processo da página", "plantage du processus", "Seitenprozess abgestürzt", "تعطل عملية الصفحة", "पेज प्रोसेस क्रैश", "sayfa işlemi çöktü", "页面进程崩溃"),
         "killed_reason" to listOf("page unloaded by the system", "страница выгружена системой", "página descargada por el sistema", "página descarregada pelo sistema", "page déchargée par le système", "Seite vom System entladen", "أزال النظام الصفحة", "सिस्टम ने पेज हटाया", "sayfa sistem tarafından kaldırıldı", "页面被系统卸载"),
+        "theme_scarlet_dark" to listOf("Scarlet Dark","Алый тёмный","Escarlata oscuro","Escarlate escuro","Écarlate sombre","Scharlach dunkel","قرمزي داكن","स्कार्लेट डार्क","Kızıl koyu","绯红深色"),
+        "theme_scarlet_light" to listOf("Scarlet Light","Алый светлый","Escarlata claro","Escarlate claro","Écarlate clair","Scharlach hell","قرمزي فاتح","स्कार्लेट लाइट","Kızıl açık","绯红浅色"),
+        "theme_graphite" to listOf("Graphite","Графит","Grafito","Grafite","Graphite","Graphit","جرافيت","ग्रेफ़ाइट","Grafit","石墨"),
+        "theme_sand" to listOf("Sand","Песок","Arena","Areia","Sable","Sand","رملي","रेत","Kum","沙色"),
+        "theme_oled" to listOf("OLED Black","OLED чёрный","OLED negro","OLED preto","OLED noir","OLED-Schwarz","OLED أسود","OLED काला","OLED siyah","OLED 纯黑"),
+        "incognito" to listOf("Incognito","Инкогнито","Incógnito","Anônima","Navigation privée","Inkognito","تصفح خفي","गुप्त","Gizli","隐身"),
+        "new_incognito" to listOf("New incognito tab","Новая вкладка инкогнито","Nueva pestaña incógnito","Nova aba anônima","Nouvel onglet privé","Neuer Inkognito-Tab","علامة تبويب خفية جديدة","नया गुप्त टैब","Yeni gizli sekme","新建隐身标签"),
+        "zoom" to listOf("Zoom","Масштаб","Zoom","Zoom","Zoom","Zoom","تكبير","ज़ूम","Yakınlaştırma","缩放"),
+        "search_engine" to listOf("Search engine","Поисковая система","Buscador","Buscador","Moteur de recherche","Suchmaschine","محرك البحث","सर्च इंजन","Arama motoru","搜索引擎"),
+        "privacy_security" to listOf("Privacy & security","Конфиденциальность и безопасность","Privacidad y seguridad","Privacidade e segurança","Confidentialité et sécurité","Datenschutz & Sicherheit","الخصوصية والأمان","गोपनीयता और सुरक्षा","Gizlilik ve güvenlik","隐私与安全"),
+        "general" to listOf("General","Основные","General","Geral","Général","Allgemein","عام","सामान्य","Genel","常规"),
+        "reset" to listOf("Reset","Сброс","Restablecer","Redefinir","Réinitialiser","Zurücksetzen","إعادة ضبط","रीसेट","Sıfırla","重置"),
         "tab_fallback" to listOf("Tab", "Вкладка", "Pestaña", "Aba", "Onglet", "Tab", "علامة تبويب", "टैब", "Sekme", "标签"),
     )
 }

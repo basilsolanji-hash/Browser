@@ -56,8 +56,10 @@ class SettingsActivity : AppCompatActivity() {
         content.addView(sectionTitle(Tr.t("language")))
         content.addView(button(languageLabel(Settings.language(this))) { languageDialog() })
         content.addView(sectionTitle(Tr.t("theme")))
-        content.addView(themeSelector())
-        content.addView(sectionTitle(Tr.t("protection")))
+        content.addView(button(themeLabel(Settings.themeId(this))) { themeDialog() })
+        content.addView(sectionTitle(Tr.t("search_engine")))
+        content.addView(button(Search.current(this).title) { searchDialog() })
+        content.addView(sectionTitle(Tr.t("privacy_security")))
         content.addView(segmented(listOf(true, false), Settings.lockEnabled(this),
             { if (it) Tr.t("lock_on") else Tr.t("lock_off") }) {
             Settings.setLockEnabled(this, it)
@@ -130,15 +132,29 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     // Смена темы пересоздаёт экраны с новыми цветами.
-    private fun themeSelector() =
-        segmented(Settings.Theme.values().toList(), Settings.theme(this), { themeLabel(it) }) {
-            Settings.setTheme(this, it)
-        }
+    private fun searchDialog() {
+        val engines = Search.ENGINES
+        AlertDialog.Builder(this)
+            .setTitle(Tr.t("search_engine"))
+            .setItems(engines.map { it.title }.toTypedArray()) { _, i ->
+                Search.set(this, engines[i].id)
+                recreate()
+            }
+            .show()
+    }
 
-    private fun themeLabel(t: Settings.Theme) = when (t) {
-        Settings.Theme.DARK -> Tr.t("dark")
-        Settings.Theme.LIGHT -> Tr.t("light")
-        Settings.Theme.SYSTEM -> Tr.t("system")
+    private fun themeLabel(id: String) =
+        if (id == "system") Tr.t("system") else Tr.t(Themes.nameKey(id))
+
+    private fun themeDialog() {
+        val ids = Themes.IDS
+        AlertDialog.Builder(this)
+            .setTitle(Tr.t("theme"))
+            .setItems(ids.map { themeLabel(it) }.toTypedArray()) { _, i ->
+                Settings.setThemeId(this, ids[i])
+                recreate()
+            }
+            .show()
     }
 
     /** Сегментированный переключатель в стиле вкладок Gmail/Claude. */

@@ -17,7 +17,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
-/** Палитра и общие элементы интерфейса в стиле knitERP: бирюзовый акцент, тёмная или светлая тема. */
+/** Текущая палитра интерфейса (из выбранной темы). */
 object Ui {
     var dark = true
         private set
@@ -36,19 +36,12 @@ object Ui {
     var ON_ACCENT = 0
         private set
 
-    /** Вызывается в onCreate каждого экрана: тема уже применена AppCompat. */
+    /** Загружает выбранную тему. Вызывается в onCreate каждого экрана. */
     fun init(ctx: Context) {
-        dark = (ctx.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-            Configuration.UI_MODE_NIGHT_YES
-        if (dark) {
-            BG = 0xFF1B1B1D.toInt(); SURFACE = 0xFF232326.toInt(); BORDER = 0xFF34343A.toInt()
-            TEXT = 0xFFE8E8EA.toInt(); MUTED = 0xFF9A9AA2.toInt()
-            ACCENT = 0xFF2BA89A.toInt(); ON_ACCENT = 0xFF0F1F1D.toInt()
-        } else {
-            BG = 0xFFF5F5F7.toInt(); SURFACE = 0xFFFFFFFF.toInt(); BORDER = 0xFFDADADF.toInt()
-            TEXT = 0xFF1B1B1D.toInt(); MUTED = 0xFF6B6B73.toInt()
-            ACCENT = 0xFF1F8F83.toInt(); ON_ACCENT = 0xFFFFFFFF.toInt()
-        }
+        val p = Themes.palette(ctx, Settings.themeId(ctx))
+        dark = p.dark
+        BG = p.bg; SURFACE = p.surface; BORDER = p.border
+        TEXT = p.text; MUTED = p.muted; ACCENT = p.accent; ON_ACCENT = p.onAccent
     }
 
     fun rounded(color: Int, radius: Float, strokeWidth: Int = 0, strokeColor: Int = BORDER) =

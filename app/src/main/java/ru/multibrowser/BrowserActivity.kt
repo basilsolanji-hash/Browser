@@ -34,7 +34,6 @@ import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoView
 import org.mozilla.geckoview.WebRequestError
 import org.mozilla.geckoview.WebResponse
-import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -66,7 +65,10 @@ class BrowserActivity : AppCompatActivity() {
     private var session: GeckoSession? = null
     private var currentUrl = ""
 
-    private val key get() = Gecko.key(profileId, pin)
+    private var incognito = false
+    private var incognitoSession: GeckoSession? = null
+
+    private val key get() = if (incognito) "incognito" else Gecko.key(profileId, pin)
 
     // Адрес, загружаемый сейчас в каждой вкладке, — чтобы подписать запись истории заголовком страницы.
     private val pageUrls = HashMap<String, String>()
@@ -96,6 +98,7 @@ class BrowserActivity : AppCompatActivity() {
                     fullScreen -> session?.exitFullScreen()
                     urlBar.hasFocus() -> urlBar.clearFocus()
                     Gecko.canGoBack[key] == true -> session?.goBack()
+                    incognito -> { exitIncognito(); openTab(profileId, pin) }
                     else -> finish()
                 }
             }
@@ -141,6 +144,7 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun openTab(id: Int, newPin: Pin, url: String? = null) {
+        if (incognito) exitIncognito()
         if (id == profileId && newPin.id == pin.id && session?.isOpen == true) {
             url?.let { session?.loadUri(it) }
             return
@@ -373,9 +377,92 @@ class BrowserActivity : AppCompatActivity() {
         setOnClickListener { onClick() }
     }
 
+    private fun exitIncognito() {
+        incognitoSession?.let { attached.remove(it); it.close() }
+        incognitoSession = null
+        incognito = false
+    }
+
+    /** Открыть приватную вкладку: без истории и cookies, данные стираются при выходе. */
+    private fun openIncognito(url: String) {
+        geckoView.releaseSession()
+        incognito = true
+        val s = Gecko.privateSession(this, url)
+        attached += s
+        s.progressDelegate = object : GeckoSession.ProgressDelegate {
+            override fun onPageStart(session: GeckoSession, u: String) {
+                if (incognito) { progress.visibility = View.VISIBLE; showUrl(u); setBarsHidden(false) }
+            }
+            override fun onProgressChange(session: GeckoSession, value: Int) { if (incognito) progress.progress = value }
+            override fun onPageStop(session: GeckoSession, success: Boolean) { if (incognito) progress.visibility = View.GONE }
+        }
+        s.navigationDelegate = object : GeckoSession.NavigationDelegate {
+            override fun onLocationChange(session: GeckoSession, u: String?, perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>, hasUserGesture: Boolean) {
+                if (incognito && u != null) showUrl(u)
+            }
+            override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) { Gecko.canGoBack["incognito"] = canGoBack; if (incognito) updateNavButtons() }
+            override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) { Gecko.canGoForward["incognito"] = canGoForward; if (incognito) updateNavButtons() }
+            override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? { session.loadUri(uri); return null }
+            override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? {
+                val ua = Gecko.userAgentFor(request.uri)
+                if (ua == session.settings.userAgentOverride) return null
+                session.settings.userAgentOverride = ua
+                session.loadUri(request.uri)
+                return GeckoResult.deny()
+            }
+        }
+        s.contentDelegate = object : GeckoSession.ContentDelegate {
+            override fun onExternalResponse(session: GeckoSession, response: WebResponse) { Downloads.save(this@BrowserActivity, response) }
+            override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) { setFullScreen(fullScreen) }
+        }
+        s.promptDelegate = PromptHandler()
+        geckoView.setSession(s)
+        incognitoSession = s
+        session = s
+        // Чип профиля превращаем в индикатор инкогнито; вкладки не подсвечены.
+        chipDot.background = Ui.oval(Ui.MUTED)
+        chipName.text = Tr.t("incognito")
+        showUrl(url)
+        renderTabs()
+        updateNavButtons()
+    }
+
+    private fun zoomDialog() {
+        val percent = intArrayOf(Settings.zoom(this))
+        val label = TextView(this).apply {
+            textSize = 20f; gravity = Gravity.CENTER; setTextColor(Ui.TEXT)
+            text = "${percent[0]}%"; setPadding(0, dp(12), 0, dp(12))
+        }
+        fun step(d: Int) {
+            percent[0] = (percent[0] + d).coerceIn(50, 250)
+            Settings.setZoom(this, percent[0]); label.text = "${percent[0]}%"
+            session?.reload()
+        }
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(24), dp(8), dp(24), 0)
+            fun btn(t: String, d: Int) = TextView(context).apply {
+                text = t; textSize = 22f; gravity = Gravity.CENTER; setTextColor(Ui.TEXT)
+                background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1)); setOnClickListener { step(d) }
+            }
+            addView(btn("−", -10), LinearLayout.LayoutParams(dp(56), dp(48)))
+            addView(label, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(btn("+", 10), LinearLayout.LayoutParams(dp(56), dp(48)))
+        }
+        AlertDialog.Builder(this)
+            .setTitle(Tr.t("zoom"))
+            .setView(row)
+            .setNeutralButton("100%") { _, _ -> Settings.setZoom(this, 100); session?.reload() }
+            .setPositiveButton(Tr.t("close"), null)
+            .show()
+    }
+
     private fun showMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
         val items = listOf<Pair<String, () -> Unit>>(
+            Tr.t("new_tab") to { openTab(profileId, Pins.resolve(this, "start"), Pins.START) },
+            Tr.t("new_incognito") to { openIncognito(Pins.START) },
+            Tr.t("zoom") to { zoomDialog() },
             Tr.t("copy_link") to { copyUrl() },
             Tr.t("open_external") to { openExternally() },
             Tr.t("diagnostics") to { showDiagnostics() },
@@ -674,7 +761,7 @@ class BrowserActivity : AppCompatActivity() {
         return when {
             t.startsWith("http://") || t.startsWith("https://") -> t
             t.contains('.') && !t.contains(' ') -> "https://$t"
-            else -> "https://www.google.com/search?q=" + URLEncoder.encode(t, "UTF-8")
+            else -> Search.queryUrl(this, t)
         }
     }
 

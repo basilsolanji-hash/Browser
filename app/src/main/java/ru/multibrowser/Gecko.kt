@@ -34,7 +34,8 @@ object Gecko {
     fun runtime(ctx: Context): GeckoRuntime = runtime ?: GeckoRuntime.create(
         ctx.applicationContext,
         GeckoRuntimeSettings.Builder()
-            .preferredColorScheme(colorScheme(Settings.theme(ctx)))
+            .preferredColorScheme(colorScheme(ctx))
+            .fontSizeFactor(Settings.zoom(ctx) / 100f)
             // В отладочной сборке JS-консоль сайтов пишется в logcat (тег GeckoConsole) — для приёмочных тестов.
             .consoleOutput(ctx.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0)
             // Масштаб пальцами разрешён на любом сайте.
@@ -57,14 +58,30 @@ object Gecko {
             .build(),
     ).also { runtime = it }
 
-    fun applyColorScheme(theme: Settings.Theme) {
-        runtime?.settings?.setPreferredColorScheme(colorScheme(theme))
+    fun applyZoom(ctx: Context) {
+        runtime?.settings?.fontSizeFactor = Settings.zoom(ctx) / 100f
     }
 
-    private fun colorScheme(theme: Settings.Theme) = when (theme) {
-        Settings.Theme.DARK -> GeckoRuntimeSettings.COLOR_SCHEME_DARK
-        Settings.Theme.LIGHT -> GeckoRuntimeSettings.COLOR_SCHEME_LIGHT
-        Settings.Theme.SYSTEM -> GeckoRuntimeSettings.COLOR_SCHEME_SYSTEM
+    /** Эфемерная приватная вкладка (инкогнито): не хранит cookies и историю, стирается при закрытии. */
+    fun privateSession(ctx: Context, url: String): GeckoSession {
+        val settings = GeckoSessionSettings.Builder()
+            .usePrivateMode(true)
+            .apply { userAgentFor(url)?.let { userAgentOverride(it) } }
+            .build()
+        val s = GeckoSession(settings)
+        s.open(runtime(ctx))
+        s.loadUri(url)
+        return s
+    }
+
+    fun applyColorScheme(ctx: Context) {
+        runtime?.settings?.setPreferredColorScheme(colorScheme(ctx))
+    }
+
+    private fun colorScheme(ctx: Context) = when (Settings.themeId(ctx)) {
+        "scarlet_light", "sand" -> GeckoRuntimeSettings.COLOR_SCHEME_LIGHT
+        "system" -> GeckoRuntimeSettings.COLOR_SCHEME_SYSTEM
+        else -> GeckoRuntimeSettings.COLOR_SCHEME_DARK
     }
 
     /** Кэш общий для движка, поэтому чистится сразу у всех профилей; входы в аккаунты не затрагивает. */
