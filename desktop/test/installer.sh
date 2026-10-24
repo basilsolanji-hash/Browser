@@ -65,7 +65,7 @@ try_dir() {
     "$unix/Uninstall Os Browser.exe" //S; sleep 6
   fi
 }
-try_dir latin 'C:\OsTest\OsBrowser' bash
+try_dir latin 'C:\OsTest\OsBrowser' ps
 try_dir cyrillic 'C:\Тест\Программы\ОсьБраузер' ps
 
 # Портативная версия: распаковать в папку с русскими буквами и запустить.
