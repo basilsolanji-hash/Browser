@@ -1,0 +1,6 @@
+ok   tap 'Menu' at 290 52
+ok   tap 'Add to favorites' at 218 192
+ok   tap 'Work' at 158 194
+ok   tap 'Search favorites' at 172 110
+ok   tap 'Wikipedia' at 158 161
+ok   tap 'Menu' at 290 52
