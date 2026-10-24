@@ -221,7 +221,12 @@ class BrowserActivity : AppCompatActivity() {
         }
         s.navigationDelegate = object : GeckoSession.NavigationDelegate {
             // Истинный текущий адрес (после всех редиректов) — отсюда ведём строку, историю и сохранение.
-            override fun onLocationChange(session: GeckoSession, url: String?, perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>) {
+            override fun onLocationChange(
+                session: GeckoSession,
+                url: String?,
+                perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>,
+                hasUserGesture: Boolean,
+            ) {
                 if (url == null) return
                 if (visible()) showUrl(url)
                 Profiles.saveLastUrl(this@BrowserActivity, id, tab, url)
