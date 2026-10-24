@@ -76,6 +76,9 @@ object Gecko {
         }, { err -> Diag.log("reader", "extension: ${err?.message}") })
     }
 
+    /** Вкладки в режиме «Версия для ПК» (ключ вкладки). */
+    val desktop = HashSet<String>()
+
     /** Текущий адрес каждой вкладки профиля (ключ "профиль:вкладка") — чьё уведомление пришло. */
     val tabUrls = HashMap<String, String>()
 

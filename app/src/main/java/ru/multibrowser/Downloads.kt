@@ -68,7 +68,7 @@ object Downloads {
                     val uri = if (error == null) runCatching { temp.inputStream().use { write(app, name, mime, it) } }.getOrNull() else null
                     temp.delete()
                     active -= task
-                    if (uri != null) DownloadLog.add(app, name, mime, uri.toString())
+                    if (uri != null) DownloadLog.add(app, name, mime, uri.toString(), task.done)
                     DownloadProgress.finish(app, task, uri != null)
                     activity.runOnUiThread {
                         val msg = when {
@@ -98,7 +98,15 @@ object Downloads {
     class Task(val id: Int, val name: String, val total: Long) {
         @Volatile var done = 0L
         @Volatile var cancelled = false
+        val started = System.currentTimeMillis()
         val percent get() = if (total > 0) (done * 100 / total).toInt().coerceIn(0, 100) else -1
+
+        /** Сколько секунд осталось по средней скорости; -1 — пока не понять (размер неизвестен, мало данных). */
+        val secondsLeft: Long get() {
+            val elapsed = (System.currentTimeMillis() - started) / 1000.0
+            if (total <= 0 || done <= 0 || elapsed < 1) return -1
+            return ((total - done) / (done / elapsed)).toLong().coerceAtLeast(0)
+        }
     }
 
     /** Загрузки, которые идут сейчас (для уведомления и экрана «Загрузки»). */

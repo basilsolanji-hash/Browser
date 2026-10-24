@@ -238,8 +238,9 @@ CASES
     adb shell settings put system user_rotation 0; sleep 1
   done
   # Каждый пункт меню ⋮ открывается без падения.
-  for key in new_tab copy_link new_incognito tabs new_tab_group select_tabs search reader_mode save_page zoom \
-    site_permissions open_external favorites downloads saved_pages notes help_feedback diagnostics full_screen settings; do
+  for key in new_tab new_incognito new_tab_group history clear_title site_permissions dl_title favorites tabs saved_pages \
+    notes zoom share find_in_page reader_mode copy_link open_external desktop_site full_screen settings help_feedback diagnostics \
+    save_page refresh; do
     item=$(tr_text "$key" en | sed 's/&amp;/\&/g')
     start BrowserActivity --ei profile 8 --es url https://example.com; sleep 6
     tap_text "Menu"; sleep 2

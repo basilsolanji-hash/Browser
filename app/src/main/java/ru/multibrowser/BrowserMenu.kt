@@ -3,28 +3,32 @@ package ru.multibrowser
 import android.app.Activity
 import android.app.Dialog
 import android.graphics.Color
-import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.GradientDrawable
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.widget.CheckBox
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 
 /**
- * Меню браузера ⋮ — нижний лист: сверху ряд частых действий крупными иконками, ниже разделы
- * («Вкладки», «Страница», «Библиотека», «Ось») — строки с иконкой, как в Chrome/Opera.
+ * Меню браузера ⋮ — как в Chrome: карточка у правого верхнего угла, сверху ряд круглых кнопок
+ * (назад, вперёд, избранное, сохранить, обновить), ниже группы пунктов с иконками, разделённые линией.
  */
 class BrowserMenu(private val a: Activity) {
 
-    class Item(val icon: Int, val title: String, val action: () -> Unit)
-    class Section(val title: String, val items: List<Item>)
+    /** [checked] не null — пункт с галочкой справа (например, «Версия для ПК»). */
+    class Item(
+        val icon: Int, val title: String, val enabled: Boolean = true,
+        val checked: Boolean? = null, val action: () -> Unit,
+    )
 
-    fun show(quick: List<Item>, sections: List<Section>) {
+    fun show(top: List<Item>, groups: List<List<Item>>) {
         val dialog = Dialog(a)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         fun run(item: Item) {
@@ -34,96 +38,78 @@ class BrowserMenu(private val a: Activity) {
 
         val content = LinearLayout(a).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(a.dp(8), a.dp(8), a.dp(8), a.dp(12))
+            setPadding(0, a.dp(12), 0, a.dp(8))
         }
-        // Ручка листа.
+        // Ряд круглых кнопок: только иконки, подпись — для озвучки.
         content.addView(LinearLayout(a).apply {
-            gravity = Gravity.CENTER
-            addView(android.view.View(a).apply { background = Ui.rounded(Ui.BORDER, a.dpf(2)) },
-                LinearLayout.LayoutParams(a.dp(36), a.dp(4)))
-            setPadding(0, 0, 0, a.dp(8))
-        })
-
-        // Частые действия: иконка в круге и короткая подпись.
-        content.addView(LinearLayout(a).apply {
-            quick.forEach { item ->
-                addView(LinearLayout(a).apply {
-                    orientation = LinearLayout.VERTICAL
-                    gravity = Gravity.CENTER_HORIZONTAL
-                    setPadding(a.dp(2), a.dp(6), a.dp(2), a.dp(6))
-                    background = ripple()
-                    contentDescription = item.title
-                    setOnClickListener { run(item) }
-                    addView(LinearLayout(a).apply {
-                        gravity = Gravity.CENTER
-                        background = Ui.oval(Ui.BG, a.dp(1), Ui.BORDER)
-                        addView(a.icon(item.icon, Ui.TEXT, 22))
-                    }, LinearLayout.LayoutParams(a.dp(44), a.dp(44)))
-                    addView(TextView(a).apply {
-                        text = item.title
-                        textSize = 11f
-                        gravity = Gravity.CENTER
-                        maxLines = 2
-                        ellipsize = TextUtils.TruncateAt.END
-                        setTextColor(Ui.MUTED)
-                        setPadding(0, a.dp(4), 0, 0)
-                    })
-                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(a.dp(12), 0, a.dp(12), a.dp(8))
+            top.forEach { item ->
+                addView(FrameLayout(a).apply {
+                    addView(FrameLayout(a).apply {
+                        background = Ui.oval(Ui.BG)
+                        alpha = if (item.enabled) 1f else 0.35f
+                        contentDescription = item.title
+                        isEnabled = item.enabled
+                        if (item.enabled) setOnClickListener { run(item) }
+                        addView(a.icon(item.icon, Ui.TEXT, 22), FrameLayout.LayoutParams(a.dp(22), a.dp(22), Gravity.CENTER))
+                    }, FrameLayout.LayoutParams(a.dp(46), a.dp(46), Gravity.CENTER))
+                }, LinearLayout.LayoutParams(0, a.dp(52), 1f))
             }
         })
 
-        sections.filter { it.items.isNotEmpty() }.forEach { section ->
-            content.addView(android.view.View(a).apply { setBackgroundColor(Ui.BORDER) },
+        groups.filter { it.isNotEmpty() }.forEachIndexed { gi, group ->
+            if (gi > 0) content.addView(View(a).apply { setBackgroundColor(Ui.BORDER) },
                 LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, a.dp(1)).apply {
-                    topMargin = a.dp(8); bottomMargin = a.dp(4)
+                    marginStart = a.dp(16); marginEnd = a.dp(16); topMargin = a.dp(4); bottomMargin = a.dp(4)
                 })
-            content.addView(TextView(a).apply {
-                text = section.title.uppercase()
-                textSize = 11f
-                typeface = Typeface.DEFAULT_BOLD
-                letterSpacing = 0.06f
-                setTextColor(Ui.MUTED)
-                setPadding(a.dp(12), a.dp(6), a.dp(12), a.dp(4))
-            })
-            section.items.forEach { item ->
+            group.forEach { item ->
                 content.addView(LinearLayout(a).apply {
                     gravity = Gravity.CENTER_VERTICAL
-                    setPadding(a.dp(12), 0, a.dp(12), 0)
+                    setPadding(a.dp(18), 0, a.dp(14), 0)
                     background = ripple()
-                    setOnClickListener { run(item) }
-                    addView(a.icon(item.icon, Ui.MUTED, 20))
+                    alpha = if (item.enabled) 1f else 0.4f
+                    if (item.enabled) setOnClickListener { run(item) }
+                    addView(a.icon(item.icon, Ui.TEXT, 22))
                     addView(TextView(a).apply {
                         text = item.title
-                        textSize = 15f
+                        textSize = 16f
                         setTextColor(Ui.TEXT)
                         maxLines = 1
                         ellipsize = TextUtils.TruncateAt.END
-                        setPadding(a.dp(16), 0, 0, 0)
+                        setPadding(a.dp(20), 0, a.dp(8), 0)
                     }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-                }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, a.dp(46)))
+                    item.checked?.let { on ->
+                        addView(CheckBox(a).apply {
+                            isChecked = on
+                            isClickable = false
+                            isFocusable = false
+                            buttonTintList = android.content.res.ColorStateList.valueOf(if (on) Ui.ACCENT else Ui.MUTED)
+                        })
+                    }
+                }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, a.dp(52)))
             }
         }
 
         val sheet = ScrollView(a).apply {
             isVerticalScrollBarEnabled = false
-            background = GradientDrawable().apply {
-                setColor(Ui.SURFACE)
-                val r = a.dpf(16)
-                cornerRadii = floatArrayOf(r, r, r, r, 0f, 0f, 0f, 0f)
-            }
+            background = Ui.rounded(Ui.SURFACE, a.dpf(18))
+            elevation = a.dpf(12)
             addView(content)
         }
         sheet.layoutDirection = a.window.decorView.layoutDirection
         dialog.setContentView(sheet)
         dialog.window?.apply {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setGravity(Gravity.BOTTOM)
-            // Не выше 85% экрана — дальше лист прокручивается.
-            val maxH = (a.resources.displayMetrics.heightPixels * 0.85f).toInt()
-            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            sheet.post {
-                if (sheet.height > maxH) setLayout(ViewGroup.LayoutParams.MATCH_PARENT, maxH)
-            }
+            setDimAmount(0.25f)
+            setGravity(Gravity.TOP or Gravity.END)
+            val dm = a.resources.displayMetrics
+            val width = minOf(a.dp(340), dm.widthPixels - a.dp(16))
+            attributes = attributes.apply { x = a.dp(8); y = a.dp(8) }
+            setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+            // Не выше экрана — дальше меню прокручивается.
+            val maxH = dm.heightPixels - a.dp(48)
+            sheet.post { if (sheet.height > maxH) setLayout(width, maxH) }
         }
         dialog.show()
     }

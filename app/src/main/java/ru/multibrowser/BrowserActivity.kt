@@ -66,6 +66,8 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var chipName: TextView
     private lateinit var tabBar: LinearLayout
     private lateinit var tabsCount: TextView
+    private lateinit var findBar: FindBar
+    private lateinit var addressPanel: AddressPanel
     private lateinit var tabScroll: HorizontalScrollView
     private lateinit var progress: ProgressBar
     private lateinit var switcher: LinearLayout
@@ -130,6 +132,7 @@ class BrowserActivity : AppCompatActivity() {
             override fun handleOnBackPressed() {
                 when {
                     fullScreen -> session?.exitFullScreen()
+                    ::findBar.isInitialized && findBar.isShown -> findBar.hide()
                     userFullScreen -> setUserFullScreen(false)
                     urlBar.hasFocus() -> urlBar.clearFocus()
                     Gecko.canGoBack[key] == true -> session?.goBack()
@@ -658,48 +661,82 @@ class BrowserActivity : AppCompatActivity() {
             .show()
     }
 
-    /** Меню ⋮: частые действия сверху, ниже разделы с иконками (BrowserMenu). */
+    /** Меню ⋮ как в Chrome: ряд кнопок (назад, вперёд, избранное, сохранить, обновить) и группы пунктов. */
     @Suppress("UNUSED_PARAMETER")
     private fun showMenu(anchor: View) {
-        fun item(icon: Int, title: String, action: () -> Unit) = BrowserMenu.Item(icon, title, action)
+        fun item(icon: Int, title: String, enabled: Boolean = true, checked: Boolean? = null, action: () -> Unit) =
+            BrowserMenu.Item(icon, title, enabled, checked, action)
         fun open(screen: Class<*>) = { startActivity(Intent(this, screen)) }
-        val quick = listOf(
-            item(R.drawable.ic_add, Tr.t("new_tab")) { newTab() },
-            item(R.drawable.ic_star, BookmarksActivity.menuLabel(this, currentUrl)) {
+        val web = currentUrl.startsWith("http")
+        val top = listOf(
+            item(R.drawable.ic_back, Tr.t("back"), Gecko.canGoBack[key] == true) { session?.goBack() },
+            item(R.drawable.ic_forward, Tr.t("forward"), Gecko.canGoForward[key] == true) { session?.goForward() },
+            item(R.drawable.ic_star, BookmarksActivity.menuLabel(this, currentUrl), web) {
                 BookmarksActivity.toggle(this, currentUrl, pageTitles[key]?.takeIf { it.first == currentUrl }?.second.orEmpty())
             },
-            item(R.drawable.ic_link, Tr.t("copy_link")) { copyUrl() },
-            item(R.drawable.ic_fullscreen, Tr.t("full_screen")) { setUserFullScreen(true) },
-            item(R.drawable.ic_settings, Tr.t("settings"), open(SettingsActivity::class.java)),
+            item(R.drawable.ic_download, Tr.t("save_page"), web) { tools.savePage() },
+            item(R.drawable.ic_refresh, Tr.t("refresh")) { session?.reload() },
         )
-        val sections = listOf(
-            BrowserMenu.Section(Tr.t("tabs"), listOf(
+        val groups = listOf(
+            listOf(
+                item(R.drawable.ic_add, Tr.t("new_tab")) { newTab() },
                 item(R.drawable.ic_incognito, Tr.t("new_incognito")) { openIncognito(Pins.START) },
-                item(R.drawable.ic_tabs, Tr.t("tabs")) { showTabs() },
                 item(R.drawable.ic_group, Tr.t("new_tab_group")) { showTabs(TabsActivity.MODE_NEW_GROUP) },
-                item(R.drawable.ic_check, Tr.t("select_tabs")) { showTabs(TabsActivity.MODE_SELECT) },
-                item(R.drawable.ic_close, Tr.t("close_all_tabs")) { confirmCloseAll() },
-            )),
-            BrowserMenu.Section(Tr.t("menu_page"), listOf(
-                item(R.drawable.ic_search, Tr.t("search")) { focusSearch() },
-                item(R.drawable.ic_book, tools.readerTitle()) { tools.toggleReader() },
-                item(R.drawable.ic_offline, Tr.t("save_page")) { tools.savePage() },
-                item(R.drawable.ic_zoom, Tr.t("zoom")) { zoomDialog() },
-                item(R.drawable.ic_shield, Tr.t("site_permissions")) { SitePermissions.openFor(this, currentUrl) },
-                item(R.drawable.ic_open_external, Tr.t("open_external")) { openExternally() },
-            )),
-            BrowserMenu.Section(Tr.t("my_library"), listOf(
+            ),
+            listOf(
+                item(R.drawable.ic_history, Tr.t("history")) { showHistory() },
+                item(R.drawable.ic_delete, Tr.t("clear_title")) { showClear() },
+                item(R.drawable.ic_shield, Tr.t("site_permissions"), web) { SitePermissions.openFor(this, currentUrl) },
+            ),
+            listOf(
+                item(R.drawable.ic_download, Tr.t("dl_title"), action = open(DownloadsActivity::class.java)),
                 item(R.drawable.ic_star, Tr.t("favorites")) { BookmarksActivity.open(this, profileId) },
-                item(R.drawable.ic_download, Tr.t("downloads"), open(DownloadsActivity::class.java)),
-                item(R.drawable.ic_offline, Tr.t("saved_pages"), open(SavedPagesActivity::class.java)),
-                item(R.drawable.ic_note, Tr.t("notes"), open(NotesActivity::class.java)),
-            )),
-            BrowserMenu.Section(Tr.t("menu_app"), listOf(
-                item(R.drawable.ic_help, Tr.t("help_feedback"), open(HelpActivity::class.java)),
+                item(R.drawable.ic_tabs, Tr.t("tabs")) { showTabs() },
+                item(R.drawable.ic_offline, Tr.t("saved_pages"), action = open(SavedPagesActivity::class.java)),
+                item(R.drawable.ic_note, Tr.t("notes"), action = open(NotesActivity::class.java)),
+            ),
+            listOf(item(R.drawable.ic_zoom, Tr.t("zoom")) { zoomDialog() }),
+            listOf(
+                item(R.drawable.ic_share, Tr.t("share"), web) { sharePage() },
+                item(R.drawable.ic_find, Tr.t("find_in_page"), web) { findBar.show() },
+                item(R.drawable.ic_book, tools.readerTitle(), web) { tools.toggleReader() },
+                item(R.drawable.ic_link, Tr.t("copy_link"), web) { copyUrl() },
+                item(R.drawable.ic_open_external, Tr.t("open_external"), web) { openExternally() },
+                item(R.drawable.ic_desktop, Tr.t("desktop_site"), web, Gecko.desktop.contains(key)) { toggleDesktop() },
+                item(R.drawable.ic_fullscreen, Tr.t("full_screen")) { setUserFullScreen(true) },
+            ),
+            listOf(
+                item(R.drawable.ic_settings, Tr.t("settings"), action = open(SettingsActivity::class.java)),
+                item(R.drawable.ic_help, Tr.t("help_feedback"), action = open(HelpActivity::class.java)),
                 item(R.drawable.ic_info, Tr.t("diagnostics")) { showDiagnostics() },
-            )),
+            ),
+            if (DefaultBrowser.isDefault(this)) emptyList()
+            else listOf(item(R.drawable.ic_os, Tr.t("default_make")) { DefaultBrowser.request(this) }),
         )
-        BrowserMenu(this).show(quick, sections)
+        BrowserMenu(this).show(top, groups)
+    }
+
+    /** «Поделиться» адресом текущей страницы через системное окно. */
+    private fun sharePage() {
+        val url = Reader.original(currentUrl)
+        if (!url.startsWith("http")) return
+        val title = pageTitles[key]?.takeIf { it.first == currentUrl }?.second
+        runCatching {
+            startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, url)
+                title?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
+            }, Tr.t("share")))
+        }
+    }
+
+    /** «Версия для ПК»: настольный User-Agent и область просмотра для этой вкладки; страница перезагружается. */
+    private fun toggleDesktop() {
+        val s = session ?: return
+        val on = Gecko.desktop.add(key) || run { Gecko.desktop.remove(key); false }
+        s.settings.userAgentMode = if (on) GeckoSessionSettings.USER_AGENT_MODE_DESKTOP else GeckoSessionSettings.USER_AGENT_MODE_MOBILE
+        s.settings.viewportMode = if (on) GeckoSessionSettings.VIEWPORT_MODE_DESKTOP else GeckoSessionSettings.VIEWPORT_MODE_MOBILE
+        s.reload()
     }
 
     private fun showHistory() {
@@ -896,7 +933,10 @@ class BrowserActivity : AppCompatActivity() {
             if (focused) {
                 urlBar.setText(if (currentUrl.startsWith("data:")) "" else Reader.original(currentUrl))
                 urlBar.post { urlBar.selectAll() }
+                addressPanel.show(if (incognito) 0 else profileId,
+                    pageTitles[key]?.takeIf { it.first == currentUrl }?.second.orEmpty(), Reader.original(currentUrl))
             } else {
+                addressPanel.hide()
                 urlBar.setText(Uri.parse(Reader.original(currentUrl)).host ?: currentUrl)
                 getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(v.windowToken, 0)
             }
@@ -964,6 +1004,24 @@ class BrowserActivity : AppCompatActivity() {
 
         fun divider() = View(this).apply { setBackgroundColor(Ui.BORDER) }
         val match = LinearLayout.LayoutParams.MATCH_PARENT
+        // Страница, поверх неё — панель адресной строки (при вводе) и «Найти на странице».
+        findBar = FindBar(this) { session }
+        addressPanel = AddressPanel(this,
+            onOpen = { url -> urlBar.clearFocus(); session?.let { Gecko.loadUrl(it, url) } },
+            onShare = { urlBar.clearFocus(); sharePage() },
+            onCopy = { copyUrl() },
+            onEdit = { urlBar.setSelection(urlBar.text.length) },
+        )
+        urlBar.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) { if (urlBar.hasFocus()) addressPanel.render(s?.toString().orEmpty()) }
+        })
+        val contentArea = FrameLayout(this).apply {
+            addView(refresher, FrameLayout.LayoutParams(match, match))
+            addView(addressPanel.view, FrameLayout.LayoutParams(match, match))
+            addView(findBar.view, FrameLayout.LayoutParams(match, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP))
+        }
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(Ui.BG)
@@ -975,10 +1033,10 @@ class BrowserActivity : AppCompatActivity() {
             root.addView(toolbar)
             root.addView(topDivider, LinearLayout.LayoutParams(match, dp(1)))
             root.addView(progress, LinearLayout.LayoutParams(match, dp(2)))
-            root.addView(refresher, LinearLayout.LayoutParams(match, 0, 1f))
+            root.addView(contentArea, LinearLayout.LayoutParams(match, 0, 1f))
             root.addView(bottomDivider, LinearLayout.LayoutParams(match, dp(1)))
         } else {
-            root.addView(refresher, LinearLayout.LayoutParams(match, 0, 1f))
+            root.addView(contentArea, LinearLayout.LayoutParams(match, 0, 1f))
             root.addView(progress, LinearLayout.LayoutParams(match, dp(2)))
             root.addView(bottomDivider, LinearLayout.LayoutParams(match, dp(1)))
             root.addView(toolbar.apply { setPadding(dp(10), dp(6), dp(10), dp(2)) })
