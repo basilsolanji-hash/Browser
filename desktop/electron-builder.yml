@@ -26,10 +26,10 @@ win:
   # Установщик и портативная версия (zip: распаковать и запустить, без установки и ярлыков).
   target: [nsis, zip]
   icon: assets/icon.ico
-  artifactName: Os-Browser-Setup-${version}.${ext}
-zip:
+  # Имя для zip; у установщика своё — в разделе nsis.
   artifactName: Os-Browser-Portable-${version}.${ext}
 nsis:
+  artifactName: Os-Browser-Setup-${version}.${ext}
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true

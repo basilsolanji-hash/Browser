@@ -7,7 +7,8 @@ mkdir -p "$OUT"
 fails=0
 check() { if [ "$2" = 0 ]; then echo "ok $1" | tee -a "$OUT/checks.txt"; else echo "FAIL $1${3:+ — $3}" | tee -a "$OUT/checks.txt"; fails=$((fails+1)); fi; }
 
-SETUP=$(ls release/Os-Browser-Setup-*.exe | head -1)
+SETUP=$(ls release/Os-Browser-Setup-*.exe 2>/dev/null | head -1)
+if [ -z "$SETUP" ]; then echo "FAIL installer: setup exe was not built" | tee -a "$OUT/checks.txt"; exit 1; fi
 [ -f release/latest.yml ]; check "installer: latest.yml for auto-update is generated" $?
 grep -q "sha512:" release/latest.yml 2>/dev/null; check "installer: latest.yml has sha512" $?
 # Путь Windows → путь Git Bash (иначе обратные слеши ломают проверки файлов).
