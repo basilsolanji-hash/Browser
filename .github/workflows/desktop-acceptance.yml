@@ -42,6 +42,8 @@ jobs:
       # Этап 5: установщик — тихая установка, регистрация браузера, запуск, удаление.
       - name: Installer check
         if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           npx electron-builder --win nsis --publish never -c.extraMetadata.version=0.1.${{ github.run_number }} > test-results/installer-build.log 2>&1 || echo "FAIL installer build" >> test-results/checks.txt
           bash test/installer.sh
