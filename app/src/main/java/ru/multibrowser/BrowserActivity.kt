@@ -79,6 +79,9 @@ class BrowserActivity : AppCompatActivity() {
     // Адрес, загружаемый сейчас в каждой вкладке, — чтобы подписать запись истории заголовком страницы.
     private val pageUrls = HashMap<String, String>()
 
+    // Заголовок страницы по вкладке (адрес → заголовок) — для «В избранное».
+    private val pageTitles = HashMap<String, Pair<String, String>>()
+
     // Вкладки, которым этот экран назначил обработчики; при закрытии экрана их отвязываем,
     // чтобы фоновые вкладки не обращались к уничтоженному экрану (диалоги, тосты).
     private val attached = mutableSetOf<GeckoSession>()
@@ -144,6 +147,7 @@ class BrowserActivity : AppCompatActivity() {
             it.contentDelegate = null
             it.promptDelegate = null
             it.selectionActionDelegate = null
+            it.permissionDelegate = null
         }
         attached.clear()
         pendingFile?.let { (prompt, result) -> result.complete(prompt.dismiss()) }
@@ -323,8 +327,10 @@ class BrowserActivity : AppCompatActivity() {
                 return GeckoResult.fromValue(errorPage(uri, error))
             }
 
-            // Ссылки «в новом окне» открываем в той же вкладке.
+            // Окна входа (Google и др.) — настоящим попапом, иначе вход зацикливается;
+            // остальные ссылки «в новом окне» открываем в той же вкладке.
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
+                if (Popups.isAuthPopup(uri)) return Popups.open(this@BrowserActivity, session, uri)
                 session.loadUri(uri)
                 return null
             }
@@ -347,6 +353,7 @@ class BrowserActivity : AppCompatActivity() {
                 Profiles.updateFromTitle(this@BrowserActivity, id, title)
                 val url = pageUrls[k]
                 if (url != null && !title.isNullOrBlank()) History.setTitle(this@BrowserActivity, id, url, title)
+                if (url != null && !title.isNullOrBlank()) pageTitles[k] = url to title
             }
 
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
@@ -376,6 +383,7 @@ class BrowserActivity : AppCompatActivity() {
         }
         s.promptDelegate = PromptHandler()
         s.selectionActionDelegate = tools.textActions()
+        s.permissionDelegate = SitePermissions.delegate(this)
         attached += s
     }
 
@@ -446,7 +454,10 @@ class BrowserActivity : AppCompatActivity() {
             }
             override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) { Gecko.canGoBack["incognito"] = canGoBack; if (incognito) updateNavButtons() }
             override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) { Gecko.canGoForward["incognito"] = canGoForward; if (incognito) updateNavButtons() }
-            override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? { session.loadUri(uri); return null }
+            override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
+                if (Popups.isAuthPopup(uri)) return Popups.open(this@BrowserActivity, session, uri)
+                session.loadUri(uri); return null
+            }
             override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? {
                 val ua = Gecko.userAgentFor(request.uri)
                 if (ua == session.settings.userAgentOverride) return null
@@ -461,6 +472,7 @@ class BrowserActivity : AppCompatActivity() {
         }
         s.promptDelegate = PromptHandler()
         s.selectionActionDelegate = tools.textActions()
+        s.permissionDelegate = SitePermissions.delegate(this, privateMode = true)
         geckoView.setSession(s)
         incognitoSession = s
         session = s
@@ -507,12 +519,17 @@ class BrowserActivity : AppCompatActivity() {
         val items = listOf<Pair<String, () -> Unit>>(
             Tr.t("new_tab") to { openTab(profileId, Pins.resolve(this, "start", profileId), Pins.START) },
             Tr.t("new_incognito") to { openIncognito(Pins.START) },
+            BookmarksActivity.menuLabel(this, currentUrl) to {
+                BookmarksActivity.toggle(this, currentUrl, pageTitles[key]?.takeIf { it.first == currentUrl }?.second.orEmpty())
+            },
+            Tr.t("favorites") to { BookmarksActivity.open(this, profileId) },
             Tr.t("zoom") to { zoomDialog() },
             Tr.t("full_screen") to { setUserFullScreen(true) },
             Tr.t("downloads") to { startActivity(Intent(this, DownloadsActivity::class.java)) },
             *tools.menuItems().toTypedArray(),
             Tr.t("copy_link") to { copyUrl() },
             Tr.t("open_external") to { openExternally() },
+            Tr.t("site_permissions") to { SitePermissions.openFor(this, currentUrl) },
             Tr.t("diagnostics") to { showDiagnostics() },
             Tr.t("settings") to { startActivity(Intent(this, SettingsActivity::class.java)) },
         )
@@ -876,6 +893,10 @@ class BrowserActivity : AppCompatActivity() {
                 .show()
             return result
         }
+
+        // Всплывающие окна без жеста пользователя — по разрешению сайта (только для видимой вкладки).
+        override fun onPopupPrompt(session: GeckoSession, prompt: GeckoSession.PromptDelegate.PopupPrompt) =
+            SitePermissions.onPopup(this@BrowserActivity, currentUrl.takeIf { session === this@BrowserActivity.session }, prompt, incognito)
 
         override fun onFilePrompt(
             session: GeckoSession,

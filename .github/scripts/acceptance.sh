@@ -16,6 +16,32 @@ shot() { sleep "$2"; adb exec-out screencap -p > "$OUT/$1.png"; echo "shot $1"; 
 main() { adb shell am start -n "$PKG/ru.multibrowser.MainActivity" "$@" >/dev/null; }
 browser() { adb shell am start -n "$PKG/ru.multibrowser.BrowserActivity" "$@" >/dev/null; }
 settings() { adb shell am start -n "$PKG/ru.multibrowser.SettingsActivity" "$@" >/dev/null; }
+bookmarks() { adb shell am start -n "$PKG/ru.multibrowser.BookmarksActivity" "$@" >/dev/null; }
+back() { adb shell input keyevent 4; sleep 1; }
+# Тап по центру элемента с текстом/описанием (первое найденное из вариантов) через uiautomator.
+# Не нашли — пишем FAIL в checks.txt (приёмка падает).
+tap_text() {
+  local xy=""
+  for _ in 1 2 3; do
+    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+    adb exec-out cat /sdcard/ui.xml > "$OUT/ui.xml" 2>/dev/null
+    xy=$(python3 - "$OUT/ui.xml" "$@" <<'PY'
+import sys, re, xml.etree.ElementTree as ET
+try: root = ET.parse(sys.argv[1]).getroot()
+except Exception: sys.exit(0)
+for want in sys.argv[2:]:
+    for n in root.iter('node'):
+        if want in (n.get('text'), n.get('content-desc')):
+            x1, y1, x2, y2 = map(int, re.findall(r'\d+', n.get('bounds')))
+            print((x1 + x2) // 2, (y1 + y2) // 2); sys.exit(0)
+PY
+)
+    [ -n "$xy" ] && break
+    sleep 2
+  done
+  if [ -n "$xy" ]; then adb shell input tap $xy; echo "ok   tap '$1' at $xy" | tee -a "$OUT/checks.txt"
+  else echo "FAIL tap '$1': not found" | tee -a "$OUT/checks.txt"; fi
+}
 rotate() { adb shell settings put system accelerometer_rotation 0; adb shell settings put system user_rotation "$1"; }
 
 # --- Сценарии ---
@@ -55,6 +81,85 @@ adb shell am force-stop "$PKG"; sleep 2
 main;                                                                     shot 13-relaunch 8
 browser --ei profile 1 --es url https://claude.ai/;                       shot 14-session-restored 35
 
+# --- Избранное: пусто → добавить из меню браузера → папка → поиск → открыть из списка ---
+bookmarks;                                                                shot 15-fav-empty 4
+browser --ei profile 3 --es site gmail --es url https://example.com;      sleep 20
+tap_text "Menu";                                                          shot 16-menu 2
+tap_text "Add to favorites";                                              shot 17-fav-added 1
+bookmarks --es debug_add_url https://ru.wikipedia.org/ --es debug_add_title Wikipedia --es debug_add_folder Work
+                                                                          shot 18-fav-list 4
+tap_text "Work";                                                          shot 19-fav-folder 2
+back
+tap_text "Search favorites"; sleep 1; adb shell input text wiki;          shot 20-fav-search 2
+back   # скрыть клавиатуру
+# Открыть закладку из результатов поиска: должна загрузиться другая страница (Википедия) в текущем профиле.
+tap_text "Wikipedia";                                                     shot 21-fav-opened 25
+tap_text "Menu";                                                          shot 22-menu-remove 2
+back
+
+# --- Блок C: настройки сайтов, проверка безопасности, поиск в настройках, запрос геолокации ---
+# NEW_TASK|MULTIPLE_TASK: иначе am start лишь выводит на передний план старую задачу с браузером сверху.
+sitesettings() { adb shell am start -f 0x18000000 -n "$PKG/ru.multibrowser.SiteSettingsActivity" "$@" >/dev/null; }
+seccheck() { adb shell am start -f 0x18000000 -n "$PKG/ru.multibrowser.SecurityCheckActivity" "$@" >/dev/null; }
+# Нажать на первый найденный из нескольких вариантов текста (через дамп uiautomator); 0 — найден и нажат.
+tap_any() {
+  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+  adb shell cat /sdcard/ui.xml > "$OUT/ui.xml" 2>/dev/null
+  local xy
+  xy=$(python3 - "$OUT/ui.xml" "$@" <<'PY'
+import sys, re
+xml = open(sys.argv[1], encoding='utf-8', errors='ignore').read()
+for want in sys.argv[2:]:
+    for m in re.finditer(r'<node [^>]*>', xml):
+        n = m.group(0)
+        t = re.search(r' text="([^"]*)"', n)
+        if t and t.group(1).strip().lower() == want.lower():
+            b = re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', n)
+            if b:
+                x1, y1, x2, y2 = map(int, b.groups())
+                print((x1 + x2) // 2, (y1 + y2) // 2)
+                sys.exit(0)
+sys.exit(1)
+PY
+) || { echo "tap_any: не найдено: $*"; return 1; }
+  adb shell input tap $xy; echo "tap_any $* -> $xy"
+}
+
+adb shell am force-stop "$PKG"; sleep 1
+sitesettings;                                                             shot 30-site-settings 6
+seccheck;                                                                 shot 31-security-check 6
+settings; sleep 4
+# Поле поиска — первое поле ввода экрана, получает фокус; печатаем запрос.
+tap_any "Search settings" || true
+adb shell input text "HTTPS"; sleep 2; adb shell input keyevent 111;       shot 32-settings-search 2
+adb shell input keyevent 4
+
+# Страница, запрашивающая геолокацию: localhost — безопасный контекст, поднимаем сервер на раннере.
+WEB=$(mktemp -d)
+cat > "$WEB/geo.html" <<'HTML'
+<!doctype html><meta name="viewport" content="width=device-width"><title>Geo test</title>
+<body style="font:20px sans-serif;background:#fff;color:#000;padding:24px">
+<h2>Geolocation test</h2><p id="s">requesting...</p>
+<script>
+navigator.geolocation.getCurrentPosition(
+  p => { document.getElementById('s').textContent = 'OK ' + p.coords.latitude + ',' + p.coords.longitude; console.log('GEO ok'); },
+  e => { document.getElementById('s').textContent = 'ERROR ' + e.code + ' ' + e.message; console.log('GEO error ' + e.code); },
+  {timeout: 15000});
+</script></body>
+HTML
+(cd "$WEB" && python3 -m http.server 8765 >/dev/null 2>&1) &
+WEBPID=$!
+adb reverse tcp:8765 tcp:8765
+sleep 2
+browser --ei profile 7 --es url http://localhost:8765/geo.html;          shot 33-geo-prompt 15
+tap_any "Allow" "Разрешить" && sleep 3;                                  shot 34-geo-android 2
+tap_any "While using the app" "Only this time" "Allow" && sleep 5;       shot 35-geo-result 8
+sitesettings;                                                             shot 36-site-settings-after 5
+for i in 1 2 3 4; do adb shell input swipe 160 560 160 80 300; done;       shot 36b-site-settings-sites 2
+sitesettings --es host localhost;                                         shot 37-site-localhost 5
+seccheck;                                                                 shot 38-security-after 5
+adb shell input swipe 160 560 160 80 300;                                 shot 38b-security-after-bottom 2
+kill "$WEBPID" 2>/dev/null || true
 
 # --- Блоки D/E/F (feat/extras): по умолчанию, главная, чтение, офлайн, фраза, о приложении, справка, заметки ---
 X="$OUT/extras.txt"; : > "$X"
@@ -82,63 +187,63 @@ PY
   done
   return 1
 }
-tap_text() {
+xtap() {
   local xy; xy=$(find_xy "$1")
   if [ -n "$xy" ]; then echo "tap '$1' at $xy" >> "$X"; adb shell input tap $xy; return 0; fi
   echo "NOT FOUND: '$1'" >> "$X"; return 1
 }
-menu_item() { tap_text "Menu" && sleep 2 && tap_text "$1"; }
+menu_item() { xtap "Menu" && sleep 2 && xtap "$1"; }
 
-browser --ei profile 7;                                                     shot 20-start-phrase 12
+browser --ei profile 7;                                                     shot 50-start-phrase 12
 # №26: ссылка из «другого приложения» (неявный VIEW, только наш пакет) открывается в Оси.
 echo "resolve VIEW https:" >> "$X"
 adb shell cmd package resolve-activity --brief -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d https://example.org "$PKG" >> "$X" 2>&1
 adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d https://example.org -p "$PKG" >> "$X" 2>&1
-                                                                            shot 21-view-intent 30
+                                                                            shot 51-view-intent 30
 # №37: долгое нажатие на заголовок example.org — панель выделения с «Добавить в заметку».
-adb shell input swipe 150 296 150 296 1500;                                 shot 22-selection 3
+adb shell input swipe 150 296 150 296 1500;                                 shot 52-selection 3
 # Плавающая панель выделения — отдельное окно, uiautomator её не видит: запасной тап по «Add to note» (320×640).
-tap_text "Add to note" || { echo "tap 'Add to note' by coordinates" >> "$X"; adb shell input tap 122 253; }; sleep 2
-act NotesActivity;                                                          shot 23-notes 5
+xtap "Add to note" || { echo "tap 'Add to note' by coordinates" >> "$X"; adb shell input tap 122 253; }; sleep 2
+act NotesActivity;                                                          shot 53-notes 5
 # №34: режим чтения на статье Википедии.
-browser --ei profile 7 --es url https://en.m.wikipedia.org/wiki/Moon;       shot 24-article 30
-menu_item "Reader mode";                                                    shot 25-reader 15
+browser --ei profile 7 --es url https://en.m.wikipedia.org/wiki/Moon;       shot 54-article 30
+menu_item "Reader mode";                                                    shot 55-reader 15
 menu_item "Exit reader mode"; sleep 10
 # №35: сохранить страницу офлайн, список и открытие PDF.
 menu_item "Save page offline"
 # Длинная статья пишется в PDF до полуминуты — ждём файл, а не фиксированное время.
 for i in $(seq 30); do adb shell run-as "$PKG" cat shared_prefs/saved_pages.xml 2>/dev/null | grep -q 'page_' && break; sleep 3; done; sleep 2
-act SavedPagesActivity;                                                     shot 26-saved 5
-tap_text "Moon" || true;                                                    shot 27-saved-open 15
+act SavedPagesActivity;                                                     shot 56-saved 5
+xtap "Moon" || true;                                                    shot 57-saved-open 15
 # №27: главная — пустая страница, затем возврат к «Старт Ось».
 settings; sleep 4
 for i in 1 2 3 4 5 6 7 8; do adb shell input swipe 160 560 160 140 300; done; sleep 2
-                                                                            shot 28-settings-extras 2
-tap_text "Blank page"; sleep 2
-browser --ei profile 8 --es url os:start;                                   shot 29-home-blank 10
+                                                                            shot 58-settings-extras 2
+xtap "Blank page"; sleep 2
+browser --ei profile 8 --es url os:start;                                   shot 59-home-blank 10
 settings; sleep 4
 for i in 1 2 3 4 5 6 7 8; do adb shell input swipe 160 560 160 140 300; done; sleep 2
-tap_text "Ось start"; sleep 1
+xtap "Ось start"; sleep 1
 # Полный экран из меню: панели скрыты, в углу кнопка выхода.
 browser --ei profile 7 --es url https://example.com; sleep 15
-menu_item "Full screen";                                                    shot 32-fullscreen 3
-tap_text "Exit full screen";                                                shot 33-fullscreen-exit 3
+menu_item "Full screen";                                                    shot 62-fullscreen 3
+xtap "Exit full screen";                                                shot 63-fullscreen-exit 3
 # Профили: перетаскивание («Personal» → на место «Work»), описание профиля.
 adb shell am force-stop "$PKG"; main; sleep 6
 from=$(find_xy "Personal"); to=$(find_xy "Work")
 echo "drag: '$from' -> '$to'" >> "$X"
 [ -n "$from" ] && [ -n "$to" ] && adb shell input draganddrop $from $to 2500
-                                                                            shot 34-profiles-reordered 3
+                                                                            shot 64-profiles-reordered 3
 adb shell am start -n "$PKG/ru.multibrowser.ProfileActivity" --ei profile 5 >/dev/null; sleep 4
-tap_text "What this profile is for" && adb shell input text "Work%smail"
-                                                                            shot 35-profile-info 2
+xtap "What this profile is for" && adb shell input text "Work%smail"
+                                                                            shot 65-profile-info 2
 adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 2
 adb shell run-as "$PKG" cat shared_prefs/profiles.xml | grep -E "order|desc_|name_" >> "$X" 2>&1
 adb shell run-as "$PKG" cat shared_prefs/onboarding.xml shared_prefs/pins.xml >> "$X" 2>&1
 # №23, №25
-act AboutActivity;                                                          shot 30-about 5
-act HelpActivity;                                                           shot 31-help 5
-act StatsActivity;                                                          shot 36-stats 5
+act AboutActivity;                                                          shot 60-about 5
+act HelpActivity;                                                           shot 61-help 5
+act StatsActivity;                                                          shot 66-stats 5
 adb shell run-as "$PKG" cat shared_prefs/stats.xml >> "$X" 2>&1
 adb shell run-as "$PKG" ls -la files/saved >> "$X" 2>&1
 adb shell run-as "$PKG" cat shared_prefs/notes.xml >> "$X" 2>&1
@@ -146,14 +251,28 @@ adb shell run-as "$PKG" cat shared_prefs/home.xml shared_prefs/phrases.xml >> "$
 
 # Смена языка: сразу меняются и настройки, и главный экран под ними (и имена профилей-примеров).
 settings; sleep 4
-tap_text "System"; sleep 2; tap_text "Русский"; sleep 4;                    shot 37-lang-settings-ru 1
-adb shell input keyevent 4; sleep 3;                                        shot 38-lang-main-ru 1
+xtap "System"; sleep 2; xtap "Русский"; sleep 4;                    shot 67-lang-settings-ru 1
+adb shell input keyevent 4; sleep 3;                                        shot 68-lang-main-ru 1
 echo "lang ru main: $(find_xy "Личное")" >> "$X"
 adb logcat -d -v time > "$OUT/logcat.txt"
 grep -E "OsDiag|GeckoConsole|AndroidRuntime|FATAL|Gecko" "$OUT/logcat.txt" | tail -800 > "$OUT/diag.txt"
 
+# --- Проверки блоков D/E/F по состоянию приложения, а не по картинке ---
+check() { if eval "$2"; then echo "ok   $1" | tee -a "$OUT/checks.txt"; else echo "FAIL $1" | tee -a "$OUT/checks.txt"; fi; }
+check "№34 режим чтения отрисовал статью" 'grep -q "os-reader: ok" "$OUT/logcat.txt"'
+check "№35 PDF сохранён и открыт"      'grep -q "page_.*\.pdf" "$X" && grep -q "tap .Moon" "$X"'
+check "Полный экран: кнопка выхода"       'grep -q "tap .Exit full screen" "$X"'
+check "Профили: порядок изменён"         'grep -q "name=\"order\"" "$X"'
+check "Профили: описание сохранено"      'grep -q "desc_5\">Work mail" "$X"'
+check "Первый запуск: примеры профилей"   'grep -q "name_1\">@ex_personal_name" "$X" && grep -q "name_4\">@ex_social_name" "$X" && grep -q "list_2" "$X"'
+check "Первый запуск: обучение пройдено"  'grep -q "name=\"done\" value=\"true\"" "$X" && [ "$(grep -c "next .: [0-9]" "$OB")" -ge 5 ] && grep -q "start: [0-9]" "$OB"'
+check "Статистика: страницы посчитаны"   'grep -q "name=\"pages_1\" value=\"[1-9]" "$X"'
+check "Язык: главный экран сразу на русском" 'grep -q "lang ru main: [0-9]" "$X"'
+check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
+[ "$RC" = 0 ] &&
+
 # --- Автопроверка на белый экран: центральная область не должна быть почти вся белой/пустой ---
-python3 - "$OUT" <<'PY'; RC=$?
+python3 - "$OUT" <<'PY'
 import sys, glob, os, struct, zlib
 # Минимальный разбор PNG без Pillow: считаем долю белых пикселей в центральной зоне.
 def read_png(path):
@@ -186,8 +305,7 @@ def read_png(path):
 
 outdir=sys.argv[1]
 # Эти экраны обязаны показывать реальную страницу — не пустую.
-must_render={'02-example','03-wikipedia','05-p1-claude','06-p2-claude','07-p4-claude','11-claude-light','14-session-restored'}
-must_render|={'21-view-intent','24-article','25-reader','27-saved-open'}  # блоки D/E/F
+must_render={'21-fav-opened','51-view-intent','54-article','55-reader','57-saved-open','02-example','03-wikipedia','05-p1-claude','06-p2-claude','07-p4-claude','11-claude-light','14-session-restored'}
 fails=[]
 for path in sorted(glob.glob(os.path.join(outdir,'*.png'))):
     name=os.path.splitext(os.path.basename(path))[0]
@@ -206,25 +324,12 @@ for path in sorted(glob.glob(os.path.join(outdir,'*.png'))):
     if name in must_render and (wr>0.9 or sr>0.97):
         status='BLANK'; fails.append(f"{name}: white={wr:.2f} uniform={sr:.2f}")
     print(f"{name:24} white={wr:.2f} uniform={sr:.2f} {status}")
+checks=os.path.join(outdir,'checks.txt')
+if os.path.exists(checks):
+    fails+=[l.strip() for l in open(checks) if l.startswith('FAIL')]
 if fails:
     print("\nПРИЁМКА НЕ ПРОЙДЕНА — пустые страницы:")
     for f in fails: print("  "+f)
     sys.exit(1)
 print("\nВсе ключевые страницы отрисованы.")
 PY
-
-# --- Проверки блоков D/E/F по состоянию приложения, а не по картинке ---
-ext_fail=0
-check() { if eval "$2"; then echo "ok    $1"; else echo "FAIL  $1"; ext_fail=1; fi; }
-check "№34 режим чтения отрисовал статью" 'grep -q "os-reader: ok" "$OUT/logcat.txt"'
-check "№35 PDF сохранён и открыт"      'grep -q "page_.*\.pdf" "$X" && grep -q "tap .Moon" "$X"'
-check "Полный экран: кнопка выхода"       'grep -q "tap .Exit full screen" "$X"'
-check "Профили: порядок изменён"         'grep -q "name=\"order\"" "$X"'
-check "Профили: описание сохранено"      'grep -q "desc_5\">Work mail" "$X"'
-check "Первый запуск: примеры профилей"   'grep -q "name_1\">@ex_personal_name" "$X" && grep -q "name_4\">@ex_social_name" "$X" && grep -q "list_2" "$X"'
-check "Первый запуск: обучение пройдено"  'grep -q "name=\"done\" value=\"true\"" "$X" && [ "$(grep -c "next .: [0-9]" "$OB")" -ge 5 ] && grep -q "start: [0-9]" "$OB"'
-check "Статистика: страницы посчитаны"   'grep -q "name=\"pages_1\" value=\"[1-9]" "$X"'
-check "Язык: главный экран сразу на русском" 'grep -q "lang ru main: [0-9]" "$X"'
-check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
-[ "$ext_fail" = 0 ] || echo "ПРИЁМКА НЕ ПРОЙДЕНА — блоки D/E/F"
-[ "$RC" = 0 ] && [ "$ext_fail" = 0 ]

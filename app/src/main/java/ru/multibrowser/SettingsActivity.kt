@@ -8,6 +8,8 @@ import android.text.InputType
 import android.text.TextWatcher
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -47,73 +49,146 @@ class SettingsActivity : AppCompatActivity() {
         applyEdgeToEdge(root)
 
         content.addView(header())
-        content.addView(sectionTitle(Tr.t("pinned_tabs")))
-        content.addView(PinEditor(this, null).view)
-        content.addView(hint(Tr.t("pinned_desc_common")))
-        content.addView(sectionTitle(Tr.t("language")))
-        content.addView(button(languageLabel(Settings.language(this))) { languageDialog() })
-        content.addView(sectionTitle(Tr.t("theme")))
-        content.addView(button(themeLabel(Settings.themeId(this))) { themeDialog() })
-        content.addView(sectionTitle(Tr.t("search_engine")))
-        content.addView(button(Search.current(this).title) { searchDialog() })
-        content.addView(sectionTitle(Tr.t("privacy_security")))
-        content.addView(segmented(listOf(true, false), Settings.lockEnabled(this),
-            { if (it) Tr.t("lock_on") else Tr.t("lock_off") }) {
-            Settings.setLockEnabled(this, it)
-            recreate()
-        })
-        if (!AppLock.deviceSecure(this)) {
-            content.addView(hint(Tr.t("no_screen_lock")))
+        content.addView(searchField())
+        this.content = content
+
+        section(Tr.t("pinned_tabs")).apply {
+            addView(PinEditor(this@SettingsActivity, null).view)
+            addView(hint(Tr.t("pinned_desc_common")))
         }
-        content.addView(segmented(listOf(false, true), Settings.hideContent(this),
-            { if (it) Tr.t("hide_content") else Tr.t("show") }) {
-            Settings.setHideContent(this, it)
-            recreate()
-        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            .apply { topMargin = dp(8) })
-        content.addView(hint(Tr.t("hide_content_desc")))
-        content.addView(sectionTitle(Tr.t("scroll_bars")))
-        content.addView(segmented(listOf(true, false), Settings.autoHideBars(this),
+        section(Tr.t("language")).addView(button(languageLabel(Settings.language(this))) { languageDialog() })
+        section(Tr.t("theme")).addView(button(themeLabel(Settings.themeId(this))) { themeDialog() })
+        section(Tr.t("search_engine")).addView(button(Search.current(this).title) { searchDialog() })
+        section(Tr.t("privacy_security")).apply {
+            addView(button(Tr.t("security_check")) {
+                startActivity(Intent(this@SettingsActivity, SecurityCheckActivity::class.java))
+            })
+            addView(button(Tr.t("site_settings")) {
+                startActivity(Intent(this@SettingsActivity, SiteSettingsActivity::class.java))
+            })
+            addView(segmented(listOf(true, false), Settings.lockEnabled(this@SettingsActivity),
+                { if (it) Tr.t("lock_on") else Tr.t("lock_off") }) {
+                Settings.setLockEnabled(this@SettingsActivity, it)
+                recreate()
+            }, spaced())
+            if (!AppLock.deviceSecure(this@SettingsActivity)) {
+                addView(hint(Tr.t("no_screen_lock")))
+            }
+            addView(segmented(listOf(false, true), Settings.hideContent(this@SettingsActivity),
+                { if (it) Tr.t("hide_content") else Tr.t("show") }) {
+                Settings.setHideContent(this@SettingsActivity, it)
+                recreate()
+            }, spaced())
+            addView(hint(Tr.t("hide_content_desc")))
+            addView(segmented(listOf(false, true), Settings.httpsOnly(this@SettingsActivity),
+                { if (it) Tr.t("https_on") else Tr.t("https_off") }) {
+                Settings.setHttpsOnly(this@SettingsActivity, it)
+                recreate()
+            }, spaced())
+            addView(hint(Tr.t("https_desc")))
+        }
+        section(Tr.t("scroll_bars")).addView(segmented(listOf(true, false), Settings.autoHideBars(this),
             { if (it) Tr.t("hide_bars") else Tr.t("always_visible") }) {
             Settings.setAutoHideBars(this, it)
             recreate()
         })
-        content.addView(sectionTitle(Tr.t("address_tabs")))
-        content.addView(segmented(Settings.BarPosition.values().toList(), Settings.barPosition(this),
+        section(Tr.t("address_tabs")).addView(segmented(Settings.BarPosition.values().toList(), Settings.barPosition(this),
             { if (it == Settings.BarPosition.TOP) Tr.t("top") else Tr.t("bottom") }) {
             Settings.setBarPosition(this, it)
             recreate()
         })
-        content.addView(sectionTitle(Tr.t("profile_strip")))
-        content.addView(segmented(listOf(false, true), Settings.showSwitcher(this), { if (it) Tr.t("show") else Tr.t("hide") }) {
+        section(Tr.t("profile_strip")).addView(segmented(listOf(false, true), Settings.showSwitcher(this), { if (it) Tr.t("show") else Tr.t("hide") }) {
             Settings.setShowSwitcher(this, it)
             recreate()
         })
-        content.addView(sectionTitle(Tr.t("live_tabs")))
-        content.addView(segmented(Settings.KEEP_ALIVE_OPTIONS, Settings.keepAlive(this), { it.toString() }) {
-            Settings.setKeepAlive(this, it)
-            recreate()
-        })
-        content.addView(hint(Tr.t("live_tabs_desc")))
-        content.addView(sectionTitle(Tr.t("profiles_count")))
-        content.addView(countSelector())
-        content.addView(sectionTitle(Tr.t("profile_names")))
-        names = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        content.addView(names)
-        renderNames()
-        content.addView(sectionTitle(Tr.t("data")))
-        content.addView(button(Tr.t("clear_cache_all")) {
-            Gecko.clearCache(this)
-            toast(Tr.t("cache_cleared"))
-        })
-        content.addView(button(Tr.t("clear_history_all")) {
-            confirm(Tr.t("clear_history_all_q")) {
-                History.clearAll(this)
-                toast(Tr.t("history_cleared"))
-            }
-        })
-        ExtrasSettings.addTo(this, content)
+        section(Tr.t("live_tabs")).apply {
+            addView(segmented(Settings.KEEP_ALIVE_OPTIONS, Settings.keepAlive(this@SettingsActivity), { it.toString() }) {
+                Settings.setKeepAlive(this@SettingsActivity, it)
+                recreate()
+            })
+            addView(hint(Tr.t("live_tabs_desc")))
+        }
+        section(Tr.t("profiles_count")).addView(countSelector())
+        section(Tr.t("profile_names")).apply {
+            names = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+            addView(names)
+            renderNames()
+        }
+        section(Tr.t("data")).apply {
+            addView(button(Tr.t("clear_cache_all")) {
+                Gecko.clearCache(this@SettingsActivity)
+                toast(Tr.t("cache_cleared"))
+            })
+            addView(button(Tr.t("clear_history_all")) {
+                confirm(Tr.t("clear_history_all_q")) {
+                    History.clearAll(this@SettingsActivity)
+                    toast(Tr.t("history_cleared"))
+                }
+            })
+        }
+        ExtrasSettings.addTo(this) { section(it) }
+        nothingFound = hint(Tr.t("nothing_found")).apply {
+            gravity = Gravity.CENTER
+            setPadding(0, dp(32), 0, 0)
+            visibility = View.GONE
+        }
+        content.addView(nothingFound)
     }
+
+    // --- Поиск в настройках (№32): фильтр секций по переведённым заголовкам и подписям ---
+
+    private lateinit var content: LinearLayout
+    private lateinit var nothingFound: TextView
+    private val sections = mutableListOf<LinearLayout>()
+
+    private fun section(title: String): LinearLayout = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        addView(sectionTitle(title))
+        content.addView(this)
+        sections += this
+    }
+
+    private fun spaced() = LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
+    ).apply { topMargin = dp(8) }
+
+    private fun searchField() = EditText(this).apply {
+        hint = Tr.t("search_settings")
+        setSingleLine()
+        inputType = InputType.TYPE_CLASS_TEXT
+        imeOptions = EditorInfo.IME_ACTION_SEARCH
+        textSize = 15f
+        setTextColor(Ui.TEXT)
+        setHintTextColor(Ui.MUTED)
+        background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
+        setPadding(dp(14), dp(10), dp(14), dp(10))
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(46))
+            .apply { topMargin = dp(12) }
+        addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) = filter(s?.toString().orEmpty())
+        })
+    }
+
+    private fun filter(query: String) {
+        val q = query.trim().lowercase()
+        var shown = 0
+        sections.forEach { sec ->
+            val match = q.isEmpty() || texts(sec).any { it.lowercase().contains(q) }
+            sec.visibility = if (match) View.VISIBLE else View.GONE
+            if (match) shown++
+        }
+        nothingFound.visibility = if (shown == 0) View.VISIBLE else View.GONE
+    }
+
+    /** Все видимые подписи секции (без полей ввода — в них пользовательские данные). */
+    private fun texts(view: View): List<String> = when (view) {
+        is EditText -> emptyList()
+        is TextView -> listOf(view.text.toString())
+        is ViewGroup -> (0 until view.childCount).flatMap { texts(view.getChildAt(it)) }
+        else -> emptyList()
+    } + listOfNotNull(view.contentDescription?.toString())
 
     private fun header() = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
