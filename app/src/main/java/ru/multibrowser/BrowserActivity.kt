@@ -284,8 +284,10 @@ class BrowserActivity : AppCompatActivity() {
                 return GeckoResult.fromValue(errorPage(uri, error))
             }
 
-            // Ссылки «в новом окне» открываем в той же вкладке.
+            // Окна входа (Google и др.) — настоящим попапом, иначе вход зацикливается;
+            // остальные ссылки «в новом окне» открываем в той же вкладке.
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
+                if (Popups.isAuthPopup(uri)) return Popups.open(this@BrowserActivity, session, uri)
                 session.loadUri(uri)
                 return null
             }
@@ -405,7 +407,10 @@ class BrowserActivity : AppCompatActivity() {
             }
             override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) { Gecko.canGoBack["incognito"] = canGoBack; if (incognito) updateNavButtons() }
             override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) { Gecko.canGoForward["incognito"] = canGoForward; if (incognito) updateNavButtons() }
-            override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? { session.loadUri(uri); return null }
+            override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
+                if (Popups.isAuthPopup(uri)) return Popups.open(this@BrowserActivity, session, uri)
+                session.loadUri(uri); return null
+            }
             override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? {
                 val ua = Gecko.userAgentFor(request.uri)
                 if (ua == session.settings.userAgentOverride) return null
