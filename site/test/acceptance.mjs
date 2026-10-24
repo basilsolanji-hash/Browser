@@ -49,6 +49,13 @@ for (const f of htmls) {
 }
 check('no inline scripts and no third-party resources in any page', failures === 0);
 
+// Названия функций на сайте — из переводов приложения ({app:ключ}), на всех языках.
+{
+  const app = JSON.parse(readFileSync(join(root, 'src/i18n/app.generated.json'), 'utf8'));
+  const bad = LANGS.filter((l) => !readFileSync(join(DIST, l, 'index.html'), 'utf8').includes(app[l].security_check) || !readFileSync(join(DIST, l, 'index.html'), 'utf8').includes(app[l].add_to_note));
+  check('feature names match the app on all languages', bad.length === 0, bad.join(','));
+}
+
 // Бюджет JavaScript ≤ 30 КБ (gzip) на страницу: свои скрипты из public/js.
 const jsFiles = files.filter((f) => f.endsWith('.js'));
 const jsTotal = jsFiles.reduce((s, f) => s + gzipSync(readFileSync(f)).length, 0);

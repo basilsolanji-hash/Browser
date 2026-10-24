@@ -7,6 +7,6 @@ import { t, href } from '../lib/i18n';
 import { appJsonLd } from '../lib/jsonld';
 const site = Astro.site!.toString().replace(/\/$/, '');
 ---
-<Layout lang="en" page="" title={t('en', 'home_title')} desc={t('en', 'home_desc')} canonical={site + href('en')} scripts={['lang-detect.js']} jsonld={appJsonLd('en', site + href('en'))}>
+<Layout lang="en" page="" title={t('en', 'home_title')} desc={t('en', 'home_desc')} canonical={site + href('en')} blocking="lang-detect.js" jsonld={appJsonLd('en', site + href('en'))}>
 <Home lang="en" />
 </Layout>

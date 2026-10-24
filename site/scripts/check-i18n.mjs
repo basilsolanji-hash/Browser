@@ -6,7 +6,7 @@ import { LANGS } from './langs.mjs';
 
 const dir = join(dirname(fileURLToPath(import.meta.url)), '../src/i18n');
 const read = (l) => JSON.parse(readFileSync(join(dir, `${l}.json`), 'utf8'));
-const marks = (s) => [...s.matchAll(/\{\w+\}|\*/g)].map((m) => m[0]).sort().join(',');
+const marks = (s) => [...s.matchAll(/\{[\w:]+\}|\*/g)].map((m) => m[0]).sort().join(',');
 const en = read('en');
 const errors = [];
 for (const lang of LANGS) {
@@ -18,5 +18,9 @@ for (const lang of LANGS) {
   }
   for (const k of Object.keys(d)) if (!(k in en)) errors.push(`${lang}: лишний ключ ${k}`);
 }
+// Ссылки {app:ключ} должны указывать на строки приложения (их выгружает prepare.mjs).
+let app = null;
+try { app = JSON.parse(readFileSync(join(dir, 'app.generated.json'), 'utf8')); } catch { /* prepare ещё не запускался */ }
+if (app) for (const k of Object.keys(en)) for (const m of en[k].matchAll(/\{app:(\w+)\}/g)) for (const lang of LANGS) if (!app[lang]?.[m[1]]) errors.push(`${lang}: ${k}: нет строки приложения ${m[1]} — добавьте её в APP_KEYS (prepare.mjs)`);
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
 console.log(`i18n: ${Object.keys(en).length} ключей × ${LANGS.length} языков — ок`);
