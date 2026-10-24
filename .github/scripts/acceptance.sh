@@ -76,6 +76,8 @@ adb shell input keyevent KEYCODE_BACK; sleep 1
 tabstate before-close
 tabs --ei profile 7;                                                      shot 31a-before-close 3
 tap "Close tab";                                                          shot 31-tab-closed 3
+adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb shell cat /sdcard/ui.xml > "$OUT/ui-31.xml"
+shot 31b-tab-closed-later 5
 tabstate after-close
 browser --ei profile 7 --es action close_all;                             shot 32-close-all-dialog 4
 tap "Close";                                                              shot 33-after-close-all 6
