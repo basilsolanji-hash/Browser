@@ -65,6 +65,7 @@ object Gecko {
     ).also {
         runtime = it
         installReader(it)
+        it.webNotificationDelegate = Notify.delegate(ctx)
     }
 
     /** Встроенное расширение режима чтения (assets/reader, Mozilla Readability) — в том числе для инкогнито. */
@@ -74,6 +75,14 @@ object Gecko {
             if (e != null && !e.metaData.allowedInPrivateBrowsing) ext.setAllowedInPrivateBrowsing(e, true)
         }, { err -> Diag.log("reader", "extension: ${err?.message}") })
     }
+
+    /** Текущий адрес каждой вкладки профиля (ключ "профиль:вкладка") — чьё уведомление пришло. */
+    val tabUrls = HashMap<String, String>()
+
+    /** Последняя использованная вкладка с этим сайтом: (профиль, id вкладки) или null. */
+    fun tabForHost(host: String): Pair<Int, String>? =
+        sessions.keys.toList().asReversed().firstOrNull { k -> tabUrls[k]?.let { Uri.parse(it).host } == host }
+            ?.let { k -> k.substringBefore(':').toIntOrNull()?.let { it to k.substringAfter(':') } }
 
     /** Вкладки, где сейчас стартовая страница Оси — её перерисовываем при смене языка. */
     val onStartPage: MutableSet<GeckoSession> = java.util.Collections.newSetFromMap(java.util.WeakHashMap())

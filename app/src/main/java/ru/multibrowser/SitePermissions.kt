@@ -263,6 +263,7 @@ object SitePermissions {
                 )
                 Mode.ALLOW -> {
                     if (!remembered) forgetLater(activity, perm)
+                    if (kind == Kind.NOTIFICATIONS) Notify.requestPermission(activity)
                     return GeckoResult.fromValue(ContentPermission.VALUE_ALLOW)
                 }
                 Mode.ASK -> Unit
@@ -271,6 +272,8 @@ object SitePermissions {
             val askHost = if (kind == Kind.COOKIES_3P) hostOf(perm.thirdPartyOrigin) ?: host else host
             ask(activity, host, Tr.t(kind.askKey, askHost), inPrivate) { allow, remember ->
                 if (remember) set(activity, host, kind, if (allow) Mode.ALLOW else Mode.BLOCK)
+                // Уведомления сайта показываются системой — нужно и её разрешение (Android 13+).
+                if (allow && kind == Kind.NOTIFICATIONS) Notify.requestPermission(activity)
                 when {
                     allow && remember -> result.complete(ContentPermission.VALUE_ALLOW)
                     allow -> { forgetLater(activity, perm); result.complete(ContentPermission.VALUE_ALLOW) }

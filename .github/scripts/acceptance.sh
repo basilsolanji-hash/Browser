@@ -311,6 +311,37 @@ adb shell run-as "$PKG" ls -la files/saved >> "$X" 2>&1
 adb shell run-as "$PKG" cat shared_prefs/notes.xml >> "$X" 2>&1
 adb shell run-as "$PKG" cat shared_prefs/home.xml shared_prefs/phrases.xml >> "$X" 2>&1
 
+# Уведомления сайта → системное уведомление Android (страница на раннере, localhost).
+NW=$(mktemp -d)
+cat > "$NW/notify.html" <<'HTML'
+<!doctype html><meta name="viewport" content="width=device-width"><title>Notify test</title>
+<body style="margin:0;font:22px sans-serif;background:#fff;color:#000">
+<button id="b" style="width:100vw;height:100vh;font-size:28px">Enable notifications</button>
+<script>
+document.getElementById('b').onclick = () => Notification.requestPermission().then(p => {
+  console.log('NOTIF permission ' + p);
+  // Пауза: успеть дать системное разрешение Android 13+.
+  if (p === 'granted') setTimeout(() => {
+    const n = new Notification('Os test', {body: 'Hello from the site', tag: 'os-test'});
+    n.onclick = () => console.log('NOTIF clicked');
+    console.log('NOTIF shown');
+  }, 8000);
+});
+</script></body>
+HTML
+(cd "$NW" && python3 -m http.server 8766 >/dev/null 2>&1) &
+NWPID=$!
+adb reverse tcp:8766 tcp:8766; sleep 2
+browser --ei profile 7 --es url http://localhost:8766/notify.html; sleep 12
+adb shell input tap 160 400; sleep 3;                                       shot 69a-notify-site-prompt 1
+tap_any "Allow" "Разрешить" && sleep 3;                                     shot 69b-notify-android 1
+tap_any "Allow" && sleep 2
+sleep 12
+adb shell dumpsys notification --noredact > "$OUT/notifications.txt" 2>&1
+adb shell cmd statusbar expand-notifications; sleep 2;                      shot 69-notification 1
+adb shell cmd statusbar collapse; sleep 1
+kill "$NWPID" 2>/dev/null || true
+
 # Смена языка: сразу меняются и настройки, и главный экран под ними (и имена профилей-примеров).
 settings; sleep 4
 xtap "System"; sleep 2; xtap "Русский"; sleep 4;                    shot 67-lang-settings-ru 1
@@ -330,6 +361,7 @@ check "Первый запуск: примеры профилей"   'grep -q "n
 check "Первый запуск: обучение пройдено"  'grep -q "name=\"done\" value=\"true\"" "$X" && [ "$(grep -c "next .: [0-9]" "$OB")" -ge 5 ] && grep -q "start: [0-9]" "$OB"'
 check "Статистика: страницы посчитаны"   'grep -q "name=\"pages_1\" value=\"[1-9]" "$X"'
 check "Язык: главный экран сразу на русском" 'grep -q "lang ru main: [0-9]" "$X"'
+check "Уведомление сайта показано системой" 'grep -q "Os test" "$OUT/notifications.txt"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 
 # --- Автопроверка на белый экран: центральная область не должна быть почти вся белой/пустой ---

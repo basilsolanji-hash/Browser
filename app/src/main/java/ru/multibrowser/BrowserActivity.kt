@@ -179,6 +179,11 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun openTab(intent: Intent) {
+        // Открыли из уведомления сайта — передаём клик сайту (после открытия его вкладки ниже).
+        intent.getStringExtra(Notify.EXTRA_TAG)?.let { tag ->
+            intent.removeExtra(Notify.EXTRA_TAG)
+            geckoView.post { Notify.clicked(tag) }
+        }
         val id = intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1))
         // Ссылка из другого приложения (VIEW) или наш экстра — с фильтром схем (DefaultBrowser).
         val url = DefaultBrowser.incomingUrl(this, intent)
@@ -418,6 +423,7 @@ class BrowserActivity : AppCompatActivity() {
                 if (Tabs.isTab(tab.id)) Tabs.update(this@BrowserActivity, id, tab.id, url = clean)
                 History.add(this@BrowserActivity, id, clean)
                 pageUrls[k] = url
+                Gecko.tabUrls[k] = url
             }
 
             override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
