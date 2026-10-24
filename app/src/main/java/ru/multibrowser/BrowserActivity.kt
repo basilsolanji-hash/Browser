@@ -121,6 +121,7 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        exitIncognito()
         geckoView.releaseSession()
         attached.forEach {
             it.progressDelegate = null
@@ -175,7 +176,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun renderTabs() {
         tabBar.removeAllViews()
         Pins.all(this).forEach { p ->
-            val selected = p.id == pin.id
+            val selected = !incognito && p.id == pin.id
             tabBar.addView(TextView(this).apply {
                 text = p.title
                 textSize = 14f
@@ -381,6 +382,8 @@ class BrowserActivity : AppCompatActivity() {
         incognitoSession?.let { attached.remove(it); it.close() }
         incognitoSession = null
         incognito = false
+        Gecko.canGoBack.remove("incognito")
+        Gecko.canGoForward.remove("incognito")
     }
 
     /** Открыть приватную вкладку: без истории и cookies, данные стираются при выходе. */
@@ -585,6 +588,7 @@ class BrowserActivity : AppCompatActivity() {
             addView(chipDot, LinearLayout.LayoutParams(dp(10), dp(10)).apply { marginEnd = dp(8) })
             addView(chipName)
             setOnClickListener {
+                exitIncognito()
                 startActivity(Intent(this@BrowserActivity, MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
             }
@@ -696,7 +700,9 @@ class BrowserActivity : AppCompatActivity() {
         }
         backButton = action(R.drawable.ic_back, Tr.t("back")) { session?.goBack() }
         forwardButton = action(R.drawable.ic_forward, Tr.t("forward")) { session?.goForward() }
-        action(R.drawable.ic_home, Tr.t("home")) { session?.loadUri(pin.url) }
+        action(R.drawable.ic_home, Tr.t("home")) {
+            if (incognito) { exitIncognito(); openTab(profileId, pin) } else session?.loadUri(pin.url)
+        }
         action(R.drawable.ic_history, Tr.t("history")) { showHistory() }
         action(R.drawable.ic_delete, Tr.t("clear_short")) { showClear() }
         action(R.drawable.ic_refresh, Tr.t("refresh")) { session?.reload() }
