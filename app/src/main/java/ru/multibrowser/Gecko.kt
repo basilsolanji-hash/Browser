@@ -61,7 +61,18 @@ object Gecko {
                     .build()
             )
             .build(),
-    ).also { runtime = it }
+    ).also {
+        runtime = it
+        installReader(it)
+    }
+
+    /** Встроенное расширение режима чтения (assets/reader, Mozilla Readability) — в том числе для инкогнито. */
+    private fun installReader(rt: GeckoRuntime) {
+        val ext = rt.webExtensionController
+        ext.ensureBuiltIn("resource://android/assets/reader/", "reader@os.browser").accept({ e ->
+            if (e != null && !e.metaData.allowedInPrivateBrowsing) ext.setAllowedInPrivateBrowsing(e, true)
+        }, { err -> Diag.log("reader", "extension: ${err?.message}") })
+    }
 
     fun applyZoom(ctx: Context) {
         runtime?.settings?.fontSizeFactor = Settings.zoom(ctx) / 100f

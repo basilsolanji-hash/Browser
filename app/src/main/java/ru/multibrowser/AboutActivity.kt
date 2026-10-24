@@ -40,6 +40,7 @@ class AboutActivity : AppCompatActivity() {
         License("AndroidX: Core, AppCompat, Biometric, SwipeRefreshLayout", "Apache License 2.0",
             "https://www.apache.org/licenses/LICENSE-2.0"),
         License("Kotlin Standard Library", "Apache License 2.0", "https://www.apache.org/licenses/LICENSE-2.0"),
+        License("Mozilla Readability", "Apache License 2.0", "https://github.com/mozilla/readability"),
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -58,12 +58,18 @@ class PageTools(
         val title = profile()?.let { id -> History.list(a, id).firstOrNull { it.url == u }?.title?.takeIf { it.isNotBlank() } }
             ?: Uri.parse(u).host ?: u
         toast(Tr.t("saving_page"))
+        Diag.log("save", "saveAsPdf: $u")
         val ctx = a.applicationContext
         s.saveAsPdf().accept({ pdf ->
-            if (pdf == null) { toast(Tr.t("save_failed")); return@accept }
+            if (pdf == null) {
+                Diag.log("save", "saveAsPdf: пустой результат")
+                toast(Tr.t("save_failed"))
+                return@accept
+            }
             Thread {
-                val ok = runCatching { SavedPages.store(ctx, title, u, pdf) }.isSuccess
-                a.runOnUiThread { toast(Tr.t(if (ok) "page_saved" else "save_failed")) }
+                val r = runCatching { SavedPages.store(ctx, title, u, pdf) }
+                Diag.log("save", r.fold({ "сохранено: ${it.file}, ${it.size} Б" }, { "запись: ${it.message}" }))
+                a.runOnUiThread { toast(Tr.t(if (r.isSuccess) "page_saved" else "save_failed")) }
             }.start()
         }, { e ->
             Diag.log("save", "saveAsPdf: ${e?.message}")
@@ -76,17 +82,19 @@ class PageTools(
     }
 }
 
-/** Режим чтения (№34) — встроенная страница движка about:reader. */
+/**
+ * Режим чтения (№34). about:reader в GeckoView нет, поэтому его делает встроенное расширение
+ * (assets/reader): метка #os-reader в адресе — переход внутри страницы, скрипт подменяет её статьёй.
+ */
 object Reader {
-    private const val PREFIX = "about:reader?"
+    private const val MARK = "#os-reader"
 
-    fun isReader(url: String) = url.startsWith(PREFIX)
+    fun isReader(url: String) = url.endsWith(MARK)
 
-    fun wrap(url: String) = PREFIX + "url=" + Uri.encode(url)
+    fun wrap(url: String) = url.substringBefore('#') + MARK
 
-    /** Исходный адрес страницы (для адресной строки и выхода из режима чтения). */
-    fun original(url: String): String =
-        if (isReader(url)) runCatching { Uri.parse(url).getQueryParameter("url") }.getOrNull() ?: url else url
+    /** Исходный адрес страницы (для адресной строки и выхода из режима чтения — полная перезагрузка). */
+    fun original(url: String): String = url.removeSuffix(MARK)
 }
 
 /**

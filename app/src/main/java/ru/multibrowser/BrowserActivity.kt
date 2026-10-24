@@ -200,7 +200,7 @@ class BrowserActivity : AppCompatActivity() {
     /** В покое — только домен и замок для https, при редактировании — полный адрес. */
     private fun showUrl(url: String) {
         currentUrl = url
-        val internal = url.startsWith("data:") || url.startsWith("os:") || url == Pins.START
+        val internal = url.startsWith("data:") || url.startsWith("os:") || url == Pins.START || url == "about:blank"
         lockIcon.visibility = if (url.startsWith("https://")) View.VISIBLE else View.GONE
         if (!urlBar.hasFocus()) urlBar.setText(if (internal) "" else Uri.parse(Reader.original(url)).host ?: url)
     }
@@ -262,8 +262,9 @@ class BrowserActivity : AppCompatActivity() {
             ) {
                 if (url == null) return
                 if (visible()) showUrl(url)
-                Profiles.saveLastUrl(this@BrowserActivity, id, tab, url)
-                History.add(this@BrowserActivity, id, url)
+                // В историю и восстановление — без метки режима чтения.
+                Profiles.saveLastUrl(this@BrowserActivity, id, tab, Reader.original(url))
+                History.add(this@BrowserActivity, id, Reader.original(url))
                 pageUrls[k] = url
             }
 

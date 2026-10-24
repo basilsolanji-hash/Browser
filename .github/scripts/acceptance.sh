@@ -49,13 +49,15 @@ tap_text() {
     xy=$(python3 - "$OUT/ui.xml" "$1" <<'PY'
 import sys, re
 xml = open(sys.argv[1], encoding='utf-8', errors='ignore').read(); want = sys.argv[2]
-for m in re.finditer(r'<node [^>]*>', xml):
-    n = m.group(0)
-    t = re.search(r' text="([^"]*)"', n); d = re.search(r'content-desc="([^"]*)"', n)
-    if (t and t.group(1) == want) or (d and d.group(1) == want):
-        b = re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', n)
-        if b:
-            x1, y1, x2, y2 = map(int, b.groups()); print((x1 + x2) // 2, (y1 + y2) // 2); break
+nodes = re.findall(r'<node [^>]*>', xml)
+def label(n, attr):
+    m = re.search(' ' + attr + r'="([^"]*)"', n); return m.group(1) if m else ''
+# Сначала точное совпадение, затем — по вхождению (заголовки сохранённых страниц бывают длиннее).
+for match in (lambda s: s == want, lambda s: want in s):
+    hit = next((n for n in nodes if match(label(n, 'text')) or match(label(n, 'content-desc'))), None)
+    b = hit and re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', hit)
+    if b:
+        x1, y1, x2, y2 = map(int, b.groups()); print((x1 + x2) // 2, (y1 + y2) // 2); break
 PY
 )
     if [ -n "$xy" ]; then echo "tap '$1' at $xy" >> "$X"; adb shell input tap $xy; return 0; fi
@@ -73,7 +75,8 @@ adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROW
                                                                             shot 21-view-intent 30
 # №37: долгое нажатие на заголовок example.org — панель выделения с «Добавить в заметку».
 adb shell input swipe 150 296 150 296 1500;                                 shot 22-selection 3
-tap_text "Add to note"; sleep 2
+# Плавающая панель выделения — отдельное окно, uiautomator её не видит: запасной тап по «Add to note» (320×640).
+tap_text "Add to note" || { echo "tap 'Add to note' by coordinates" >> "$X"; adb shell input tap 122 253; }; sleep 2
 act NotesActivity;                                                          shot 23-notes 5
 # №34: режим чтения на статье Википедии.
 browser --ei profile 7 --es url https://en.m.wikipedia.org/wiki/Moon;       shot 24-article 30
@@ -82,7 +85,7 @@ menu_item "Exit reader mode"; sleep 10
 # №35: сохранить страницу офлайн, список и открытие PDF.
 menu_item "Save page offline"; sleep 15
 act SavedPagesActivity;                                                     shot 26-saved 5
-tap_text "Moon" || tap_text "Moon - Wikipedia" || true;                     shot 27-saved-open 15
+tap_text "Moon" || true;                                                    shot 27-saved-open 15
 # №27: главная — пустая страница, затем возврат к «Старт Ось».
 settings; sleep 4
 for i in 1 2 3 4 5 6 7 8; do adb shell input swipe 160 560 160 140 300; done; sleep 2
@@ -103,7 +106,7 @@ adb logcat -d -v time > "$OUT/logcat.txt"
 grep -E "OsDiag|GeckoConsole|AndroidRuntime|FATAL|Gecko" "$OUT/logcat.txt" | tail -800 > "$OUT/diag.txt"
 
 # --- Автопроверка на белый экран: центральная область не должна быть почти вся белой/пустой ---
-python3 - "$OUT" <<'PY'
+python3 - "$OUT" <<'PY'; RC=$?
 import sys, glob, os, struct, zlib
 # Минимальный разбор PNG без Pillow: считаем долю белых пикселей в центральной зоне.
 def read_png(path):
@@ -162,3 +165,12 @@ if fails:
     sys.exit(1)
 print("\nВсе ключевые страницы отрисованы.")
 PY
+
+# --- Проверки блоков D/E/F по состоянию приложения, а не по картинке ---
+ext_fail=0
+check() { if eval "$2"; then echo "ok    $1"; else echo "FAIL  $1"; ext_fail=1; fi; }
+check "№34 режим чтения отрисовал статью" 'grep -q "os-reader: ok" "$OUT/logcat.txt"'
+check "№35 PDF сохранён в files/saved"   'grep -q "page_.*\.pdf" "$X"'
+check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
+[ "$ext_fail" = 0 ] || echo "ПРИЁМКА НЕ ПРОЙДЕНА — блоки D/E/F"
+[ "$RC" = 0 ] && [ "$ext_fail" = 0 ]
