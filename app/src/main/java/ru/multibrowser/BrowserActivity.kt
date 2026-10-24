@@ -34,6 +34,8 @@ import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoSessionSettings
 import org.mozilla.geckoview.GeckoView
+import org.mozilla.geckoview.GeckoWebExecutor
+import org.mozilla.geckoview.WebRequest
 import org.mozilla.geckoview.WebRequestError
 import org.mozilla.geckoview.WebResponse
 import java.text.SimpleDateFormat
@@ -1079,6 +1081,9 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun toUrl(input: String): String = Search.toUrl(this, input)
 
+    private var forwardedUrl: String? = null
+    private var forwardedAt = 0L
+
     /**
      * Окно без адреса (так движок отдаёт, например, PDF «как файл»): скрытая сессия того же профиля.
      * Пришёл файл — обычное скачивание; пришла страница — открываем её во вкладке.
@@ -1086,13 +1091,17 @@ class BrowserActivity : AppCompatActivity() {
     private fun hiddenWindow(opener: GeckoSession, pageUrl: String?, privateMode: Boolean): GeckoResult<GeckoSession> {
         val hidden = GeckoSession(GeckoSessionSettings.Builder(opener.settings).build())
         fun done() { if (hidden.isOpen) hidden.close() }
+        var location: String? = null
+        var downloaded = false
         hidden.contentDelegate = object : GeckoSession.ContentDelegate {
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
+                downloaded = true
                 Downloads.request(this@BrowserActivity, pageUrl ?: response.uri, response, privateMode)
                 geckoView.postDelayed({ done() }, 1000)
             }
             override fun onCloseRequest(session: GeckoSession) = done()
         }
+        // Адрес появляется раньше, чем станет ясно, файл это или страница: ждём конца загрузки.
         hidden.navigationDelegate = object : GeckoSession.NavigationDelegate {
             override fun onLocationChange(
                 session: GeckoSession,
@@ -1100,15 +1109,45 @@ class BrowserActivity : AppCompatActivity() {
                 perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>,
                 hasUserGesture: Boolean,
             ) {
-                if (url.isNullOrBlank() || url == "about:blank") return
-                opener.loadUri(url)
-                done()
+                if (!url.isNullOrBlank() && url != "about:blank") location = url
+            }
+        }
+        hidden.progressDelegate = object : GeckoSession.ProgressDelegate {
+            override fun onPageStop(session: GeckoSession, success: Boolean) {
+                val url = location ?: return
+                geckoView.postDelayed({
+                    if (downloaded || !hidden.isOpen) return@postDelayed
+                    done()
+                    if (!success) return@postDelayed
+                    val now = System.currentTimeMillis()
+                    val repeat = url == forwardedUrl && now - forwardedAt < 10_000
+                    if (url == pageUrl || repeat || Uri.parse(url).path.orEmpty().endsWith(".pdf", true)) {
+                        // Движок сам показал файл-вложение (PDF) в новом окне — скачиваем его, как любой файл.
+                        fetchDownload(url, pageUrl, privateMode)
+                    } else {
+                        // Обычная страница — во вкладку.
+                        forwardedUrl = url
+                        forwardedAt = now
+                        opener.loadUri(url)
+                    }
+                }, 500)
             }
         }
         // Ничего не пришло — не держим лишнюю сессию.
         geckoView.postDelayed({ done() }, 60_000)
         Diag.log("window", "окно без адреса — скрытая сессия")
         return GeckoResult.fromValue(hidden)
+    }
+
+    /** Скачать адрес отдельным запросом и передать в обычное скачивание (с вопросом о разрешении). */
+    private fun fetchDownload(url: String, pageUrl: String?, privateMode: Boolean) {
+        if (!url.startsWith("http")) return
+        Diag.log("window", "файл из окна — скачиваем: $url")
+        val request = WebRequest.Builder(url).referrer(pageUrl).build()
+        val flags = if (privateMode) GeckoWebExecutor.FETCH_FLAGS_ANONYMOUS else GeckoWebExecutor.FETCH_FLAGS_NONE
+        GeckoWebExecutor(Gecko.runtime(this)).fetch(request, flags).accept({ response ->
+            if (response != null) runOnUiThread { Downloads.request(this, pageUrl ?: url, response, privateMode) }
+        }, { e -> Diag.log("window", "не скачалось: ${e?.message}") })
     }
 
     private fun answerFilePrompt(
