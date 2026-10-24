@@ -9,7 +9,7 @@ object Tr {
     val NAMES = mapOf("en" to "English", "ru" to "Русский", "es" to "Español", "pt" to "Português", "fr" to "Français", "de" to "Deutsch", "ar" to "العربية", "hi" to "हिन्दी", "tr" to "Türkçe", "zh" to "中文")
     val RTL = setOf("ar")
 
-    private var lang = "en"
+    internal var lang = "en" // internal — для модульных тестов
 
     fun isRtl() = lang in RTL
 
@@ -37,7 +37,7 @@ object Tr {
     }
 
     // Строки разнесены по модулям (по блокам работ), чтобы правки разных экранов не конфликтовали.
-    private val M by lazy { CORE + TrTabs.M + TrLibrary.M + TrSecurity.M + TrExtras.M + TrDesktop.M }
+    internal val M by lazy { CORE + TrTabs.M + TrLibrary.M + TrSecurity.M + TrExtras.M + TrDesktop.M }
 
     private val CORE = mapOf(
         "profiles" to listOf("Profiles", "Профили", "Perfiles", "Perfis", "Profils", "Profile", "الملفات", "प्रोफ़ाइल", "Profiller", "配置文件"),

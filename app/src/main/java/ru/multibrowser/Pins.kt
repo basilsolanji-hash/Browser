@@ -58,7 +58,8 @@ object Pins {
     }
 
     fun add(ctx: Context, title: String, url: String, profile: Int? = null) {
-        val pin = Pin("p" + System.currentTimeMillis(), title.trim(), normalize(url))
+        // nanoTime: две вкладки, добавленные в одну миллисекунду, не получат одинаковый id.
+        val pin = Pin("p" + System.nanoTime(), title.trim(), normalize(url))
         save(ctx, all(ctx, profile) + pin, profile)
     }
 

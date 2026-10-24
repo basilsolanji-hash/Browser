@@ -42,7 +42,7 @@ object ProfileFiles {
         }
     }.getOrNull() ?: uri.lastPathSegment?.substringAfterLast('/')
 
-    private fun safeName(name: String) = name.replace(Regex("""[/\\:*?"<>|\u0000-\u001f]"""), "_").trim().take(120)
+    internal fun safeName(name: String) = name.replace(Regex("""[/\\:*?"<>|\u0000-\u001f]"""), "_").trim().take(120)
 
     /** «файл.pdf» → «файл (2).pdf», если имя занято. */
     private fun unique(dir: File, name: String): File {

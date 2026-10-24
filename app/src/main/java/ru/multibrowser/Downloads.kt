@@ -136,10 +136,10 @@ object Downloads {
         }
     }
 
-    private fun header(response: WebResponse, key: String): String? =
+    internal fun header(response: WebResponse, key: String): String? =
         response.headers.entries.firstOrNull { it.key.equals(key, ignoreCase = true) }?.value
 
-    private fun fileName(response: WebResponse): String {
+    internal fun fileName(response: WebResponse): String {
         val disposition = header(response, "Content-Disposition").orEmpty()
         val fromHeader = Regex("""filename\*=(?:UTF-8|utf-8)''([^;]+)""").find(disposition)
             ?.groupValues?.get(1)?.let { URLDecoder.decode(it, "UTF-8") }

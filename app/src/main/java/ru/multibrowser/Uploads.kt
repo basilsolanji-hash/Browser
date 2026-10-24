@@ -41,6 +41,6 @@ object Uploads {
         }
     }.getOrNull()
 
-    private fun safeName(name: String) =
+    internal fun safeName(name: String) =
         name.replace(Regex("""[/\\:*?"<>|\u0000-\u001f]"""), "_").trim().take(120).ifBlank { "file" }
 }

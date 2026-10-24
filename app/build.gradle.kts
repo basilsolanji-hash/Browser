@@ -51,6 +51,14 @@ android {
         }
     }
 
+    // Модульные тесты на JVM (Robolectric даёт Context, prefs и Intent без эмулятора).
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -64,4 +72,8 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     // Всегда самый свежий стабильный движок Firefox на момент сборки.
     implementation("org.mozilla.geckoview:geckoview:latest.release")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("androidx.test:core:1.6.1")
 }

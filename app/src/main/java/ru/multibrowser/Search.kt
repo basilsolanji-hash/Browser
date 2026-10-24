@@ -34,7 +34,7 @@ object Search {
     fun toUrl(ctx: Context, input: String): String {
         val t = input.trim()
         return when {
-            t.startsWith("http://") || t.startsWith("https://") -> t
+            t.startsWith("http://", ignoreCase = true) || t.startsWith("https://", ignoreCase = true) -> t
             t.contains('.') && !t.contains(' ') -> "https://$t"
             else -> queryUrl(ctx, t)
         }
