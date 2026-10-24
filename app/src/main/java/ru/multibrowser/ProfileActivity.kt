@@ -85,6 +85,16 @@ class ProfileActivity : AppCompatActivity() {
         (description.parent as? LinearLayout)?.removeView(description)
         list.addView(description, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
 
+        // Свои вкладки профиля или общий набор из настроек.
+        list.addView(sectionTitle(Tr.t("pinned_tabs")))
+        list.addView(PinEditor(this, id) { render() }.view)
+        if (Pins.hasOwn(this, id)) {
+            list.addView(ExtrasUi.button(this, Tr.t("tabs_use_common")) { Pins.useCommon(this, id); render() })
+            list.addView(ExtrasUi.hint(this, Tr.t("tabs_own_desc")))
+        } else {
+            list.addView(ExtrasUi.hint(this, Tr.t("tabs_common_desc")))
+        }
+
         list.addView(sectionTitle(Tr.t("profile_files")))
         val files = ProfileFiles.list(this, id)
         if (files.isEmpty()) list.addView(ExtrasUi.hint(this, Tr.t("profile_files_empty")))

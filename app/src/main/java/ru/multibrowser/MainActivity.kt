@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
             ).apply { topMargin = dp(8) }
             setTag(R.id.profile_row, p.id)
-            setOnClickListener { openPin(p, Pins.all(this@MainActivity).first()) }
+            setOnClickListener { openPin(p, Pins.all(this@MainActivity, p.id).first()) }
         }
         var lastY = 0f
         row.setOnLongClickListener { startDrag(row, lastY); true }
@@ -191,7 +191,7 @@ class MainActivity : AppCompatActivity() {
         }
         // По пилюле на каждую закреплённую вкладку. Для Gmail показываем счётчик непрочитанных.
         val pillRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        Pins.all(this).forEachIndexed { i, pin ->
+        Pins.all(this, p.id).forEachIndexed { i, pin ->
             val isMail = pin.url.contains("mail.google.com")
             val label = if (isMail && p.unread > 0) "${pin.title} · ${if (p.unread > 999) "999+" else p.unread}" else pin.title
             pillRow.addView(pill(label, isMail && p.unread > 0) { openPin(p, pin) },

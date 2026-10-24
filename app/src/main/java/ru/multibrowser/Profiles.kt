@@ -113,7 +113,7 @@ object Profiles {
 
     fun forget(ctx: Context, id: Int) {
         prefs(ctx).edit().remove("email_$id").remove("unread_$id").apply {
-            Pins.all(ctx).forEach { remove(urlKey(id, it)) }
+            Pins.all(ctx, id).forEach { remove(urlKey(id, it)) }
         }.apply()
     }
 }

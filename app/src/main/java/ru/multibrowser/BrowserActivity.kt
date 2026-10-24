@@ -122,7 +122,10 @@ class BrowserActivity : AppCompatActivity() {
         super.onResume()
         AppLock.onResume(this)
         // Вкладку могли закрыть, пока экран был в фоне (очистка профиля в списке).
-        if (profileId != 0 && session?.isOpen != true) openTab(profileId, pin)
+        // Или убрать текущую вкладку из набора профиля (экран профиля, настройки).
+        if (profileId != 0 && !incognito && (session?.isOpen != true || Pins.byId(this, pin.id, profileId) == null)) {
+            openTab(profileId, Pins.resolve(this, pin.id, profileId))
+        }
         renderTabs()
     }
 
@@ -144,9 +147,10 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun openTab(intent: Intent) {
         val pinId = intent.getStringExtra(EXTRA_SITE) ?: Profiles.lastPinId(this)
+        val id = intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1))
         openTab(
-            intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1)),
-            Pins.resolve(this, pinId),
+            id,
+            Pins.resolve(this, pinId, id),
             DefaultBrowser.incomingUrl(this, intent),
         )
     }
@@ -182,7 +186,7 @@ class BrowserActivity : AppCompatActivity() {
     /** Перерисовать полосу закреплённых вкладок (их список настраивается и мог измениться). */
     private fun renderTabs() {
         tabBar.removeAllViews()
-        Pins.all(this).forEach { p ->
+        Pins.all(this, profileId).forEach { p ->
             val selected = !incognito && p.id == pin.id
             tabBar.addView(TextView(this).apply {
                 text = p.title
@@ -374,7 +378,8 @@ class BrowserActivity : AppCompatActivity() {
                 background = if (current) Ui.oval(p.color, dp(2), Ui.TEXT) else Ui.oval(p.color)
                 alpha = if (current || Gecko.isActive(this@BrowserActivity, p.id)) 1f else 0.55f
                 contentDescription = p.name
-                setOnClickListener { openTab(p.id, pin) }
+                // У другого профиля может быть свой набор вкладок — та же вкладка или его первая.
+                setOnClickListener { openTab(p.id, Pins.resolve(this@BrowserActivity, pin.id, p.id)) }
             }, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(8) })
         }
     }
@@ -486,7 +491,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun showMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
         val items = listOf<Pair<String, () -> Unit>>(
-            Tr.t("new_tab") to { openTab(profileId, Pins.resolve(this, "start"), Pins.START) },
+            Tr.t("new_tab") to { openTab(profileId, Pins.resolve(this, "start", profileId), Pins.START) },
             Tr.t("new_incognito") to { openIncognito(Pins.START) },
             Tr.t("zoom") to { zoomDialog() },
             Tr.t("full_screen") to { setUserFullScreen(true) },

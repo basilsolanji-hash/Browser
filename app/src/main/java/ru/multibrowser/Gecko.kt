@@ -105,7 +105,7 @@ object Gecko {
         runtime(ctx).storageController.clearData(StorageController.ClearFlags.ALL_CACHES)
     }
 
-    fun isActive(ctx: Context, id: Int) = Pins.all(ctx).any { sessions.containsKey(key(id, it)) }
+    fun isActive(ctx: Context, id: Int) = sessions.keys.any { it.startsWith("$id:") }
 
     /** @param initialUrl — если задан, открываем его вместо последней/домашней страницы (один load, без гонки). */
     fun session(ctx: Context, id: Int, pin: Pin, initialUrl: String? = null): GeckoSession {
@@ -136,7 +136,7 @@ object Gecko {
 
     /** Выйти из всех аккаунтов профиля: закрыть вкладку и стереть cookies/хранилище его контекста. */
     fun clearProfile(ctx: Context, id: Int) {
-        Pins.all(ctx).forEach { drop(key(id, it)) }
+        sessions.keys.filter { it.startsWith("$id:") }.forEach { drop(it) }
         runtime(ctx).storageController.clearDataForSessionContext("profile_$id")
         Profiles.forget(ctx, id)
         History.clear(ctx, id)

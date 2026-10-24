@@ -22,7 +22,6 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var countLabel: TextView
     private lateinit var seek: SeekBar
     private lateinit var names: LinearLayout
-    private lateinit var pins: LinearLayout
 
     override fun onResume() {
         super.onResume()
@@ -48,11 +47,8 @@ class SettingsActivity : AppCompatActivity() {
 
         content.addView(header())
         content.addView(sectionTitle(Tr.t("pinned_tabs")))
-        pins = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        content.addView(pins)
-        renderPins()
-        content.addView(button(Tr.t("add_tab")) { editPinDialog(null) })
-        content.addView(hint(Tr.t("pinned_desc")))
+        content.addView(PinEditor(this, null).view)
+        content.addView(hint(Tr.t("pinned_desc_common")))
         content.addView(sectionTitle(Tr.t("language")))
         content.addView(button(languageLabel(Settings.language(this))) { languageDialog() })
         content.addView(sectionTitle(Tr.t("theme")))
@@ -288,91 +284,6 @@ class SettingsActivity : AppCompatActivity() {
             }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             names.addView(row)
         }
-    }
-
-    private fun renderPins() {
-        pins.removeAllViews()
-        val list = Pins.all(this)
-        list.forEachIndexed { index, pin ->
-            val row = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-                background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
-                setPadding(dp(12), dp(6), dp(6), dp(6))
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
-                ).apply { topMargin = dp(6) }
-                setOnClickListener { editPinDialog(pin) }
-            }
-            row.addView(LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                addView(TextView(context).apply {
-                    text = pin.title
-                    textSize = 15f
-                    typeface = Typeface.DEFAULT_BOLD
-                    setTextColor(Ui.TEXT)
-                    maxLines = 1
-                })
-                addView(TextView(context).apply {
-                    text = if (pin.url == Pins.START) Tr.t("start_page") else pin.url
-                    textSize = 12f
-                    setTextColor(Ui.MUTED)
-                    maxLines = 1
-                })
-            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-            // Стрелки порядка и удаление.
-            row.addView(arrow("\u2191", index > 0) { Pins.move(this, pin.id, -1); renderPins() })
-            row.addView(arrow("\u2193", index < list.size - 1) { Pins.move(this, pin.id, 1); renderPins() })
-            row.addView(arrow("\u2715", list.size > 1) {
-                Pins.remove(this, pin.id); renderPins()
-            })
-            pins.addView(row)
-        }
-    }
-
-    private fun arrow(symbol: String, enabled: Boolean, onClick: () -> Unit) = TextView(this).apply {
-        text = symbol
-        textSize = 18f
-        gravity = Gravity.CENTER
-        setTextColor(if (enabled) Ui.TEXT else Ui.MUTED)
-        alpha = if (enabled) 1f else 0.3f
-        layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
-        isEnabled = enabled
-        if (enabled) setOnClickListener { onClick() }
-    }
-
-    private fun editPinDialog(pin: Pin?) {
-        val title = EditText(this).apply {
-            hint = Tr.t("tab_name_hint")
-            setText(pin?.title ?: "")
-            setSingleLine()
-            setTextColor(Ui.TEXT)
-        }
-        val url = EditText(this).apply {
-            hint = Tr.t("tab_url_hint")
-            setText(pin?.url ?: "https://")
-            setSingleLine()
-            setTextColor(Ui.TEXT)
-            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_URI
-        }
-        val box = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(8), dp(20), 0)
-            addView(title)
-            addView(url, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                .apply { topMargin = dp(8) })
-        }
-        AlertDialog.Builder(this)
-            .setTitle(if (pin == null) Tr.t("new_tab") else Tr.t("edit_tab"))
-            .setView(box)
-            .setPositiveButton(Tr.t("save")) { _, _ ->
-                val t = title.text.toString().ifBlank { Tr.t("tab_fallback") }
-                val u = url.text.toString()
-                if (pin == null) Pins.add(this, t, u) else Pins.update(this, pin.id, t, u)
-                renderPins()
-            }
-            .setNegativeButton(Tr.t("cancel"), null)
-            .show()
     }
 
     private fun languageLabel(code: String) = if (code == "system") Tr.t("system") else Tr.NAMES[code] ?: code
