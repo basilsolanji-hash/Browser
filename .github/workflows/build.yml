@@ -26,15 +26,14 @@ jobs:
           set -o pipefail
           ./gradlew assembleDebug --no-daemon --refresh-dependencies 2>&1 | tee build.log
 
-      # Ошибки компиляции — в аннотации, чтобы их было видно без полного лога.
+      # Ошибки сборки — комментарием к коммиту, чтобы их было видно без полного лога.
       - name: Report errors
         if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          # GitHub показывает не больше 10 аннотаций на шаг, поэтому склеиваем куски лога.
-          { grep -E "^e: " build.log; grep -A25 "What went wrong" build.log; } | head -60 \
-            | grep -v "^\s*$" | paste -sd'|' | fold -w 3500 | head -8 | while IFS= read -r chunk; do
-            echo "::error::${chunk}"
-          done
+          { echo '```'; grep -E "^e: " build.log || true; grep -A40 "What went wrong" build.log || true; echo '```'; } > errors.md
+          gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" -F body=@errors.md > /dev/null
 
       - name: Publish release
         env:
