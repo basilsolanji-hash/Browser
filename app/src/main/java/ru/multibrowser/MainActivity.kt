@@ -8,6 +8,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -82,7 +83,7 @@ class MainActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
             ).apply { topMargin = dp(8) }
-            setOnClickListener { openSite(p, null) }
+            setOnClickListener { openPin(p, Pins.all(this@MainActivity).first()) }
             setOnLongClickListener { profileMenu(p); true }
         }
 
@@ -110,24 +111,32 @@ class MainActivity : AppCompatActivity() {
             })
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
 
-        if (Gecko.isActive(p.id)) {
+        if (Gecko.isActive(this, p.id)) {
             row.addView(View(this).apply { background = Ui.oval(Ui.ACCENT) },
                 LinearLayout.LayoutParams(dp(8), dp(8)).apply { marginEnd = dp(8) })
         }
-        val gmail = if (p.unread > 0) "Gmail · ${if (p.unread > 999) "999+" else p.unread}" else "Gmail"
-        row.addView(pill(gmail, p.unread > 0) { openSite(p, Site.GMAIL) })
-        row.addView(pill("Claude", false) { openSite(p, Site.CLAUDE) },
-            LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(32)).apply {
-                marginStart = dp(6)
-                marginEnd = dp(12)
-            })
+        // По пилюле на каждую закреплённую вкладку. Для Gmail показываем счётчик непрочитанных.
+        val pillRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        Pins.all(this).forEachIndexed { i, pin ->
+            val isMail = pin.url.contains("mail.google.com")
+            val label = if (isMail && p.unread > 0) "${pin.title} · ${if (p.unread > 999) "999+" else p.unread}" else pin.title
+            pillRow.addView(pill(label, isMail && p.unread > 0) { openPin(p, pin) },
+                LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(32)).apply {
+                    if (i > 0) marginStart = dp(6)
+                })
+        }
+        row.addView(HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            addView(pillRow)
+            setPadding(0, 0, dp(12), 0)
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         return row
     }
 
-    private fun openSite(p: Profile, site: Site?) {
-        val intent = Intent(this, BrowserActivity::class.java).putExtra(BrowserActivity.EXTRA_PROFILE, p.id)
-        site?.let { intent.putExtra(BrowserActivity.EXTRA_SITE, it.name) }
-        startActivity(intent)
+    private fun openPin(p: Profile, pin: Pin) {
+        startActivity(Intent(this, BrowserActivity::class.java)
+            .putExtra(BrowserActivity.EXTRA_PROFILE, p.id)
+            .putExtra(BrowserActivity.EXTRA_SITE, pin.id))
     }
 
     /** Кнопка-«пилюля» быстрого входа во вкладку; акцентная — если есть непрочитанные. */

@@ -52,7 +52,7 @@ class BrowserActivity : AppCompatActivity() {
     private var barsHidden = false
     private lateinit var chipDot: View
     private lateinit var chipName: TextView
-    private lateinit var tabs: Map<Site, TextView>
+    private lateinit var tabBar: LinearLayout
     private lateinit var progress: ProgressBar
     private lateinit var switcher: LinearLayout
     private lateinit var backButton: View
@@ -62,11 +62,11 @@ class BrowserActivity : AppCompatActivity() {
     private var fullScreen = false
     private lateinit var forwardButton: View
     private var profileId = 0
-    private var site = Site.GMAIL
+    private var pin: Pin = Pin("gmail", "Gmail", "https://mail.google.com/")
     private var session: GeckoSession? = null
     private var currentUrl = ""
 
-    private val key get() = Gecko.key(profileId, site)
+    private val key get() = Gecko.key(profileId, pin)
 
     // Адрес, загружаемый сейчас в каждой вкладке, — чтобы подписать запись истории заголовком страницы.
     private val pageUrls = HashMap<String, String>()
@@ -112,7 +112,8 @@ class BrowserActivity : AppCompatActivity() {
         super.onResume()
         AppLock.onResume(this)
         // Вкладку могли закрыть, пока экран был в фоне (очистка профиля в списке).
-        if (profileId != 0 && session?.isOpen != true) openTab(profileId, site)
+        if (profileId != 0 && session?.isOpen != true) openTab(profileId, pin)
+        renderTabs()
     }
 
     override fun onDestroy() {
@@ -130,39 +131,59 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun openTab(intent: Intent) {
-        val s = intent.getStringExtra(EXTRA_SITE)?.let { runCatching { Site.valueOf(it) }.getOrNull() }
+        val pinId = intent.getStringExtra(EXTRA_SITE) ?: Profiles.lastPinId(this)
         openTab(
             intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1)),
-            s ?: Profiles.lastSite(this),
+            Pins.resolve(this, pinId),
             intent.getStringExtra(EXTRA_URL),
         )
     }
 
-    private fun openTab(id: Int, newSite: Site, url: String? = null) {
-        if (id == profileId && newSite == site && session?.isOpen == true) {
+    private fun openTab(id: Int, newPin: Pin, url: String? = null) {
+        if (id == profileId && newPin.id == pin.id && session?.isOpen == true) {
             url?.let { session?.loadUri(it) }
             return
         }
         geckoView.releaseSession()
         profileId = id
-        site = newSite
-        Profiles.saveLastSite(this, newSite)
+        pin = newPin
+        Profiles.saveLastPinId(this, newPin.id)
 
         val p = Profiles.get(this, id)
         chipDot.background = Ui.oval(p.color)
         chipName.text = p.name
-        tabs.forEach { (s, view) -> styleTab(view, s == newSite) }
-        showUrl(url ?: Profiles.lastUrl(this, id, newSite))
+        renderTabs()
+        showUrl(url ?: Profiles.lastUrl(this, id, newPin))
         progress.visibility = View.GONE
         setBarsHidden(false)
 
         // Один load: нужный адрес передаём внутрь создания сессии, без гонки с домашней страницей.
-        val s = Gecko.session(this, id, newSite, url)
-        attachDelegates(s, id, newSite)
+        val s = Gecko.session(this, id, newPin, url)
+        attachDelegates(s, id, newPin)
         geckoView.setSession(s)
         session = s
         renderSwitcher()
         updateNavButtons()
+    }
+
+    /** Перерисовать полосу закреплённых вкладок (их список настраивается и мог измениться). */
+    private fun renderTabs() {
+        tabBar.removeAllViews()
+        Pins.all(this).forEach { p ->
+            val selected = p.id == pin.id
+            tabBar.addView(TextView(this).apply {
+                text = p.title
+                textSize = 14f
+                typeface = Typeface.DEFAULT_BOLD
+                gravity = Gravity.CENTER
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+                setPadding(dp(8), 0, dp(8), 0)
+                background = if (selected) Ui.rounded(Ui.ACCENT, dpf(5)) else null
+                setTextColor(if (selected) Ui.ON_ACCENT else Ui.MUTED)
+                setOnClickListener { openTab(profileId, p) }
+            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
+        }
     }
 
     /** В покое — только домен и замок для https, при редактировании — полный адрес. */
@@ -198,7 +219,7 @@ class BrowserActivity : AppCompatActivity() {
         forwardButton.alpha = if (Gecko.canGoForward[key] == true) 1f else 0.35f
     }
 
-    private fun attachDelegates(s: GeckoSession, id: Int, tab: Site) {
+    private fun attachDelegates(s: GeckoSession, id: Int, tab: Pin) {
         val k = Gecko.key(id, tab)
         val visible = { k == key }
         s.progressDelegate = object : GeckoSession.ProgressDelegate {
@@ -275,7 +296,7 @@ class BrowserActivity : AppCompatActivity() {
         }
         s.contentDelegate = object : GeckoSession.ContentDelegate {
             override fun onTitleChange(session: GeckoSession, title: String?) {
-                if (tab == Site.GMAIL) Profiles.updateFromTitle(this@BrowserActivity, id, title)
+                Profiles.updateFromTitle(this@BrowserActivity, id, title)
                 val url = pageUrls[k]
                 if (url != null && !title.isNullOrBlank()) History.setTitle(this@BrowserActivity, id, url, title)
             }
@@ -320,9 +341,9 @@ class BrowserActivity : AppCompatActivity() {
                 gravity = Gravity.CENTER
                 setTextColor(Color.WHITE)
                 background = if (current) Ui.oval(p.color, dp(2), Ui.TEXT) else Ui.oval(p.color)
-                alpha = if (current || Gecko.isActive(p.id)) 1f else 0.55f
+                alpha = if (current || Gecko.isActive(this@BrowserActivity, p.id)) 1f else 0.55f
                 contentDescription = p.name
-                setOnClickListener { openTab(p.id, site) }
+                setOnClickListener { openTab(p.id, pin) }
             }, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(8) })
         }
     }
@@ -402,7 +423,7 @@ class BrowserActivity : AppCompatActivity() {
                     // Закрываем вкладки профиля, стираем его данные и открываем заново — уже без входа.
                     geckoView.releaseSession()
                     Gecko.clearProfile(this, profileId)
-                    openTab(profileId, site)
+                    openTab(profileId, pin)
                 }
                 Toast.makeText(this, "Готово", Toast.LENGTH_SHORT).show()
             }
@@ -412,7 +433,7 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun showDiagnostics() {
         val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull()
-        val text = "Ось $version\nВкладка: ${Profiles.get(this, profileId).name} / ${site.title}\n" +
+        val text = "Ось $version\nВкладка: ${Profiles.get(this, profileId).name} / ${pin.title}\n" +
             "Адрес: $currentUrl\n\n${Diag.text()}"
         AlertDialog.Builder(this)
             .setTitle("Диагностика")
@@ -479,21 +500,15 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
 
-        // Переключатель вкладок Gmail / Claude.
-        val tabBar = LinearLayout(this).apply {
+        // Полоса закреплённых вкладок (настраивается в настройках); прокручивается, если их много.
+        tabBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
             setPadding(dp(3), dp(3), dp(3), dp(3))
         }
-        tabs = Site.values().associateWith { s ->
-            TextView(this).apply {
-                text = s.title
-                textSize = 14f
-                typeface = Typeface.DEFAULT_BOLD
-                gravity = Gravity.CENTER
-                setOnClickListener { openTab(profileId, s) }
-                tabBar.addView(this, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
-            }
+        val tabScroll = HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            addView(tabBar)
         }
 
         val more = iconButton(R.drawable.ic_more, "Меню") { showMenu(it) }
@@ -503,7 +518,7 @@ class BrowserActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             addView(chip, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, h))
-            addView(tabBar, LinearLayout.LayoutParams(0, h, 1f).apply { marginStart = dp(8) })
+            addView(tabScroll, LinearLayout.LayoutParams(0, h, 1f).apply { marginStart = dp(8) })
             addView(more, LinearLayout.LayoutParams(h, h).apply { marginStart = dp(8) })
         }
 
@@ -591,7 +606,7 @@ class BrowserActivity : AppCompatActivity() {
         }
         backButton = action(R.drawable.ic_back, "Назад") { session?.goBack() }
         forwardButton = action(R.drawable.ic_forward, "Вперёд") { session?.goForward() }
-        action(R.drawable.ic_home, "Домой") { session?.loadUri(site.home) }
+        action(R.drawable.ic_home, "Домой") { session?.loadUri(pin.url) }
         action(R.drawable.ic_history, "История") { showHistory() }
         action(R.drawable.ic_delete, "Очистка") { showClear() }
         action(R.drawable.ic_refresh, "Обновить") { session?.reload() }

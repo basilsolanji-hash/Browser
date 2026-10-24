@@ -29,7 +29,7 @@ object Gecko {
     val canGoBack = HashMap<String, Boolean>()
     val canGoForward = HashMap<String, Boolean>()
 
-    fun key(id: Int, site: Site) = "$id:${site.name}"
+    fun key(id: Int, pin: Pin) = "$id:${pin.id}"
 
     fun runtime(ctx: Context): GeckoRuntime = runtime ?: GeckoRuntime.create(
         ctx.applicationContext,
@@ -72,16 +72,16 @@ object Gecko {
         runtime(ctx).storageController.clearData(StorageController.ClearFlags.ALL_CACHES)
     }
 
-    fun isActive(id: Int) = Site.values().any { sessions.containsKey(key(id, it)) }
+    fun isActive(ctx: Context, id: Int) = Pins.all(ctx).any { sessions.containsKey(key(id, it)) }
 
     /** @param initialUrl — если задан, открываем его вместо последней/домашней страницы (один load, без гонки). */
-    fun session(ctx: Context, id: Int, site: Site, initialUrl: String? = null): GeckoSession {
-        val key = key(id, site)
+    fun session(ctx: Context, id: Int, pin: Pin, initialUrl: String? = null): GeckoSession {
+        val key = key(id, pin)
         sessions[key]?.let { existing ->
             if (initialUrl != null) existing.loadUri(initialUrl)
             return existing
         }
-        val url = initialUrl ?: Profiles.lastUrl(ctx, id, site)
+        val url = initialUrl ?: Profiles.lastUrl(ctx, id, pin)
         val settings = GeckoSessionSettings.Builder()
             .contextId("profile_$id")
             .usePrivateMode(false)
@@ -103,7 +103,7 @@ object Gecko {
 
     /** Выйти из всех аккаунтов профиля: закрыть вкладку и стереть cookies/хранилище его контекста. */
     fun clearProfile(ctx: Context, id: Int) {
-        Site.values().forEach { drop(key(id, it)) }
+        Pins.all(ctx).forEach { drop(key(id, it)) }
         runtime(ctx).storageController.clearDataForSessionContext("profile_$id")
         Profiles.forget(ctx, id)
         History.clear(ctx, id)

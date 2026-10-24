@@ -20,22 +20,22 @@ rotate() { adb shell settings put system accelerometer_rotation 0; adb shell set
 
 # --- Сценарии ---
 main;                                                                     shot 01-main 10
-browser --ei profile 3 --es site GMAIL --es url https://example.com;      shot 02-example 40
-browser --ei profile 3 --es site GMAIL --es url https://ru.wikipedia.org; shot 03-wikipedia 25
-browser --ei profile 1 --es site GMAIL;                                   shot 04-p1-gmail 40
-browser --ei profile 1 --es site CLAUDE;                                  shot 05-p1-claude 45
-browser --ei profile 2 --es site CLAUDE;                                  shot 06-p2-claude 40
-browser --ei profile 4 --es site CLAUDE;                                  shot 07-p4-claude 40
+browser --ei profile 3 --es site gmail --es url https://example.com;      shot 02-example 40
+browser --ei profile 3 --es site gmail --es url https://ru.wikipedia.org; shot 03-wikipedia 25
+browser --ei profile 1 --es site gmail;                                   shot 04-p1-gmail 40
+browser --ei profile 1 --es site claude;                                  shot 05-p1-claude 45
+browser --ei profile 2 --es site claude;                                  shot 06-p2-claude 40
+browser --ei profile 4 --es site claude;                                  shot 07-p4-claude 40
 rotate 1; sleep 3;                                                        shot 08-claude-landscape 6
 rotate 0; sleep 3
 settings;                                                                 shot 09-settings 6
 # Светлая тема (2-й пункт переключателя «Тема» рядом с верхом). Тап по координате сегмента «Светлая».
 adb shell input tap 540 340; sleep 2;                                     shot 10-settings-light 3
-browser --ei profile 5 --es site CLAUDE --es url https://claude.ai/;      shot 11-claude-light 40
+browser --ei profile 5 --es site claude --es url https://claude.ai/;      shot 11-claude-light 40
 main;                                                                     shot 12-main-light 5
 adb shell am force-stop "$PKG"; sleep 2
 main;                                                                     shot 13-relaunch 8
-browser --ei profile 1 --es site CLAUDE;                                  shot 14-session-restored 35
+browser --ei profile 1 --es site claude;                                  shot 14-session-restored 35
 
 adb logcat -d -v time > "$OUT/logcat.txt"
 grep -E "OsDiag|GeckoConsole|AndroidRuntime|FATAL|Gecko" "$OUT/logcat.txt" | tail -800 > "$OUT/diag.txt"

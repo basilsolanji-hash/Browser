@@ -51,27 +51,26 @@ object Profiles {
 
     fun customName(ctx: Context, id: Int): String = prefs(ctx).getString("name_$id", null).orEmpty()
 
-    private fun urlKey(id: Int, site: Site) = "url_${id}_${site.name}"
+    private fun urlKey(id: Int, pin: Pin) = "url_${id}_${pin.id}"
 
-    fun lastUrl(ctx: Context, id: Int, site: Site): String {
-        val url = prefs(ctx).getString(urlKey(id, site), null) ?: return site.home
+    fun lastUrl(ctx: Context, id: Int, pin: Pin): String {
+        val url = prefs(ctx).getString(urlKey(id, pin), null) ?: return pin.url
         // Адреса устаревшей «простой» версии Gmail не восстанавливаем.
-        return if (url.contains("/mail/mu/")) site.home else url
+        return if (url.contains("/mail/mu/")) pin.url else url
     }
 
-    fun saveLastUrl(ctx: Context, id: Int, site: Site, url: String) {
+    fun saveLastUrl(ctx: Context, id: Int, pin: Pin, url: String) {
         // Страницы входа не запоминаем, чтобы вкладка не открывалась на форме логина.
         if (url.startsWith("http") && !url.contains("accounts.google.com")) {
-            prefs(ctx).edit().putString(urlKey(id, site), url).apply()
+            prefs(ctx).edit().putString(urlKey(id, pin), url).apply()
         }
     }
 
     /** Последняя открытая вкладка — с неё стартует профиль. */
-    fun lastSite(ctx: Context): Site =
-        runCatching { Site.valueOf(prefs(ctx).getString("site", null)!!) }.getOrDefault(Site.GMAIL)
+    fun lastPinId(ctx: Context): String? = prefs(ctx).getString("pin", null)
 
-    fun saveLastSite(ctx: Context, site: Site) {
-        prefs(ctx).edit().putString("site", site.name).apply()
+    fun saveLastPinId(ctx: Context, pinId: String) {
+        prefs(ctx).edit().putString("pin", pinId).apply()
     }
 
     /** Заголовок Gmail выглядит как «Входящие (3) - name@gmail.com - Gmail»: берём адрес и число непрочитанных. */
@@ -84,7 +83,7 @@ object Profiles {
 
     fun forget(ctx: Context, id: Int) {
         prefs(ctx).edit().remove("email_$id").remove("unread_$id").apply {
-            Site.values().forEach { remove(urlKey(id, it)) }
+            Pins.all(ctx).forEach { remove(urlKey(id, it)) }
         }.apply()
     }
 }
