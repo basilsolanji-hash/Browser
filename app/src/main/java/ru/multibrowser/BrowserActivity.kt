@@ -44,6 +44,7 @@ class BrowserActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_PROFILE = "profile"
         const val EXTRA_SITE = "site"
+        const val EXTRA_URL = "url"
     }
 
     private lateinit var geckoView: GeckoView
@@ -128,6 +129,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun openTab(intent: Intent) {
         val s = intent.getStringExtra(EXTRA_SITE)?.let { runCatching { Site.valueOf(it) }.getOrNull() }
         openTab(intent.getIntExtra(EXTRA_PROFILE, profileId.coerceAtLeast(1)), s ?: Profiles.lastSite(this))
+        intent.getStringExtra(EXTRA_URL)?.let { session?.loadUri(it) }
     }
 
     private fun openTab(id: Int, newSite: Site) {

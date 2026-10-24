@@ -38,8 +38,11 @@ android {
     }
 
     buildTypes {
+        // Debug — для приёмочных тестов на эмуляторе, поэтому ещё и x86_64.
         getByName("debug") {
             signingConfig = signingConfigs.getByName("shared")
+            applicationIdSuffix = ".test"
+            ndk { abiFilters += listOf("x86_64") }
         }
         // Release: без отладки — данные приложения (входы в аккаунты) нельзя вытащить через adb.
         getByName("release") {

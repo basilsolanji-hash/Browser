@@ -1,5 +1,6 @@
 package ru.multibrowser
 
+import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -12,6 +13,7 @@ object Diag {
 
     @Synchronized
     fun log(tab: String, message: String) {
+        Log.i("OsDiag", "[$tab] $message")
         lines.addFirst("${fmt.format(Date())} [$tab] $message")
         while (lines.size > MAX) lines.removeLast()
     }

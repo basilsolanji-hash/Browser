@@ -1,6 +1,7 @@
 package ru.multibrowser
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.net.Uri
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoRuntime
@@ -34,6 +35,8 @@ object Gecko {
         ctx.applicationContext,
         GeckoRuntimeSettings.Builder()
             .preferredColorScheme(colorScheme(Settings.theme(ctx)))
+            // В отладочной сборке JS-консоль сайтов пишется в logcat (тег GeckoConsole) — для приёмочных тестов.
+            .consoleOutput(ctx.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0)
             // Масштаб пальцами разрешён на любом сайте.
             .forceUserScalableEnabled(true)
             // Защита как в стандартном режиме Firefox: блокируются соцтрекеры, майнеры и сборщики
