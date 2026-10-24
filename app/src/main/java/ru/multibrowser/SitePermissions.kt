@@ -242,7 +242,7 @@ object SitePermissions {
 
         override fun onContentPermissionRequest(session: GeckoSession, perm: ContentPermission): GeckoResult<Int>? {
             val host = hostOf(perm.uri)
-            val private = privateMode || perm.privateMode
+            val inPrivate = privateMode || perm.privateMode
             // Звук без автозапуска не мешает — разрешаем, если сайт явно не заблокирован.
             if (perm.permission == PermissionDelegate.PERMISSION_AUTOPLAY_INAUDIBLE) {
                 return if (host != null && get(activity, host, Kind.AUTOPLAY) == Mode.BLOCK) {
@@ -269,7 +269,7 @@ object SitePermissions {
             }
             val result = GeckoResult<Int>()
             val askHost = if (kind == Kind.COOKIES_3P) hostOf(perm.thirdPartyOrigin) ?: host else host
-            ask(activity, host, Tr.t(kind.askKey, askHost), private) { allow, remember ->
+            ask(activity, host, Tr.t(kind.askKey, askHost), inPrivate) { allow, remember ->
                 if (remember) set(activity, host, kind, if (allow) Mode.ALLOW else Mode.BLOCK)
                 when {
                     allow && remember -> result.complete(ContentPermission.VALUE_ALLOW)
