@@ -6,5 +6,6 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         Settings.applyTheme(this)
+        AppLock.register(this)
     }
 }

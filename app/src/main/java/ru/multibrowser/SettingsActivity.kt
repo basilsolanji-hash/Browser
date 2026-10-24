@@ -23,6 +23,11 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var seek: SeekBar
     private lateinit var names: LinearLayout
 
+    override fun onResume() {
+        super.onResume()
+        AppLock.onResume(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Ui.init(this)
@@ -42,6 +47,28 @@ class SettingsActivity : AppCompatActivity() {
         content.addView(header())
         content.addView(sectionTitle("Тема"))
         content.addView(themeSelector())
+        content.addView(sectionTitle("Защита"))
+        content.addView(segmented(listOf(true, false), Settings.lockEnabled(this),
+            { if (it) "Вход по отпечатку/PIN" else "Без блокировки" }) {
+            Settings.setLockEnabled(this, it)
+            recreate()
+        })
+        if (!AppLock.deviceSecure(this)) {
+            content.addView(hint("На телефоне не задана блокировка экрана — сначала включите её в настройках Android."))
+        }
+        content.addView(segmented(listOf(false, true), Settings.hideContent(this),
+            { if (it) "Скрывать содержимое" else "Показывать" }) {
+            Settings.setHideContent(this, it)
+            recreate()
+        }.apply { (layoutParams as? LinearLayout.LayoutParams)?.topMargin = dp(8) })
+        content.addView(hint("«Скрывать содержимое»: в списке недавних приложений не видно страниц, скриншоты запрещены. " +
+            "Блокировка запрашивается при запуске и после минуты в фоне."))
+        content.addView(sectionTitle("Панели при прокрутке"))
+        content.addView(segmented(listOf(true, false), Settings.autoHideBars(this),
+            { if (it) "Прятать" else "Всегда видны" }) {
+            Settings.setAutoHideBars(this, it)
+            recreate()
+        })
         content.addView(sectionTitle("Адресная строка и вкладки"))
         content.addView(segmented(Settings.BarPosition.values().toList(), Settings.barPosition(this), { it.title }) {
             Settings.setBarPosition(this, it)
@@ -229,6 +256,13 @@ class SettingsActivity : AppCompatActivity() {
             }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             names.addView(row)
         }
+    }
+
+    private fun hint(text: String) = TextView(this).apply {
+        this.text = text
+        textSize = 12f
+        setTextColor(Ui.MUTED)
+        setPadding(0, dp(6), 0, 0)
     }
 
     private fun button(label: String, onClick: () -> Unit) = TextView(this).apply {

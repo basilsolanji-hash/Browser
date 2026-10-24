@@ -27,6 +27,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsCompat
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.core.view.WindowInsetsControllerCompat
 import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
@@ -47,7 +48,9 @@ class BrowserActivity : AppCompatActivity() {
         const val EXTRA_URL = "url"
     }
 
-    private lateinit var geckoView: GeckoView
+    private lateinit var geckoView: OsGeckoView
+    private lateinit var refresher: SwipeRefreshLayout
+    private var barsHidden = false
     private lateinit var chipDot: View
     private lateinit var chipName: TextView
     private lateinit var tabs: Map<Site, TextView>
@@ -108,6 +111,7 @@ class BrowserActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        AppLock.onResume(this)
         // Вкладку могли закрыть, пока экран был в фоне (очистка профиля в списке).
         if (profileId != 0 && session?.isOpen != true) openTab(profileId, site)
     }
@@ -161,8 +165,15 @@ class BrowserActivity : AppCompatActivity() {
         if (!urlBar.hasFocus()) urlBar.setText(Uri.parse(url).host ?: url)
     }
 
+    private fun setBarsHidden(hidden: Boolean) {
+        if (hidden == barsHidden) return
+        barsHidden = hidden
+        chrome.forEach { it.visibility = if (hidden) View.GONE else View.VISIBLE }
+    }
+
     private fun setFullScreen(on: Boolean) {
         fullScreen = on
+        barsHidden = false
         chrome.forEach { it.visibility = if (on) View.GONE else View.VISIBLE }
         if (!on) progress.visibility = View.GONE
         WindowInsetsControllerCompat(window, geckoView).apply {
@@ -536,7 +547,19 @@ class BrowserActivity : AppCompatActivity() {
             progressTintList = ColorStateList.valueOf(Ui.ACCENT)
         }
 
-        geckoView = GeckoView(this).apply { coverUntilFirstPaint(Ui.BG) }
+        geckoView = OsGeckoView(this).apply { coverUntilFirstPaint(Ui.BG) }
+        // Свайп вниз от верха страницы — обновить. Блок внутри страницы, который ещё
+        // может прокрутиться вверх (чат Claude, письма Gmail), свайп не перехватывает.
+        refresher = SwipeRefreshLayout(this).apply {
+            setColorSchemeColors(Ui.ACCENT)
+            setProgressBackgroundColorSchemeColor(Ui.SURFACE)
+            setOnChildScrollUpCallback { _, _ -> !geckoView.canPullToRefresh }
+            setOnRefreshListener {
+                session?.reload()
+                postDelayed({ isRefreshing = false }, 900)
+            }
+            addView(geckoView)
+        }
 
         // Панель действий: как в обычном браузере, всё под большим пальцем.
         val actions = LinearLayout(this).apply {
@@ -578,10 +601,10 @@ class BrowserActivity : AppCompatActivity() {
             root.addView(toolbar)
             root.addView(topDivider, LinearLayout.LayoutParams(match, dp(1)))
             root.addView(progress, LinearLayout.LayoutParams(match, dp(2)))
-            root.addView(geckoView, LinearLayout.LayoutParams(match, 0, 1f))
+            root.addView(refresher, LinearLayout.LayoutParams(match, 0, 1f))
             root.addView(bottomDivider, LinearLayout.LayoutParams(match, dp(1)))
         } else {
-            root.addView(geckoView, LinearLayout.LayoutParams(match, 0, 1f))
+            root.addView(refresher, LinearLayout.LayoutParams(match, 0, 1f))
             root.addView(progress, LinearLayout.LayoutParams(match, dp(2)))
             root.addView(bottomDivider, LinearLayout.LayoutParams(match, dp(1)))
             root.addView(toolbar.apply { setPadding(dp(10), dp(6), dp(10), dp(2)) })
@@ -594,6 +617,11 @@ class BrowserActivity : AppCompatActivity() {
         } else {
             // Без полосы профилей добавляем нижний отступ панели действий.
             actions.setPadding(dp(4), dp(2), dp(4), dp(6))
+        }
+
+        // Листаем вниз — панели прячутся, ведём пальцем вниз — возвращаются.
+        if (Settings.autoHideBars(this)) {
+            geckoView.onScrollDirection = { down -> if (!fullScreen && !urlBar.hasFocus()) setBarsHidden(down) }
         }
 
         // Фокус по умолчанию — на корне, иначе адресная строка захватывает его при открытии экрана.

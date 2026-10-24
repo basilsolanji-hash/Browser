@@ -44,6 +44,27 @@ object Settings {
         prefs(ctx).edit().putBoolean("switcher", show).apply()
     }
 
+    /** Вход в приложение по отпечатку/PIN телефона — по умолчанию включён. */
+    fun lockEnabled(ctx: Context) = prefs(ctx).getBoolean("lock", true)
+
+    fun setLockEnabled(ctx: Context, on: Boolean) {
+        prefs(ctx).edit().putBoolean("lock", on).apply()
+    }
+
+    /** Скрывать содержимое в недавних приложениях и запрещать скриншоты. */
+    fun hideContent(ctx: Context) = prefs(ctx).getBoolean("secure", false)
+
+    fun setHideContent(ctx: Context, on: Boolean) {
+        prefs(ctx).edit().putBoolean("secure", on).apply()
+    }
+
+    /** Прятать панели браузера при прокрутке. */
+    fun autoHideBars(ctx: Context) = prefs(ctx).getBoolean("autohide", true)
+
+    fun setAutoHideBars(ctx: Context, on: Boolean) {
+        prefs(ctx).edit().putBoolean("autohide", on).apply()
+    }
+
     fun theme(ctx: Context): Theme =
         runCatching { Theme.valueOf(prefs(ctx).getString("theme", null)!!) }.getOrDefault(Theme.DARK)
 
