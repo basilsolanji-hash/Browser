@@ -480,7 +480,7 @@ class BrowserActivity : AppCompatActivity() {
             }
 
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
-                Downloads.save(this@BrowserActivity, response)
+                Downloads.request(this@BrowserActivity, pageUrls[k] ?: response.uri, response)
             }
 
             // Процесс страницы упал или выгружен системой — без этого остаётся белый экран.
@@ -594,7 +594,9 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
         s.contentDelegate = object : GeckoSession.ContentDelegate {
-            override fun onExternalResponse(session: GeckoSession, response: WebResponse) { Downloads.save(this@BrowserActivity, response) }
+            override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
+                Downloads.request(this@BrowserActivity, currentUrl.takeIf { it.startsWith("http") } ?: response.uri, response, privateMode = true)
+            }
             override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) { setFullScreen(fullScreen) }
         }
         s.promptDelegate = PromptHandler()
@@ -1056,7 +1058,12 @@ class BrowserActivity : AppCompatActivity() {
             pendingFile?.let { (old, oldResult) -> oldResult.complete(old.dismiss()) }
             pendingFile = prompt to result
             val mime = prompt.mimeTypes?.singleOrNull()?.takeIf { it.contains('/') } ?: "*/*"
-            pickFiles.launch(mime)
+            // Отправка файлов сайту — по разрешению сайта (по умолчанию разрешено, см. SitePermissions.UPLOADS).
+            SitePermissions.check(this@BrowserActivity, currentUrl, SitePermissions.Kind.UPLOADS,
+                { host -> Tr.t("perm_q_uploads", host) }, incognito) { ok ->
+                if (ok) pickFiles.launch(mime)
+                else pendingFile?.let { (p, r) -> pendingFile = null; r.complete(p.dismiss()) }
+            }
             return result
         }
     }

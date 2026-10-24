@@ -10,6 +10,7 @@ import android.os.Looper
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -44,6 +45,10 @@ object SitePermissions {
         DRM("drm", "perm_drm", "perm_q_drm", listOf(Mode.ASK, Mode.BLOCK, Mode.ALLOW), Mode.ASK),
         COOKIES_3P("cookies3p", "perm_cookies3p", "perm_q_cookies3p", listOf(Mode.ASK, Mode.BLOCK), Mode.ASK),
         LOCAL_NETWORK("local_network", "perm_local_network", "perm_q_local_network", listOf(Mode.ASK, Mode.BLOCK), Mode.ASK),
+        // Скачивание — спросить перед сохранением файла; выбор файла для отправки — системное окно
+        // и так согласие, поэтому по умолчанию разрешено (можно запретить или спрашивать).
+        DOWNLOADS("downloads", "perm_downloads", "perm_q_downloads", listOf(Mode.ASK, Mode.ALLOW, Mode.BLOCK), Mode.ASK),
+        UPLOADS("uploads", "perm_uploads", "perm_q_uploads", listOf(Mode.ALLOW, Mode.ASK, Mode.BLOCK), Mode.ALLOW),
     }
 
     /** Чувствительные разрешения — для «Проверки безопасности». */
@@ -231,6 +236,28 @@ object SitePermissions {
             result.complete(prompt.confirm(if (allow) AllowOrDeny.ALLOW else AllowOrDeny.DENY))
         }
         return result
+    }
+
+    /**
+     * Разрешение без запроса движка (скачивание, выбор файлов): решение сайта или вопрос с
+     * «Запомнить для сайта». [message] — текст вопроса. Без адреса страницы — разрешено (своя страница).
+     */
+    fun check(
+        activity: AppCompatActivity, pageUrl: String?, kind: Kind, message: (String) -> String,
+        privateMode: Boolean = false, then: (Boolean) -> Unit,
+    ) {
+        val host = hostOf(pageUrl) ?: return then(true)
+        when (decided(activity, host, kind).first) {
+            Mode.ALLOW -> then(true)
+            Mode.BLOCK -> {
+                Toast.makeText(activity, Tr.t("perm_blocked_for", Tr.t(kind.titleKey), host), Toast.LENGTH_SHORT).show()
+                then(false)
+            }
+            Mode.ASK -> ask(activity, host, message(host), privateMode) { allow, remember ->
+                if (remember) set(activity, host, kind, if (allow) Mode.ALLOW else Mode.BLOCK)
+                then(allow)
+            }
+        }
     }
 
     /** Обработчик разрешений для вкладки. Подключается одной строкой: s.permissionDelegate = SitePermissions.delegate(this). */

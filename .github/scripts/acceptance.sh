@@ -340,6 +340,11 @@ sleep 12
 adb shell dumpsys notification --noredact > "$OUT/notifications.txt" 2>&1
 adb shell cmd statusbar expand-notifications; sleep 2;                      shot 69-notification 1
 adb shell cmd statusbar collapse; sleep 1
+# Скачивание файла: Ось спрашивает разрешение сайта, после «Разрешить» файл в «Загрузках».
+head -c 4096 /dev/urandom > "$NW/report.bin"
+browser --ei profile 7 --es url http://localhost:8766/report.bin; sleep 8;   shot 69c-download-prompt 1
+tap_any "Allow" "Разрешить" && sleep 6
+adb shell run-as "$PKG" cat shared_prefs/downloads.xml > "$OUT/downloads.txt" 2>&1
 kill "$NWPID" 2>/dev/null || true
 
 # Смена языка: сразу меняются и настройки, и главный экран под ними (и имена профилей-примеров).
@@ -362,6 +367,7 @@ check "Первый запуск: обучение пройдено"  'grep -q "
 check "Статистика: страницы посчитаны"   'grep -q "name=\"pages_1\" value=\"[1-9]" "$X"'
 check "Язык: главный экран сразу на русском" 'grep -q "lang ru main: [0-9]" "$X"'
 check "Уведомление сайта показано системой" 'grep -q "Os test" "$OUT/notifications.txt"'
+check "Скачивание: разрешение и файл в загрузках" 'grep -q "report.bin" "$OUT/downloads.txt"'
 check "№37 заметка из выделения создана" 'grep -q "<string name=\"list\">\[{" "$X"'
 
 # --- Автопроверка на белый экран: центральная область не должна быть почти вся белой/пустой ---
