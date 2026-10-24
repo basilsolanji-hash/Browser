@@ -27,7 +27,7 @@ class ProfileActivity : AppCompatActivity() {
         const val EXTRA_PROFILE = "profile"
     }
 
-    private var id = 1
+    private var profile = 1 // не «id»: внутри apply { } у View есть своё id
     private lateinit var list: LinearLayout
     private lateinit var description: EditText
 
@@ -35,7 +35,7 @@ class ProfileActivity : AppCompatActivity() {
         if (uris.isEmpty()) return@registerForActivityResult
         val ctx = applicationContext
         Thread {
-            val added = uris.count { uri -> runCatching { ProfileFiles.add(ctx, id, uri) }.isSuccess }
+            val added = uris.count { uri -> runCatching { ProfileFiles.add(ctx, profile, uri) }.isSuccess }
             runOnUiThread {
                 if (added < uris.size) Toast.makeText(this, Tr.t("file_add_failed"), Toast.LENGTH_SHORT).show()
                 if (!isFinishing) render()
@@ -47,10 +47,10 @@ class ProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Tr.apply(this)
         Ui.init(this)
-        id = intent.getIntExtra(EXTRA_PROFILE, 1).coerceIn(1, Settings.profileCount(this))
+        profile = intent.getIntExtra(EXTRA_PROFILE, 1).coerceIn(1, Settings.profileCount(this))
         list = ExtrasUi.screen(this)
         description = EditText(this).apply {
-            setText(Profiles.get(this@ProfileActivity, id).description)
+            setText(Profiles.get(this@ProfileActivity, profile).description)
             hint = Tr.t("profile_desc_hint")
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
             minLines = 2
@@ -74,12 +74,12 @@ class ProfileActivity : AppCompatActivity() {
         super.onPause()
         // Не трогаем, если не меняли: описание-пример хранится ключом и переводится вместе с языком.
         val text = description.text.toString()
-        if (text != Profiles.get(this, id).description) Profiles.setDescription(this, id, text)
+        if (text != Profiles.get(this, profile).description) Profiles.setDescription(this, profile, text)
     }
 
     private fun render() {
         list.removeAllViews()
-        val p = Profiles.get(this, id)
+        val p = Profiles.get(this, profile)
         list.addView(ExtrasUi.header(this, p.name,
             ExtrasUi.headerAction(this, "+", Tr.t("add_files")) { pickFiles.launch(arrayOf("*/*")) }))
 
@@ -89,16 +89,16 @@ class ProfileActivity : AppCompatActivity() {
 
         // Свои вкладки профиля или общий набор из настроек.
         list.addView(sectionTitle(Tr.t("pinned_tabs")))
-        list.addView(PinEditor(this, id) { render() }.view)
-        if (Pins.hasOwn(this, id)) {
-            list.addView(ExtrasUi.button(this, Tr.t("tabs_use_common")) { Pins.useCommon(this, id); render() })
+        list.addView(PinEditor(this, profile) { render() }.view)
+        if (Pins.hasOwn(this, profile)) {
+            list.addView(ExtrasUi.button(this, Tr.t("tabs_use_common")) { Pins.useCommon(this, profile); render() })
             list.addView(ExtrasUi.hint(this, Tr.t("tabs_own_desc")))
         } else {
             list.addView(ExtrasUi.hint(this, Tr.t("tabs_common_desc")))
         }
 
         list.addView(sectionTitle(Tr.t("profile_files")))
-        val files = ProfileFiles.list(this, id)
+        val files = ProfileFiles.list(this, profile)
         if (files.isEmpty()) list.addView(ExtrasUi.hint(this, Tr.t("profile_files_empty")))
         val fmt = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
         files.forEach { f ->
@@ -128,7 +128,7 @@ class ProfileActivity : AppCompatActivity() {
         MimeTypeMap.getSingleton().getMimeTypeFromExtension(f.extension.lowercase()) ?: "application/octet-stream"
 
     private fun open(f: File) {
-        if (!ProfileFiles.owns(this, id, f)) return
+        if (!ProfileFiles.owns(this, profile, f)) return
         try {
             startActivity(Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri(f), mime(f))
@@ -140,7 +140,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun share(f: File) {
-        if (!ProfileFiles.owns(this, id, f)) return
+        if (!ProfileFiles.owns(this, profile, f)) return
         runCatching {
             startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
                 type = mime(f)

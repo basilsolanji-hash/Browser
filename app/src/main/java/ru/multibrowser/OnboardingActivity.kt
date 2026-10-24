@@ -104,8 +104,13 @@ class OnboardingActivity : AppCompatActivity() {
             }
         })
         root.setOnTouchListener { _, e -> swipe.onTouchEvent(e) }
-        setContentView(root)
-        applyEdgeToEdge(root)
+        // Отступы от системных панелей — на обёртке, чтобы не затереть поля самого экрана.
+        val frame = android.widget.FrameLayout(this).apply {
+            setBackgroundColor(Ui.BG)
+            addView(root)
+        }
+        setContentView(frame)
+        applyEdgeToEdge(frame)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
