@@ -53,6 +53,12 @@ export interface WindowState {
   maximized: boolean;
   zoom: number;
   bookmarked: boolean;
+  /** Запрос разрешения сайта для текущей вкладки. */
+  prompt: { id: number; text: string; canRemember: boolean } | null;
+  /** Сколько трекеров заблокировано на текущей вкладке. */
+  blocked: number;
+  locked: boolean;
+  lockEnabled: boolean;
 }
 
 export interface Suggestion { kind: 'search' | 'history' | 'favorite' | 'url'; title: string; url: string }

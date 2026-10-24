@@ -15,7 +15,7 @@ export function registerScheme(): void {
   ]);
 }
 
-const PAGES = new Set(['home', 'settings', 'profile', 'tabs', 'onboarding', 'notes', 'saved', 'about', 'history', 'favorites', 'downloads', 'stats', 'clear']);
+const PAGES = new Set(['home', 'settings', 'profile', 'tabs', 'onboarding', 'notes', 'saved', 'about', 'history', 'favorites', 'downloads', 'stats', 'clear', 'lock', 'site', 'security']);
 const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json', '.map': 'application/json',

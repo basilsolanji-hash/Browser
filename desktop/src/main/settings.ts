@@ -12,6 +12,12 @@ export interface SettingsData {
   homeMode: 'OS' | 'BLANK' | 'CUSTOM';
   homeUrl: string;
   zoom: number;
+  trackingProtection: boolean;
+  httpsOnly: boolean;
+  blockThirdPartyCookies: boolean;
+  hideContent: boolean;
+  /** PIN входа: соль и хеш scrypt (сам PIN не хранится). */
+  lock: { salt: string; hash: string } | null;
 }
 
 export const settings = new JsonFile<SettingsData>('settings', () => ({
@@ -22,6 +28,11 @@ export const settings = new JsonFile<SettingsData>('settings', () => ({
   homeMode: 'OS',
   homeUrl: '',
   zoom: 100,
+  trackingProtection: true,
+  httpsOnly: false,
+  blockThirdPartyCookies: true,
+  hideContent: false,
+  lock: null,
 }));
 
 export const profileCount = () =>

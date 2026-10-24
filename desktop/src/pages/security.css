@@ -1,0 +1,11 @@
+.score { display: flex; align-items: center; gap: 16px; padding: 18px; margin-top: 12px; }
+.score .big { font-size: 34px; font-weight: 800; }
+.score.good .big { color: #43A047; }
+.score.fair .big { color: #FB8C00; }
+.score.poor .big { color: var(--accent); }
+.check { display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.check:last-child { border-bottom: 0; }
+.check .mark { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; color: #fff; }
+.check.ok .mark { background: #43A047; }
+.check.bad .mark { background: var(--accent); }
+.check .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }

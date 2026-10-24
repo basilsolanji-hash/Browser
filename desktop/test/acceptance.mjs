@@ -61,6 +61,14 @@ const server = createServer((req, res) => {
     res.setHeader('content-disposition', `attachment; filename="os-test-${process.pid}.txt"`);
     res.end('Ось download test');
     return;
+  } else if (u.pathname === '/tracked') {
+    // Трекер — сторонний (localhost против 127.0.0.1) и есть в тестовом списке (OS_TEST_BLOCK).
+    res.end(`<title>Tracked</title><img src="http://pixel-tracker.localhost:${PORT}/pixel"><img src="/first.png"><iframe src="http://localhost:${PORT}/set3p"></iframe>`);
+  } else if (u.pathname === '/set3p') {
+    res.setHeader('set-cookie', 'os_3p=1; Path=/; Max-Age=86400; SameSite=None; Secure');
+    res.end('<title>3p</title>');
+  } else if (u.pathname === '/notify') {
+    res.end('<title>Notify</title><p>permissions</p>');
   } else if (u.pathname === '/open') {
     res.end('<title>Opener</title><a id="blank" href="/page/opened" target="_blank">open</a>');
   } else {
@@ -82,7 +90,7 @@ async function launch() {
   app = await _electron.launch({
     executablePath: electronPath,
     args: [root, ...(process.platform === 'linux' ? ['--no-sandbox'] : [])],
-    env: { ...process.env, OS_TEST: '1', OS_USER_DATA: userData, OS_TEST_DELAY: '1500' },
+    env: { ...process.env, OS_TEST: '1', OS_USER_DATA: userData, OS_TEST_DELAY: '1500', OS_TEST_BLOCK: 'pixel-tracker.localhost' },
     timeout: 60000,
   });
   app.process().stdout?.on('data', (d) => line('main.log', `[run ${runNo}] ${String(d).trimEnd()}`));
@@ -602,12 +610,133 @@ try {
     const c1 = await main(async ({ session }) => (await session.fromPartition('persist:profile_1').cookies.get({ name: 'os_test' }))[0]?.value);
     check('other profiles not affected', c1 === 'one', c1);
   }
+  if (STAGE >= 3) {
+    // --- 17. Защита от трекеров и сторонние cookies ---
+    step('17. Трекеры блокируются, сторонние cookies не ставятся, «только HTTPS»');
+    await main(() => globalThis.osTest.windows()[0].openProfile(1));
+    await key('Ctrl+T');
+    const before17 = seen.length;
+    await typeAddress(`${SITE}/tracked`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/tracked') && !x.loading; });
+    await sleep(800);
+    const reqs = seen.slice(before17).map((r) => r.path);
+    check('third-party tracker request is blocked', reqs.includes('/tracked') && !reqs.includes('/pixel'), reqs.join(' '));
+    check('first-party request still loads', reqs.includes('/first.png'));
+    const sb = await state();
+    check('address bar shows blocked trackers count', sb.blocked >= 1, `${sb.blocked}`);
+    await flush();
+    check('statistics count blocked trackers', await waitFor(async () => { await flush(); return (readJson('stats')?.trackers ?? 0) >= 1; }, 5000));
+    check('cross-site cookie from an embedded site is not stored',
+      (await main(async ({ session }) => (await session.fromPartition('persist:profile_1').cookies.get({ name: 'os_3p' })).length)) === 0);
+    await keyScreen('17-tracked-chrome', 'chrome');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    const st3 = await page('os://settings/');
+    await st3.waitForSelector('#https');
+    await st3.click('#https button >> nth=0');
+    await sleep(300);
+    await flush();
+    check('HTTPS-only saved', readJson('settings')?.httpsOnly === true);
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await typeAddress('http://os-https-test.invalid/');
+    const up = await waitFor(async () => { const x = await state(); return x.url.startsWith('https://os-https-test.invalid') && x; }, 10000);
+    check('HTTPS-only upgrades http:// addresses', up, (await state()).url);
+    // Поиск в настройках.
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    await st3.fill('#settings-search', 'HTTPS');
+    await sleep(300);
+    const vis = await st3.$$eval('.setting', (els) => els.filter((e) => !e.hidden && e.offsetParent !== null).length);
+    check('settings search leaves matching rows', vis >= 1 && vis <= 3, `${vis}`);
+    await st3.fill('#settings-search', 'qqqzzz');
+    await sleep(200);
+    check('settings search shows «nothing found»', await st3.isVisible('#nothing'));
+    await keyScreen('17-settings-search', 'page');
+    await st3.fill('#settings-search', '');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+
+    // --- 18. Разрешения сайтов ---
+    step('18. Разрешения: запрос, запоминание по сайту и профилю');
+    const ui3 = await page('os://ui');
+    await typeAddress(`${SITE}/notify`);
+    await waitFor(async () => (await state()).url.endsWith('/notify'));
+    const tab18 = await page(`${SITE}/notify`);
+    const res18 = tab18.evaluate(() => window.Notification.requestPermission());
+    const pr = await waitFor(async () => (await state()).prompt, 8000);
+    check('site permission request shows a prompt', pr && /127\.0\.0\.1/.test(pr.text), pr?.text);
+    await keyScreen('18-permission-prompt', 'chrome');
+    await windowShot('permission-prompt');
+    await ui3.click('#perm-allow');
+    check('page gets the permission after «Allow»', (await res18) === 'granted');
+    await flush();
+    check('decision saved for site and profile', readJson('site_permissions')?.sites?.['1']?.['127.0.0.1']?.notifications === 'ALLOW');
+    await main(() => globalThis.osTest.windows()[0].openProfile(4));
+    await key('Ctrl+T');
+    await typeAddress(`${SITE}/notify`);
+    await waitFor(async () => (await state()).url.endsWith('/notify') && (await state()).profile.id === 4);
+    const tab18b = app.windows().filter((p) => p.url() === `${SITE}/notify`).pop();
+    const res18b = tab18b.evaluate(() => window.Notification.requestPermission());
+    const pr2 = await waitFor(async () => (await state()).prompt, 8000);
+    check('another profile is asked again', pr2);
+    await ui3.click('#perm-block');
+    check('«Block» denies the permission', (await res18b) === 'denied');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://site/?profile=1'));
+    const sp3 = await page('os://site/');
+    await sp3.waitForSelector('.host');
+    check('site permissions screen lists the site', (await sp3.textContent('.host')).includes('127.0.0.1'));
+    await keyScreen('18-site-permissions', 'page');
+
+    // --- 19. Проверка безопасности, PIN, скрытие окна ---
+    step('19. Проверка безопасности, PIN и скрытие содержимого');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://security/'));
+    const sec3 = await page('os://security/');
+    await sec3.waitForSelector('#score');
+    const score1 = await sec3.textContent('#score .big');
+    check('security check shows a score', /^\d\/\d$/.test(score1), score1);
+    check('security check counts granted permissions', (await sec3.getAttribute('.check[data-id="perms"]', 'class')).includes('bad'));
+    await keyScreen('19-security', 'page');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    await st3.waitForSelector('#pin-set');
+    await st3.click('#pin-set');
+    const pins3 = await st3.$$('.modal input');
+    await pins3[0].fill('2468');
+    await pins3[1].fill('2468');
+    await st3.click('.modal .btn.accent');
+    await sleep(500);
+    await flush();
+    const lockData = readJson('settings')?.lock;
+    check('PIN stored only as a hash', lockData?.hash?.length === 64 && !JSON.stringify(readJson('settings')).includes('2468'));
+    await st3.click('#hide button >> nth=0');
+    await sleep(300);
+    await flush();
+    check('hide content saved', readJson('settings')?.hideContent === true);
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://security/'));
+    await sec3.waitForSelector('#score');
+    const score2 = await sec3.textContent('#score .big');
+    check('security score improves after fixes', Number(score2.split('/')[0]) > Number(score1.split('/')[0]), `${score1} → ${score2}`);
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    const tabsBefore = (await state()).tabs.length;
+    await main(() => globalThis.osTest.windows().forEach((w) => w.lock()));
+    const lp = await page('os://lock/');
+    check('lock screen shown', lp);
+    const hidden = await main(() => { const w = globalThis.osTest.windows()[0]; return !w.chrome.getVisible() && w.liveTabs().every((v) => !v.view.getVisible()); });
+    check('tabs and chrome hidden under the lock', hidden);
+    await key('Ctrl+T', 0, 'page');
+    check('shortcuts ignored while locked', (await state()).tabs.length === tabsBefore);
+    await keyScreen('19-lock', 'page');
+    await lp.fill('#pin', '1111');
+    await lp.click('#unlock');
+    await sleep(300);
+    check('wrong PIN rejected', (await lp.textContent('#err')).length > 0 && (await state()).locked === true);
+    await lp.fill('#pin', '2468');
+    await lp.click('#unlock');
+    check('correct PIN unlocks', await waitFor(async () => (await state()).locked === false));
+    check('tab visible again after unlock', await main(() => globalThis.osTest.windows()[0].liveTabs().some((v) => v.view.getVisible())));
+  }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));
 } finally {
   try { await flush(); } catch { /* приложение уже закрыто */ }
   try {
-    for (const f of ['settings', 'profiles', 'pins', 'tabs', 'onboarding', 'history', 'bookmarks', 'downloads', 'saved_pages', 'stats', 'notes']) {
+    for (const f of ['settings', 'profiles', 'pins', 'tabs', 'onboarding', 'history', 'bookmarks', 'downloads', 'saved_pages', 'stats', 'notes', 'site_permissions']) {
       const j = readJson(f);
       if (j) writeFileSync(join(OUT, `state-${f}.json`), JSON.stringify(j, null, 1));
     }

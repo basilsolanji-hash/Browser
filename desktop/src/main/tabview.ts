@@ -2,6 +2,7 @@ import { Menu, WebContentsView, clipboard, type Session, type WebContents } from
 import { WEB_PREFS, openExternal } from './security';
 import { isWebUrl } from './urls';
 import { t } from './i18n';
+import { resetTab } from './privacy';
 
 /**
  * Одна вкладка — один WebContentsView в сессии профиля (или инкогнито). Мостов preload у сайтов нет.
@@ -62,6 +63,7 @@ export class TabView {
     wc.on('did-start-loading', () => this.host.onTabUpdated(this));
     wc.on('did-stop-loading', () => this.host.onTabUpdated(this));
     wc.on('did-navigate', (_e, url) => {
+      resetTab(wc.id);
       if (!url.startsWith('os://error')) this.failedUrl = null;
       this.favicon = null;
       this.host.onNavigated(this, url);

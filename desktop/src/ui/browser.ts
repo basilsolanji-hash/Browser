@@ -32,7 +32,9 @@ const host = (url: string) => {
 
 let closeDrop: (() => void) | null = null;
 
-function openDrop(el: HTMLElement, anchor: DOMRect, align: 'start' | 'end' = 'start', width?: number, focusFirst = true): void {
+let onDismiss: (() => void) | null = null;
+
+function openDrop(el: HTMLElement, anchor: DOMRect, align: 'start' | 'end' = 'start', width?: number, focusFirst = true, dismiss: (() => void) | null = null): void {
   hideDrop(false);
   layer.hidden = false;
   layer.replaceChildren(el);
@@ -49,10 +51,12 @@ function openDrop(el: HTMLElement, anchor: DOMRect, align: 'start' | 'end' = 'st
   };
   place();
   requestAnimationFrame(place);
+  onDismiss = dismiss;
   closeDrop = () => {
     layer.hidden = true;
     layer.replaceChildren();
     closeDrop = null;
+    onDismiss = null;
   };
   if (focusFirst) el.querySelector<HTMLElement>('button:not(:disabled)')?.focus({ preventScroll: true });
 }
@@ -65,12 +69,14 @@ function hideDrop(release = true): void {
 
 layer.addEventListener('mousedown', (e) => {
   if (e.target === layer) {
+    // Закрытый без ответа запрос разрешения — это «запретить» (как на Android).
+    onDismiss?.();
     hideDrop();
     if (editing) address?.blur();
   }
 });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && closeDrop && !editing) hideDrop();
+  if (e.key === 'Escape' && closeDrop && !editing) { onDismiss?.(); hideDrop(); }
   // Стрелки в меню — как в обычных меню Windows.
   if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && closeDrop && !editing) {
     const items = [...layer.querySelectorAll<HTMLButtonElement>('.menu button:not(:disabled)')];
@@ -354,6 +360,9 @@ function renderRow2(): void {
   const nodes: HTMLElement[] = [back, fwd, reload];
   if (!st.incognito) nodes.push(home);
   nodes.push(addr);
+  if (st.blocked > 0) {
+    addr.append(h('span', { class: 'shield', id: 'shield', title: t('dt_blocked_n', st.blocked) }, icon('lock', 13), String(st.blocked)));
+  }
   if (!st.panel && st.url && /^https?:/.test(st.url)) {
     const star = iconButton('star', `${st.bookmarked ? t('fav_remove') : t('add_favorite')} (Ctrl+D)`, () => void os.call('toggleBookmark'), st.bookmarked ? 'on' : 'off');
     star.id = 'star';
@@ -464,6 +473,9 @@ function mainMenu(anchor: DOMRect): void {
       { label: t('profiles'), icon: 'person', run: () => void os.call('showHome') },
       { label: t('notes'), icon: 'note', run: () => void os.call('openPanel', 'os://notes/') },
       { label: t('stats'), icon: 'tabs', run: () => void os.call('openPanel', 'os://stats/') },
+      { label: t('site_settings'), icon: 'lock', disabled: !st.profile, run: () => void os.call('openPanel', `os://site/?profile=${st!.profile!.id}${st!.url ? '&host=' + encodeURIComponent(host(st!.url)) : ''}`) },
+      { label: t('security_check'), icon: 'check', run: () => void os.call('openPanel', 'os://security/') },
+      { label: t('dt_lock_now'), icon: 'lock', disabled: !st.lockEnabled, run: () => void os.call('lockNow') },
       { label: t('about'), icon: 'info2', run: () => void os.call('openPanel', 'os://about/') },
       { label: t('settings'), icon: 'settings', run: () => void os.call('openPanel', 'os://settings/') },
     );
@@ -471,9 +483,36 @@ function mainMenu(anchor: DOMRect): void {
   openDrop(menu(items), anchor, 'end');
 }
 
+let shownPrompt = 0;
+
+/** Запрос разрешения сайта: карточка под адресной строкой. */
+function renderPrompt(): void {
+  const p = st?.prompt;
+  if (!p) {
+    if (shownPrompt && layer.querySelector('.perm-card')) hideDrop();
+    shownPrompt = 0;
+    return;
+  }
+  if (p.id === shownPrompt) return;
+  const addr = document.getElementById('addr');
+  if (!addr) return;
+  shownPrompt = p.id;
+  const remember = h('input', { type: 'checkbox', id: 'perm-remember', checked: true, disabled: !p.canRemember });
+  const answer = (allow: boolean) => { hideDrop(); void os.call('permissionAnswer', p.id, allow, remember.checked); };
+  const card = h('div', { class: 'menu perm-card', role: 'dialog', 'aria-label': p.text },
+    h('div', { class: 'perm-text' }, p.text),
+    h('label', { class: 'perm-rem' }, remember, p.canRemember ? t('perm_remember') : t('perm_private_note')),
+    h('div', { class: 'perm-actions' },
+      h('button', { class: 'pbtn', id: 'perm-block', onclick: () => answer(false) }, t('perm_block')),
+      h('button', { class: 'pbtn accent', id: 'perm-allow', onclick: () => answer(true) }, t('perm_allow'))));
+  const r = addr.getBoundingClientRect();
+  openDrop(card, new DOMRect(r.left + 8, r.top, 360, r.height), 'start', 360, false, () => void os.call('permissionAnswer', p.id, false, false));
+}
+
 function render(): void {
   renderRow1();
   renderRow2();
+  renderPrompt();
 }
 
 os.on('state', (s) => {

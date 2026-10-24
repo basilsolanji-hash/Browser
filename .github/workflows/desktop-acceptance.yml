@@ -11,6 +11,11 @@ on:
 permissions:
   contents: write
 
+# Прогоны пишут в одну ветку результатов — по одному за раз.
+concurrency:
+  group: desktop-acceptance
+  cancel-in-progress: false
+
 jobs:
   acceptance:
     runs-on: windows-latest

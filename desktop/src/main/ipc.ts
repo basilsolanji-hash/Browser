@@ -17,6 +17,9 @@ import * as Notes from './notes';
 import * as Downloads from './downloads';
 import * as Saved from './saved';
 import * as Stats from './stats';
+import * as Perms from './permissions';
+import * as Lock from './lock';
+import { blocklistSize } from './privacy';
 import { LANGS, LANG_NAMES } from '../shared/format';
 import type { Suggestion, UiInit } from '../shared/types';
 
@@ -104,6 +107,52 @@ on(['chrome'], 'toggleBookmark', (w) => {
   w.toast(t(r == null ? 'fav_unavailable' : r ? 'added_favorite' : 'fav_removed'));
 });
 on(['chrome'], 'savePage', (w) => saveWithToast(w));
+on(['chrome'], 'permissionAnswer', (w, id, allow, remember) => w.answerPrompt(int(id), allow === true, remember === true));
+on(['chrome'], 'lockNow', () => { for (const w of windows) w.lock(); });
+
+// --- Блокировка ---
+on(['page'], 'unlock', (_w, pin) => {
+  const r = Lock.check(str(pin, 20));
+  if (r === 'ok') for (const w of windows) w.unlock();
+  return r;
+});
+on(['page'], 'setPin', (_w, pin) => Lock.setPin(str(pin, 20)));
+on(['page'], 'removePin', () => { Lock.removePin(); return true; });
+
+// --- Разрешения сайтов ---
+on(['page'], 'sitePerms', (_w, profile) => {
+  const p = profileArg(profile);
+  return {
+    profile: profileInfo(p),
+    kinds: Perms.KINDS.map((k) => ({ key: k.key, title: t(k.titleKey), defaults: k.defaults, current: Perms.defaultMode(k.key) })),
+    sites: Perms.sites(p),
+  };
+});
+const MODES = ['ASK', 'ALLOW', 'BLOCK'];
+on(['page'], 'sitePermSet', (_w, profile, host, key, mode) => {
+  if (!MODES.includes(str(mode))) return;
+  Perms.set(profileArg(profile), str(host, 300).toLowerCase(), str(key, 40), str(mode) as Perms.Mode);
+});
+on(['page'], 'sitePermDefault', (_w, key, mode) => { if (MODES.includes(str(mode))) Perms.setDefault(str(key, 40), str(mode) as Perms.Mode); });
+on(['page'], 'sitePermClear', (_w, profile, host) => Perms.clearSite(profileArg(profile), str(host, 300)));
+on(['page'], 'sitePermClearAll', (_w, profile) => Perms.clearProfile(profileArg(profile)));
+
+// --- Проверка безопасности ---
+on(['page'], 'securityCheck', () => {
+  const s = settings.get();
+  const g = Perms.granted();
+  const engine = ENGINES.find((e) => e.id === s.engine) ?? ENGINES[0];
+  const privateEngine = ['ddg', 'startpage', 'brave'].includes(engine.id);
+  return [
+    { id: 'lock', ok: !!s.lock, title: t('sec_lock'), text: s.lock ? t('dt_sec_lock_ok') : t('dt_sec_lock_off') },
+    { id: 'hide', ok: s.hideContent, title: t('hide_content'), text: s.hideContent ? t('dt_sec_hide_ok') : t('dt_sec_hide_off') },
+    { id: 'tracking', ok: s.trackingProtection, title: t('sec_tracking'), text: s.trackingProtection ? t('dt_sec_tracking_ok', blocklistSize()) : t('dt_sec_tracking_off') },
+    { id: 'cookies', ok: s.blockThirdPartyCookies, title: t('perm_cookies3p'), text: s.blockThirdPartyCookies ? t('dt_sec_cookies_ok') : t('dt_sec_cookies_off') },
+    { id: 'https', ok: s.httpsOnly, title: t('sec_https'), text: s.httpsOnly ? t('sec_https_ok') : t('sec_https_off') },
+    { id: 'search', ok: privateEngine, title: t('search_engine'), text: privateEngine ? t('sec_search_ok', engine.title) : t('sec_search_bad', engine.title) },
+    { id: 'perms', ok: g.count === 0, title: t('site_permissions'), text: g.count === 0 ? t('sec_perms_ok') : t('sec_perms_n', g.count, g.sites) },
+  ];
+});
 
 // --- История ---
 on(['page'], 'history', (_w, profile) => {
@@ -250,7 +299,7 @@ on(['page'], 'fileDelete', async (_w, id, name) => { await rm(ownedFile(profileA
 
 // --- Настройки ---
 on(['page'], 'settings', () => ({
-  values: { ...settings.get(), profileCount: profileCount() },
+  values: { ...settings.get(), lock: !!settings.get().lock, profileCount: profileCount() },
   langs: [{ id: 'system', name: t('system') }, ...LANGS.map((l) => ({ id: l, name: LANG_NAMES[l] }))],
   themes: THEME_IDS.map((id) => ({ id, name: t(themeNameKey(id)) })),
   engines: ENGINES.map((e) => ({ id: e.id, name: e.title })),
@@ -277,6 +326,11 @@ on(['page'], 'setSetting', (_w, key, value) => {
   } else if (k === 'homeUrl') {
     const u = fromInput(str(value));
     settings.update((d) => { d.homeUrl = u && isWebUrl(u) ? u : ''; });
+  } else if (['trackingProtection', 'httpsOnly', 'blockThirdPartyCookies'].includes(k)) {
+    settings.update((d) => { (d as unknown as Record<string, boolean>)[k] = value === true; });
+  } else if (k === 'hideContent') {
+    settings.update((d) => { d.hideContent = value === true; });
+    for (const w of windows) w.win.setContentProtection(value === true);
   } else if (k === 'zoom') {
     settings.update((d) => { d.zoom = Math.min(250, Math.max(50, int(value))); });
   } else {
@@ -383,6 +437,8 @@ export function installIpc(): void {
     const who = sender(e);
     const h = typeof cmd === 'string' ? handlers[cmd] : undefined;
     if (!who || !h || !h.roles.includes(who.role)) throw new Error('denied');
+    // Под замком работают только экран PIN и загрузка переводов.
+    if (who.win.locked && cmd !== 'init' && cmd !== 'unlock') throw new Error('locked');
     return h.fn(who.win, ...args);
   });
 }
