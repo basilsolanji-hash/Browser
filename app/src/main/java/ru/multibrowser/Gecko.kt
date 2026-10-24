@@ -31,9 +31,9 @@ object Gecko {
 
     fun key(id: Int, pin: Pin) = "$id:${pin.id}"
 
-    /** Загружает адрес; встроенную стартовую страницу рендерит локализованно. */
+    /** Загружает адрес; маркер стартовой страницы — по выбору «Главная страница» (Home). */
     fun loadUrl(session: GeckoSession, url: String) {
-        if (url == Pins.START) session.load(GeckoSession.Loader().data(StartPage.html(), "text/html")) else session.loadUri(url)
+        if (url == Pins.START) Home.load(session) else session.loadUri(url)
     }
 
     fun runtime(ctx: Context): GeckoRuntime = runtime ?: GeckoRuntime.create(
@@ -62,7 +62,35 @@ object Gecko {
                     .build()
             )
             .build(),
-    ).also { runtime = it }
+    ).also {
+        runtime = it
+        installReader(it)
+        it.webNotificationDelegate = Notify.delegate(ctx)
+    }
+
+    /** Встроенное расширение режима чтения (assets/reader, Mozilla Readability) — в том числе для инкогнито. */
+    private fun installReader(rt: GeckoRuntime) {
+        val ext = rt.webExtensionController
+        ext.ensureBuiltIn("resource://android/assets/reader/", "reader@os.browser").accept({ e ->
+            if (e != null && !e.metaData.allowedInPrivateBrowsing) ext.setAllowedInPrivateBrowsing(e, true)
+        }, { err -> Diag.log("reader", "extension: ${err?.message}") })
+    }
+
+    /** Текущий адрес каждой вкладки профиля (ключ "профиль:вкладка") — чьё уведомление пришло. */
+    val tabUrls = HashMap<String, String>()
+
+    /** Последняя использованная вкладка с этим сайтом: (профиль, id вкладки) или null. */
+    fun tabForHost(host: String): Pair<Int, String>? =
+        sessions.keys.toList().asReversed().firstOrNull { k -> tabUrls[k]?.let { Uri.parse(it).host } == host }
+            ?.let { k -> k.substringBefore(':').toIntOrNull()?.let { it to k.substringAfter(':') } }
+
+    /** Вкладки, где сейчас стартовая страница Оси — её перерисовываем при смене языка. */
+    val onStartPage: MutableSet<GeckoSession> = java.util.Collections.newSetFromMap(java.util.WeakHashMap())
+
+    /** Сменился язык интерфейса: стартовые страницы — на новом языке. */
+    fun onLanguageChanged() {
+        onStartPage.toList().forEach { Home.load(it) }
+    }
 
     private fun httpsMode(ctx: Context) =
         if (Settings.httpsOnly(ctx)) GeckoRuntimeSettings.HTTPS_ONLY else GeckoRuntimeSettings.ALLOW_ALL
@@ -102,7 +130,8 @@ object Gecko {
         runtime(ctx).storageController.clearData(StorageController.ClearFlags.ALL_CACHES)
     }
 
-    fun isActive(ctx: Context, id: Int) = Pins.all(ctx).any { sessions.containsKey(key(id, it)) }
+    /** Есть ли у профиля вкладки в памяти (закреплённые или обычные). */
+    fun isActive(ctx: Context, id: Int) = sessions.keys.any { it.startsWith("$id:") }
 
     /** @param initialUrl — если задан, открываем его вместо последней/домашней страницы (один load, без гонки). */
     fun session(ctx: Context, id: Int, pin: Pin, initialUrl: String? = null): GeckoSession {
@@ -133,7 +162,8 @@ object Gecko {
 
     /** Выйти из всех аккаунтов профиля: закрыть вкладку и стереть cookies/хранилище его контекста. */
     fun clearProfile(ctx: Context, id: Int) {
-        Pins.all(ctx).forEach { drop(key(id, it)) }
+        sessions.keys.filter { it.startsWith("$id:") }.forEach { drop(it) }
+        Tabs.forgetProfile(ctx, id)
         runtime(ctx).storageController.clearDataForSessionContext("profile_$id")
         Profiles.forget(ctx, id)
         History.clear(ctx, id)
@@ -141,6 +171,9 @@ object Gecko {
 
     /** Вкладка упала или выгружена системой — забываем её, чтобы следующий вызов session() создал новую. */
     fun forget(key: String) = drop(key)
+
+    /** Закрыть обычную вкладку профиля: выгрузить её сессию. */
+    fun close(id: Int, tabId: String) = drop("$id:$tabId")
 
     private fun drop(key: String) {
         sessions.remove(key)?.close()

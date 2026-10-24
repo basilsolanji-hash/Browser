@@ -8,6 +8,7 @@ object StartPage {
         val dir = if (Tr.isRtl()) "rtl" else "ltr"
         val tagline = esc(Tr.t("start_tagline"))
         val hint = esc(Tr.t("start_hint"))
+        val phrase = Home.phrase()?.let { "<p class=\"q\">${esc(it)}</p>" } ?: ""
         val s = """<!doctype html><html dir="$dir"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><style>
 html,body{height:100%;margin:0}body{display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -17,11 +18,12 @@ font-family:system-ui,sans-serif;background:$bg;color:$text;text-align:center;pa
 .dot{position:absolute;top:50%;left:-44px;width:18px;height:18px;border-radius:50%;background:$accent;transform:translateY(-50%)}
 h1{font-size:22px;margin:14px 0 4px}.t{color:$accent}
 .b{color:$muted;font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 10px}
-p{color:$muted;font-size:14px;max-width:320px;line-height:1.5}</style></head>
+p{color:$muted;font-size:14px;max-width:320px;line-height:1.5}
+.q{color:$text;font-size:16px;font-style:italic;margin:22px 0 0;padding-top:16px;border-top:1px solid $accent}</style></head>
 <body><div class="ring"><div class="axis"></div><div class="dot"></div></div>
 <h1>Ось<span class="t">Browser</span></h1>
 <p class="b">$tagline</p>
-<p>$hint</p></body></html>"""
+<p>$hint</p>$phrase</body></html>"""
         return s.toByteArray(Charsets.UTF_8)
     }
 

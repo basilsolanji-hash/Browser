@@ -5,6 +5,7 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
@@ -15,10 +16,19 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
-/** Главный экран: список из 15 профилей. Нажатие — открыть, долгое нажатие — меню профиля. */
+/**
+ * Главный экран: список профилей. Нажатие — открыть; долгое нажатие и перетаскивание — сменить
+ * порядок; долгое нажатие без перетаскивания — меню профиля.
+ */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var list: LinearLayout
+    private var expanded = false // показаны все профили, а не первые VISIBLE
+
+    companion object {
+        /** Сколько профилей видно сразу; остальные — под «Показать все». */
+        const val VISIBLE = 5
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +45,10 @@ class MainActivity : AppCompatActivity() {
         }
         setContentView(root)
         applyEdgeToEdge(root)
+        // Первый запуск: профили-примеры и обучение.
+        if (savedInstanceState == null && Onboarding.shouldShow(this)) {
+            startActivity(Intent(this, OnboardingActivity::class.java))
+        }
     }
 
     override fun onResume() {
@@ -48,15 +62,45 @@ class MainActivity : AppCompatActivity() {
 
         list.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            addView(ImageView(context).apply {
-                setImageResource(R.drawable.ic_wordmark)
-                contentDescription = "Ось"
-                scaleType = ImageView.ScaleType.FIT_START
-            }, LinearLayout.LayoutParams(0, dp(34), 1f))
+            gravity = Gravity.CENTER_VERTICAL or Gravity.END
             addView(iconButton(R.drawable.ic_settings, Tr.t("settings")) {
                 startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
             }, LinearLayout.LayoutParams(dp(40), dp(40)))
+        })
+        // Логотип, «бизнес-браузер» и коротко о приложении — как на стартовой странице и в «О приложении».
+        list.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            addView(ImageView(context).apply {
+                setImageResource(R.drawable.ic_wordmark)
+                contentDescription = "Ось"
+                scaleType = ImageView.ScaleType.FIT_CENTER
+            }, LinearLayout.LayoutParams(dp(180), dp(52)))
+            addView(ExtrasUi.paragraph(context, Tr.t("start_tagline"), 12f, Ui.MUTED, bold = true).apply {
+                gravity = Gravity.CENTER
+                letterSpacing = 0.14f
+                setPadding(0, dp(8), 0, 0)
+            })
+            addView(ExtrasUi.paragraph(context, Tr.t("about_desc"), 13f, Ui.MUTED).apply { gravity = Gravity.CENTER })
+        })
+        // Быстрый доступ к библиотеке и сведениям о приложении.
+        list.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(0, dp(6), 0, 0)
+            listOf(
+                Tr.t("notes") to NotesActivity::class.java,
+                Tr.t("saved_pages") to SavedPagesActivity::class.java,
+                Tr.t("about") to AboutActivity::class.java,
+            ).forEachIndexed { i, (label, screen) ->
+                // Поровну на всю ширину: длинные подписи (ru, de) переносятся, а не обрезаются.
+                addView(pill(label, false) { startActivity(Intent(this@MainActivity, screen)) }.apply {
+                    maxLines = 2
+                    setPadding(dp(6), dp(4), dp(6), dp(4))
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    if (i > 0) marginStart = dp(6)
+                })
+            }
         })
         list.addView(TextView(this).apply {
             text = Tr.t("profiles")
@@ -71,7 +115,62 @@ class MainActivity : AppCompatActivity() {
             setTextColor(Ui.MUTED)
             setPadding(0, 0, 0, dp(12))
         })
-        Profiles.all(this).forEach { list.addView(row(it)) }
+        list.addView(ExtrasUi.hint(this, Tr.t("profiles_reorder_hint")).apply { setPadding(0, 0, 0, dp(4)) })
+        val all = Profiles.all(this)
+        all.take(if (expanded) all.size else VISIBLE).forEach { list.addView(row(it)) }
+        if (all.size > VISIBLE) {
+            list.addView(ExtrasUi.button(this, if (expanded) Tr.t("profiles_fewer") else Tr.t("profiles_all", all.size)) {
+                expanded = !expanded
+                render()
+            })
+        }
+    }
+
+    // --- Перетаскивание профилей ---
+    private var dragRow: View? = null
+    private var dragStartY = 0f
+    private var dragMoved = false
+
+    /** Долгое нажатие поднимает строку; дальше она едет за пальцем и меняется местами с соседями. */
+    private fun startDrag(row: View, y: Float) {
+        dragRow = row
+        dragStartY = y
+        dragMoved = false
+        row.parent.requestDisallowInterceptTouchEvent(true)
+        row.isPressed = false
+        row.elevation = dpf(8)
+        row.animate().scaleX(1.03f).scaleY(1.03f).setDuration(120).start()
+        row.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+    }
+
+    private fun dragTo(row: View, y: Float) {
+        var dy = y - dragStartY
+        if (kotlin.math.abs(dy) > dp(6)) dragMoved = true
+        val index = list.indexOfChild(row)
+        val neighbor = list.getChildAt(index + if (dy > 0) 1 else -1)
+        // Меняемся местами, когда строка прошла половину соседней (только среди строк профилей).
+        if (neighbor?.getTag(R.id.profile_row) != null && kotlin.math.abs(dy) > neighbor.height / 2f + dp(4)) {
+            val shift = (neighbor.height + dp(8)) * if (dy > 0) 1 else -1
+            // Двигаем соседа, а не саму строку: снятие строки под пальцем отменило бы жест.
+            list.removeView(neighbor)
+            list.addView(neighbor, index)
+            dragStartY += shift
+            dy -= shift
+        }
+        row.translationY = dy
+    }
+
+    private fun endDrag(row: View, p: Profile) {
+        dragRow = null
+        row.elevation = 0f
+        row.animate().translationY(0f).scaleX(1f).scaleY(1f).setDuration(150).start()
+        if (dragMoved) {
+            // Переставляли только видимые; скрытые профили остаются за ними в прежнем порядке.
+            val ids = (0 until list.childCount).mapNotNull { list.getChildAt(it).getTag(R.id.profile_row) as? Int }
+            Profiles.setOrder(this, ids + Profiles.order(this).filterNot { it in ids })
+        } else {
+            profileMenu(p)
+        }
     }
 
     private fun row(p: Profile): View {
@@ -84,8 +183,19 @@ class MainActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
             ).apply { topMargin = dp(8) }
-            setOnClickListener { openPin(p, Pins.all(this@MainActivity).first()) }
-            setOnLongClickListener { profileMenu(p); true }
+            setTag(R.id.profile_row, p.id)
+            setOnClickListener { openPin(p, Pins.all(this@MainActivity, p.id).first()) }
+        }
+        var lastY = 0f
+        row.setOnLongClickListener { startDrag(row, lastY); true }
+        row.setOnTouchListener { v, e ->
+            lastY = e.rawY
+            if (dragRow !== v) return@setOnTouchListener false
+            when (e.actionMasked) {
+                MotionEvent.ACTION_MOVE -> dragTo(v, e.rawY)
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> endDrag(v, p)
+            }
+            true
         }
 
         // Цветная полоска слева — как акцентная граница у полей knitERP.
@@ -110,7 +220,18 @@ class MainActivity : AppCompatActivity() {
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
             })
-        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            // Описание профиля и число прикреплённых файлов.
+            val files = ProfileFiles.count(this@MainActivity, p.id)
+            val extra = listOfNotNull(p.description.takeIf { it.isNotBlank() },
+                Tr.t("files_n", files).takeIf { files > 0 }).joinToString(" · ")
+            if (extra.isNotEmpty()) addView(TextView(context).apply {
+                text = extra
+                textSize = 12f
+                setTextColor(Ui.MUTED)
+                maxLines = 2
+                ellipsize = TextUtils.TruncateAt.END
+            })
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f))
 
         if (Gecko.isActive(this, p.id)) {
             row.addView(View(this).apply { background = Ui.oval(Ui.ACCENT) },
@@ -118,7 +239,7 @@ class MainActivity : AppCompatActivity() {
         }
         // По пилюле на каждую закреплённую вкладку. Для Gmail показываем счётчик непрочитанных.
         val pillRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        Pins.all(this).forEachIndexed { i, pin ->
+        Pins.all(this, p.id).forEachIndexed { i, pin ->
             val isMail = pin.url.contains("mail.google.com")
             val label = if (isMail && p.unread > 0) "${pin.title} · ${if (p.unread > 999) "999+" else p.unread}" else pin.title
             pillRow.addView(pill(label, isMail && p.unread > 0) { openPin(p, pin) },
@@ -126,11 +247,12 @@ class MainActivity : AppCompatActivity() {
                     if (i > 0) marginStart = dp(6)
                 })
         }
+        // Ширина ограничена, чтобы имя профиля не сжималось; лишние вкладки прокручиваются.
         row.addView(HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             addView(pillRow)
             setPadding(0, 0, dp(12), 0)
-        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         return row
     }
 
@@ -154,12 +276,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun profileMenu(p: Profile) {
+        val order = Profiles.order(this)
+        val actions = mutableListOf<Pair<String, () -> Unit>>(
+            Tr.t("profile_info") to { openInfo(p) },
+            Tr.t("rename") to { renameDialog(p) },
+        )
+        if (order.firstOrNull() != p.id) actions += Tr.t("move_up") to { Profiles.move(this, p.id, -1); render() }
+        if (order.lastOrNull() != p.id) actions += Tr.t("move_down") to { Profiles.move(this, p.id, 1); render() }
+        actions += Tr.t("logout_clear") to { clearDialog(p) }
         AlertDialog.Builder(this)
             .setTitle(p.name)
-            .setItems(arrayOf(Tr.t("rename"), Tr.t("logout_clear"))) { _, which ->
-                if (which == 0) renameDialog(p) else clearDialog(p)
-            }
+            .setItems(actions.map { it.first }.toTypedArray()) { _, i -> actions[i].second() }
             .show()
+    }
+
+    private fun openInfo(p: Profile) {
+        startActivity(Intent(this, ProfileActivity::class.java).putExtra(ProfileActivity.EXTRA_PROFILE, p.id))
     }
 
     private fun renameDialog(p: Profile) {

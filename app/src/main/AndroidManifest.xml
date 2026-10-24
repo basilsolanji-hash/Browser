@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Запрашиваются только когда сайт попросил и пользователь разрешил ему (SitePermissions). -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -31,7 +32,21 @@
         <activity
             android:name=".BrowserActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:exported="true"
             android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize">
+            <!-- Браузер по умолчанию (№26): открываем ссылки http/https из других приложений. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".TabsActivity"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
@@ -43,6 +58,13 @@
         <activity android:name=".SecurityCheckActivity" />
 
         <activity android:name=".DownloadsActivity" />
+        <activity android:name=".NotesActivity" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".SavedPagesActivity" />
+        <activity android:name=".AboutActivity" />
+        <activity android:name=".HelpActivity" />
+        <activity android:name=".OnboardingActivity" />
+        <activity android:name=".StatsActivity" />
+        <activity android:name=".ProfileActivity" android:windowSoftInputMode="adjustResize" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

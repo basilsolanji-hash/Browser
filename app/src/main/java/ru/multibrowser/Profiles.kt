@@ -9,6 +9,7 @@ data class Profile(
     val color: Int,
     val email: String?,
     val unread: Int,
+    val description: String = "",
 )
 
 object Profiles {
@@ -24,7 +25,35 @@ object Profiles {
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("profiles", Context.MODE_PRIVATE)
 
-    fun all(ctx: Context): List<Profile> = (1..Settings.profileCount(ctx)).map { get(ctx, it) }
+    fun all(ctx: Context): List<Profile> = order(ctx).map { get(ctx, it) }
+
+    /** Порядок профилей, заданный пользователем (перетаскивание на главном); новые — в конце. */
+    fun order(ctx: Context): List<Int> {
+        val count = Settings.profileCount(ctx)
+        val saved = prefs(ctx).getString("order", null).orEmpty().split(',')
+            .mapNotNull { it.toIntOrNull() }.filter { it in 1..count }.distinct()
+        return saved + (1..count).filterNot { it in saved }
+    }
+
+    fun setOrder(ctx: Context, ids: List<Int>) {
+        prefs(ctx).edit().putString("order", ids.joinToString(",")).apply()
+    }
+
+    /** Сдвинуть профиль на [delta] позиций (меню «Выше» / «Ниже»). */
+    fun move(ctx: Context, id: Int, delta: Int) {
+        val ids = order(ctx).toMutableList()
+        val from = ids.indexOf(id)
+        val to = (from + delta).coerceIn(0, ids.lastIndex)
+        if (from < 0 || from == to) return
+        ids.add(to, ids.removeAt(from))
+        setOrder(ctx, ids)
+    }
+
+    fun setDescription(ctx: Context, id: Int, text: String) {
+        val edit = prefs(ctx).edit()
+        if (text.isBlank()) edit.remove("desc_$id") else edit.putString("desc_$id", text.trim())
+        edit.apply()
+    }
 
     /** Первые 15 — фирменная палитра, дальше — цвета по «золотому углу», чтобы соседние не совпадали. */
     fun color(id: Int): Int =
@@ -35,10 +64,11 @@ object Profiles {
         val p = prefs(ctx)
         return Profile(
             id = id,
-            name = p.getString("name_$id", null) ?: Tr.t("profile_n", id),
+            name = Tr.local(p.getString("name_$id", null)) ?: Tr.t("profile_n", id),
             color = color(id),
             email = p.getString("email_$id", null),
             unread = p.getInt("unread_$id", 0),
+            description = Tr.local(p.getString("desc_$id", null)).orEmpty(),
         )
     }
 
@@ -49,7 +79,7 @@ object Profiles {
         edit.apply()
     }
 
-    fun customName(ctx: Context, id: Int): String = prefs(ctx).getString("name_$id", null).orEmpty()
+    fun customName(ctx: Context, id: Int): String = Tr.local(prefs(ctx).getString("name_$id", null)).orEmpty()
 
     private fun urlKey(id: Int, pin: Pin) = "url_${id}_${pin.id}"
 
@@ -81,9 +111,14 @@ object Profiles {
         prefs(ctx).edit().putString("email_$id", email).putInt("unread_$id", unread).apply()
     }
 
+    /** Забыть последний адрес вкладки (вкладку закрыли). */
+    fun forgetUrl(ctx: Context, id: Int, pinId: String) {
+        prefs(ctx).edit().remove("url_${id}_$pinId").apply()
+    }
+
     fun forget(ctx: Context, id: Int) {
         prefs(ctx).edit().remove("email_$id").remove("unread_$id").apply {
-            Pins.all(ctx).forEach { remove(urlKey(id, it)) }
+            Pins.all(ctx, id).forEach { remove(urlKey(id, it)) }
         }.apply()
     }
 }

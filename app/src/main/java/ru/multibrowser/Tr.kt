@@ -24,6 +24,12 @@ object Tr {
 
     private val idx = mapOf("en" to 0, "ru" to 1, "es" to 2, "pt" to 3, "fr" to 4, "de" to 5, "ar" to 6, "hi" to 7, "tr" to 8, "zh" to 9)
 
+    /**
+     * Текст, сохранённый как ключ перевода («@ex_work_name») — так хранятся примеры первого запуска,
+     * чтобы они меняли язык вместе с интерфейсом, пока пользователь их не переименовал.
+     */
+    fun local(stored: String?): String? = if (stored != null && stored.startsWith("@")) t(stored.drop(1)) else stored
+
     fun t(key: String, vararg args: Any?): String {
         val row = M[key] ?: return key
         val s = row.getOrNull(idx[lang] ?: 0) ?: row[0]
@@ -84,7 +90,6 @@ object Tr {
         "confirm_you" to listOf("Confirm it's you", "Подтвердите, что это вы", "Confirma que eres tú", "Confirme que é você", "Confirmez que c'est vous", "Bestätige, dass du es bist", "أكّد أنك أنت", "पुष्टि करें कि यह आप हैं", "Siz olduğunuzu onaylayın", "确认是您本人"),
         "pinned_tabs" to listOf("Pinned tabs", "Закреплённые вкладки", "Pestañas fijadas", "Abas fixadas", "Onglets épinglés", "Angepinnte Tabs", "علامات تبويب مثبتة", "पिन किए टैब", "Sabitlenen sekmeler", "固定标签"),
         "add_tab" to listOf("+ Add tab", "+ Добавить вкладку", "+ Añadir pestaña", "+ Adicionar aba", "+ Ajouter un onglet", "+ Tab hinzufügen", "+ إضافة علامة تبويب", "+ टैब जोड़ें", "+ Sekme ekle", "+ 添加标签"),
-        "pinned_desc" to listOf("These tabs appear in every profile. In a profile each tab has its own sign-in and cookies, so the same tab in different profiles means different accounts.", "Эти вкладки видны в каждом профиле. В профиле у каждой вкладки свой вход и cookies, поэтому одна и та же вкладка в разных профилях — это разные аккаунты.", "Estas pestañas aparecen en cada perfil. En un perfil cada pestaña tiene su propio inicio de sesión y cookies, así que la misma pestaña en perfiles distintos son cuentas distintas.", "Estas abas aparecem em cada perfil. Em um perfil cada aba tem seu próprio login e cookies, então a mesma aba em perfis diferentes são contas diferentes.", "Ces onglets apparaissent dans chaque profil. Dans un profil, chaque onglet a sa propre connexion et ses cookies : le même onglet dans des profils différents correspond à des comptes différents.", "Diese Tabs erscheinen in jedem Profil. In einem Profil hat jeder Tab eigene Anmeldung und Cookies, derselbe Tab in verschiedenen Profilen sind also verschiedene Konten.", "تظهر علامات التبويب هذه في كل ملف. في الملف لكل علامة تبويب تسجيل دخول وملفات ارتباط خاصة، لذا نفس العلامة في ملفات مختلفة تعني حسابات مختلفة.", "ये टैब हर प्रोफ़ाइल में दिखते हैं। प्रोफ़ाइल में हर टैब का अपना साइन-इन और कुकीज़ होता है, इसलिए अलग-अलग प्रोफ़ाइल में वही टैब अलग खाते होते हैं।", "Bu sekmeler her profilde görünür. Bir profilde her sekmenin kendi oturumu ve çerezleri olur; farklı profillerdeki aynı sekme farklı hesaplardır.", "这些标签出现在每个配置文件中。在一个配置文件里每个标签有各自的登录和 Cookie，因此不同配置文件中的同一标签就是不同账户。"),
         "theme" to listOf("Theme", "Тема", "Tema", "Tema", "Thème", "Design", "المظهر", "थीम", "Tema", "主题"),
         "dark" to listOf("Dark", "Тёмная", "Oscuro", "Escuro", "Sombre", "Dunkel", "داكن", "गहरा", "Koyu", "深色"),
         "light" to listOf("Light", "Светлая", "Claro", "Claro", "Clair", "Hell", "فاتح", "हल्का", "Açık", "浅色"),
