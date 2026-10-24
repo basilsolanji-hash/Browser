@@ -308,7 +308,7 @@ adb shell run-as "$PKG" cat shared_prefs/onboarding.xml shared_prefs/pins.xml >>
 act AboutActivity;                                                          shot 60-about 5
 act HelpActivity;                                                           shot 61-help 5
 # Быстрый поиск на главном: адрес открывается новой вкладкой в последнем профиле.
-main; sleep 4
+adb shell am force-stop "$PKG"; main; sleep 6
 xtap "Address or search" && adb shell input text "example.org" && adb shell input keyevent 66; sleep 15
                                                                             shot 69e-quick-search 1
 adb shell run-as "$PKG" cat shared_prefs/tabs.xml > "$OUT/tabs_qs.txt" 2>&1
@@ -368,7 +368,9 @@ document.getElementById('f').onchange = e => {
 HTML
 browser --ei profile 7 --es url http://localhost:8766/upload.html; sleep 10
 adb shell input tap 160 400; sleep 5;                                       shot 69f-upload-picker 1
-tap_any "report.bin" || { tap_any "Downloads" && sleep 2; tap_any "Ось" && sleep 2; tap_any "report.bin"; }
+# «Недавние» в окне выбора пусты — открываем боковое меню (☰) → «Загрузки» → «Ось» → файл.
+sleep 3; tap_any "report.bin" || { adb shell input tap 28 48; sleep 2; tap_any "Downloads"; sleep 3
+  tap_any "Ось"; sleep 3; tap_any "report.bin"; }
 sleep 6;                                                                    shot 69g-upload-done 1
 kill "$NWPID" 2>/dev/null || true
 
