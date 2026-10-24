@@ -93,10 +93,13 @@ class MainActivity : AppCompatActivity() {
                 Tr.t("saved_pages") to SavedPagesActivity::class.java,
                 Tr.t("about") to AboutActivity::class.java,
             ).forEachIndexed { i, (label, screen) ->
-                addView(pill(label, false) { startActivity(Intent(this@MainActivity, screen)) },
-                    LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(32)).apply {
-                        if (i > 0) marginStart = dp(6)
-                    })
+                // Поровну на всю ширину: длинные подписи (ru, de) переносятся, а не обрезаются.
+                addView(pill(label, false) { startActivity(Intent(this@MainActivity, screen)) }.apply {
+                    maxLines = 2
+                    setPadding(dp(6), dp(4), dp(6), dp(4))
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    if (i > 0) marginStart = dp(6)
+                })
             }
         })
         list.addView(TextView(this).apply {
@@ -228,7 +231,7 @@ class MainActivity : AppCompatActivity() {
                 maxLines = 2
                 ellipsize = TextUtils.TruncateAt.END
             })
-        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f))
 
         if (Gecko.isActive(this, p.id)) {
             row.addView(View(this).apply { background = Ui.oval(Ui.ACCENT) },
@@ -244,11 +247,12 @@ class MainActivity : AppCompatActivity() {
                     if (i > 0) marginStart = dp(6)
                 })
         }
+        // Ширина ограничена, чтобы имя профиля не сжималось; лишние вкладки прокручиваются.
         row.addView(HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             addView(pillRow)
             setPadding(0, 0, dp(12), 0)
-        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         return row
     }
 
