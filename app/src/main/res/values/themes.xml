@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.MultiBrowser" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.MultiBrowser" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/mb_accent</item>
         <item name="colorPrimaryDark">@color/mb_bg</item>
         <item name="colorAccent">@color/mb_accent</item>
@@ -10,7 +10,7 @@
         <item name="alertDialogTheme">@style/Theme.MultiBrowser.Dialog</item>
     </style>
 
-    <style name="Theme.MultiBrowser.Dialog" parent="Theme.AppCompat.Dialog.Alert">
+    <style name="Theme.MultiBrowser.Dialog" parent="Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="colorAccent">@color/mb_accent</item>
         <item name="android:background">@color/mb_surface</item>
         <item name="android:textColorPrimary">@color/mb_text</item>

@@ -3,8 +3,10 @@ package ru.multibrowser
 import android.content.Context
 import android.net.Uri
 import org.mozilla.geckoview.GeckoRuntime
+import org.mozilla.geckoview.GeckoRuntimeSettings
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoSessionSettings
+import org.mozilla.geckoview.StorageController
 
 /**
  * Один движок на всё приложение. Каждый профиль — отдельный contextId,
@@ -27,8 +29,27 @@ object Gecko {
 
     fun key(id: Int, site: Site) = "$id:${site.name}"
 
-    fun runtime(ctx: Context): GeckoRuntime =
-        runtime ?: GeckoRuntime.create(ctx.applicationContext).also { runtime = it }
+    fun runtime(ctx: Context): GeckoRuntime = runtime ?: GeckoRuntime.create(
+        ctx.applicationContext,
+        GeckoRuntimeSettings.Builder()
+            .preferredColorScheme(colorScheme(Settings.theme(ctx)))
+            .build(),
+    ).also { runtime = it }
+
+    fun applyColorScheme(theme: Settings.Theme) {
+        runtime?.settings?.setPreferredColorScheme(colorScheme(theme))
+    }
+
+    private fun colorScheme(theme: Settings.Theme) = when (theme) {
+        Settings.Theme.DARK -> GeckoRuntimeSettings.COLOR_SCHEME_DARK
+        Settings.Theme.LIGHT -> GeckoRuntimeSettings.COLOR_SCHEME_LIGHT
+        Settings.Theme.SYSTEM -> GeckoRuntimeSettings.COLOR_SCHEME_SYSTEM
+    }
+
+    /** Кэш общий для движка, поэтому чистится сразу у всех профилей; входы в аккаунты не затрагивает. */
+    fun clearCache(ctx: Context) {
+        runtime(ctx).storageController.clearData(StorageController.ClearFlags.ALL_CACHES)
+    }
 
     fun isActive(id: Int) = Site.values().any { sessions.containsKey(key(id, it)) }
 
@@ -60,6 +81,7 @@ object Gecko {
         Site.values().forEach { drop(key(id, it)) }
         runtime(ctx).storageController.clearDataForSessionContext("profile_$id")
         Profiles.forget(ctx, id)
+        History.clear(ctx, id)
     }
 
     private fun drop(key: String) {

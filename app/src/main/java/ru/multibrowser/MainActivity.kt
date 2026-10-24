@@ -21,6 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Ui.init(this)
         list = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(20), dp(16), dp(24))
@@ -46,7 +47,17 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             addView(ImageView(context).apply { setImageResource(R.drawable.ic_logo) })
-            addView(logoText().apply { setPadding(dp(10), 0, 0, 0) })
+            addView(logoText().apply { setPadding(dp(10), 0, 0, 0) },
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(TextView(context).apply {
+                text = "⚙"
+                textSize = 20f
+                gravity = Gravity.CENTER
+                setTextColor(Ui.TEXT)
+                background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
+                contentDescription = "Настройки"
+                setOnClickListener { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) }
+            }, LinearLayout.LayoutParams(dp(40), dp(40)))
         })
         list.addView(TextView(this).apply {
             text = "Профили"
@@ -56,7 +67,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, dp(20), 0, dp(6))
         })
         list.addView(TextView(this).apply {
-            text = "15 изолированных профилей: в каждом свой Gmail и свой Claude. Долгое нажатие — меню профиля."
+            text = "${Settings.profileCount(this@MainActivity)} изолированных профилей: в каждом свой Gmail и свой Claude. Долгое нажатие — меню профиля."
             textSize = 13f
             setTextColor(Ui.MUTED)
             setPadding(0, 0, 0, dp(12))

@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
@@ -30,6 +31,9 @@ import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoView
 import org.mozilla.geckoview.WebResponse
 import java.net.URLEncoder
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class BrowserActivity : AppCompatActivity() {
 
@@ -44,12 +48,17 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var tabs: Map<Site, TextView>
     private lateinit var progress: ProgressBar
     private lateinit var switcher: LinearLayout
+    private lateinit var backButton: View
+    private lateinit var forwardButton: View
     private var profileId = 0
     private var site = Site.GMAIL
     private var session: GeckoSession? = null
     private var currentUrl = ""
 
     private val key get() = Gecko.key(profileId, site)
+
+    // Адрес, загружаемый сейчас в каждой вкладке, — чтобы подписать запись истории заголовком страницы.
+    private val pageUrls = HashMap<String, String>()
 
     // Ожидающий выбор файла (вложения в Gmail и т.п.).
     private var pendingFile: Pair<GeckoSession.PromptDelegate.FilePrompt,
@@ -63,6 +72,7 @@ class BrowserActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Ui.init(this)
         buildUi()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -74,6 +84,7 @@ class BrowserActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         openTab(intent)
     }
 
@@ -106,6 +117,12 @@ class BrowserActivity : AppCompatActivity() {
         geckoView.setSession(s)
         session = s
         renderSwitcher()
+        updateNavButtons()
+    }
+
+    private fun updateNavButtons() {
+        backButton.alpha = if (Gecko.canGoBack[key] == true) 1f else 0.35f
+        forwardButton.alpha = if (Gecko.canGoForward[key] == true) 1f else 0.35f
     }
 
     private fun attachDelegates(s: GeckoSession, id: Int, tab: Site) {
@@ -118,6 +135,8 @@ class BrowserActivity : AppCompatActivity() {
                     currentUrl = url
                 }
                 Profiles.saveLastUrl(this@BrowserActivity, id, tab, url)
+                History.add(this@BrowserActivity, id, url)
+                pageUrls[k] = url
             }
 
             override fun onProgressChange(session: GeckoSession, value: Int) {
@@ -131,10 +150,12 @@ class BrowserActivity : AppCompatActivity() {
         s.navigationDelegate = object : GeckoSession.NavigationDelegate {
             override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
                 Gecko.canGoBack[k] = canGoBack
+                if (visible()) updateNavButtons()
             }
 
             override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) {
                 Gecko.canGoForward[k] = canGoForward
+                if (visible()) updateNavButtons()
             }
 
             // Ссылки «в новом окне» открываем в той же вкладке.
@@ -158,6 +179,8 @@ class BrowserActivity : AppCompatActivity() {
         s.contentDelegate = object : GeckoSession.ContentDelegate {
             override fun onTitleChange(session: GeckoSession, title: String?) {
                 if (tab == Site.GMAIL) Profiles.updateFromTitle(this@BrowserActivity, id, title)
+                val url = pageUrls[k]
+                if (url != null && !title.isNullOrBlank()) History.setTitle(this@BrowserActivity, id, url, title)
             }
 
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
@@ -176,7 +199,7 @@ class BrowserActivity : AppCompatActivity() {
                 textSize = 13f
                 typeface = Typeface.DEFAULT_BOLD
                 gravity = Gravity.CENTER
-                setTextColor(Ui.TEXT)
+                setTextColor(Color.WHITE)
                 background = if (current) Ui.oval(p.color, dp(2), Ui.TEXT) else Ui.oval(p.color)
                 alpha = if (current || Gecko.isActive(p.id)) 1f else 0.55f
                 contentDescription = p.name
@@ -199,25 +222,89 @@ class BrowserActivity : AppCompatActivity() {
         setOnClickListener(onClick)
     }
 
+    private fun actionButton(symbol: String, label: String, onClick: () -> Unit) = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        gravity = Gravity.CENTER
+        setPadding(0, dp(4), 0, dp(2))
+        addView(TextView(context).apply {
+            text = symbol
+            textSize = 20f
+            gravity = Gravity.CENTER
+            setTextColor(Ui.TEXT)
+        })
+        addView(TextView(context).apply {
+            text = label
+            textSize = 10f
+            gravity = Gravity.CENTER
+            setTextColor(Ui.MUTED)
+        })
+        setOnClickListener { onClick() }
+    }
+
     private fun showMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
-        val items = listOf(
-            "← Назад" to { session?.goBack() ; Unit },
-            "→ Вперёд" to { session?.goForward(); Unit },
-            "⌂ Главная ${site.title}" to { session?.loadUri(site.home); Unit },
+        val items = listOf<Pair<String, () -> Unit>>(
             "Открыть адрес…" to { askUrl() },
             "Копировать ссылку" to { copyUrl() },
             "Открыть в другом браузере" to { openExternally() },
+            "Настройки" to { startActivity(Intent(this, SettingsActivity::class.java)) },
         )
-        items.forEachIndexed { i, (title, _) ->
-            menu.menu.add(0, i, i, title).isEnabled = when (i) {
-                0 -> Gecko.canGoBack[key] == true
-                1 -> Gecko.canGoForward[key] == true
-                else -> true
-            }
-        }
+        items.forEachIndexed { i, (title, _) -> menu.menu.add(0, i, i, title) }
         menu.setOnMenuItemClickListener { items[it.itemId].second(); true }
         menu.show()
+    }
+
+    private fun showHistory() {
+        val visits = History.list(this, profileId)
+        val name = Profiles.get(this, profileId).name
+        if (visits.isEmpty()) {
+            Toast.makeText(this, "История профиля «$name» пуста", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val fmt = SimpleDateFormat("dd.MM HH:mm", Locale.getDefault())
+        val labels = visits.map { v ->
+            val head = v.title.ifBlank { Uri.parse(v.url).host ?: v.url }
+            "$head\n${Uri.parse(v.url).host ?: ""} · ${fmt.format(Date(v.time))}"
+        }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("История: $name")
+            .setItems(labels) { _, i -> session?.loadUri(visits[i].url) }
+            .setNeutralButton("Очистить историю") { _, _ ->
+                History.clear(this, profileId)
+                Toast.makeText(this, "История очищена", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Закрыть", null)
+            .show()
+    }
+
+    private fun showClear() {
+        val name = Profiles.get(this, profileId).name
+        val options = arrayOf(
+            "История профиля «$name»",
+            "Кэш (все профили, входы сохраняются)",
+            "Выйти из аккаунтов профиля «$name»",
+        )
+        val checked = booleanArrayOf(true, true, false)
+        AlertDialog.Builder(this)
+            .setTitle("Очистка")
+            .setMultiChoiceItems(options, checked) { _, i, on -> checked[i] = on }
+            .setPositiveButton("Очистить") { _, _ ->
+                if (checked[0]) History.clear(this, profileId)
+                if (checked[1]) Gecko.clearCache(this)
+                if (checked[2]) {
+                    // Закрываем вкладки профиля, стираем его данные и открываем заново — уже без входа.
+                    val id = profileId
+                    val tab = site
+                    geckoView.releaseSession()
+                    session = null
+                    Gecko.clearProfile(this, id)
+                    profileId = 0
+                    openTab(id, tab)
+                }
+                Toast.makeText(this, "Готово", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
     }
 
     private fun askUrl() {
@@ -302,7 +389,6 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
 
-        val reload = iconButton("⟳") { session?.reload() }
         val more = iconButton("⋮") { showMenu(it) }
 
         val h = dp(40)
@@ -313,8 +399,7 @@ class BrowserActivity : AppCompatActivity() {
             setPadding(dp(10), dp(8), dp(10), dp(8))
             addView(chip, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, h))
             addView(tabBar, LinearLayout.LayoutParams(0, h, 1f).apply { marginStart = dp(8) })
-            addView(reload, LinearLayout.LayoutParams(h, h).apply { marginStart = dp(8) })
-            addView(more, LinearLayout.LayoutParams(h, h).apply { marginStart = dp(6) })
+            addView(more, LinearLayout.LayoutParams(h, h).apply { marginStart = dp(8) })
         }
 
         progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
@@ -330,6 +415,22 @@ class BrowserActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             setPadding(dp(10), dp(8), dp(2), dp(8))
         }
+        // Панель действий: как в обычном браузере, всё под большим пальцем.
+        val actions = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setBackgroundColor(Ui.BG)
+            setPadding(dp(4), dp(4), dp(4), 0)
+        }
+        fun action(symbol: String, label: String, onClick: () -> Unit) = actionButton(symbol, label, onClick).also {
+            actions.addView(it, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+        backButton = action("‹", "Назад") { session?.goBack() }
+        forwardButton = action("›", "Вперёд") { session?.goForward() }
+        action("⌂", "Домой") { session?.loadUri(site.home) }
+        action("☰", "История") { showHistory() }
+        action("✕", "Очистка") { showClear() }
+        action("⟳", "Обновить") { session?.reload() }
+
         val switcherScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             setBackgroundColor(Ui.BG)
@@ -346,6 +447,7 @@ class BrowserActivity : AppCompatActivity() {
             addView(geckoView, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
             addView(View(context).apply { setBackgroundColor(Ui.BORDER) },
                 LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)))
+            addView(actions)
             addView(switcherScroll)
         }
         setContentView(root)

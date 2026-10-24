@@ -1,0 +1,46 @@
+package ru.multibrowser
+
+import android.content.Context
+import androidx.appcompat.app.AppCompatDelegate
+
+object Settings {
+    const val MIN_PROFILES = 1
+    const val MAX_PROFILES = 50
+    private const val DEFAULT_PROFILES = 15
+
+    enum class Theme(val title: String) {
+        DARK("Тёмная"),
+        LIGHT("Светлая"),
+        SYSTEM("Как в системе"),
+    }
+
+    private fun prefs(ctx: Context) = ctx.getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+    fun profileCount(ctx: Context) =
+        prefs(ctx).getInt("count", DEFAULT_PROFILES).coerceIn(MIN_PROFILES, MAX_PROFILES)
+
+    fun setProfileCount(ctx: Context, n: Int) {
+        prefs(ctx).edit().putInt("count", n.coerceIn(MIN_PROFILES, MAX_PROFILES)).apply()
+    }
+
+    fun theme(ctx: Context): Theme =
+        runCatching { Theme.valueOf(prefs(ctx).getString("theme", null)!!) }.getOrDefault(Theme.DARK)
+
+    fun setTheme(ctx: Context, theme: Theme) {
+        prefs(ctx).edit().putString("theme", theme.name).apply()
+        applyTheme(ctx)
+    }
+
+    /** Тема приложения (AppCompat пересоздаст открытые экраны) и цветовая схема сайтов. */
+    fun applyTheme(ctx: Context) {
+        val theme = theme(ctx)
+        AppCompatDelegate.setDefaultNightMode(
+            when (theme) {
+                Theme.DARK -> AppCompatDelegate.MODE_NIGHT_YES
+                Theme.LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
+                Theme.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+        )
+        Gecko.applyColorScheme(theme)
+    }
+}

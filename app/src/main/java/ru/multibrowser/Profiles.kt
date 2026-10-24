@@ -1,6 +1,7 @@
 package ru.multibrowser
 
 import android.content.Context
+import android.graphics.Color
 
 data class Profile(
     val id: Int,
@@ -11,7 +12,6 @@ data class Profile(
 )
 
 object Profiles {
-    const val COUNT = 15
 
     private val COLORS = intArrayOf(
         0xFFE53935.toInt(), 0xFF8E24AA.toInt(), 0xFF3949AB.toInt(), 0xFF1E88E5.toInt(), 0xFF00897B.toInt(),
@@ -24,22 +24,32 @@ object Profiles {
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("profiles", Context.MODE_PRIVATE)
 
-    fun all(ctx: Context): List<Profile> = (1..COUNT).map { get(ctx, it) }
+    fun all(ctx: Context): List<Profile> = (1..Settings.profileCount(ctx)).map { get(ctx, it) }
+
+    /** Первые 15 — фирменная палитра, дальше — цвета по «золотому углу», чтобы соседние не совпадали. */
+    fun color(id: Int): Int =
+        if (id <= COLORS.size) COLORS[id - 1]
+        else Color.HSVToColor(floatArrayOf((id * 137.5f) % 360f, 0.62f, 0.78f))
 
     fun get(ctx: Context, id: Int): Profile {
         val p = prefs(ctx)
         return Profile(
             id = id,
             name = p.getString("name_$id", null) ?: "Профиль $id",
-            color = COLORS[(id - 1) % COLORS.size],
+            color = color(id),
             email = p.getString("email_$id", null),
             unread = p.getInt("unread_$id", 0),
         )
     }
 
+    /** Пустое имя возвращает название по умолчанию «Профиль N». */
     fun rename(ctx: Context, id: Int, name: String) {
-        prefs(ctx).edit().putString("name_$id", name.trim()).apply()
+        val edit = prefs(ctx).edit()
+        if (name.isBlank()) edit.remove("name_$id") else edit.putString("name_$id", name.trim())
+        edit.apply()
     }
+
+    fun customName(ctx: Context, id: Int): String = prefs(ctx).getString("name_$id", null).orEmpty()
 
     private fun urlKey(id: Int, site: Site) = "url_${id}_${site.name}"
 
