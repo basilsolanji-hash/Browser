@@ -67,6 +67,10 @@ class BrowserActivity : AppCompatActivity() {
     // Адрес, загружаемый сейчас в каждой вкладке, — чтобы подписать запись истории заголовком страницы.
     private val pageUrls = HashMap<String, String>()
 
+    // Вкладки, которым этот экран назначил обработчики; при закрытии экрана их отвязываем,
+    // чтобы фоновые вкладки не обращались к уничтоженному экрану (диалоги, тосты).
+    private val attached = mutableSetOf<GeckoSession>()
+
     // Ожидающий выбор файла (вложения в Gmail и т.п.).
     private var pendingFile: Pair<GeckoSession.PromptDelegate.FilePrompt,
         GeckoResult<GeckoSession.PromptDelegate.PromptResponse>>? = null
@@ -100,8 +104,23 @@ class BrowserActivity : AppCompatActivity() {
         openTab(intent)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Вкладку могли закрыть, пока экран был в фоне (очистка профиля в списке).
+        if (profileId != 0 && session?.isOpen != true) openTab(profileId, site)
+    }
+
     override fun onDestroy() {
         geckoView.releaseSession()
+        attached.forEach {
+            it.progressDelegate = null
+            it.navigationDelegate = null
+            it.contentDelegate = null
+            it.promptDelegate = null
+        }
+        attached.clear()
+        pendingFile?.let { (prompt, result) -> result.complete(prompt.dismiss()) }
+        pendingFile = null
         super.onDestroy()
     }
 
@@ -111,7 +130,7 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun openTab(id: Int, newSite: Site) {
-        if (id == profileId && newSite == site && session != null) return
+        if (id == profileId && newSite == site && session?.isOpen == true) return
         geckoView.releaseSession()
         profileId = id
         site = newSite
@@ -226,6 +245,7 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
         s.promptDelegate = PromptHandler()
+        attached += s
     }
 
     private fun renderSwitcher() {
@@ -318,13 +338,9 @@ class BrowserActivity : AppCompatActivity() {
                 if (checked[1]) Gecko.clearCache(this)
                 if (checked[2]) {
                     // Закрываем вкладки профиля, стираем его данные и открываем заново — уже без входа.
-                    val id = profileId
-                    val tab = site
                     geckoView.releaseSession()
-                    session = null
-                    Gecko.clearProfile(this, id)
-                    profileId = 0
-                    openTab(id, tab)
+                    Gecko.clearProfile(this, profileId)
+                    openTab(profileId, site)
                 }
                 Toast.makeText(this, "Готово", Toast.LENGTH_SHORT).show()
             }
@@ -506,8 +522,11 @@ class BrowserActivity : AppCompatActivity() {
         root.addView(switcherScroll)
         chrome += listOf(toolbar, topDivider, bottomDivider, actions, switcherScroll)
 
+        // Фокус по умолчанию — на корне, иначе адресная строка захватывает его при открытии экрана.
+        root.isFocusableInTouchMode = true
         setContentView(root)
         applyEdgeToEdge(root)
+        root.requestFocus()
     }
 
     private fun toUrl(input: String): String {

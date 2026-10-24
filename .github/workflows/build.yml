@@ -21,10 +21,24 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Prepare signing key
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_PASSWORD" ]; then
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in app/release.jks.enc \
+              -out "$RUNNER_TEMP/release.jks" -pass env:KEYSTORE_PASSWORD
+            echo "OS_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "OS_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "SIGNING=личный ключ" >> "$GITHUB_ENV"
+          else
+            echo "SIGNING=тестовый ключ (задайте секрет KEYSTORE_PASSWORD)" >> "$GITHUB_ENV"
+          fi
+
       - name: Build
         run: |
           set -o pipefail
-          ./gradlew assembleDebug --no-daemon --refresh-dependencies 2>&1 | tee build.log
+          ./gradlew assembleRelease --no-daemon --refresh-dependencies 2>&1 | tee build.log
 
       # Ошибки сборки — комментарием к коммиту, чтобы их было видно без полного лога.
       - name: Report errors
@@ -41,7 +55,7 @@ jobs:
         run: |
           TAG="build-${{ github.run_number }}"
           GECKO=$(ls ~/.gradle/caches/modules-2/files-2.1/org.mozilla.geckoview/geckoview/ | sort -V | tail -1)
-          cp app/build/outputs/apk/debug/app-debug.apk "Os-Browser-${TAG}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "Os-Browser-${TAG}.apk"
           gh release create "$TAG" "Os-Browser-${TAG}.apk" \
             --title "ОсьBrowser, сборка ${{ github.run_number }}" \
-            --notes "Движок GeckoView (Firefox) ${GECKO}. Автосборка из ${{ github.sha }}" --latest
+            --notes "Движок GeckoView (Firefox) ${GECKO}. Подпись: ${SIGNING}. Автосборка из ${{ github.sha }}" --latest

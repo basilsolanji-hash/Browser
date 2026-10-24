@@ -17,11 +17,12 @@ object Gecko {
     // Сколько вкладок держать в памяти; остальные «спят» и перезагружаются при открытии.
     private const val MAX_ACTIVE = 6
 
-    // Gmail отдаёт незнакомым браузерам устаревшую «простую» версию, поэтому
-    // представляемся мобильным Chrome. На страницах входа — родной UA движка.
+    // Gmail отдаёт незнакомым браузерам устаревшую «простую» версию, поэтому только для него
+    // представляемся мобильным Chrome. Остальным сайтам (вход Google, Claude с защитой Cloudflare)
+    // показываем честный UA Firefox: подмена там может вызывать бесконечные проверки «Вы человек?».
     private const val CHROME_UA =
         "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36"
-    private val SIGN_IN_HOSTS = setOf("accounts.google.com", "accounts.youtube.com")
+    private val CHROME_UA_HOSTS = setOf("mail.google.com")
 
     private var runtime: GeckoRuntime? = null
     private val sessions = LinkedHashMap<String, GeckoSession>(16, 0.75f, true)
@@ -86,7 +87,7 @@ object Gecko {
     }
 
     fun userAgentFor(url: String): String? =
-        if (Uri.parse(url).host in SIGN_IN_HOSTS) null else CHROME_UA
+        if (Uri.parse(url).host in CHROME_UA_HOSTS) CHROME_UA else null
 
     /** Выйти из всех аккаунтов профиля: закрыть вкладку и стереть cookies/хранилище его контекста. */
     fun clearProfile(ctx: Context, id: Int) {

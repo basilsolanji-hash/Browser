@@ -10,12 +10,16 @@ android {
         applicationId = "ru.multibrowser"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.7"
+        // Номер сборки GitHub Actions: каждая сборка новее предыдущей.
+        val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        versionCode = build
+        versionName = "0.8.$build"
         ndk { abiFilters += listOf("arm64-v8a") }
     }
 
-    // Один и тот же ключ для всех сборок — новые APK ставятся поверх старых без потери входов.
+    // Подпись: личный ключ (расшифровывается в CI паролем из секрета KEYSTORE_PASSWORD),
+    // а без него — общий тестовый ключ из репозитория, чтобы сборка всё равно работала.
+    val releaseKeystore = System.getenv("OS_KEYSTORE")
     signingConfigs {
         create("shared") {
             storeFile = file("debug.keystore")
@@ -23,11 +27,24 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        if (releaseKeystore != null) {
+            create("private") {
+                storeFile = file(releaseKeystore)
+                storePassword = System.getenv("OS_KEYSTORE_PASSWORD")
+                keyAlias = "os"
+                keyPassword = System.getenv("OS_KEYSTORE_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         getByName("debug") {
             signingConfig = signingConfigs.getByName("shared")
+        }
+        // Release: без отладки — данные приложения (входы в аккаунты) нельзя вытащить через adb.
+        getByName("release") {
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("private") ?: signingConfigs.getByName("shared")
         }
     }
 
