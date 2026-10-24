@@ -145,10 +145,15 @@ object Gecko {
     /** Выйти из всех аккаунтов профиля: закрыть вкладку и стереть cookies/хранилище его контекста. */
     fun clearProfile(ctx: Context, id: Int) {
         sessions.keys.filter { it.startsWith("$id:") }.forEach { drop(it) }
+        OpenTabs.list(ctx, id).forEach { Profiles.forgetTab(ctx, id, it) }
+        OpenTabs.closeAll(ctx, id)
         runtime(ctx).storageController.clearDataForSessionContext("profile_$id")
         Profiles.forget(ctx, id)
         History.clear(ctx, id)
     }
+
+    /** Закрыть вкладку профиля (открытую): сессия освобождается сразу. */
+    fun closeTab(id: Int, pin: Pin) = drop(key(id, pin))
 
     /** Вкладка упала или выгружена системой — забываем её, чтобы следующий вызов session() создал новую. */
     fun forget(key: String) = drop(key)
