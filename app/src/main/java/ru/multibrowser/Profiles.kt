@@ -35,7 +35,7 @@ object Profiles {
         val p = prefs(ctx)
         return Profile(
             id = id,
-            name = p.getString("name_$id", null) ?: "Профиль $id",
+            name = p.getString("name_$id", null) ?: Tr.t("profile_n", id),
             color = color(id),
             email = p.getString("email_$id", null),
             unread = p.getInt("unread_$id", 0),

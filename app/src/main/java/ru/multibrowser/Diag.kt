@@ -19,5 +19,5 @@ object Diag {
     }
 
     @Synchronized
-    fun text(): String = if (lines.isEmpty()) "Событий пока нет" else lines.joinToString("\n")
+    fun text(): String = if (lines.isEmpty()) Tr.t("no_events") else lines.joinToString("\n")
 }

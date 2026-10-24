@@ -87,6 +87,7 @@ class BrowserActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Tr.apply(this)
         Ui.init(this)
         buildUi()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -309,16 +310,16 @@ class BrowserActivity : AppCompatActivity() {
             }
 
             // Процесс страницы упал или выгружен системой — без этого остаётся белый экран.
-            override fun onCrash(session: GeckoSession) = recover("сбой процесса страницы")
+            override fun onCrash(session: GeckoSession) = recover(Tr.t("crash_reason"))
 
-            override fun onKill(session: GeckoSession) = recover("страница выгружена системой")
+            override fun onKill(session: GeckoSession) = recover(Tr.t("killed_reason"))
 
             private fun recover(reason: String) {
                 Diag.log(k, reason)
                 attached.remove(s)
                 Gecko.forget(k)
                 if (visible()) {
-                    Toast.makeText(this@BrowserActivity, "Страница перезапущена: $reason", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@BrowserActivity, Tr.t("restarted", reason), Toast.LENGTH_SHORT).show()
                     geckoView.releaseSession()
                     openTab(id, tab)
                 }
@@ -375,10 +376,10 @@ class BrowserActivity : AppCompatActivity() {
     private fun showMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
         val items = listOf<Pair<String, () -> Unit>>(
-            "Копировать ссылку" to { copyUrl() },
-            "Открыть в другом браузере" to { openExternally() },
-            "Диагностика" to { showDiagnostics() },
-            "Настройки" to { startActivity(Intent(this, SettingsActivity::class.java)) },
+            Tr.t("copy_link") to { copyUrl() },
+            Tr.t("open_external") to { openExternally() },
+            Tr.t("diagnostics") to { showDiagnostics() },
+            Tr.t("settings") to { startActivity(Intent(this, SettingsActivity::class.java)) },
         )
         items.forEachIndexed { i, (title, _) -> menu.menu.add(0, i, i, title) }
         menu.setOnMenuItemClickListener { items[it.itemId].second(); true }
@@ -389,7 +390,7 @@ class BrowserActivity : AppCompatActivity() {
         val visits = History.list(this, profileId)
         val name = Profiles.get(this, profileId).name
         if (visits.isEmpty()) {
-            Toast.makeText(this, "История профиля «$name» пуста", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.t("history_empty", name), Toast.LENGTH_SHORT).show()
             return
         }
         val fmt = SimpleDateFormat("dd.MM HH:mm", Locale.getDefault())
@@ -398,28 +399,28 @@ class BrowserActivity : AppCompatActivity() {
             "$head\n${Uri.parse(v.url).host ?: ""} · ${fmt.format(Date(v.time))}"
         }.toTypedArray()
         AlertDialog.Builder(this)
-            .setTitle("История: $name")
+            .setTitle(Tr.t("history_title", name))
             .setItems(labels) { _, i -> session?.loadUri(visits[i].url) }
-            .setNeutralButton("Очистить историю") { _, _ ->
+            .setNeutralButton(Tr.t("clear_history")) { _, _ ->
                 History.clear(this, profileId)
-                Toast.makeText(this, "История очищена", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, Tr.t("history_cleared"), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Закрыть", null)
+            .setNegativeButton(Tr.t("close"), null)
             .show()
     }
 
     private fun showClear() {
         val name = Profiles.get(this, profileId).name
         val options = arrayOf(
-            "История профиля «$name»",
-            "Кэш (все профили, входы сохраняются)",
-            "Выйти из аккаунтов профиля «$name»",
+            Tr.t("opt_history", name),
+            Tr.t("opt_cache"),
+            Tr.t("opt_logout", name),
         )
         val checked = booleanArrayOf(true, true, false)
         AlertDialog.Builder(this)
-            .setTitle("Очистка")
+            .setTitle(Tr.t("clear_title"))
             .setMultiChoiceItems(options, checked) { _, i, on -> checked[i] = on }
-            .setPositiveButton("Очистить") { _, _ ->
+            .setPositiveButton(Tr.t("clear")) { _, _ ->
                 if (checked[0]) History.clear(this, profileId)
                 if (checked[1]) Gecko.clearCache(this)
                 if (checked[2]) {
@@ -428,51 +429,50 @@ class BrowserActivity : AppCompatActivity() {
                     Gecko.clearProfile(this, profileId)
                     openTab(profileId, pin)
                 }
-                Toast.makeText(this, "Готово", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, Tr.t("done"), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Отмена", null)
+            .setNegativeButton(Tr.t("cancel"), null)
             .show()
     }
 
     private fun showDiagnostics() {
         val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull()
-        val text = "Ось $version\nВкладка: ${Profiles.get(this, profileId).name} / ${pin.title}\n" +
-            "Адрес: $currentUrl\n\n${Diag.text()}"
+        val text = "Ось $version\n${Profiles.get(this, profileId).name} / ${pin.title}\n$currentUrl\n\n${Diag.text()}"
         AlertDialog.Builder(this)
-            .setTitle("Диагностика")
+            .setTitle(Tr.t("diagnostics"))
             .setMessage(text)
-            .setPositiveButton("Копировать") { _, _ ->
+            .setPositiveButton(Tr.t("copy_link")) { _, _ ->
                 getSystemService(ClipboardManager::class.java)
                     ?.setPrimaryClip(ClipData.newPlainText("diag", text))
             }
-            .setNegativeButton("Закрыть", null)
+            .setNegativeButton(Tr.t("close"), null)
             .show()
     }
 
     private fun errorPage(uri: String?, error: WebRequestError): String {
         val reason = when (error.category) {
-            WebRequestError.ERROR_CATEGORY_NETWORK -> "Нет соединения с сайтом. Проверьте интернет или VPN."
-            WebRequestError.ERROR_CATEGORY_SECURITY -> "Небезопасное соединение: сертификат сайта не прошёл проверку."
-            WebRequestError.ERROR_CATEGORY_URI -> "Не удалось найти сайт. Проверьте адрес."
-            WebRequestError.ERROR_CATEGORY_SAFEBROWSING -> "Сайт помечен как опасный (фишинг или вредоносные программы)."
-            else -> "Страница не загрузилась."
+            WebRequestError.ERROR_CATEGORY_NETWORK -> Tr.t("err_network")
+            WebRequestError.ERROR_CATEGORY_SECURITY -> Tr.t("err_security")
+            WebRequestError.ERROR_CATEGORY_URI -> Tr.t("err_uri")
+            WebRequestError.ERROR_CATEGORY_SAFEBROWSING -> Tr.t("err_safe")
+            else -> Tr.t("err_generic")
         }
         val dark = Ui.dark
         val html = """<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
             <body style="margin:0;padding:32px 20px;font-family:sans-serif;
             background:${if (dark) "#1B1B1D" else "#F5F5F7"};color:${if (dark) "#E8E8EA" else "#1B1B1D"}">
-            <h2 style="margin:0 0 12px">Страница не открылась</h2>
+            <h2 style="margin:0 0 12px">${Tr.t("page_not_opened")}</h2>
             <p style="color:${if (dark) "#9A9AA2" else "#6B6B73"};line-height:1.5">$reason</p>
             <p style="font-size:12px;color:#888;word-break:break-all">${(uri ?: "").replace("<", "&lt;")}<br>
             Код: ${error.category}/${error.code}</p>
-            <p style="color:#2BA89A">Нажмите «Обновить» внизу, чтобы попробовать снова.</p></body>"""
+            <p style="color:#2BA89A">${Tr.t("err_retry")}</p></body>"""
         return "data:text/html;charset=utf-8," + Uri.encode(html)
     }
 
     private fun copyUrl() {
         getSystemService(ClipboardManager::class.java)
             ?.setPrimaryClip(ClipData.newPlainText("url", currentUrl))
-        Toast.makeText(this, "Ссылка скопирована", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, Tr.t("link_copied"), Toast.LENGTH_SHORT).show()
     }
 
     private fun openExternally() {
@@ -514,7 +514,7 @@ class BrowserActivity : AppCompatActivity() {
             addView(tabBar)
         }
 
-        val more = iconButton(R.drawable.ic_more, "Меню") { showMenu(it) }
+        val more = iconButton(R.drawable.ic_more, Tr.t("menu")) { showMenu(it) }
 
         val h = dp(40)
         val tabRow = LinearLayout(this).apply {
@@ -532,7 +532,7 @@ class BrowserActivity : AppCompatActivity() {
             textSize = 14f
             setTextColor(Ui.TEXT)
             setHintTextColor(Ui.MUTED)
-            hint = "Адрес или поиск в Google"
+            hint = Tr.t("address_hint")
             imeOptions = EditorInfo.IME_ACTION_GO
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             background = null
@@ -607,12 +607,12 @@ class BrowserActivity : AppCompatActivity() {
         fun action(iconRes: Int, label: String, onClick: () -> Unit) = actionButton(iconRes, label, onClick).also {
             actions.addView(it, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         }
-        backButton = action(R.drawable.ic_back, "Назад") { session?.goBack() }
-        forwardButton = action(R.drawable.ic_forward, "Вперёд") { session?.goForward() }
-        action(R.drawable.ic_home, "Домой") { session?.loadUri(pin.url) }
-        action(R.drawable.ic_history, "История") { showHistory() }
-        action(R.drawable.ic_delete, "Очистка") { showClear() }
-        action(R.drawable.ic_refresh, "Обновить") { session?.reload() }
+        backButton = action(R.drawable.ic_back, Tr.t("back")) { session?.goBack() }
+        forwardButton = action(R.drawable.ic_forward, Tr.t("forward")) { session?.goForward() }
+        action(R.drawable.ic_home, Tr.t("home")) { session?.loadUri(pin.url) }
+        action(R.drawable.ic_history, Tr.t("history")) { showHistory() }
+        action(R.drawable.ic_delete, Tr.t("clear_short")) { showClear() }
+        action(R.drawable.ic_refresh, Tr.t("refresh")) { session?.reload() }
 
         // Нижняя полоса: быстрое переключение между профилями без возврата к списку.
         switcher = LinearLayout(this).apply {
@@ -717,7 +717,7 @@ class BrowserActivity : AppCompatActivity() {
                     answered = true
                     result.complete(prompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.POSITIVE))
                 }
-                .setNegativeButton("Отмена") { _, _ ->
+                .setNegativeButton(Tr.t("cancel")) { _, _ ->
                     answered = true
                     result.complete(prompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.NEGATIVE))
                 }

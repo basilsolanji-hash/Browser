@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Tr.apply(this)
         Ui.init(this)
         list = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -53,19 +54,19 @@ class MainActivity : AppCompatActivity() {
                 contentDescription = "Ось"
                 scaleType = ImageView.ScaleType.FIT_START
             }, LinearLayout.LayoutParams(0, dp(34), 1f))
-            addView(iconButton(R.drawable.ic_settings, "Настройки") {
+            addView(iconButton(R.drawable.ic_settings, Tr.t("settings")) {
                 startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
             }, LinearLayout.LayoutParams(dp(40), dp(40)))
         })
         list.addView(TextView(this).apply {
-            text = "Профили"
+            text = Tr.t("profiles")
             textSize = 20f
             typeface = Typeface.DEFAULT_BOLD
             setTextColor(Ui.TEXT)
             setPadding(0, dp(20), 0, dp(6))
         })
         list.addView(TextView(this).apply {
-            text = "${Settings.profileCount(this@MainActivity)} изолированных профилей: в каждом свои аккаунты и cookies. Долгое нажатие — меню профиля."
+            text = Tr.t("profiles_desc", Settings.profileCount(this@MainActivity))
             textSize = 13f
             setTextColor(Ui.MUTED)
             setPadding(0, 0, 0, dp(12))
@@ -103,7 +104,7 @@ class MainActivity : AppCompatActivity() {
                 ellipsize = TextUtils.TruncateAt.END
             })
             addView(TextView(context).apply {
-                text = p.email ?: "Вход не выполнен"
+                text = p.email ?: Tr.t("not_signed_in")
                 textSize = 13f
                 setTextColor(Ui.MUTED)
                 maxLines = 1
@@ -155,7 +156,7 @@ class MainActivity : AppCompatActivity() {
     private fun profileMenu(p: Profile) {
         AlertDialog.Builder(this)
             .setTitle(p.name)
-            .setItems(arrayOf("Переименовать", "Выйти из аккаунтов (очистить профиль)")) { _, which ->
+            .setItems(arrayOf(Tr.t("rename"), Tr.t("logout_clear"))) { _, which ->
                 if (which == 0) renameDialog(p) else clearDialog(p)
             }
             .show()
@@ -172,25 +173,25 @@ class MainActivity : AppCompatActivity() {
             addView(input, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         }
         AlertDialog.Builder(this)
-            .setTitle("Название профиля")
+            .setTitle(Tr.t("profile_name"))
             .setView(box)
-            .setPositiveButton("Сохранить") { _, _ ->
+            .setPositiveButton(Tr.t("save")) { _, _ ->
                 if (input.text.isNotBlank()) Profiles.rename(this, p.id, input.text.toString())
                 render()
             }
-            .setNegativeButton("Отмена", null)
+            .setNegativeButton(Tr.t("cancel"), null)
             .show()
     }
 
     private fun clearDialog(p: Profile) {
         AlertDialog.Builder(this)
-            .setTitle("Очистить «${p.name}»?")
-            .setMessage("Будут удалены вход в аккаунты, cookies и данные сайтов этого профиля. Другие профили не пострадают.")
-            .setPositiveButton("Очистить") { _, _ ->
+            .setTitle(Tr.t("clear_q", p.name))
+            .setMessage(Tr.t("clear_profile_msg"))
+            .setPositiveButton(Tr.t("clear")) { _, _ ->
                 Gecko.clearProfile(this, p.id)
                 render()
             }
-            .setNegativeButton("Отмена", null)
+            .setNegativeButton(Tr.t("cancel"), null)
             .show()
     }
 }

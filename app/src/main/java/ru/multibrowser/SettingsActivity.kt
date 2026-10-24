@@ -31,6 +31,7 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Tr.apply(this)
         Ui.init(this)
 
         val content = LinearLayout(this).apply {
@@ -46,76 +47,74 @@ class SettingsActivity : AppCompatActivity() {
         applyEdgeToEdge(root)
 
         content.addView(header())
-        content.addView(sectionTitle("Закреплённые вкладки"))
+        content.addView(sectionTitle(Tr.t("pinned_tabs")))
         pins = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         content.addView(pins)
         renderPins()
-        content.addView(button("+ Добавить вкладку") { editPinDialog(null) })
-        content.addView(hint("Эти вкладки видны в каждом профиле. В профиле у каждой вкладки свой вход и cookies, " +
-            "поэтому одна и та же вкладка в разных профилях — это разные аккаунты."))
-        content.addView(sectionTitle("Тема"))
+        content.addView(button(Tr.t("add_tab")) { editPinDialog(null) })
+        content.addView(hint(Tr.t("pinned_desc")))
+        content.addView(sectionTitle(Tr.t("language")))
+        content.addView(segmented(Tr.CODES, Settings.language(this),
+            { if (it == "system") Tr.t("system") else Tr.NAMES[it] ?: it }) {
+            Settings.setLanguage(this, it)
+            recreate()
+        })
+        content.addView(sectionTitle(Tr.t("theme")))
         content.addView(themeSelector())
-        content.addView(sectionTitle("Защита"))
+        content.addView(sectionTitle(Tr.t("protection")))
         content.addView(segmented(listOf(true, false), Settings.lockEnabled(this),
-            { if (it) "Вход по отпечатку/PIN" else "Без блокировки" }) {
+            { if (it) Tr.t("lock_on") else Tr.t("lock_off") }) {
             Settings.setLockEnabled(this, it)
             recreate()
         })
         if (!AppLock.deviceSecure(this)) {
-            content.addView(hint("На телефоне не задана блокировка экрана — сначала включите её в настройках Android."))
+            content.addView(hint(Tr.t("no_screen_lock")))
         }
         content.addView(segmented(listOf(false, true), Settings.hideContent(this),
-            { if (it) "Скрывать содержимое" else "Показывать" }) {
+            { if (it) Tr.t("hide_content") else Tr.t("show") }) {
             Settings.setHideContent(this, it)
             recreate()
         }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             .apply { topMargin = dp(8) })
-        content.addView(hint("«Скрывать содержимое»: в списке недавних приложений не видно страниц, скриншоты запрещены. " +
-            "Блокировка запрашивается при запуске и после минуты в фоне."))
-        content.addView(sectionTitle("Панели при прокрутке"))
+        content.addView(hint(Tr.t("hide_content_desc")))
+        content.addView(sectionTitle(Tr.t("scroll_bars")))
         content.addView(segmented(listOf(true, false), Settings.autoHideBars(this),
-            { if (it) "Прятать" else "Всегда видны" }) {
+            { if (it) Tr.t("hide_bars") else Tr.t("always_visible") }) {
             Settings.setAutoHideBars(this, it)
             recreate()
         })
-        content.addView(sectionTitle("Адресная строка и вкладки"))
-        content.addView(segmented(Settings.BarPosition.values().toList(), Settings.barPosition(this), { it.title }) {
+        content.addView(sectionTitle(Tr.t("address_tabs")))
+        content.addView(segmented(Settings.BarPosition.values().toList(), Settings.barPosition(this),
+            { if (it == Settings.BarPosition.TOP) Tr.t("top") else Tr.t("bottom") }) {
             Settings.setBarPosition(this, it)
             recreate()
         })
-        content.addView(sectionTitle("Полоса профилей внизу браузера"))
-        content.addView(segmented(listOf(false, true), Settings.showSwitcher(this), { if (it) "Показывать" else "Скрыть" }) {
+        content.addView(sectionTitle(Tr.t("profile_strip")))
+        content.addView(segmented(listOf(false, true), Settings.showSwitcher(this), { if (it) Tr.t("show") else Tr.t("hide") }) {
             Settings.setShowSwitcher(this, it)
             recreate()
         })
-        content.addView(sectionTitle("Вкладок в памяти одновременно"))
+        content.addView(sectionTitle(Tr.t("live_tabs")))
         content.addView(segmented(Settings.KEEP_ALIVE_OPTIONS, Settings.keepAlive(this), { it.toString() }) {
             Settings.setKeepAlive(this, it)
             recreate()
         })
-        content.addView(TextView(this).apply {
-            text = "Столько вкладок Gmail/Claude работают в фоне, не перезагружаясь: можно запустить ответ Claude " +
-                "в одном профиле и спокойно переключиться в другой. Больше — удобнее, но нужно больше памяти " +
-                "(10–15 — для телефонов с 8 ГБ и более)."
-            textSize = 12f
-            setTextColor(Ui.MUTED)
-            setPadding(0, dp(6), 0, 0)
-        })
-        content.addView(sectionTitle("Количество профилей"))
+        content.addView(hint(Tr.t("live_tabs_desc")))
+        content.addView(sectionTitle(Tr.t("profiles_count")))
         content.addView(countSelector())
-        content.addView(sectionTitle("Названия профилей"))
+        content.addView(sectionTitle(Tr.t("profile_names")))
         names = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         content.addView(names)
         renderNames()
-        content.addView(sectionTitle("Данные"))
-        content.addView(button("Очистить кэш всех профилей") {
+        content.addView(sectionTitle(Tr.t("data")))
+        content.addView(button(Tr.t("clear_cache_all")) {
             Gecko.clearCache(this)
-            toast("Кэш очищен. Входы в аккаунты сохранены")
+            toast(Tr.t("cache_cleared"))
         })
-        content.addView(button("Очистить историю всех профилей") {
-            confirm("Очистить историю всех профилей?") {
+        content.addView(button(Tr.t("clear_history_all")) {
+            confirm(Tr.t("clear_history_all_q")) {
                 History.clearAll(this)
-                toast("История очищена")
+                toast(Tr.t("history_cleared"))
             }
         })
     }
@@ -123,10 +122,10 @@ class SettingsActivity : AppCompatActivity() {
     private fun header() = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        addView(iconButton(R.drawable.ic_back, "Назад") { finish() },
+        addView(iconButton(R.drawable.ic_back, Tr.t("back")) { finish() },
             LinearLayout.LayoutParams(dp(40), dp(40)))
         addView(TextView(context).apply {
-            text = "Настройки"
+            text = Tr.t("settings")
             textSize = 20f
             typeface = Typeface.DEFAULT_BOLD
             setTextColor(Ui.TEXT)
@@ -214,7 +213,7 @@ class SettingsActivity : AppCompatActivity() {
             addView(seek, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(36))
                 .apply { topMargin = dp(8) })
             addView(TextView(context).apply {
-                text = "От ${Settings.MIN_PROFILES} до ${Settings.MAX_PROFILES}. При уменьшении данные скрытых профилей сохраняются."
+                text = Tr.t("range_desc", Settings.MIN_PROFILES, Settings.MAX_PROFILES)
                 textSize = 12f
                 setTextColor(Ui.MUTED)
             })
@@ -252,7 +251,7 @@ class SettingsActivity : AppCompatActivity() {
             }, LinearLayout.LayoutParams(dp(36), LinearLayout.LayoutParams.WRAP_CONTENT))
             row.addView(EditText(this).apply {
                 setText(Profiles.customName(this@SettingsActivity, id))
-                hint = "Профиль $id"
+                hint = Tr.t("profile_n", id)
                 setSingleLine()
                 inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
                 textSize = 15f
@@ -296,7 +295,7 @@ class SettingsActivity : AppCompatActivity() {
                     maxLines = 1
                 })
                 addView(TextView(context).apply {
-                    text = if (pin.url == Pins.START) "Стартовая страница" else pin.url
+                    text = if (pin.url == Pins.START) Tr.t("start_page") else pin.url
                     textSize = 12f
                     setTextColor(Ui.MUTED)
                     maxLines = 1
@@ -325,13 +324,13 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun editPinDialog(pin: Pin?) {
         val title = EditText(this).apply {
-            hint = "Название, напр. Gmail"
+            hint = Tr.t("tab_name_hint")
             setText(pin?.title ?: "")
             setSingleLine()
             setTextColor(Ui.TEXT)
         }
         val url = EditText(this).apply {
-            hint = "Адрес, напр. mail.google.com"
+            hint = Tr.t("tab_url_hint")
             setText(pin?.url ?: "https://")
             setSingleLine()
             setTextColor(Ui.TEXT)
@@ -345,15 +344,15 @@ class SettingsActivity : AppCompatActivity() {
                 .apply { topMargin = dp(8) })
         }
         AlertDialog.Builder(this)
-            .setTitle(if (pin == null) "Новая вкладка" else "Изменить вкладку")
+            .setTitle(if (pin == null) Tr.t("new_tab") else Tr.t("edit_tab"))
             .setView(box)
-            .setPositiveButton("Сохранить") { _, _ ->
-                val t = title.text.toString().ifBlank { "Вкладка" }
+            .setPositiveButton(Tr.t("save")) { _, _ ->
+                val t = title.text.toString().ifBlank { Tr.t("tab_fallback") }
                 val u = url.text.toString()
                 if (pin == null) Pins.add(this, t, u) else Pins.update(this, pin.id, t, u)
                 renderPins()
             }
-            .setNegativeButton("Отмена", null)
+            .setNegativeButton(Tr.t("cancel"), null)
             .show()
     }
 
@@ -379,8 +378,8 @@ class SettingsActivity : AppCompatActivity() {
     private fun confirm(title: String, onYes: () -> Unit) {
         AlertDialog.Builder(this)
             .setTitle(title)
-            .setPositiveButton("Очистить") { _, _ -> onYes() }
-            .setNegativeButton("Отмена", null)
+            .setPositiveButton(Tr.t("clear")) { _, _ -> onYes() }
+            .setNegativeButton(Tr.t("cancel"), null)
             .show()
     }
 

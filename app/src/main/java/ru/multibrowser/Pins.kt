@@ -21,14 +21,16 @@ object Pins {
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("pins", Context.MODE_PRIVATE)
 
     fun all(ctx: Context): List<Pin> {
-        val raw = prefs(ctx).getString("list", null) ?: return DEFAULT
-        return runCatching {
+        val raw = prefs(ctx).getString("list", null)
+        val list = if (raw == null) DEFAULT else runCatching {
             val arr = JSONArray(raw)
             (0 until arr.length()).map {
                 val o = arr.getJSONObject(it)
                 Pin(o.getString("id"), o.getString("title"), o.getString("url"))
             }
         }.getOrDefault(DEFAULT).ifEmpty { DEFAULT }
+        // Название встроенной стартовой вкладки показываем на языке интерфейса.
+        return list.map { if (it.url == START) it.copy(title = Tr.t("start")) else it }
     }
 
     fun byId(ctx: Context, id: String?): Pin? = all(ctx).firstOrNull { it.id == id }

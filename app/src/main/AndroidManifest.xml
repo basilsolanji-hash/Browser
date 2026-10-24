@@ -5,6 +5,7 @@
 
     <application
         android:name=".App"
+        android:supportsRtl="true"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="Ось"

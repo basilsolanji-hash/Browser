@@ -74,6 +74,8 @@ fun Context.dpf(v: Int) = v * resources.displayMetrics.density
  * (и от клавиатуры) сами, а цвет значков панелей подбираем под тему.
  */
 fun Activity.applyEdgeToEdge(root: View) {
+    // Для языков с письмом справа налево (арабский) разворачиваем интерфейс.
+    root.layoutDirection = if (Tr.isRtl()) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
     WindowCompat.setDecorFitsSystemWindows(window, false)
     WindowInsetsControllerCompat(window, root).apply {
         isAppearanceLightStatusBars = !Ui.dark

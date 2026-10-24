@@ -5,6 +5,7 @@ import android.app.Application
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
+        Tr.apply(this)
         Settings.applyTheme(this)
         AppLock.register(this)
     }

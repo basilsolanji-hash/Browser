@@ -86,7 +86,7 @@ object AppLock {
                 addView(ImageView(activity).apply { setImageResource(R.drawable.ic_wordmark) },
                     LinearLayout.LayoutParams(activity.dp(140), activity.dp(42)))
                 addView(TextView(activity).apply {
-                    text = "Разблокировать"
+                    text = Tr.t("unlock")
                     textSize = 15f
                     typeface = Typeface.DEFAULT_BOLD
                     gravity = Gravity.CENTER
@@ -135,7 +135,7 @@ object AppLock {
         prompt.authenticate(
             BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Ось")
-                .setSubtitle("Подтвердите, что это вы")
+                .setSubtitle(Tr.t("confirm_you"))
                 .setAllowedAuthenticators(BIOMETRIC_WEAK or DEVICE_CREDENTIAL)
                 .build()
         )

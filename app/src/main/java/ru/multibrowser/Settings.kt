@@ -65,6 +65,13 @@ object Settings {
         prefs(ctx).edit().putBoolean("autohide", on).apply()
     }
 
+    fun language(ctx: Context): String = prefs(ctx).getString("lang", "system") ?: "system"
+
+    fun setLanguage(ctx: Context, code: String) {
+        prefs(ctx).edit().putString("lang", code).apply()
+        Tr.apply(ctx)
+    }
+
     fun theme(ctx: Context): Theme =
         runCatching { Theme.valueOf(prefs(ctx).getString("theme", null)!!) }.getOrDefault(Theme.DARK)
 

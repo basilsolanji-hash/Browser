@@ -24,11 +24,11 @@ object Downloads {
         val mime = header(response, "Content-Type")?.substringBefore(';')?.trim()
             ?.takeIf { it.isNotEmpty() } ?: "application/octet-stream"
         val app = activity.applicationContext
-        Toast.makeText(app, "Скачивание: $name", Toast.LENGTH_SHORT).show()
+        Toast.makeText(app, Tr.t("downloading", name), Toast.LENGTH_SHORT).show()
         thread(name = "download") {
             val ok = runCatching { body.use { write(app, name, mime, it) } }.isSuccess
             activity.runOnUiThread {
-                val msg = if (ok) "Сохранено в Загрузки/$FOLDER: $name" else "Не удалось скачать $name"
+                val msg = if (ok) Tr.t("saved_to", FOLDER, name) else Tr.t("download_failed", name)
                 Toast.makeText(app, msg, Toast.LENGTH_LONG).show()
             }
         }
