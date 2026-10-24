@@ -74,8 +74,9 @@ bookmarks --es debug_add_url https://ru.wikipedia.org/ --es debug_add_title Wiki
 tap_text "Work";                                                          shot 19-fav-folder 2
 back
 tap_text "Search favorites"; sleep 1; adb shell input text wiki;          shot 20-fav-search 2
-back; back
-tap_text "Example Domain" "example.com";                                  shot 21-fav-opened 15
+back   # скрыть клавиатуру
+# Открыть закладку из результатов поиска: должна загрузиться другая страница (Википедия) в текущем профиле.
+tap_text "Wikipedia";                                                     shot 21-fav-opened 25
 tap_text "Menu";                                                          shot 22-menu-remove 2
 back
 
