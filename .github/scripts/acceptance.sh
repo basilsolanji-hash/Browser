@@ -40,8 +40,9 @@ browser --ei profile 1 --es url https://claude.ai/;                       shot 1
 
 
 # --- Блок C: настройки сайтов, проверка безопасности, поиск в настройках, запрос геолокации ---
-sitesettings() { adb shell am start -n "$PKG/ru.multibrowser.SiteSettingsActivity" "$@" >/dev/null; }
-seccheck() { adb shell am start -n "$PKG/ru.multibrowser.SecurityCheckActivity" "$@" >/dev/null; }
+# NEW_TASK|MULTIPLE_TASK: иначе am start лишь выводит на передний план старую задачу с браузером сверху.
+sitesettings() { adb shell am start -f 0x18000000 -n "$PKG/ru.multibrowser.SiteSettingsActivity" "$@" >/dev/null; }
+seccheck() { adb shell am start -f 0x18000000 -n "$PKG/ru.multibrowser.SecurityCheckActivity" "$@" >/dev/null; }
 # Нажать на элемент экрана по его тексту (через дамп uiautomator); 0 — найден и нажат.
 tap_text() {
   adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
@@ -96,8 +97,10 @@ browser --ei profile 7 --es url http://localhost:8765/geo.html;          shot 18
 tap_text "Allow" "Разрешить" && sleep 3;                                  shot 19-geo-android 2
 tap_text "While using the app" "Only this time" "Allow" && sleep 5;       shot 20-geo-result 8
 sitesettings;                                                             shot 21-site-settings-after 5
+for i in 1 2 3 4; do adb shell input swipe 160 560 160 80 300; done;       shot 21b-site-settings-sites 2
 sitesettings --es host localhost;                                         shot 22-site-localhost 5
 seccheck;                                                                 shot 23-security-after 5
+adb shell input swipe 160 560 160 80 300;                                 shot 23b-security-after-bottom 2
 kill "$WEBPID" 2>/dev/null || true
 
 adb logcat -d -v time > "$OUT/logcat.txt"
