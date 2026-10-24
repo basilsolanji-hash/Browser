@@ -101,12 +101,28 @@ object Downloads {
      * тогда берём тип по расширению — иначе файл нечем открыть.
      */
     fun effectiveMime(mime: String, name: String): String {
-        val byExt = android.webkit.MimeTypeMap.getSingleton()
-            .getMimeTypeFromExtension(name.substringAfterLast('.', "").lowercase())
+        val ext = name.substringAfterLast('.', "").lowercase()
+        // Своя таблица частых типов (на устройствах системная бывает неполной), потом — системная.
+        val byExt = EXT_TYPES[ext] ?: android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
         val generic = mime.isBlank() || mime == "application/octet-stream" || mime == "binary/octet-stream" ||
             mime == "application/force-download" || mime == "application/x-download"
         return if (generic) byExt ?: "application/octet-stream" else mime
     }
+
+    private val EXT_TYPES = mapOf(
+        "apk" to "application/vnd.android.package-archive", "pdf" to "application/pdf",
+        "jpg" to "image/jpeg", "jpeg" to "image/jpeg", "png" to "image/png", "gif" to "image/gif",
+        "webp" to "image/webp", "svg" to "image/svg+xml", "heic" to "image/heic",
+        "txt" to "text/plain", "csv" to "text/csv", "html" to "text/html", "htm" to "text/html",
+        "json" to "application/json", "xml" to "text/xml", "md" to "text/markdown",
+        "mp3" to "audio/mpeg", "m4a" to "audio/mp4", "ogg" to "audio/ogg", "wav" to "audio/wav",
+        "mp4" to "video/mp4", "webm" to "video/webm", "mkv" to "video/x-matroska", "mov" to "video/quicktime",
+        "zip" to "application/zip", "rar" to "application/vnd.rar", "7z" to "application/x-7z-compressed",
+        "doc" to "application/msword", "xls" to "application/vnd.ms-excel", "ppt" to "application/vnd.ms-powerpoint",
+        "docx" to "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "xlsx" to "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "pptx" to "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    )
 
     /** Типы, которые Ось показывает сама (движок умеет PDF, картинки, текст и страницы). */
     fun viewableInOs(mime: String) = mime == "application/pdf" || mime.startsWith("image/") ||
