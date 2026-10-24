@@ -33,7 +33,7 @@ object Gecko {
 
     /** Загружает адрес; встроенную стартовую страницу рендерит локализованно. */
     fun loadUrl(session: GeckoSession, url: String) {
-        if (url == Pins.START) session.loadData(StartPage.html(), "text/html") else session.loadUri(url)
+        if (url == Pins.START) session.load(GeckoSession.Loader().data(StartPage.html(), "text/html")) else session.loadUri(url)
     }
 
     fun runtime(ctx: Context): GeckoRuntime = runtime ?: GeckoRuntime.create(
