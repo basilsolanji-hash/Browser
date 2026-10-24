@@ -41,6 +41,7 @@ object ExtrasSettings {
         content.addView(a.sectionTitle(Tr.t("my_library")))
         content.addView(ExtrasUi.button(a, Tr.t("notes")) { a.startActivity(Intent(a, NotesActivity::class.java)) })
         content.addView(ExtrasUi.button(a, Tr.t("saved_pages")) { a.startActivity(Intent(a, SavedPagesActivity::class.java)) })
+        content.addView(ExtrasUi.button(a, Tr.t("stats")) { a.startActivity(Intent(a, StatsActivity::class.java)) })
 
         content.addView(a.sectionTitle(Tr.t("about_section")))
         content.addView(ExtrasUi.button(a, Tr.t("help_feedback")) { a.startActivity(Intent(a, HelpActivity::class.java)) })

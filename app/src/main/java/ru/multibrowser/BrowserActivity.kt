@@ -30,6 +30,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import org.mozilla.geckoview.AllowOrDeny
+import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoView
@@ -127,6 +128,11 @@ class BrowserActivity : AppCompatActivity() {
             openTab(profileId, Pins.resolve(this, pin.id, profileId))
         }
         renderTabs()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Stats.flush(this)
     }
 
     override fun onDestroy() {
@@ -255,6 +261,12 @@ class BrowserActivity : AppCompatActivity() {
     private fun attachDelegates(s: GeckoSession, id: Int, tab: Pin) {
         val k = Gecko.key(id, tab)
         val visible = { k == key }
+        // Для «Статистики»: сколько трекеров заблокировала защита.
+        s.contentBlockingDelegate = object : ContentBlocking.Delegate {
+            override fun onContentBlocked(session: GeckoSession, event: ContentBlocking.BlockEvent) {
+                Stats.trackerBlocked(this@BrowserActivity)
+            }
+        }
         s.progressDelegate = object : GeckoSession.ProgressDelegate {
             override fun onPageStart(session: GeckoSession, url: String) {
                 Diag.log(k, "начало: $url")

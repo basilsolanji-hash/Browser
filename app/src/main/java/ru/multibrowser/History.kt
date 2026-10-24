@@ -28,6 +28,7 @@ object History {
         val items = list(ctx, id)
         if (items.firstOrNull()?.url == url) return
         save(ctx, id, (listOf(Visit(url, "", System.currentTimeMillis())) + items).take(MAX))
+        Stats.page(ctx, id)
     }
 
     fun setTitle(ctx: Context, id: Int, url: String, title: String) {
