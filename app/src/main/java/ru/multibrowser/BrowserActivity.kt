@@ -12,7 +12,10 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.net.Uri
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
@@ -31,6 +34,16 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var progress: ProgressBar
     private var profileId = 0
     private var session: GeckoSession? = null
+
+    // Ожидающий выбор файла (вложения в Gmail и т.п.).
+    private var pendingFile: Pair<GeckoSession.PromptDelegate.FilePrompt,
+        GeckoResult<GeckoSession.PromptDelegate.PromptResponse>>? = null
+
+    private val pickFiles = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+        val (prompt, result) = pendingFile ?: return@registerForActivityResult
+        pendingFile = null
+        result.complete(answerFilePrompt(prompt, uris))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,6 +111,68 @@ class BrowserActivity : AppCompatActivity() {
                 return null
             }
         }
+        s.promptDelegate = PromptHandler()
+    }
+
+    private fun answerFilePrompt(
+        prompt: GeckoSession.PromptDelegate.FilePrompt,
+        uris: List<Uri>,
+    ): GeckoSession.PromptDelegate.PromptResponse = when {
+        uris.isEmpty() -> prompt.dismiss()
+        prompt.type == GeckoSession.PromptDelegate.FilePrompt.Type.MULTIPLE ->
+            prompt.confirm(this, uris.toTypedArray())
+        else -> prompt.confirm(this, uris[0])
+    }
+
+    /** Окна сайтов: alert/confirm и выбор файлов. Без этого GeckoView молча их пропускает. */
+    private inner class PromptHandler : GeckoSession.PromptDelegate {
+        private fun dialog(title: String?, message: String?) = AlertDialog.Builder(this@BrowserActivity)
+            .setTitle(title?.takeIf { it.isNotBlank() })
+            .setMessage(message)
+
+        override fun onAlertPrompt(
+            session: GeckoSession,
+            prompt: GeckoSession.PromptDelegate.AlertPrompt,
+        ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse> {
+            val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
+            dialog(prompt.title, prompt.message)
+                .setPositiveButton("OK", null)
+                .setOnDismissListener { result.complete(prompt.dismiss()) }
+                .show()
+            return result
+        }
+
+        override fun onButtonPrompt(
+            session: GeckoSession,
+            prompt: GeckoSession.PromptDelegate.ButtonPrompt,
+        ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse> {
+            val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
+            var answered = false
+            dialog(prompt.title, prompt.message)
+                .setPositiveButton("OK") { _, _ ->
+                    answered = true
+                    result.complete(prompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.POSITIVE))
+                }
+                .setNegativeButton("Отмена") { _, _ ->
+                    answered = true
+                    result.complete(prompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.NEGATIVE))
+                }
+                .setOnDismissListener { if (!answered) result.complete(prompt.dismiss()) }
+                .show()
+            return result
+        }
+
+        override fun onFilePrompt(
+            session: GeckoSession,
+            prompt: GeckoSession.PromptDelegate.FilePrompt,
+        ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse> {
+            val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
+            pendingFile?.let { (old, oldResult) -> oldResult.complete(old.dismiss()) }
+            pendingFile = prompt to result
+            val mime = prompt.mimeTypes?.singleOrNull()?.takeIf { it.contains('/') } ?: "*/*"
+            pickFiles.launch(mime)
+            return result
+        }
     }
 
     private fun buildUi() {
@@ -123,9 +198,9 @@ class BrowserActivity : AppCompatActivity() {
             imeOptions = EditorInfo.IME_ACTION_GO
             setSelectAllOnFocus(true)
             setOnEditorActionListener { _, action, event ->
-                if (action == EditorInfo.IME_ACTION_GO ||
-                    (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)
-                ) {
+                val enter = event != null &&
+                    event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
+                if (action == EditorInfo.IME_ACTION_GO || enter) {
                     session?.loadUri(toUrl(text.toString()))
                     clearFocus()
                     getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(windowToken, 0)

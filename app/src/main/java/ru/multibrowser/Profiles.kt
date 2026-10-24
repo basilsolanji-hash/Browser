@@ -31,6 +31,7 @@ object Profiles {
     fun lastUrl(ctx: Context, id: Int): String = prefs(ctx).getString("url_$id", null) ?: HOME_URL
 
     fun saveLastUrl(ctx: Context, id: Int, url: String) {
-        if (url.startsWith("http")) prefs(ctx).edit().putString("url_$id", url).apply()
+        // Страницы входа не запоминаем, чтобы профиль не открывался на форме логина.
+        if (url.startsWith("http") && !url.contains("accounts.google.com")) prefs(ctx).edit().putString("url_$id", url).apply()
     }
 }

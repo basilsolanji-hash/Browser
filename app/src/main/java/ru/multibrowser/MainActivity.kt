@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
             grid.addView(line)
         }
         grid.addView(TextView(this).apply {
-            text = "● — профиль открыт в памяти. Долгое нажатие — переименовать."
+            text = "● — профиль открыт в памяти. Долгое нажатие — меню профиля."
             textSize = 13f
             alpha = 0.6f
             setPadding(dp(4), dp(16), dp(4), dp(4))
@@ -68,7 +68,16 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this@MainActivity, BrowserActivity::class.java)
                 .putExtra(BrowserActivity.EXTRA_PROFILE, p.id))
         }
-        setOnLongClickListener { renameDialog(p); true }
+        setOnLongClickListener { profileMenu(p); true }
+    }
+
+    private fun profileMenu(p: Profile) {
+        AlertDialog.Builder(this)
+            .setTitle(p.name)
+            .setItems(arrayOf("Переименовать", "Выйти из аккаунтов (очистить профиль)")) { _, which ->
+                if (which == 0) renameDialog(p) else clearDialog(p)
+            }
+            .show()
     }
 
     private fun renameDialog(p: Profile) {
@@ -78,6 +87,19 @@ class MainActivity : AppCompatActivity() {
             .setView(input)
             .setPositiveButton("Сохранить") { _, _ ->
                 if (input.text.isNotBlank()) Profiles.rename(this, p.id, input.text.toString())
+                render()
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    private fun clearDialog(p: Profile) {
+        AlertDialog.Builder(this)
+            .setTitle("Очистить «${p.name}»?")
+            .setMessage("Будут удалены вход в аккаунты, cookies и данные сайтов этого профиля. Другие профили не пострадают.")
+            .setPositiveButton("Очистить") { _, _ ->
+                Gecko.clearProfile(this, p.id)
+                Profiles.saveLastUrl(this, p.id, Profiles.HOME_URL)
                 render()
             }
             .setNegativeButton("Отмена", null)

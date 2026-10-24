@@ -22,6 +22,13 @@ object Gecko {
 
     fun isActive(id: Int) = sessions.containsKey(id)
 
+    /** Выйти из всех аккаунтов профиля: закрыть вкладку и стереть cookies/хранилище его контекста. */
+    fun clearProfile(ctx: Context, id: Int) {
+        sessions.remove(id)?.close()
+        canGoBack.remove(id)
+        runtime(ctx).storageController.clearDataForSessionContext("profile_$id")
+    }
+
     fun session(ctx: Context, id: Int): GeckoSession {
         sessions[id]?.let { return it }
         val settings = GeckoSessionSettings.Builder()
