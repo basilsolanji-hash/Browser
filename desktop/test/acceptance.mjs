@@ -875,7 +875,7 @@ try {
     await main(() => globalThis.osTest.windows()[0].openPanel('os://help/'));
     const hp4 = await page('os://help/');
     await hp4.waitForSelector('.qa');
-    check('help has 6 answers and a feedback address', (await hp4.$$eval('.qa', (e) => e.length)) === 6 && (await hp4.textContent('body')).includes('@gmail.com'));
+    check('help has 6 answers and a feedback address', (await hp4.$$eval('.qa', (e) => e.length)) === 6 && (await hp4.textContent('body')).includes('hello@os-browser.com'));
     await keyScreen('25-help', 'page');
 
     // --- 26. Язык во всех окнах сразу ---
