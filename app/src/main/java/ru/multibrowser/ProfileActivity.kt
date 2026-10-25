@@ -166,6 +166,8 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun open(f: File) {
         if (!ProfileFiles.owns(this, profile, f)) return
+        val mime = Downloads.effectiveMime("", f.name)
+        if (DocView.supports(f.name) || Downloads.viewableInOs(mime)) { openInOs(f); return }
         try {
             startActivity(Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri(f), mime(f))
@@ -174,6 +176,26 @@ class ProfileActivity : AppCompatActivity() {
         } catch (e: ActivityNotFoundException) {
             Toast.makeText(this, Tr.t("cant_open_file"), Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /** Документы, PDF, картинки и текст — во вкладке Оси (копия во временной папке просмотра). */
+    private fun openInOs(f: File) {
+        val app = applicationContext
+        Thread {
+            val view = runCatching {
+                if (DocView.supports(f.name)) {
+                    val html = f.inputStream().use { DocView.toHtml(it, f.name) } ?: error("unsupported")
+                    File(Downloads.viewDir(app), Uploads.safeName(f.name) + ".html").apply { writeText(html) }
+                } else f.copyTo(File(Downloads.viewDir(app), Uploads.safeName(f.name)), overwrite = true)
+            }.getOrNull()
+            runOnUiThread {
+                if (view == null) { Toast.makeText(this, Tr.t("cant_open_file"), Toast.LENGTH_SHORT).show(); return@runOnUiThread }
+                startActivity(Intent(this, BrowserActivity::class.java)
+                    .putExtra(BrowserActivity.EXTRA_PROFILE, profile)
+                    .putExtra(BrowserActivity.EXTRA_ACTION, BrowserActivity.ACTION_NEW_TAB)
+                    .putExtra(BrowserActivity.EXTRA_URL, Uri.fromFile(view).toString()))
+            }
+        }.start()
     }
 
     private fun share(f: File) {

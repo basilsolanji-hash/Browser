@@ -133,3 +133,70 @@ class PasswordGenTest {
         org.junit.Assert.assertEquals(3, PasswordGen.strength(PasswordGen.generate()))
     }
 }
+
+/** Просмотр документов в Оси: DOCX, XLSX, PPTX, ODT, CSV → HTML без сети. */
+@RunWith(org.robolectric.RobolectricTestRunner::class)
+class DocViewTest {
+    private fun zip(vararg files: Pair<String, String>): java.io.InputStream {
+        val out = java.io.ByteArrayOutputStream()
+        java.util.zip.ZipOutputStream(out).use { z ->
+            files.forEach { (name, text) -> z.putNextEntry(java.util.zip.ZipEntry(name)); z.write(text.toByteArray()); z.closeEntry() }
+        }
+        return out.toByteArray().inputStream()
+    }
+
+    @Test
+    fun supported() {
+        listOf("a.docx", "B.XLSX", "c.pptx", "d.odt", "e.ods", "f.odp", "g.csv").forEach { assertTrue(it, DocView.supports(it)) }
+        listOf("a.doc", "b.pdf", "c.zip", "noext").forEach { assertFalse(it, DocView.supports(it)) }
+    }
+
+    @Test
+    fun docx() {
+        val doc = """<w:document xmlns:w="w"><w:body>
+            <w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>Отчёт</w:t></w:r></w:p>
+            <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Жирный</w:t></w:r><w:r><w:t xml:space="preserve"> и &lt;обычный&gt;</w:t></w:r></w:p>
+            <w:p><w:pPr><w:numPr/></w:pPr><w:r><w:t>Пункт</w:t></w:r></w:p>
+            <w:tbl><w:tr><w:tc><w:p><w:r><w:t>A1</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>B1</w:t></w:r></w:p></w:tc></w:tr></w:tbl>
+            </w:body></w:document>"""
+        val html = DocView.toHtml(zip("word/document.xml" to doc), "report.docx")!!
+        assertTrue(html, html.contains("<h1>Отчёт</h1>"))
+        assertTrue(html, html.contains("<b>Жирный</b> и &lt;обычный&gt;"))
+        assertTrue(html, html.contains("<ul><li>Пункт</li></ul>"))
+        assertTrue(html, html.contains("<td><p>A1</p></td><td><p>B1</p></td>"))
+    }
+
+    @Test
+    fun xlsx() {
+        val html = DocView.toHtml(zip(
+            "xl/workbook.xml" to """<workbook><sheets><sheet name="Бюджет" r:id="rId1"/><sheet name="Итог" r:id="rId2"/></sheets></workbook>""",
+            "xl/_rels/workbook.xml.rels" to """<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Target="worksheets/sheet2.xml"/></Relationships>""",
+            "xl/sharedStrings.xml" to """<sst><si><t>Статья</t></si><si><r><t>Сум</t></r><r><t>ма</t></r></si></sst>""",
+            "xl/worksheets/sheet1.xml" to """<worksheet><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="C1" t="s"><v>1</v></c></row><row r="2"><c r="C2"><v>1500</v></c></row></sheetData></worksheet>""",
+            "xl/worksheets/sheet2.xml" to """<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Готово</t></is></c></row></sheetData></worksheet>""",
+        ), "budget.xlsx")!!
+        assertTrue(html.contains("<h2>Бюджет</h2>") && html.contains("<h2>Итог</h2>"))
+        assertTrue(html, html.contains("<th>1</th><td>Статья</td><td></td><td>Сумма</td>"))
+        assertTrue(html, html.contains("<td>1500</td>"))
+        assertTrue(html.contains("Готово"))
+    }
+
+    @Test
+    fun pptxAndOdtAndCsv() {
+        val ppt = DocView.toHtml(zip(
+            "ppt/slides/slide2.xml" to """<p:sld><a:p><a:r><a:t>Второй</a:t></a:r></a:p></p:sld>""",
+            "ppt/slides/slide1.xml" to """<p:sld><a:p><a:r><a:t>План</a:t></a:r></a:p><a:p><a:r><a:t>Цели</a:t></a:r></a:p></p:sld>""",
+        ), "deck.pptx")!!
+        assertTrue(ppt, ppt.indexOf("План") < ppt.indexOf("Второй") && ppt.contains("<h2>План</h2><p>Цели</p>"))
+        val odt = DocView.toHtml(zip("content.xml" to """<office:document-content><office:body><office:text><text:h>Глава</text:h><text:p>Текст <text:span>внутри</text:span></text:p></office:text></office:body></office:document-content>"""), "a.odt")!!
+        assertTrue(odt, odt.contains("<h2>Глава</h2>") && odt.contains("<p>Текст внутри</p>"))
+        val csv = DocView.toHtml("Имя;Сумма\n\"Иванов; И.\";100\n".byteInputStream(), "list.csv")!!
+        assertTrue(csv, csv.contains("<th>Имя</th><th>Сумма</th>") && csv.contains("<td>Иванов; И.</td><td>100</td>"))
+    }
+
+    @Test
+    fun brokenFileIsNull() {
+        org.junit.Assert.assertNull(DocView.toHtml("not a zip".byteInputStream(), "x.docx"))
+        org.junit.Assert.assertNull(DocView.toHtml(zip("other.xml" to "<a/>"), "x.docx"))
+    }
+}

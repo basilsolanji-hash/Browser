@@ -341,7 +341,7 @@ class DownloadsActivity : AppCompatActivity() {
     /** Нажатие на файл: PDF, картинки и тексты — в Оси, APK — установка, остальное — подходящим приложением. */
     private fun open(d: Download) {
         val mime = Downloads.effectiveMime(d.mime, d.name)
-        if (Downloads.viewableInOs(mime)) openInOs(d) else openWith(d, mime)
+        if (Downloads.viewableInOs(mime) || DocView.supports(d.name)) openInOs(d) else openWith(d, mime)
     }
 
     /** Копия во временную папку и новая вкладка в последнем профиле (движок читает файлы по пути). */
@@ -349,9 +349,15 @@ class DownloadsActivity : AppCompatActivity() {
         val app = applicationContext
         Thread {
             val file = runCatching {
-                val target = File(Downloads.viewDir(app), Uploads.safeName(d.name))
-                contentResolver.openInputStream(Uri.parse(d.uri))!!.use { input -> target.outputStream().use { input.copyTo(it) } }
-                target
+                if (DocView.supports(d.name)) {
+                    // Документ (Word, Excel, PowerPoint, OpenDocument, CSV) — в HTML-страницу для просмотра в Оси.
+                    val html = contentResolver.openInputStream(Uri.parse(d.uri))!!.use { DocView.toHtml(it, d.name) } ?: error("unsupported")
+                    File(Downloads.viewDir(app), Uploads.safeName(d.name) + ".html").apply { writeText(html) }
+                } else {
+                    val target = File(Downloads.viewDir(app), Uploads.safeName(d.name))
+                    contentResolver.openInputStream(Uri.parse(d.uri))!!.use { input -> target.outputStream().use { input.copyTo(it) } }
+                    target
+                }
             }.getOrNull()
             runOnUiThread {
                 if (file == null) { openWith(d, Downloads.effectiveMime(d.mime, d.name)); return@runOnUiThread }
