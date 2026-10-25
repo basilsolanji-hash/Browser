@@ -1,6 +1,7 @@
-import { app, shell } from 'electron';
+import { app } from 'electron';
 import { execFile } from 'node:child_process';
 import { fromInput, isWebUrl } from './urls';
+import { openSystemSettings as openSettingsUri } from './security';
 
 /**
  * Браузер по умолчанию (№26). Установщик регистрирует ProgId «OsBrowserURL» и возможности приложения
@@ -18,7 +19,7 @@ export function isDefault(): Promise<boolean> {
 }
 
 export function openSystemSettings(): void {
-  if (process.platform === 'win32') void shell.openExternal('ms-settings:defaultapps?registeredAppUser=Os%20Browser');
+  openSettingsUri('ms-settings:defaultapps?registeredAppUser=Os%20Browser');
 }
 
 /** Адрес из командной строки (как DefaultBrowser.incomingUrl): только http(s). */
