@@ -486,7 +486,11 @@ export function installIpc(): void {
     if (!who && !byWebContents(e.sender) && e.senderFrame?.url.startsWith('os://')) return null;
     if (!who || !h || !h.roles.includes(who.role)) throw new Error(`denied: ${String(cmd)}`);
     // Под замком работают только экран PIN и загрузка переводов.
-    if (who.win.locked && cmd !== 'init' && cmd !== 'unlock') throw new Error('locked');
+    if (who.win.locked && cmd !== 'init' && cmd !== 'unlock') {
+      // Шапка спрашивает состояние и под замком — отвечаем «ничего», без ошибки в консоли.
+      if (cmd === 'state') return null;
+      throw new Error('locked');
+    }
     return h.fn(who.win, ...args);
   });
 }

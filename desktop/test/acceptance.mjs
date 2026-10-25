@@ -1019,8 +1019,8 @@ try {
     if (done) rmSync(done.path, { force: true });
   }
   if (STAGE >= 6) {
-    // --- 29. Попапы сайтов (§7.3) ---
-    step('29. Попап входа не открывает новые окна и не уходит на os:// и file://');
+    // --- 32. Попапы сайтов (§7.3) ---
+    step('32. Попап входа не открывает новые окна и не уходит на os:// и file://');
     await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
     await sleep(800);
     await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/qa-popup`);
@@ -1046,8 +1046,8 @@ try {
         for (const w of BrowserWindow.getAllWindows()) if (!globalThis.osTest.windows().some((x) => x.win === w)) w.close();
       });
     }
-    // --- 30. Свои страницы без ошибок скриптов ---
-    step('30. Свои страницы (os://) отработали без ошибок скриптов');
+    // --- 33. Свои страницы без ошибок скриптов ---
+    step('33. Свои страницы (os://) отработали без ошибок скриптов');
     check('no script errors on own pages (os://)', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
   }
 } catch (e) {
