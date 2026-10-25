@@ -116,6 +116,11 @@ const server = createServer((req, res) => {
     res.end('<title>Popup opener</title><p>popup test</p>');
   } else if (u.pathname === '/notify') {
     res.end('<title>Notify</title><p>permissions</p>');
+  } else if (u.pathname === '/qa-popup') {
+    // Сайт сам помечает окно как «вход» (display=popup) — проверка, что попап не плодит окна (§7.3).
+    res.end('<title>QA popup host</title><button id="b" onclick="window.open(\'/qa-inner?display=popup\',\'qa\',\'width=420,height=420\')">p</button>');
+  } else if (u.pathname === '/qa-inner') {
+    res.end('<title>QA inner</title><button id="b" onclick="window.open(\'/qa-third\',\'_blank\')">p</button>');
   } else if (u.pathname === '/open') {
     res.end('<title>Opener</title><a id="blank" href="/page/opened" target="_blank">open</a>');
   } else {
@@ -131,6 +136,8 @@ const SITE = `http://127.0.0.1:${PORT}`;
 const userData = join(tmpdir(), `os-acceptance-${Date.now()}`);
 let app;
 let runNo = 0;
+// Ошибки скриптов на своих страницах (os://…): каждая — повод разобраться.
+const ownPageErrors = [];
 
 async function launch() {
   runNo++;
@@ -144,7 +151,9 @@ async function launch() {
   app.process().stderr?.on('data', (d) => line('main.log', `[run ${runNo} err] ${String(d).trimEnd()}`));
   app.on('window', (p) => {
     p.on('console', (m) => line('console.log', `[${p.url()}] ${m.type()}: ${m.text()}`));
-    p.on('pageerror', (e) => { line('console.log', `[${p.url()}] PAGEERROR ${e.message}`); line('checks.txt', `note page error on ${p.url()}: ${e.message}`); });
+    p.on('pageerror', (e) => { line('console.log', `[${p.url()}] PAGEERROR ${e.message}`); line('checks.txt', `note page error on ${p.url()}: ${e.message}`);
+      if (p.url().startsWith('os://')) ownPageErrors.push(`${p.url()}: ${e.message}`);
+    });
   });
   await waitFor(() => main(() => globalThis.osTest.windows().length > 0), 20000);
 }
@@ -1008,6 +1017,38 @@ try {
     const sha = done && existsSync(done.path) ? createHash('sha256').update(readFileSync(done.path)).digest('hex') : '';
     check('resumed file is complete and intact (sha256)', sha === BIG_SHA, `${done?.path} ${sha.slice(0, 12)}`);
     if (done) rmSync(done.path, { force: true });
+  }
+  if (STAGE >= 6) {
+    // --- 29. Попапы сайтов (§7.3) ---
+    step('29. Попап входа не открывает новые окна и не уходит на os:// и file://');
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
+    await sleep(800);
+    await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/qa-popup`);
+    const host = await page(`${SITE}/qa-popup`);
+    const winCount = () => main(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+    const before = await winCount();
+    await host.click('#b');
+    const inner = await page(`${SITE}/qa-inner`);
+    check('site popup marked display=popup opens one window', inner && (await winCount()) === before + 1);
+    if (inner) {
+      await inner.click('#b');
+      await sleep(1500);
+      check('window.open from a popup does not create another window', (await winCount()) === before + 1, `windows ${await winCount()} (было ${before + 1})`);
+      check('window.open from a popup opens a tab in the browser window',
+        (await state()).tabs.some((t) => t.url === `${SITE}/qa-third`), JSON.stringify(tabUrls(await state())));
+      await inner.evaluate(() => { window.location.href = 'file:///'; }).catch(() => {});
+      await sleep(800);
+      check('popup cannot navigate to file://', inner.isClosed() || !inner.url().startsWith('file:'), inner.isClosed() ? 'closed' : inner.url());
+      await inner.evaluate(() => { window.location.href = 'os://start/'; }).catch(() => {});
+      await sleep(800);
+      check('popup cannot navigate to os://', inner.isClosed() || !inner.url().startsWith('os://'), inner.isClosed() ? 'closed' : inner.url());
+      await main(({ BrowserWindow }) => {
+        for (const w of BrowserWindow.getAllWindows()) if (!globalThis.osTest.windows().some((x) => x.win === w)) w.close();
+      });
+    }
+    // --- 30. Свои страницы без ошибок скриптов ---
+    step('30. Свои страницы (os://) отработали без ошибок скриптов');
+    check('no script errors on own pages (os://)', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
   }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));
