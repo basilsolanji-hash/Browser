@@ -78,6 +78,12 @@ object Gecko {
         }, { err -> Diag.log("reader", "extension: ${err?.message}") })
     }
 
+    /** Когда пользователь последний раз касался страницы (elapsedRealtime) — для звука после нажатия. */
+    @Volatile var lastUserTouch = 0L
+
+    /** Звук запускается в ответ на нажатие (плеер сайта стартует чуть позже касания) — это не автозапуск. */
+    fun recentlyTouched(now: Long = android.os.SystemClock.elapsedRealtime()) = now - lastUserTouch in 0..10_000
+
     /** Вкладки в режиме «Версия для ПК» (ключ вкладки). */
     val desktop = HashSet<String>()
 
@@ -187,6 +193,9 @@ object Gecko {
 
     /** Вкладка упала или выгружена системой — забываем её, чтобы следующий вызов session() создал новую. */
     fun forget(key: String) = drop(key)
+
+    /** Выгрузить все вкладки профиля из памяти (перед удалением его cookies). */
+    fun dropProfileSessions(id: Int) = sessions.keys.filter { it.startsWith("$id:") }.forEach { drop(it) }
 
     /** Закрыть обычную вкладку профиля: выгрузить её сессию. */
     fun close(id: Int, tabId: String) = drop("$id:$tabId")

@@ -59,6 +59,10 @@ object Passwords {
         save(ctx, profile, items)
     }
 
+    /** Удалить пароли, сохранённые или изменённые начиная с [since] (мс); 0 — все. */
+    fun removeSince(ctx: Context, profile: Int, since: Long) =
+        save(ctx, profile, list(ctx, profile).filter { since > 0 && it.time < since })
+
     fun remove(ctx: Context, profile: Int, guid: String) = save(ctx, profile, list(ctx, profile).filterNot { it.guid == guid })
 
     /** Пароли профиля для сайта: тот же хост или его поддомен. */

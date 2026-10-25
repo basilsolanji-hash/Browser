@@ -68,6 +68,8 @@
         <activity android:name=".HelpActivity" />
         <activity android:name=".OnboardingActivity" />
         <activity android:name=".StatsActivity" />
+        <activity android:name=".HistoryActivity" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ClearDataActivity" />
         <activity android:name=".AccountActivity" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ProfileActivity" android:windowSoftInputMode="adjustResize" />
 

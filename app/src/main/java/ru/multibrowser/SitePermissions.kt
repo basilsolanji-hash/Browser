@@ -282,6 +282,14 @@ object SitePermissions {
                     GeckoResult.fromValue(ContentPermission.VALUE_ALLOW)
                 }
             }
+            // Видео со звуком, запущенное нажатием пользователя (плееры GitHub, YouTube и др. вызывают
+            // play() не сразу), разрешаем — блокируется только настоящий автозапуск без касания.
+            if (perm.permission == PermissionDelegate.PERMISSION_AUTOPLAY_AUDIBLE && Gecko.recentlyTouched() &&
+                !(host != null && get(activity, host, Kind.AUTOPLAY) == Mode.BLOCK)
+            ) {
+                forgetLater(activity, perm)
+                return GeckoResult.fromValue(ContentPermission.VALUE_ALLOW)
+            }
             val kind = kindOf(perm.permission)
             // Неизвестный тип, XR, постоянное хранилище, страница без домена — тихий отказ (без записи).
             if (kind == null || host == null) return GeckoResult.fromValue(ContentPermission.VALUE_PROMPT)

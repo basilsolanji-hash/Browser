@@ -34,6 +34,7 @@ class OsGeckoView(context: Context) : GeckoView(context) {
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                Gecko.lastUserTouch = android.os.SystemClock.elapsedRealtime()
                 lastRawY = event.rawY
                 travel = 0f
                 canPullToRefresh = false

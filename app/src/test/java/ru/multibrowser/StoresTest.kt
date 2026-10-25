@@ -408,3 +408,46 @@ class CabinetTest {
         assertNull(Backup.decrypt("not json", "x"))
     }
 }
+
+/** История: удаление одной записи и за период; пароли — за период. */
+@RunWith(RobolectricTestRunner::class)
+class HistoryRangeTest {
+    private val ctx: Context = ApplicationProvider.getApplicationContext()
+
+    @Test
+    fun removeOneAndSince() {
+        ctx.getSharedPreferences("history", Context.MODE_PRIVATE).edit().clear().commit()
+        History.add(ctx, 9, "https://a.example/")
+        History.add(ctx, 9, "https://b.example/")
+        val all = History.list(ctx, 9)
+        assertEquals(2, all.size)
+        History.remove(ctx, 9, all[0].url, all[0].time)
+        assertEquals(listOf("https://a.example/"), History.list(ctx, 9).map { it.url })
+        History.clearSince(ctx, 9, System.currentTimeMillis() + 60_000)
+        assertEquals(1, History.list(ctx, 9).size)
+        assertEquals(1, History.countSince(ctx, 9, 0))
+        History.clearSince(ctx, 9, 0)
+        assertTrue(History.list(ctx, 9).isEmpty())
+    }
+
+    @Test
+    fun passwordsRemovedForRange() {
+        Passwords.codec = object : Passwords.Codec {
+            override fun encrypt(plain: String) = plain
+            override fun decrypt(stored: String) = stored
+        }
+        ctx.getSharedPreferences("passwords", Context.MODE_PRIVATE).edit().clear().commit()
+        Passwords.upsert(ctx, 9, "https://x.example", "u", "p")
+        Passwords.removeSince(ctx, 9, System.currentTimeMillis() + 60_000)
+        assertEquals(1, Passwords.count(ctx, 9))
+        Passwords.removeSince(ctx, 9, 0)
+        assertEquals(0, Passwords.count(ctx, 9))
+    }
+
+    @Test
+    fun rangesAreOrdered() {
+        val d = ClearDataActivity.RANGES.map { it.second }
+        assertEquals(0L, d.last())
+        assertEquals(d.dropLast(1), d.dropLast(1).sorted())
+    }
+}
