@@ -21,7 +21,7 @@ object ExtrasUi {
         val root = ScrollView(a).apply {
             setBackgroundColor(Ui.BG)
             isFillViewport = true
-            addView(content)
+            addView(content, a.readableWidth())
         }
         a.setContentView(root)
         a.applyEdgeToEdge(root)

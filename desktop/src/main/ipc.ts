@@ -26,7 +26,7 @@ import { LANGS, LANG_NAMES } from '../shared/format';
 import type { Suggestion, UiInit } from '../shared/types';
 
 /** Адрес для отзывов — тот же, что в Android-версии (HelpActivity.FEEDBACK_EMAIL). */
-const FEEDBACK_EMAIL = 'moonstar20moon19@gmail.com';
+const FEEDBACK_EMAIL = 'hello@os-browser.com';
 
 /**
  * IPC своих страниц. Каждый вызов проверяет отправителя: это шапка или экран нашего окна,

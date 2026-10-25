@@ -139,6 +139,15 @@ Ctrl+F открывает, Enter/Shift+Enter — следующее/предыд
   поддомены; наборы вкладок без стартовых страниц; копия: неверный пароль → отказ, восстановление
   в другой профиль, без дублей избранного и заметок.
 
+## 12. Широкие экраны, контакты, домен
+- Экраны-списки (главный, настройки, загрузки, избранное, кабинет, разрешения сайтов) на широком
+  окне — содержимое не шире 720 px и по центру; на узком — во всю ширину.
+- Почта для связи и отзывов везде: **hello@os-browser.com** (в Android `HelpActivity.FEEDBACK_EMAIL`,
+  в desktop `FEEDBACK_EMAIL` в `src/main/ipc.ts` — уже заменено).
+- Сайт: **https://www.os-browser.com**, политика: `/privacy.html` (ru) и `/privacy-en.html` (en) —
+  обновлена: пароли, резервная копия, Safe Browsing; для Windows добавить пункт про
+  `safeStorage`/DPAPI вместо Android Keystore.
+
 ## Новые строки перевода (есть в Android `Tr*.kt`, взять оттуда для всех 10 языков)
 `fill_in`, `clear_text`, `profile_pin`, `profile_unpin`, `profile_pinned`,
 `profile_current`, `profile_settings`, `switch_profile`, `all_profiles`,
