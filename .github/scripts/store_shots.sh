@@ -14,6 +14,12 @@ adb() { timeout 60 "$ADB_BIN" "$@"; }
 for a in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global "$a" 0; done
 # Системные окна «приложение не отвечает» (лаунчер на медленном эмуляторе) не должны попадать в кадр.
 adb shell settings put global hide_error_dialogs 1
+# Все кадры для магазина и сайта — в пропорции 3:4, поэтому планшет снимаем вертикально.
+read -r W H <<<"$(adb shell wm size | sed -n 's/.*: \([0-9]*\)x\([0-9]*\).*/\1 \2/p' | tail -1)"
+if [ "${W:-0}" -gt "${H:-0}" ]; then
+  adb shell settings put system accelerometer_rotation 0
+  adb shell settings put system user_rotation 1
+fi
 sleep 30
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null
 # Чистая строка состояния: 10:00, полная батарея, без уведомлений.
