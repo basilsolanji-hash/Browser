@@ -12,6 +12,10 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ADB_BIN=$(command -v adb)
 adb() { timeout 60 "$ADB_BIN" "$@"; }
 for a in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global "$a" 0; done
+# Системные окна «приложение не отвечает» (лаунчер на медленном эмуляторе) не должны попадать в кадр.
+adb shell settings put global hide_error_dialogs 1
+sleep 30
+adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null
 # Чистая строка состояния: 10:00, полная батарея, без уведомлений.
 adb shell settings put global sysui_demo_allowed 1
 demo() { adb shell am broadcast -a com.android.systemui.demo -e command "$@" >/dev/null; }
@@ -108,7 +112,6 @@ print((int(m.group(1))+int(m.group(3)))//2, (int(m.group(2))+int(m.group(4)))//2
   tap "$(tr_text password_site "$L")"; type_text "mail.example.com"
   tap "$(tr_text password_login "$L")"; type_text "anna.petrova"
   tap "$(tr_text password_value "$L")"; type_text "Secret-2026"
-  adb shell input keyevent 111; sleep 1
   tap "$(tr_text save "$L")"; sleep 2
   start AccountActivity --ei profile 1;                                 shot "$L-07-cabinet" 3
   start DownloadsActivity;                                              shot "$L-08-downloads" 3
