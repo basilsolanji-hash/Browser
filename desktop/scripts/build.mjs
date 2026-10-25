@@ -37,4 +37,6 @@ cpSync(join(src, 'i18n'), join(dist, 'i18n'), { recursive: true });
 cpSync(join(root, 'assets'), join(dist, 'assets'), { recursive: true });
 // Режим чтения — тот же Readability.js (Mozilla, Apache 2.0), что в Android-версии.
 cpSync(join(root, '../app/src/main/assets/reader/Readability.js'), join(dist, 'assets/Readability.js'));
+// «Предложить надёжный пароль» — тот же скрипт, что встроенное расширение Android (content script).
+cpSync(join(root, '../app/src/main/assets/pwgen/pwgen.js'), join(dist, 'content/pwgen.js'));
 console.log('build: ok');

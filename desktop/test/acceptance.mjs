@@ -127,6 +127,19 @@ const server = createServer((req, res) => {
     res.end('<title>QA popup host</title><button id="b" onclick="window.open(\'/qa-inner?display=popup\',\'qa\',\'width=420,height=420\')">p</button>');
   } else if (u.pathname === '/qa-inner') {
     res.end('<title>QA inner</title><button id="b" onclick="window.open(\'/qa-third\',\'_blank\')">p</button>');
+  } else if (u.pathname === '/login') {
+    // Форма входа для личного кабинета: вопрос «Сохранить пароль?» и подстановка.
+    res.end('<title>Login</title><form method="post" action="/welcome"><input type="text" id="user" name="user">' +
+      '<input type="password" id="pass" name="pass"><button id="go">Sign in</button></form>');
+  } else if (u.pathname === '/signup') {
+    // Регистрация: два новых пароля — Ось предлагает надёжный пароль (assets/pwgen).
+    res.end('<title>Sign up</title><form method="post" action="/welcome"><input type="email" id="user" name="email">' +
+      '<input type="password" id="pass" name="p1" autocomplete="new-password"><input type="password" id="pass2" name="p2" autocomplete="new-password">' +
+      '<button id="go">Create account</button></form>');
+  } else if (u.pathname === '/welcome') {
+    req.resume();
+    res.end('<title>Welcome</title><h1>signed in</h1>');
+    return;
   } else if (u.pathname === '/open') {
     res.end('<title>Opener</title><a id="blank" href="/page/opened" target="_blank">open</a>');
   } else {
@@ -1094,14 +1107,14 @@ try {
     check('menu: fits a 768 px laptop screen (rare items under «More tools»)', shape.height <= 660, `height=${shape.height}`);
     check('menu: labels are not cut off', shape.cut.length === 0, shape.cut.join(' | '));
     check('menu: card at the corner, not full screen, fits the window', shape.fits);
-    await keyScreen('34-menu', 'chrome');
+    await keyScreen('39-menu', 'chrome');
     await mui.click('.main-menu .toprow .round:nth-child(3)');
     check('menu: star adds the page to favorites', await waitFor(async () => (await state()).bookmarked));
     await openMenu();
     check('menu: star shows as pressed', (await mui.getAttribute('.main-menu .toprow .round:nth-child(3)', 'aria-pressed')) === 'true');
     const openMore = async () => { await openMenu(); await mui.click('.main-menu [data-k="more-tools"]'); await mui.waitForSelector('.main-menu [data-k="back-menu"]'); };
     await openMore();
-    await keyScreen('34-more-tools', 'chrome');
+    await keyScreen('39-more-tools', 'chrome');
     await mui.click('.main-menu [data-k="mobile"]');
     const tabPage = await page(`${SITE}/set?p=menu`);
     check('menu: mobile site switches the User-Agent', await waitFor(async () => /Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => ''))));
@@ -1113,7 +1126,7 @@ try {
     await mui.click('.main-menu [data-k="diag"]');
     const diag = await mui.waitForSelector('#diag-text').then((e) => e.textContent()).catch(() => '');
     check('menu: diagnostics shows version and page log', diag.includes('p=menu') && /Ось \d/.test(diag), diag.slice(0, 200));
-    await keyScreen('34-diagnostics', 'chrome');
+    await keyScreen('39-diagnostics', 'chrome');
     await mui.keyboard.press('Escape');
     await openMenu();
     await mui.click('.main-menu [data-k="group"]');
@@ -1144,7 +1157,7 @@ try {
     check('address: frequent sites tiles (letter + page title, not domain)', empty.tiles.length > 0 && empty.tiles.length <= 8 && empty.tiles.some(([h, l]) => l && l !== h), JSON.stringify(empty.tiles));
     check('address: tiles do not load icons from the network', empty.net === 0);
     check('address: clear button shown when there is text', empty.clear);
-    await keyScreen('35-address-empty', 'chrome');
+    await keyScreen('40-address-empty', 'chrome');
     await mui.fill('#address', '');
     await mui.keyboard.type('weath', { delay: 10 });
     await mui.waitForSelector('.addr-panel .hint-row[data-kind="query"]', { timeout: 5000 }).catch(() => null);
@@ -1152,7 +1165,7 @@ try {
     check('address: first row is the typed query itself', rows[0]?.[0] === 'search' && rows[0][1].includes('weath') && !rows[0][2], JSON.stringify(rows));
     check('address: past search queries from history (q=, text=)', rows.filter((r) => r[0] === 'query').map((r) => r[1]).join('|') === 'weather spb|weather moscow', JSON.stringify(rows));
     check('address: every row except the first has ↖ «fill in»', rows.slice(1).every((r) => r[2]));
-    await keyScreen('35-address-typing', 'chrome');
+    await keyScreen('40-address-typing', 'chrome');
     await mui.click('.addr-panel .hint-row[data-kind="query"] .fill');
     check('address: ↖ puts the suggestion into the field', await waitFor(async () => (await mui.inputValue('#address')) === 'weather spb'), await mui.inputValue('#address'));
     await mui.click('#addr-clear');
@@ -1176,7 +1189,7 @@ try {
     await sp.waitForSelector('#d-camera');
     const segs = await sp.$$eval('#d-location button, #d-camera button, #d-microphone button', (b) => b.length);
     check('location, camera and microphone defaults: Ask · Allow · Block', segs === 9, `buttons=${segs}`);
-    await keyScreen('37-site-permissions', 'page');
+    await keyScreen('42-site-permissions', 'page');
     await main(() => globalThis.osTest.windows()[0].closePanel());
     await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'location', 'BLOCK'));
     await snd.evaluate(() => { window.navigator.geolocation.getCurrentPosition(() => {}, () => {}); });
@@ -1199,6 +1212,354 @@ try {
     check('find button opens the find bar', await waitFor(async () => !!(await state()).find));
     await keyScreen('38-toolbar-find', 'chrome');
     await key('Escape');
+  }
+  if (STAGE >= 7) {
+    // --- 39. Личный кабинет: пароли ---
+    step('39. Личный кабинет: пароли раздельны по профилям, вопрос о сохранении, подстановка, без открытого текста');
+    const PW1 = 'Os-Secret-Pw-91';
+    const PW2 = 'Os-Second-Pw-47';
+    let loginSeq = 0;
+    const inProfile = async (p, base) => {
+      // У каждой открытой формы свой адрес: так её страницу легко найти среди вкладок.
+      const url = `${base}?k=${++loginSeq}`;
+      await main((_e, { p, url }) => { const w = globalThis.osTest.windows()[0]; w.openProfile(p); w.newTab(url); }, { p, url });
+      return waitFor(() => app.windows().filter((x) => !x.isClosed() && x.url() === url).pop());
+    };
+    const login = async (lp, user, pass) => {
+      await lp.waitForSelector('#pass');
+      await lp.fill('#user', user);
+      await lp.fill('#pass', pass);
+      await lp.click('#go');
+    };
+    const pwJson = async () => { await flush(); return readJson('passwords') ?? { profiles: {}, never: {} }; };
+    const strings = (await main(() => globalThis.osTest.windows()[0].chrome.webContents.executeJavaScript('window.os.call("init")'))).strings;
+    const uiP = await page('os://ui');
+
+    let lp = await inProfile(1, `${SITE}/login`);
+    await login(lp, 'anna', PW1);
+    const ask = await waitFor(async () => { const x = await state(); return x.pw?.kind === 'save' && x.url.endsWith('/welcome') && x.pw; }, 10000);
+    check('Личный кабинет: after signing in, Ось asks to save the password for the site', ask && ask.host === '127.0.0.1', JSON.stringify(ask));
+    await uiP.waitForSelector('#pw-save');
+    check('Личный кабинет: the card offers Save · Never for this site · Not now',
+      (await uiP.isVisible('#pw-save')) && (await uiP.isVisible('#pw-never')) && (await uiP.isVisible('#pw-later')));
+    await keyScreen('39-password-save-prompt', 'chrome');
+    await uiP.click('#pw-save');
+    let pj = await waitFor(async () => { const j = await pwJson(); return j.profiles?.['1']?.length === 1 && j; });
+    check('Личный кабинет: password saved in profile 1 (site + login)', pj && pj.profiles['1'][0].o === SITE && pj.profiles['1'][0].u === 'anna', JSON.stringify(pj?.profiles));
+    check('Личный кабинет: stored password is encrypted (base64 of safeStorage), not plain', pj && pj.profiles['1'][0].p !== PW1 && /^[A-Za-z0-9+/=]+$/.test(pj.profiles['1'][0].p));
+    check('Личный кабинет: the prompt goes away after the answer', await waitFor(async () => (await state()).pw === null));
+
+    // Профиль 2 не видит пароли профиля 1.
+    lp = await inProfile(2, `${SITE}/login`);
+    await lp.waitForSelector('#pass');
+    await sleep(1200);
+    check('Личный кабинет: profile 2 does not get the password of profile 1', (await lp.inputValue('#pass')) === '' && (await state()).pw === null);
+    await login(lp, 'boris', PW2);
+    await waitFor(async () => (await state()).pw?.kind === 'save');
+    await uiP.click('#pw-never');
+    pj = await waitFor(async () => { const j = await pwJson(); return j.never?.['2']?.includes('127.0.0.1') && j; });
+    check('Личный кабинет: «Never for this site» is remembered for the profile', pj && !(pj.profiles['2'] ?? []).length && !(pj.never['1'] ?? []).includes('127.0.0.1'), JSON.stringify(pj?.never));
+    lp = await inProfile(2, `${SITE}/login`);
+    await login(lp, 'boris', PW2);
+    await waitFor(async () => (await state()).url.endsWith('/welcome'));
+    await sleep(1000);
+    check('Личный кабинет: no question on a «never» site', (await state()).pw === null);
+
+    // Подстановка в профиле 1.
+    lp = await inProfile(1, `${SITE}/login`);
+    const filled = await waitFor(async () => (await lp.inputValue('#pass')) === PW1 && (await lp.inputValue('#user')) === 'anna');
+    check('Личный кабинет: saved login fills the sign-in form in profile 1', filled);
+    await keyScreen('39-password-filled', 'tab');
+    // Другой сайт (localhost ≠ 127.0.0.1) пароль не получает.
+    lp = await inProfile(1, `http://localhost:${PORT}/login`);
+    await lp.waitForSelector('#pass');
+    await sleep(1200);
+    check('Личный кабинет: password is not given to another site', (await lp.inputValue('#pass')) === '');
+    // Инкогнито: не спрашиваем и не подставляем.
+    const incW = await main(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+    await key('Ctrl+Shift+N');
+    await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) >= 2);
+    const wi = await main(() => globalThis.osTest.windows().findIndex((w) => w.incognito));
+    await main((_e, { wi, url }) => globalThis.osTest.windows()[wi].navigate(url), { wi, url: `${SITE}/login` });
+    const ip = await waitFor(() => app.windows().filter((x) => !x.isClosed() && x.url() === `${SITE}/login`).pop());
+    await ip.waitForSelector('#pass');
+    await sleep(1000);
+    const incFilled = await ip.inputValue('#pass');
+    await login(ip, 'anna', 'Incognito-Pw-3');
+    await waitFor(async () => (await state(wi))?.url.endsWith('/welcome'));
+    await sleep(1000);
+    check('Личный кабинет: incognito neither fills nor asks to save', incFilled === '' && (await state(wi)).pw === null);
+    await main((_e, wi) => globalThis.osTest.windows()[wi].win.close(), wi);
+    await waitFor(async () => (await main(({ BrowserWindow }) => BrowserWindow.getAllWindows().length)) < incW + 1);
+
+    // Экран кабинета.
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://cabinet/?profile=1'));
+    const cab = await page('os://cabinet/');
+    await cab.waitForSelector('.login');
+    // Второй аккаунт того же сайта — через «Добавить пароль».
+    await cab.click('#pw-add');
+    await cab.fill('#f-site', SITE);
+    await cab.fill('#f-user', 'second');
+    await cab.fill('#f-pass', PW2);
+    await cab.click('#form-ok');
+    check('Личный кабинет: «Add password» adds a login', await waitFor(async () => (await cab.$$('.login')).length === 2));
+    pj = await pwJson();
+    check('Личный кабинет: login added by hand is stored for the http site with port', pj.profiles['1'].some((l) => l.u === 'second' && l.o === SITE), JSON.stringify(pj.profiles['1'].map((l) => l.o)));
+    const width = await cab.evaluate(() => document.getElementById('app').getBoundingClientRect().width);
+    check('Личный кабинет: content is not wider than 720px', width <= 720, String(width));
+    await keyScreen('39-cabinet', 'page');
+    await cab.click('.login >> nth=0 >> .login-menu');
+    await cab.waitForSelector('.ctx');
+    await cab.click('.ctx button >> nth=0');
+    const shown = await waitFor(async () => (await cab.$('#pw-revealed')) && cab.textContent('#pw-revealed'));
+    check('Личный кабинет: «Show password» shows the saved password', shown === PW1 || shown === PW2, String(shown));
+    await keyScreen('39-cabinet-show-password', 'page');
+    await cab.keyboard.press('Escape');
+    await main(({ clipboard }) => clipboard.writeText(''));
+    await cab.click('.login >> nth=0 >> .login-menu');
+    await cab.click('.ctx button >> nth=2');
+    const clip = await waitFor(() => main(({ clipboard }) => clipboard.readText()));
+    check('Личный кабинет: «Copy password» copies it', clip === shown, String(clip));
+    await cab.click('.login >> nth=0 >> .login-menu');
+    await cab.click('.ctx button >> nth=1');
+    check('Личный кабинет: «Copy username» copies the login', await waitFor(async () => ['anna', 'second'].includes(await main(({ clipboard }) => clipboard.readText()))));
+    await main(({ clipboard }) => clipboard.writeText(''));
+    await cab.click('#pw-offer button >> nth=1');
+    check('Личный кабинет: «Don\'t offer» switch is saved', await waitFor(async () => (await pwJson()).offer === false));
+    await cab.click('#pw-offer button >> nth=0');
+    check('Личный кабинет: «Offer to save» switch back on', await waitFor(async () => (await pwJson()).offer === true));
+    check('Личный кабинет: «Never» site of profile 2 is not in the list of profile 1', (await cab.$$('.never')).length === 0);
+
+    // Выбор аккаунта при двух входах для сайта.
+    lp = await inProfile(1, `${SITE}/login`);
+    const pick = await waitFor(async () => { const x = await state(); return x.pw?.kind === 'pick' && x.pw; });
+    check('Личный кабинет: two accounts for the site → account choice', pick && pick.users.length === 2, JSON.stringify(pick));
+    await uiP.waitForSelector('.pw-user');
+    await keyScreen('39-password-pick', 'chrome');
+    const pickIdx = pick ? pick.users.findIndex((u) => u.u === 'second') : 1;
+    await uiP.click(`.pw-user >> nth=${pickIdx}`);
+    check('Личный кабинет: the chosen account fills the form', await waitFor(async () => (await lp.inputValue('#user')) === 'second' && (await lp.inputValue('#pass')) === PW2));
+
+    // Никакого открытого текста паролей в userData.
+    await flush();
+    const leaks = [];
+    const walk = (dir) => {
+      for (const f of readdirSync(dir, { withFileTypes: true })) {
+        const p = join(dir, f.name);
+        if (f.isDirectory()) walk(p);
+        else if (f.isFile()) {
+          let buf;
+          try { buf = readFileSync(p); } catch { continue; }
+          for (const pw of [PW1, PW2]) {
+            if (buf.includes(Buffer.from(pw, 'utf8')) || buf.includes(Buffer.from(pw, 'utf16le'))) leaks.push(`${p.slice(userData.length)}: ${pw}`);
+          }
+        }
+      }
+    };
+    walk(userData);
+    check('Личный кабинет: no plain-text password anywhere in userData (grep)', leaks.length === 0, leaks.slice(0, 5).join(' | '));
+
+    // --- 40. Наборы вкладок ---
+    step('40. Личный кабинет: наборы вкладок без стартовых страниц');
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.newTab(); });
+    await flush();
+    const open1 = readJson('tabs').profiles['1'].tabs;
+    const web1 = open1.filter((x) => /^https?:/.test(x.url));
+    check('Личный кабинет: profile 1 has a start page tab open (os://)', open1.some((x) => x.url.startsWith('os://')));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://cabinet/?profile=1'));
+    const cab2 = await page('os://cabinet/');
+    await cab2.waitForSelector('#set-save');
+    check('Личный кабинет: «Save open tabs (N)» counts only web pages',
+      await waitFor(async () => (await cab2.textContent('#set-save')).includes(`(${web1.length})`), 5000), `${await cab2.textContent('#set-save')} / ${web1.length} of ${open1.length}`);
+    await cab2.click('#set-save');
+    await cab2.fill('#f-set', 'Набор Q');
+    await cab2.click('#form-ok');
+    await cab2.waitForSelector('.set');
+    await flush();
+    const sets = readJson('tab_sets')?.profiles?.['1'] ?? [];
+    check('Личный кабинет: tab set saved with a name, without os:// start pages',
+      sets.length === 1 && sets[0].n === 'Набор Q' && sets[0].tabs.length === web1.length && sets[0].tabs.every((x) => /^https?:/.test(x.url)), JSON.stringify(sets.map((s) => [s.n, s.tabs.length])));
+    check('Личный кабинет: list shows name, tab count and date', (await cab2.textContent('.set')).includes('Набор Q'));
+    await keyScreen('40-cabinet-tabsets', 'page');
+    const before35 = (await state()).tabs.filter((x) => !x.pinned).length;
+    await cab2.click('.set-open');
+    const after35 = await waitFor(async () => { const x = await state(); return !x.panel && x.tabs.filter((t) => !t.pinned).length === before35 + web1.length && x; });
+    check('Личный кабинет: «Open» adds the set tabs to the open ones', after35, `${before35} + ${web1.length}`);
+
+    // --- 41. Резервная копия ---
+    step('41. Личный кабинет: резервная копия — неверный пароль, восстановление в другой профиль без дублей');
+    const bfile = join(tmpdir(), `os-acc-${Date.now()}.osbackup`);
+    await main((_e, p) => globalThis.osTest.backupPath(p), bfile);
+    await flush();
+    const favCount = (readJson('bookmarks')?.list ?? []).length;
+    const noteCount = (readJson('notes')?.list ?? []).length;
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://cabinet/?profile=1'));
+    const cab3 = await page('os://cabinet/');
+    await cab3.waitForSelector('#backup-export');
+    const toastIs = (text) => waitFor(async () => (await cab3.textContent('.toast').catch(() => null)) === text, 4000);
+    await cab3.click('#backup-export');
+    await cab3.fill('#f-bpw', '12345');
+    await cab3.fill('#f-bpw2', '12345');
+    await cab3.click('#form-ok');
+    check('Личный кабинет: backup password shorter than 6 is refused', (await toastIs(strings.backup_pw_short)) && !existsSync(bfile));
+    await cab3.click('#backup-export');
+    await cab3.fill('#f-bpw', 'Kopiya-77');
+    await cab3.fill('#f-bpw2', 'Kopiya-78');
+    await cab3.click('#form-ok');
+    check('Личный кабинет: backup passwords must match', (await toastIs(strings.backup_pw_mismatch)) && !existsSync(bfile));
+    await cab3.click('#backup-export');
+    await cab3.fill('#f-bpw', 'Kopiya-77');
+    await cab3.fill('#f-bpw2', 'Kopiya-77');
+    await cab3.click('#form-ok');
+    const written = await waitFor(() => existsSync(bfile) && readFileSync(bfile, 'utf8'));
+    const bj = written ? JSON.parse(written) : {};
+    check('Личный кабинет: backup file in the Android format {app, v, salt, iv, data}',
+      bj.app === 'os-browser' && bj.v === 1 && Buffer.from(bj.salt ?? '', 'base64').length === 16 && Buffer.from(bj.iv ?? '', 'base64').length === 12 && !!bj.data, Object.keys(bj).join(','));
+    check('Личный кабинет: backup file has no plain-text passwords', written && !written.includes(PW1) && !written.includes(PW2) && !written.includes('anna'));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://cabinet/?profile=3'));
+    const cab4 = await waitFor(() => app.windows().find((x) => !x.isClosed() && x.url().startsWith('os://cabinet/?profile=3')));
+    await cab4.waitForSelector('#backup-import');
+    await cab4.click('#backup-import');
+    await cab4.fill('#f-bpw', 'wrong-password');
+    await cab4.click('#form-ok');
+    const bad = await waitFor(() => cab4.textContent('.toast').catch(() => null), 6000);
+    await flush();
+    check('Личный кабинет: wrong backup password → «Wrong password or damaged file», nothing restored',
+      bad === strings.backup_bad && !(readJson('passwords').profiles['3'] ?? []).length, String(bad));
+    await keyScreen('41-backup-wrong-password', 'page');
+    await cab4.click('#backup-import');
+    await cab4.fill('#f-bpw', 'Kopiya-77');
+    await cab4.click('#form-ok');
+    const restored = await waitFor(() => cab4.textContent('#restored').catch(() => null), 8000);
+    check('Личный кабинет: restore shows what was restored (2 passwords, 1 set, 0 favorites, 0 notes)',
+      restored === strings.backup_restored.replace('%1$d', '2').replace('%2$d', '1').replace('%3$d', '0').replace('%4$d', '0'), String(restored));
+    await keyScreen('41-backup-restored', 'page');
+    await cab4.keyboard.press('Escape');
+    await flush();
+    const p3 = readJson('passwords').profiles['3'] ?? [];
+    check('Личный кабинет: passwords restored into profile 3 (encrypted)', p3.length === 2 && p3.every((l) => l.p !== PW1 && l.p !== PW2), String(p3.length));
+    check('Личный кабинет: tab set restored into profile 3', (readJson('tab_sets')?.profiles?.['3'] ?? []).length === 1);
+    check('Личный кабинет: favorites and notes not duplicated', (readJson('bookmarks')?.list ?? []).length === favCount && (readJson('notes')?.list ?? []).length === noteCount,
+      `${favCount} ${noteCount}`);
+    await cab4.click('#backup-import');
+    await cab4.fill('#f-bpw', 'Kopiya-77');
+    await cab4.click('#form-ok');
+    const again = await waitFor(() => cab4.textContent('#restored').catch(() => null), 8000);
+    await flush();
+    check('Личный кабинет: restoring the same file again adds nothing',
+      again === strings.backup_restored.replace('%1$d', '0').replace('%2$d', '0').replace('%3$d', '0').replace('%4$d', '0') && (readJson('passwords').profiles['3'] ?? []).length === 2, String(again));
+    await cab4.keyboard.press('Escape');
+    // Восстановленный пароль подставляется в профиле 3.
+    lp = await inProfile(3, `${SITE}/login`);
+    check('Личный кабинет: restored passwords work in profile 3 (account choice)', await waitFor(async () => (await state()).pw?.kind === 'pick'));
+    rmSync(bfile, { force: true });
+
+    // --- 42. Генератор, «Предложить надёжный пароль», общий кабинет ---
+    step('42. Личный кабинет: «Предложить надёжный пароль», генератор, общий кабинет и копия всех профилей');
+    lp = await inProfile(4, `${SITE}/signup`);
+    await lp.waitForSelector('#pass');
+    await sleep(800);
+    check('Личный кабинет: sign-up form (new-password) is not filled with saved logins', (await lp.inputValue('#pass')) === '');
+    await lp.click('#pass');
+    const chipSel = 'div[role=button]:has-text("🔑")';
+    check('Личный кабинет: sign-up form offers «Suggest a strong password»', await waitFor(() => lp.isVisible(chipSel)));
+    await keyScreen('42-suggest-password', 'tab');
+    await lp.click(chipSel);
+    const s1v = await lp.inputValue('#pass');
+    const s2v = await lp.inputValue('#pass2');
+    check('Личный кабинет: suggested password fills both new-password fields', s1v.length === 16 && s1v === s2v && !/[0O1lI]/.test(s1v), s1v);
+    await lp.fill('#user', 'new@example.com');
+    await lp.click('#go');
+    check('Личный кабинет: after sign-up Ось offers to save the suggested password', await waitFor(async () => (await state()).pw?.kind === 'save'));
+    await uiP.click('#pw-save');
+    check('Личный кабинет: suggested password saved in profile 4', await waitFor(async () => (await pwJson()).profiles?.['4']?.length === 1));
+
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://cabinet/?profile=4'));
+    const cg = await waitFor(() => app.windows().find((x) => !x.isClosed() && x.url().startsWith('os://cabinet/?profile=4')));
+    await cg.waitForSelector('#pw-gen');
+    await cg.click('#pw-gen');
+    await cg.waitForSelector('#gen-out');
+    const g1 = await cg.textContent('#gen-out');
+    check('Личный кабинет: generator makes a 16-character password without look-alikes', g1.length === 16 && !/[0O1lI]/.test(g1), g1);
+    await cg.$eval('#gen-len', (el) => { el.value = '24'; el.dispatchEvent(new el.ownerDocument.defaultView.Event('input')); });
+    await cg.click('#gen-digits');
+    const g2 = await cg.textContent('#gen-out');
+    check('Личный кабинет: generator length 24 without digits, strength shown',
+      g2.length === 24 && !/\d/.test(g2) && (await cg.textContent('#gen-meta')).includes(strings.pw_very_strong), `${g2} ${await cg.textContent('#gen-meta')}`);
+    await sleep(300);
+    await keyScreen('42-password-generator', 'page');
+    await cg.click('#gen-new');
+    const g3 = await cg.textContent('#gen-out');
+    check('Личный кабинет: «New» makes another password', g3 !== g2 && g3.length === 24);
+    await cg.click('#gen-copy');
+    check('Личный кабинет: generator «Copy» copies the password', await waitFor(async () => (await main(({ clipboard }) => clipboard.readText())) === g3));
+    await main(({ clipboard }) => clipboard.writeText(''));
+    await cg.click('#pw-add');
+    await cg.click('#f-generate');
+    check('Личный кабинет: «Generate a strong password» in «Add password»', (await cg.inputValue('#f-pass')).length === 16);
+    await cg.keyboard.press('Escape');
+
+    // Общий кабинет: кнопка с замком на главном экране.
+    const bfile2 = join(tmpdir(), `os-acc-all-${Date.now()}.osbackup`);
+    await main((_e, p) => globalThis.osTest.backupPath(p), bfile2);
+    await main(() => globalThis.osTest.windows()[0].showHome());
+    const hm = await page('os://home/');
+    await hm.waitForSelector('.cabinet-all');
+    await hm.click('.cabinet-all');
+    const ca = await waitFor(() => app.windows().find((x) => !x.isClosed() && x.url() === 'os://cabinet/'));
+    await ca.waitForSelector('#summary');
+    check('Личный кабинет: shared cabinet opens with «All profiles» selected', await ca.isVisible('.chip.on[data-profile="0"]'));
+    const nProfiles = (await ca.$$('.chip')).length - 1;
+    check('Личный кабинет: summary lists every profile', (await ca.$$('#summary .sum')).length === nProfiles && nProfiles >= 4, String(nProfiles));
+    check('Личный кабинет: summary shows passwords per profile', (await ca.textContent('#summary .sum[data-profile="1"]')).includes(`${strings.passwords}: 2`));
+    await ca.fill('#pw-search', 'second');
+    const found = await waitFor(async () => { const r = await ca.$$eval('#pw-results .login', (els) => els.map((e) => e.dataset.profile)); return r.length && r; });
+    check('Личный кабинет: search finds passwords in all profiles', found && found.length === 2 && found.includes('1') && found.includes('3'), JSON.stringify(found));
+    await keyScreen('42-cabinet-all', 'page');
+    await ca.click('#backup-export');
+    await ca.fill('#f-bpw', 'Vse-profili-1');
+    await ca.fill('#f-bpw2', 'Vse-profili-1');
+    await ca.click('#form-ok');
+    const allText = await waitFor(() => existsSync(bfile2) && readFileSync(bfile2, 'utf8'));
+    const crypto = await import('../src/main/backupcrypto.ts');
+    const allData = allText ? crypto.decrypt(allText, 'Vse-profili-1') : null;
+    check('Личный кабинет: backup of all profiles is v2 {"v":2,"profiles":[{id,data}]}',
+      allData?.v === 2 && allData.profiles.length === nProfiles && allData.profiles.find((p) => p.id === 1)?.data.passwords.length === 2, JSON.stringify(allData?.profiles?.map((p) => [p.id, p.data.passwords.length])));
+    // Убрать пароль профиля 4 и вернуть его из общей копии (в профиль с тем же номером).
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://cabinet/?profile=4'));
+    const c4 = await waitFor(() => app.windows().find((x) => !x.isClosed() && x.url().startsWith('os://cabinet/?profile=4')));
+    await c4.waitForSelector('.login-menu');
+    await c4.click('.login-menu');
+    await c4.click('.ctx button.danger');
+    await c4.click('.modal .btn.accent');
+    check('Личный кабинет: password deleted from profile 4', await waitFor(async () => !(await pwJson()).profiles['4'].length));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://cabinet/'));
+    const ca2 = await waitFor(() => app.windows().find((x) => !x.isClosed() && x.url() === 'os://cabinet/'));
+    await ca2.waitForSelector('#backup-import');
+    await ca2.click('#backup-import');
+    await ca2.fill('#f-bpw', 'Vse-profili-1');
+    await ca2.click('#form-ok');
+    const rAll = await waitFor(() => ca2.textContent('#restored').catch(() => null), 10000);
+    await flush();
+    const pa = readJson('passwords').profiles;
+    check('Личный кабинет: v2 backup restores into the same profiles without duplicates',
+      rAll === strings.backup_restored.replace('%1$d', '1').replace('%2$d', '0').replace('%3$d', '0').replace('%4$d', '0') &&
+      pa['4'].length === 1 && pa['1'].length === 2 && pa['3'].length === 2, `${rAll} ${pa['1'].length}/${pa['3'].length}/${pa['4'].length}`);
+    await ca2.keyboard.press('Escape');
+    await main(() => globalThis.osTest.backupPath(null));
+    rmSync(bfile2, { force: true });
+
+    // Пункт «Личный кабинет» в меню профиля на главном экране.
+    await main(() => globalThis.osTest.windows()[0].showHome());
+    const home7 = await page('os://home/');
+    await home7.waitForSelector('.prow');
+    await home7.click('.prow >> nth=0', { button: 'right' });
+    await home7.waitForSelector('.ctx');
+    check('Личный кабинет: item in the profile menu on the home screen', (await home7.textContent('.ctx')).includes(strings.cabinet));
+    await home7.click(`.ctx button:has-text("${strings.cabinet}")`);
+    const cab5 = await page('os://cabinet/');
+    check('Личный кабинет: opens from the profile menu', cab5 && await cab5.waitForSelector('h1').then(() => true).catch(() => false));
+    check('Личный кабинет: own pages without script errors', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
   }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));
