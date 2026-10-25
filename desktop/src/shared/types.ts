@@ -63,6 +63,8 @@ export interface WindowState {
   bookmarked: boolean;
   /** Запрос разрешения сайта для текущей вкладки. */
   prompt: { id: number; text: string; canRemember: boolean } | null;
+  /** Вопрос о пароле: «Сохранить пароль?» после входа или выбор аккаунта для подстановки. */
+  pw: { id: number; kind: 'save' | 'pick'; text: string; host: string; users: { g: string; u: string }[] } | null;
   /** Сколько трекеров заблокировано на текущей вкладке. */
   blocked: number;
   locked: boolean;

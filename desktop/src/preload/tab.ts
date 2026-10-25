@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 /**
- * Preload вкладок сайтов: веб-уведомления и разрешение на отправку файлов. Стандартный Notification показывается как
+ * Preload вкладок сайтов: веб-уведомления, разрешение на отправку файлов и формы входа (пароли — ниже). Стандартный Notification показывается как
  * уведомление Windows с именем профиля (Notify.kt). Других мостов у сайтов нет: в window ничего
  * не добавляется, обмен идёт событиями DOM, а разрешение проверяет главный процесс.
  */
@@ -84,4 +84,54 @@ ipcRenderer.on('tab:upload-go', () => {
   const el = waiting;
   waiting = null;
   if (el?.isConnected) { allowOnce = true; el.click(); }
+});
+
+// --- Формы входа (изолированный мир preload): сайт не видит ни этот код, ни переданные пароли. ---
+// Главный процесс сам проверяет вкладку, профиль и сайт; отсюда уходят только логин и пароль формы.
+const visible = (el: HTMLInputElement) => !el.disabled && el.type !== 'hidden' && (el.offsetWidth > 0 || el.offsetHeight > 0);
+
+/** Поле пароля и поле логина перед ним (текст, почта, телефон) в той же форме или на странице. */
+function loginFields(root: ParentNode): { user: HTMLInputElement | null; pass: HTMLInputElement } | null {
+  const inputs = [...root.querySelectorAll('input')];
+  const pass = inputs.find((i) => i.type === 'password' && visible(i)) ?? inputs.find((i) => i.type === 'password');
+  if (!pass) return null;
+  const before = inputs.slice(0, inputs.indexOf(pass)).filter((i) => /^(text|email|tel)$/.test(i.type) && visible(i));
+  const user = inputs.find((i) => i.autocomplete === 'username') ?? before[before.length - 1] ?? null;
+  return { user, pass };
+}
+
+document.addEventListener('submit', (e) => {
+  const f = e.target instanceof HTMLFormElement ? loginFields(e.target) : null;
+  if (!f || !f.pass.value) return;
+  ipcRenderer.send('tab:pw-submit', JSON.stringify({ u: f.user?.value ?? '', p: f.pass.value }));
+}, true);
+
+let asked = false;
+// Подстановка — только в формы входа: поля нового пароля (регистрация) не заполняем.
+const LOGIN_FIELD = 'input[type="password"]:not([autocomplete~="new-password"])';
+function checkForm(): void {
+  if (asked || !document.querySelector(LOGIN_FIELD)) return;
+  asked = true;
+  ipcRenderer.send('tab:pw-form');
+}
+window.addEventListener('DOMContentLoaded', () => {
+  checkForm();
+  if (asked) return;
+  // Форма может появиться позже (страницы на скриптах): следим недолго.
+  const obs = new MutationObserver(() => { checkForm(); if (asked) obs.disconnect(); });
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  setTimeout(() => obs.disconnect(), 15000);
+});
+
+ipcRenderer.on('tab:pw-fill', (_e, d: { u?: unknown; p?: unknown }) => {
+  const field = document.querySelector<HTMLInputElement>(LOGIN_FIELD);
+  const f = field ? loginFields(field.form ?? document) : null;
+  if (!f || typeof d?.p !== 'string' || f.pass.autocomplete.includes('new-password')) return;
+  const set = (el: HTMLInputElement, v: string) => {
+    el.value = v;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  if (f.user && typeof d.u === 'string' && d.u) set(f.user, d.u);
+  set(f.pass, d.p);
 });

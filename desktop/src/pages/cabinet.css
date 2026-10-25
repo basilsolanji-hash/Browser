@@ -1,0 +1,30 @@
+/* Личный кабинет: содержимое не шире 720px, по центру. */
+.wrap.cab { max-width: 720px; }
+.who { display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin: 10px 0 6px; }
+.who .bar { width: 6px; align-self: stretch; border-radius: 3px; flex: none; }
+.who .name { font-size: 16px; font-weight: 600; }
+.who .sub, .setting .sub, .reveal .sub { color: var(--muted); font-size: 12px; margin-top: 2px; overflow-wrap: anywhere; }
+.setting .ic { color: var(--muted); flex: none; }
+.setting .label { min-width: 0; overflow-wrap: anywhere; }
+.setting.login { cursor: default; }
+.setting.login:hover, .setting.link:hover { background: color-mix(in srgb, var(--text) 5%, transparent); }
+.setting .site { font-weight: 600; }
+.actions-row { margin-top: 10px; flex-wrap: wrap; }
+.hint.warn { color: var(--accent); }
+a.setting { color: inherit; text-decoration: none; }
+[dir="rtl"] a.setting > .ic:last-child { transform: scaleX(-1); }
+.modal input[type="password"] { width: 100%; margin: 4px 0 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; outline: 0; }
+.modal input[type="password"]:focus { border-color: var(--accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 6px 0 10px; }
+.chip { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 14px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); font-weight: 600; font-size: 13px; }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.dot.big { width: 14px; height: 14px; }
+#pw-search { width: 100%; margin-bottom: 8px; }
+.linkbtn { border: 0; background: none; color: var(--accent); padding: 2px 0 8px; font-weight: 600; }
+.gen-out { font-size: 18px; }
+.modal input[type="range"] { width: 100%; accent-color: var(--accent); margin: 6px 0; }
+.check { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.check input { accent-color: var(--accent); }
+.reveal { margin: 4px 0 8px; }
+.reveal .secret { font: 600 16px/1.4 Consolas, "Cascadia Mono", monospace; margin-top: 6px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; user-select: all; overflow-wrap: anywhere; }

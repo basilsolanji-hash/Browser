@@ -155,6 +155,7 @@ function menu(p: ProfileInfo, x: number, y: number): void {
   contextMenu(x, y, [
     { label: t('open'), icon: 'forward', run: () => void os.call('openProfile', p.id) },
     { label: t('profile_settings'), icon: 'settings', run: () => { location.href = `os://profile/?id=${p.id}`; } },
+    { label: t('cabinet'), icon: 'lock', run: () => { location.href = `os://cabinet/?profile=${p.id}`; } },
     { label: t('rename'), icon: 'edit', run: () => void rename(p) },
     { label: t(p.pinned ? 'profile_unpin' : 'profile_pin'), icon: 'pin', run: () => void os.call('setPinned', p.id, !p.pinned).then(render) },
     { label: t('folder_move'), icon: 'folder', run: () => folderPick(p, x, y) },
