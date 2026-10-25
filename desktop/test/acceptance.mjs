@@ -11,6 +11,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import electronPath from 'electron';
+import { zip } from './zip.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(root, 'test-results');
@@ -1886,6 +1887,37 @@ try {
     await main(() => globalThis.osTest.windows()[0].openProfile(1));
     check('no script errors on own pages (os://) after the new screens', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
     void W;
+
+    // --- 53. Документы открываются в Оси (WINDOWS_SYNC §20) ---
+    step('53. Документы (DOCX, XLSX, CSV) из файлов профиля открываются во вкладке Оси, без сети');
+    const fdir = join(userData, 'profile_files', '1');
+    mkdirSync(fdir, { recursive: true });
+    writeFileSync(join(fdir, 'plan.docx'), zip({ 'word/document.xml': '<w:document><w:body><w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>Quarter plan</w:t></w:r></w:p>' +
+      '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Bold goal</w:t></w:r></w:p><w:p><w:r><w:t>&lt;script&gt;alert(1)&lt;/script&gt;</w:t></w:r></w:p></w:body></w:document>' }));
+    writeFileSync(join(fdir, 'sales.xlsx'), zip({ 'xl/sharedStrings.xml': '<sst><si><t>Region</t></si></sst>',
+      'xl/worksheets/sheet1.xml': '<worksheet><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1"><v>1234</v></c></row></sheetData></worksheet>' }));
+    writeFileSync(join(fdir, 'list.csv'), 'name;qty\nTea;3\n');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://profile/?id=1'));
+    const pf = await page('os://profile/');
+    const openDoc = async (name) => {
+      const before = (await state()).tabs.length;
+      check(`document ${name}: opens`, await pf.evaluate((n) => window.os.call('fileOpen', 1, n), name));
+      await waitFor(async () => (await state()).tabs.length > before);
+      const dp = await waitFor(() => app.windows().find((x) => !x.isClosed() && x.url().startsWith('os://file/') && decodeURIComponent(x.url()).endsWith('/' + name)));
+      await dp.waitForLoadState();
+      return dp;
+    };
+    const dDoc = await openDoc('plan.docx');
+    check('DOCX in a tab: heading and bold text', (await dDoc.innerHTML('body')).includes('<h1>Quarter plan</h1>') && (await dDoc.innerHTML('body')).includes('<b>Bold goal</b>'));
+    check('DOCX: document text cannot run scripts', (await dDoc.$('script')) === null && (await dDoc.textContent('body')).includes('<script>'));
+    await keyScreen('53-docx', 'tab');
+    const dXls = await openDoc('sales.xlsx');
+    check('XLSX in a tab: table with column letters and values', /<th>A<\/th><th>B<\/th>/.test(await dXls.innerHTML('body')) && (await dXls.textContent('body')).includes('Region') && (await dXls.textContent('body')).includes('1234'));
+    await keyScreen('53-xlsx', 'tab');
+    const dCsv = await openDoc('list.csv');
+    check('CSV in a tab: table with a header row', (await dCsv.innerHTML('body')).includes('<th>name</th><th>qty</th>'));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://profile/?id=1'));
+    check('documents: no script errors on own pages', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
   }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));

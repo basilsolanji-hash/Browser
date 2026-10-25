@@ -418,8 +418,16 @@ on(['page'], 'filesAdd', async (w, id) => {
   broadcast();
   return { added, failed };
 });
-on(['page'], 'fileOpen', async (_w, id, name) => {
-  const path = ownedFile(profileArg(id), str(name, 200));
+// Файлы профиля: документы, PDF, картинки и текст — во вкладке этого профиля, остальное — системным приложением.
+on(['page'], 'fileOpen', async (w, id, name) => {
+  const p = profileArg(id);
+  const path = ownedFile(p, str(name, 200));
+  const view = existsSync(path) && !w.incognito ? Downloads.viewPath(path, basename(path), p) : null;
+  if (view) {
+    w.openProfile(p);
+    w.newTab(view);
+    return true;
+  }
   const err = await shell.openPath(path);
   return err === '';
 });
