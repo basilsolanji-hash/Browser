@@ -1,5 +1,8 @@
 # Текст для сессии Windows (вставить первым сообщением)
 
+> Сессия Windows создана 25.10.2026: `session_01AstR38sSwe8YBkbGiQaa8H` («Ось Browser — Windows»).
+> Android-сессия (`session_01YE5tMgeqTeXjqZqXwwtkCH`) присылает ей каждую новую правку напрямую.
+
 Ты ведёшь настольную версию «Ось Browser» (папка `desktop/`, Electron + TypeScript) в репозитории
 basilsolanji-hash/Browser. Эталон — Android-версия, её ведёт другая сессия, и она постоянно
 добавляет правки. Твоя задача — держать Windows-версию в одном уровне с Android.
