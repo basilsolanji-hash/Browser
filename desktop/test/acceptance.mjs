@@ -1893,9 +1893,15 @@ try {
     const fdir = join(userData, 'profile_files', '1');
     mkdirSync(fdir, { recursive: true });
     writeFileSync(join(fdir, 'plan.docx'), zip({ 'word/document.xml': '<w:document><w:body><w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>Quarter plan</w:t></w:r></w:p>' +
-      '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Bold goal</w:t></w:r></w:p><w:p><w:r><w:t>&lt;script&gt;alert(1)&lt;/script&gt;</w:t></w:r></w:p></w:body></w:document>' }));
+      '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Bold goal</w:t></w:r></w:p><w:p><w:r><w:t>&lt;script&gt;alert(1)&lt;/script&gt;</w:t></w:r></w:p>' +
+      ['Hire two designers', 'Launch the Windows version', 'Open the store page', 'Reach 10 000 users'].map((x) => `<w:p><w:pPr><w:numPr/></w:pPr><w:r><w:t>${x}</w:t></w:r></w:p>`).join('') +
+      '<w:tbl>' + [['Month', 'Plan', 'Fact'], ['October', '120', '134'], ['November', '150', '—'], ['December', '180', '—']].map((r) => `<w:tr>${r.map((c) => `<w:tc><w:p><w:r><w:t>${c}</w:t></w:r></w:p></w:tc>`).join('')}</w:tr>`).join('') + '</w:tbl>' +
+      '<w:p><w:r><w:t>Each team writes a short weekly note: what was done, what is blocked, what comes next. Notes stay on the computer and open right in the browser.</w:t></w:r></w:p>' +
+      '</w:body></w:document>' }));
     writeFileSync(join(fdir, 'sales.xlsx'), zip({ 'xl/sharedStrings.xml': '<sst><si><t>Region</t></si></sst>',
-      'xl/worksheets/sheet1.xml': '<worksheet><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1"><v>1234</v></c></row></sheetData></worksheet>' }));
+      'xl/worksheets/sheet1.xml': '<worksheet><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1"><v>1234</v></c></row>' +
+        ['North', 'South', 'East', 'West', 'Centre', 'Online'].map((x, k) => `<row r="${k + 2}"><c r="A${k + 2}" t="inlineStr"><is><t>${x}</t></is></c><c r="B${k + 2}"><v>${(k + 3) * 211}</v></c><c r="C${k + 2}"><v>${(k + 1) * 17}</v></c><c r="D${k + 2}" t="inlineStr"><is><t>Q${(k % 4) + 1}</t></is></c></row>`).join('') +
+        '</sheetData></worksheet>' }));
     writeFileSync(join(fdir, 'list.csv'), 'name;qty\nTea;3\n');
     await main(() => globalThis.osTest.windows()[0].openPanel('os://profile/?id=1'));
     const pf = await page('os://profile/');
