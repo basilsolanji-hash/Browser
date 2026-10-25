@@ -2090,7 +2090,7 @@ try {
       !(await main(({ session }, id) => !!session.fromPartition('persist:profile_1').extensions.getExtension(id), extId)) &&
       await waitFor(() => !existsSync(join(userData, 'extensions', '1', extId)), 5000));
 
-    // --- 57. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки. ---
+    // --- 57. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки; снимки страниц — только для человека (страница /tracked почти пустая). ---
     step('57. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');
     const report = (text) => { line('extensions-report.txt', text); line('checks.txt', `note ${text}`); };
     await main(() => globalThis.osTest.windows()[0].openPanel('os://extensions/?profile=3'));
@@ -2114,7 +2114,7 @@ try {
         await waitFor(async () => { const x = await state(); return x.url.startsWith(ext.url) && !x.loading; }, 15000);
         const ok = await waitFor(() => main((_e, js) => globalThis.osTest.windows()[0].activeWebContents().executeJavaScript(js), ext.probe), 8000);
         works = ok ? 'content script works' : 'no visible effect on the test page';
-        await keyScreen(`57-${ext.name.replace(/\W+/g, '-').toLowerCase()}`, 'tab').catch(() => {});
+        await shot(`57-${ext.name.replace(/\W+/g, '-').toLowerCase()}`, 'tab').catch(() => {});
         await main(() => globalThis.osTest.windows()[0].openPanel('os://extensions/?profile=3'));
       }
       report(`${ext.name} ${info.version}: installed, loaded=${info.loaded}${info.error ? ' error=' + info.error : ''}, popup=${info.popup ?? '-'}; ${works}`);
