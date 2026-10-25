@@ -103,5 +103,7 @@ internal object TrDesktop {
         "dt_print" to listOf("Print…", "Печать…", "Imprimir…", "Imprimir…", "Imprimer…", "Drucken …", "طباعة…", "प्रिंट करें…", "Yazdır…", "打印…"),
         "dt_pin_current" to listOf("Current PIN", "Текущий PIN", "PIN actual", "PIN atual", "Code PIN actuel", "Aktuelle PIN", "رمز PIN الحالي", "मौजूदा PIN", "Mevcut PIN", "当前 PIN"),
         "dt_stop" to listOf("Stop", "Остановить", "Detener", "Parar", "Arrêter", "Stopp", "إيقاف", "रोकें", "Durdur", "停止"),
+        "dt_mobile_site" to listOf("Mobile site", "Мобильная версия", "Sitio para móviles", "Versão para celular", "Version mobile", "Mobile Website", "إصدار الجوال", "मोबाइल साइट", "Mobil site", "移动版网站"),
+        "dt_no_other_browsers" to listOf("No other browsers found", "Другие браузеры не найдены", "No se encontraron otros navegadores", "Nenhum outro navegador encontrado", "Aucun autre navigateur trouvé", "Keine anderen Browser gefunden", "لم يتم العثور على متصفحات أخرى", "कोई अन्य ब्राउज़र नहीं मिला", "Başka tarayıcı bulunamadı", "未找到其他浏览器"),
     )
 }
