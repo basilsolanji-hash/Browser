@@ -12,12 +12,15 @@ import type { ProfileInfo } from '../shared/types';
 interface Data { list: ProfileInfo[]; count: number; folders: string[]; collapsed: string[]; view: 'list' | 'grid' }
 let expanded = false;
 let data: Data | null = null;
+/** Фраза — новая при каждом открытии экрана, а не при каждой перерисовке. */
+let phrase: { greeting: string; phrase: string } | null | undefined;
 const app = document.getElementById('app')!;
 app.className = 'wrap';
 
 async function render(): Promise<void> {
   document.title = t('profiles');
   data = await os.call<Data>('profiles');
+  phrase ??= await os.call<{ greeting: string; phrase: string } | null>('phrase');
   const { list, view } = data;
   const shown = visibleProfiles(list, expanded);
   const sections = byFolder(shown, (p) => p.folder, document.documentElement.lang);
@@ -48,7 +51,9 @@ async function render(): Promise<void> {
     h('div', { class: 'hero' },
       svg(WORDMARK, 'wordmark'),
       h('div', { class: 'tagline' }, t('start_tagline')),
-      h('div', { class: 'about' }, t('about_desc'))),
+      h('div', { class: 'about' }, t('about_desc')),
+      phrase ? h('div', { class: 'greet' }, phrase.greeting) : '',
+      phrase?.phrase ? h('div', { class: 'phrase' }, phrase.phrase) : ''),
     h('div', { class: 'quick' },
       h('a', { class: 'pill', href: 'os://notes/', style: 'text-decoration:none;color:inherit' }, icon('note', 16), t('notes')),
       h('a', { class: 'pill', href: 'os://saved/', style: 'text-decoration:none;color:inherit' }, icon('saved', 16), t('saved_pages')),

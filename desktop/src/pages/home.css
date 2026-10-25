@@ -4,6 +4,8 @@
 .hero .wordmark { width: 200px; height: 60px; margin: 0 auto; }
 .tagline { color: var(--muted); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; margin: 10px 0 4px; }
 .about { color: var(--muted); max-width: 520px; margin: 0 auto; line-height: 1.45; }
+.greet { font-size: 18px; font-weight: 600; margin: 18px 0 2px; }
+.phrase { font-style: italic; max-width: 520px; margin: 10px auto 0; padding-top: 12px; border-top: 1px solid var(--accent); line-height: 1.45; }
 .quick { display: flex; justify-content: center; gap: 8px; margin: 14px 0 6px; flex-wrap: wrap; }
 .pill { height: 32px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .pill:hover { border-color: var(--muted); }
