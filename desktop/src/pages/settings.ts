@@ -33,11 +33,26 @@ function toggle(id: string, value: boolean, on: string, off: string, key: string
     h('button', { class: value ? '' : 'on', onclick: () => void set(key, false).then(render) }, off));
 }
 
-async function pinDialog(): Promise<void> {
-  const r = await promptDialog(t('dt_pin_set'), [{ value: '', placeholder: t('dt_pin_new') }, { value: '', placeholder: t('dt_pin_repeat') }]);
+/** Новый PIN; если PIN уже задан — сначала текущий (иначе любой у открытого окна сменил бы его). */
+async function pinDialog(hasPin: boolean): Promise<void> {
+  const fields = [{ value: '', placeholder: t('dt_pin_new') }, { value: '', placeholder: t('dt_pin_repeat') }];
+  if (hasPin) fields.unshift({ value: '', placeholder: t('dt_pin_current') });
+  const r = await promptDialog(t(hasPin ? 'dt_pin_change' : 'dt_pin_set'), fields);
   if (!r) return;
-  if (r[0] !== r[1]) { toast(t('dt_pin_mismatch')); return; }
-  if (!(await os.call<boolean>('setPin', r[0]))) { toast(t('dt_pin_rule')); return; }
+  const [current, pin, repeat] = hasPin ? r : ['', r[0], r[1]];
+  if (pin !== repeat) { toast(t('dt_pin_mismatch')); return; }
+  const res = await os.call<string>('setPin', pin, current);
+  if (res === 'wrong' || res === 'wait') { toast(t(res === 'wait' ? 'dt_pin_wait' : 'dt_pin_wrong')); return; }
+  if (res !== 'ok') { toast(t('dt_pin_rule')); return; }
+  toast(t('done'));
+  void render();
+}
+
+async function removePinDialog(): Promise<void> {
+  const r = await promptDialog(t('dt_pin_remove'), [{ value: '', placeholder: t('dt_pin_current') }]);
+  if (!r) return;
+  const res = await os.call<string>('removePin', r[0]);
+  if (res !== 'ok') { toast(t(res === 'wait' ? 'dt_pin_wait' : 'dt_pin_wrong')); return; }
   toast(t('done'));
   void render();
 }
@@ -102,10 +117,8 @@ async function render(): Promise<void> {
       setting(t('sec_https'), toggle('https', v.httpsOnly, t('https_on'), t('https_off'), 'httpsOnly'), t('sec_https_ok')),
       setting(t('hide_content'), toggle('hide', v.hideContent, t('hide'), t('show'), 'hideContent'), t('dt_hide_desc')),
       setting(t('sec_lock'), h('div', { class: 'row' },
-        h('button', { class: 'btn', id: 'pin-set', onclick: () => void pinDialog() }, v.lock ? t('dt_pin_change') : t('dt_pin_set')),
-        v.lock ? h('button', { class: 'btn', id: 'pin-remove', onclick: async () => {
-          if (await confirmDialog(t('dt_pin_remove') + '?', '', t('dt_pin_remove'), true)) { await os.call('removePin'); void render(); }
-        } }, t('dt_pin_remove')) : null), v.lock ? t('dt_lock_desc') : t('dt_lock_hello')),
+        h('button', { class: 'btn', id: 'pin-set', onclick: () => void pinDialog(v.lock) }, v.lock ? t('dt_pin_change') : t('dt_pin_set')),
+        v.lock ? h('button', { class: 'btn', id: 'pin-remove', onclick: () => void removePinDialog() }, t('dt_pin_remove')) : null), v.lock ? t('dt_lock_desc') : t('dt_lock_hello')),
       setting(t('site_permissions'), h('a', { class: 'btn', href: `os://site/?profile=${lastProfile}`, style: 'text-decoration:none;color:inherit' }, t('open'))),
       setting(t('security_check'), h('a', { class: 'btn', id: 'sec-check', href: 'os://security/', style: 'text-decoration:none;color:inherit' }, t('open'))),
     )),

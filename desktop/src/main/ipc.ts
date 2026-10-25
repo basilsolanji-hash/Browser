@@ -116,6 +116,10 @@ on(['chrome'], 'savePage', (w) => saveWithToast(w));
 on(['chrome'], 'permissionAnswer', (w, id, allow, remember) => w.answerPrompt(int(id), allow === true, remember === true));
 on(['chrome'], 'lockNow', () => { for (const w of windows) w.lock(); });
 on(['chrome'], 'reader', (w) => w.toggleReader());
+on(['chrome'], 'findOpen', (w) => w.openFind());
+on(['chrome'], 'find', (w, text, forward, next) => w.findText(str(text, 500), forward !== false, next === true));
+on(['chrome'], 'findClose', (w) => w.closeFind());
+on(['chrome'], 'print', (w) => w.print());
 
 // --- Браузер по умолчанию, справка ---
 on(['page'], 'defaultBrowser', async () => ({ isDefault: await DefaultBrowser.isDefault(), supported: process.platform === 'win32' }));
@@ -142,8 +146,19 @@ on(['page'], 'unlock', (_w, pin) => {
   if (r === 'ok') for (const w of windows) w.unlock();
   return r;
 });
-on(['page'], 'setPin', (_w, pin) => Lock.setPin(str(pin, 20)));
-on(['page'], 'removePin', () => { Lock.removePin(); return true; });
+// Сменить или снять PIN можно только с текущим PIN.
+on(['page'], 'setPin', (_w, pin, current) => {
+  if (Lock.enabled()) {
+    const r = Lock.check(str(current, 20));
+    if (r !== 'ok') return r;
+  }
+  return Lock.setPin(str(pin, 20)) ? 'ok' : 'rule';
+});
+on(['page'], 'removePin', (_w, current) => {
+  const r = Lock.check(str(current, 20));
+  if (r === 'ok') Lock.removePin();
+  return r;
+});
 
 // --- Разрешения сайтов ---
 on(['page'], 'sitePerms', (_w, profile) => {
@@ -518,9 +533,15 @@ export function installIpc(): void {
   ipcMain.handle('os', async (e, cmd: unknown, ...args: unknown[]) => {
     const who = sender(e);
     const h = typeof cmd === 'string' ? handlers[cmd] : undefined;
+    // Окно уже закрывается (шапка ещё шлёт запросы) — молча ничего не делаем.
+    if (!who && !byWebContents(e.sender) && e.senderFrame?.url.startsWith('os://')) return null;
     if (!who || !h || !h.roles.includes(who.role)) throw new Error(`denied: ${String(cmd)}`);
     // Под замком работают только экран PIN и загрузка переводов.
-    if (who.win.locked && cmd !== 'init' && cmd !== 'unlock') throw new Error('locked');
+    if (who.win.locked && cmd !== 'init' && cmd !== 'unlock') {
+      // Шапка спрашивает состояние и под замком — отвечаем «ничего», без ошибки в консоли.
+      if (cmd === 'state') return null;
+      throw new Error('locked');
+    }
     return h.fn(who.win, ...args);
   });
 }

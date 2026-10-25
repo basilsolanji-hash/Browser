@@ -16,11 +16,12 @@ font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;background:
 .ring{width:70px;height:70px;border:9px solid ${p.text};border-radius:50%;position:relative;margin-bottom:8px}
 .axis{position:absolute;top:50%;left:-34px;width:150px;height:8px;background:${p.accent};transform:translateY(-50%)}
 .dot{position:absolute;top:50%;left:-44px;width:18px;height:18px;border-radius:50%;background:${p.accent};transform:translateY(-50%)}
+.sq{position:absolute;top:50%;left:110px;width:14px;height:14px;background:${p.accent};transform:translateY(-50%)}
 h1{font-size:26px;margin:18px 0 4px}.t{color:${p.accent}}
 .b{color:${p.muted};font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 12px}
 p{color:${p.muted};font-size:14px;max-width:420px;line-height:1.5}
 .q{color:${p.text};font-size:17px;font-style:italic;margin:26px 0 0;padding-top:18px;border-top:1px solid ${p.accent}}</style></head>
-<body><div class="ring"><div class="axis"></div><div class="dot"></div></div>
+<body><div class="ring"><div class="axis"></div><div class="dot"></div><div class="sq"></div></div>
 <h1>Ось<span class="t">Browser</span></h1>
 <p class="b">${esc(incognito ? t('incognito') : t('start_tagline'))}</p>
 <p>${esc(hint)}</p>${phrase}</body></html>`;

@@ -54,6 +54,7 @@ const BIG = Buffer.alloc(6 * 1024 * 1024);
 for (let i = 0; i < BIG.length; i++) BIG[i] = (i * 31 + (i >> 11)) & 255;
 const BIG_SHA = createHash('sha256').update(BIG).digest('hex');
 let bigDrop = true;
+const uploaded = [];
 const server = createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
   seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '', range: req.headers.range });
@@ -98,11 +99,32 @@ const server = createServer((req, res) => {
       'Профили изолированы друг от друга, у каждого свои входы, cookies и история посещений, а трекеры блокируются.</p>';
     res.end(`<title>Article page</title><body><nav>menu menu menu</nav><article><h1>Ось reader test</h1>${[1, 2, 3, 4, 5, 6, 7, 8].map(para).join('')}</article>` +
       '<aside>ads</aside><script>document.title = "JS ran"</script></body>');
+  } else if (u.pathname === '/upload' && req.method === 'POST') {
+    // Сайт принимает файл (как вложение в почте): запоминаем, что пришло.
+    const chunks = [];
+    req.on('data', (c) => chunks.push(c));
+    req.on('end', () => {
+      uploaded.push(Buffer.concat(chunks).toString('utf8'));
+      res.end('<title>Uploaded</title><h1>ok</h1>');
+    });
+    return;
+  } else if (u.pathname === '/upload') {
+    res.end('<title>Upload</title><form method="post" enctype="multipart/form-data" action="/upload">' +
+      '<input type="file" name="doc" id="file"><button id="send">Send</button></form>');
+  } else if (u.pathname === '/find') {
+    res.end('<title>Find</title><p>Ось ищет слово договор. Второй договор. Третий договор.</p>');
+  } else if (u.pathname === '/popup-opener') {
+    res.end('<title>Popup opener</title><p>popup test</p>');
   } else if (u.pathname === '/notify') {
     res.end('<title>Notify</title><p>permissions</p>');
   } else if (u.pathname === '/data.json') {
     res.setHeader('content-type', 'application/json');
     res.end(JSON.stringify({ browser: 'Ось', profiles: [1, 2, 3], nested: { ok: true } }));
+  } else if (u.pathname === '/qa-popup') {
+    // Сайт сам помечает окно как «вход» (display=popup) — проверка, что попап не плодит окна (§7.3).
+    res.end('<title>QA popup host</title><button id="b" onclick="window.open(\'/qa-inner?display=popup\',\'qa\',\'width=420,height=420\')">p</button>');
+  } else if (u.pathname === '/qa-inner') {
+    res.end('<title>QA inner</title><button id="b" onclick="window.open(\'/qa-third\',\'_blank\')">p</button>');
   } else if (u.pathname === '/open') {
     res.end('<title>Opener</title><a id="blank" href="/page/opened" target="_blank">open</a>');
   } else {
@@ -118,6 +140,8 @@ const SITE = `http://127.0.0.1:${PORT}`;
 const userData = join(tmpdir(), `os-acceptance-${Date.now()}`);
 let app;
 let runNo = 0;
+// Ошибки скриптов на своих страницах (os://…): каждая — повод разобраться.
+const ownPageErrors = [];
 
 async function launch() {
   runNo++;
@@ -131,7 +155,9 @@ async function launch() {
   app.process().stderr?.on('data', (d) => line('main.log', `[run ${runNo} err] ${String(d).trimEnd()}`));
   app.on('window', (p) => {
     p.on('console', (m) => line('console.log', `[${p.url()}] ${m.type()}: ${m.text()}`));
-    p.on('pageerror', (e) => { line('console.log', `[${p.url()}] PAGEERROR ${e.message}`); line('checks.txt', `note page error on ${p.url()}: ${e.message}`); });
+    p.on('pageerror', (e) => { line('console.log', `[${p.url()}] PAGEERROR ${e.message}`); line('checks.txt', `note page error on ${p.url()}: ${e.message}`);
+      if (p.url().startsWith('os://')) ownPageErrors.push(`${p.url()}: ${e.message}`);
+    });
   });
   await waitFor(() => main(() => globalThis.osTest.windows().length > 0), 20000);
 }
@@ -921,6 +947,69 @@ try {
     await st4.selectOption('#lang', 'ru');
     await main(() => globalThis.osTest.windows()[1].win.close());
   }
+  if (STAGE >= 2) {
+    // --- 29. Отправка файла на сайт ---
+    step('29. Отправка файла на сайт (выбор файла и форма)');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await key('Ctrl+T');
+    await typeAddress(`${SITE}/upload`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/upload') && !x.loading; });
+    const up = app.windows().filter((p) => p.url() === `${SITE}/upload`).pop();
+    const file = join(tmpdir(), `os-upload-${process.pid}.txt`);
+    writeFileSync(file, 'Договор №7 — Ось upload test');
+    await up.setInputFiles('#file', file);
+    await up.click('#send');
+    const got = await waitFor(() => uploaded.find((b) => b.includes('Ось upload test')), 10000);
+    check('site receives the chosen file (form upload)', got && got.includes('filename="os-upload-'), got?.slice(0, 120));
+    check('page after upload loads', await waitFor(async () => (await state()).title === 'Uploaded'));
+    rmSync(file, { force: true });
+  }
+
+  if (STAGE >= 4) {
+    // --- 30. Найти на странице ---
+    step('30. Найти на странице (Ctrl+F, Enter, Esc)');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await typeAddress(`${SITE}/find`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/find') && !x.loading; });
+    await key('Ctrl+F');
+    const uiF = await page('os://ui');
+    check('Ctrl+F opens the find bar', await waitFor(async () => (await state()).find !== null && await uiF.isVisible('#find')));
+    await uiF.fill('#find', 'договор');
+    const f1 = await waitFor(async () => { const f = (await state()).find; return f && f.matches === 3 && f; });
+    check('find counts matches on the page', f1, JSON.stringify((await state()).find));
+    await uiF.press('#find', 'Enter');
+    check('Enter goes to the next match', await waitFor(async () => (await state()).find?.active === 2));
+    await keyScreen('30-find-bar', 'chrome');
+    await uiF.fill('#find', 'нетакогослова');
+    check('no matches is shown', await waitFor(async () => { const f = (await state()).find; return f && f.matches === 0; }));
+    await uiF.press('#find', 'Escape');
+    check('Esc closes the find bar', await waitFor(async () => (await state()).find === null));
+
+    // --- 31. Окна входа (попапы) под защитой ---
+    step('31. Попапы: одно окно на вкладку, новые окна из попапа — вкладками, без os://');
+    await typeAddress(`${SITE}/popup-opener`);
+    await waitFor(async () => (await state()).url.endsWith('/popup-opener'));
+    const po = app.windows().filter((p) => p.url() === `${SITE}/popup-opener`).pop();
+    const winCount = () => main(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+    const w0 = await winCount();
+    await po.evaluate(() => { window.open('/page/login?display=popup', 'p1'); });
+    check('auth popup opens as a window', await waitFor(async () => (await winCount()) === w0 + 1));
+    const popupPage = await page(`${SITE}/page/login`);
+    const tabs0 = (await state()).tabs.length;
+    await popupPage.evaluate(() => { window.open('/page/third?display=popup'); });
+    await sleep(800);
+    check('window.open from the popup opens a tab, not a window', (await winCount()) === w0 + 1 && (await state()).tabs.length === tabs0 + 1);
+    await po.evaluate(() => { window.open('/page/second?display=popup', 'p2'); });
+    await sleep(800);
+    check('only one auth popup per tab (second → tab)', (await winCount()) === w0 + 1);
+    await popupPage.evaluate(() => { window.location.href = 'os://start/'; });
+    await sleep(600);
+    check('popup cannot navigate to os://', popupPage.url().startsWith(SITE));
+    const ptitle = await main(({ BrowserWindow }) => BrowserWindow.getAllWindows().map((w) => w.getTitle()).find((x) => x.startsWith('127.0.0.1')) ?? '');
+    check('popup title shows the site', ptitle.startsWith('127.0.0.1'), ptitle);
+    await main(({ BrowserWindow }) => BrowserWindow.getAllWindows().filter((w) => w.getTitle().startsWith('127.0.0.1')).forEach((w) => w.close()));
+  }
+
   if (STAGE >= 5) {
     // --- 27. Обновления ---
     step('27. Автообновление: настройка и состояние');
@@ -937,6 +1026,11 @@ try {
     await flush();
     check('automatic updates on by default and saved', readJson('settings')?.autoUpdate === true);
     await keyScreen('27-settings-updates', 'page');
+    // PIN (задан в сценарии 19) нельзя сменить или снять без текущего.
+    const pinWrong = await st5.evaluate(() => window.os.call('setPin', '1357', '0000'));
+    const rmWrong = await st5.evaluate(() => window.os.call('removePin', '0000'));
+    await flush();
+    check('PIN cannot be changed or removed without the current PIN', pinWrong === 'wrong' && rmWrong === 'wrong' && !!readJson('settings')?.lock, `${pinWrong} ${rmWrong}`);
 
     // --- 28. Докачка ---
     step('28. Загрузки: обрыв связи, пауза и докачка после перезапуска с того же места');
@@ -986,8 +1080,35 @@ try {
     if (done) rmSync(done.path, { force: true });
   }
   if (STAGE >= 6) {
-    // --- 29. Расширения Chrome по профилям ---
-    step('29. Расширения: установка CRX в профиль 1, скрипт на странице, нет в профиле 2 и инкогнито');
+    // --- 32. Попапы сайтов (§7.3) ---
+    step('32. Попап входа не открывает новые окна и не уходит на os:// и file://');
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
+    await sleep(800);
+    await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/qa-popup`);
+    const host = await page(`${SITE}/qa-popup`);
+    const winCount = () => main(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+    const before = await winCount();
+    await host.click('#b');
+    const inner = await page(`${SITE}/qa-inner`);
+    check('site popup marked display=popup opens one window', inner && (await winCount()) === before + 1);
+    if (inner) {
+      await inner.click('#b');
+      await sleep(1500);
+      check('window.open from a popup does not create another window', (await winCount()) === before + 1, `windows ${await winCount()} (было ${before + 1})`);
+      check('window.open from a popup opens a tab in the browser window',
+        (await state()).tabs.some((t) => t.url === `${SITE}/qa-third`), JSON.stringify(tabUrls(await state())));
+      await inner.evaluate(() => { window.location.href = 'file:///'; }).catch(() => {});
+      await sleep(800);
+      check('popup cannot navigate to file://', inner.isClosed() || !inner.url().startsWith('file:'), inner.isClosed() ? 'closed' : inner.url());
+      await inner.evaluate(() => { window.location.href = 'os://start/'; }).catch(() => {});
+      await sleep(800);
+      check('popup cannot navigate to os://', inner.isClosed() || !inner.url().startsWith('os://'), inner.isClosed() ? 'closed' : inner.url());
+      await main(({ BrowserWindow }) => {
+        for (const w of BrowserWindow.getAllWindows()) if (!globalThis.osTest.windows().some((x) => x.win === w)) w.close();
+      });
+    }
+    // --- 34. Расширения Chrome по профилям ---
+    step('34. Расширения: установка CRX в профиль 1, скрипт на странице, нет в профиле 2 и инкогнито');
     await main(() => globalThis.osTest.windows()[0].openProfile(1));
     const { id: extId, crx } = packCrx(join(root, 'test', 'extension'));
     const bad = Buffer.from(crx);
@@ -1009,7 +1130,7 @@ try {
     check('content script of the extension marks the test page in profile 1', await waitFor(async () => (await extMark()) === 'ok', 8000));
     const bg = await waitFor(async () => (await main(() => globalThis.osTest.windows()[0].activeWebContents().executeJavaScript('document.documentElement.getAttribute("data-os-test-bg")'))) ?? null, 8000);
     check('content script talks to the MV3 service worker (runtime messaging + storage)', bg === 'pong', String(bg));
-    await keyScreen('29-extension-on-page', 'tab');
+    await keyScreen('34-extension-on-page', 'tab');
     await main(() => globalThis.osTest.windows()[0].navigate('os://start'));
     await waitFor(async () => { const x = await state(); return x.url === '' && !x.loading; });
     await sleep(500);
@@ -1035,14 +1156,14 @@ try {
     await main(() => globalThis.osTest.windows()[1].win.close());
     await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) === 1);
 
-    step('30. Кнопка расширений в шапке: меню и всплывающее окно расширения');
+    step('35. Кнопка расширений в шапке: меню и всплывающее окно расширения');
     await main(() => globalThis.osTest.windows()[0].openProfile(1));
     const ui6 = await page('os://ui/');
     await ui6.waitForSelector('#ext-btn');
     await ui6.click('#ext-btn');
     await ui6.waitForSelector(`.menu button[data-ext="${extId}"]`);
     check('toolbar menu lists the profile extension', true);
-    await keyScreen('30-extensions-menu', 'chrome');
+    await keyScreen('35-extensions-menu', 'chrome');
     await ui6.click(`.menu button[data-ext="${extId}"]`);
     const pop = await page(`chrome-extension://${extId}/popup.html`, 10000);
     check('popup of the extension opens (action.default_popup)', pop);
@@ -1059,18 +1180,18 @@ try {
         return w ? { partition: w.webContents.session === session.fromPartition('persist:profile_1'), frame: w.getBounds() } : null;
       }, extId).catch(() => null);
       check('popup lives in the profile session', popInfo?.partition === true, JSON.stringify(popInfo));
-      try { await pop.screenshot({ path: join(OUT, '30-extension-popup.png') }); } catch { /* снимок для человека */ }
+      try { await pop.screenshot({ path: join(OUT, '35-extension-popup.png') }); } catch { /* снимок для человека */ }
       await main(({ BrowserWindow }, id) => BrowserWindow.getAllWindows().find((x) => x.webContents.getURL().startsWith(`chrome-extension://${id}/`))?.close(), extId);
     }
 
-    step('31. Экран os://extensions: список, выключение, перезапуск, удаление');
+    step('36. Экран os://extensions: список, выключение, перезапуск, удаление');
     await main(() => globalThis.osTest.windows()[0].openPanel('os://extensions/?profile=1'));
     const ep = await page('os://extensions/');
     await ep.waitForSelector(`.ext[data-id="${extId}"]`);
     check('extensions screen lists the extension with its name and version', (await ep.textContent(`.ext[data-id="${extId}"]`)).includes('Os test extension'));
     check('extensions screen warns that only some extensions work', (await ep.textContent('#ext-warning')).includes('declarativeNetRequest'));
     check('extension icon shown', (await ep.$(`.ext[data-id="${extId}"] img[src^="data:image/png"]`)) !== null);
-    await keyScreen('31-extensions-screen', 'page');
+    await keyScreen('36-extensions-screen', 'page');
     await windowShot('extensions');
     await ep.click(`.ext[data-id="${extId}"] [data-k="enabled"] button >> nth=1`);
     await sleep(500);
@@ -1125,8 +1246,8 @@ try {
       !(await main(({ session }, id) => !!session.fromPartition('persist:profile_1').extensions.getExtension(id), extId)) &&
       await waitFor(() => !existsSync(join(userData, 'extensions', '1', extId)), 5000));
 
-    // --- 32. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки. ---
-    step('32. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');
+    // --- 37. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки. ---
+    step('37. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');
     const report = (text) => { line('extensions-report.txt', text); line('checks.txt', `note ${text}`); };
     await main(() => globalThis.osTest.windows()[0].openPanel('os://extensions/?profile=3'));
     const sp = await page('os://extensions/?profile=3');
@@ -1149,12 +1270,15 @@ try {
         await waitFor(async () => { const x = await state(); return x.url.startsWith(ext.url) && !x.loading; }, 15000);
         const ok = await waitFor(() => main((_e, js) => globalThis.osTest.windows()[0].activeWebContents().executeJavaScript(js), ext.probe), 8000);
         works = ok ? 'content script works' : 'no visible effect on the test page';
-        await keyScreen(`32-${ext.name.replace(/\W+/g, '-').toLowerCase()}`, 'tab').catch(() => {});
+        await keyScreen(`37-${ext.name.replace(/\W+/g, '-').toLowerCase()}`, 'tab').catch(() => {});
         await main(() => globalThis.osTest.windows()[0].openPanel('os://extensions/?profile=3'));
       }
       report(`${ext.name} ${info.version}: installed, loaded=${info.loaded}${info.error ? ' error=' + info.error : ''}, popup=${info.popup ?? '-'}; ${works}`);
     }
-    await keyScreen('32-extensions-store', 'page');
+    await keyScreen('37-extensions-store', 'page');
+    // --- 33. Свои страницы без ошибок скриптов ---
+    step('33. Свои страницы (os://) отработали без ошибок скриптов');
+    check('no script errors on own pages (os://)', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
   }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));

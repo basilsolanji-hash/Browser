@@ -64,7 +64,7 @@ function row(p: ProfileInfo, all: ProfileInfo[]): HTMLElement {
   h('div', { class: 'info' },
     h('div', { class: 'name' }, p.name),
     h('div', { class: 'mail' }, p.email ?? t('not_signed_in')),
-    extra ? h('div', { class: 'extra' }, extra) : null),
+    extra ? h('div', { class: 'extra', title: extra }, extra) : null),
   p.active ? h('span', { class: 'live', title: t('dt_profile_open') }) : null,
   pins,
   iconButton('more', t('menu'), (e) => { e.stopPropagation(); menu(p, all, e.clientX, e.clientY); }, 'more'));
