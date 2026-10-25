@@ -1543,7 +1543,7 @@ try {
     const hm = await page('os://home/');
     await hm.waitForSelector('#cabinet');
     await hm.click('#cabinet');
-    const ca = await waitFor(() => app.windows().find((x) => !x.isClosed() && x.url() === 'os://cabinet/'));
+    const ca = await waitFor(() => app.windows().find((x) => !x.isClosed() && x.url().startsWith('os://cabinet/') && !x.url().includes('profile=')));
     await ca.waitForSelector('#summary');
     check('Личный кабинет: shared cabinet opens with «All profiles» selected', await ca.isVisible('.chip.on[data-profile="0"]'));
     const nProfiles = (await ca.$$('.chip')).length - 1;
