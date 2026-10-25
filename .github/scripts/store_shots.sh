@@ -9,7 +9,8 @@ mkdir -p "$OUT"
 exec > >(tee -a "$OUT/steps.txt") 2>&1
 
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb() { timeout 60 command adb "$@"; }
+ADB_BIN=$(command -v adb)
+adb() { timeout 60 "$ADB_BIN" "$@"; }
 for a in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global "$a" 0; done
 # Чистая строка состояния: 10:00, полная батарея, без уведомлений.
 adb shell settings put global sysui_demo_allowed 1
