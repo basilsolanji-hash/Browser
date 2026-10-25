@@ -4,7 +4,8 @@
 // Запуск: npm run build && node test/acceptance.mjs [этап]
 import { _electron } from 'playwright';
 import { createServer } from 'node:http';
-import { createHash } from 'node:crypto';
+import { createHash, generateKeyPairSync, createSign } from 'node:crypto';
+import { crc32 } from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -99,6 +100,9 @@ const server = createServer((req, res) => {
       '<aside>ads</aside><script>document.title = "JS ran"</script></body>');
   } else if (u.pathname === '/notify') {
     res.end('<title>Notify</title><p>permissions</p>');
+  } else if (u.pathname === '/data.json') {
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ browser: 'Ось', profiles: [1, 2, 3], nested: { ok: true } }));
   } else if (u.pathname === '/open') {
     res.end('<title>Opener</title><a id="blank" href="/page/opened" target="_blank">open</a>');
   } else {
@@ -220,6 +224,63 @@ async function typeAddress(text, win = 0) {
 }
 
 const tabUrls = (s) => s.tabs.map((t) => t.url);
+
+// --- Пакет CRX3 тестового расширения (как из Chrome Web Store, но подписан ключом теста) ---
+function zipStored(dir) {
+  const locals = [];
+  const central = [];
+  let offset = 0;
+  for (const name of readdirSync(dir).sort()) {
+    const data = readFileSync(join(dir, name));
+    const n = Buffer.from(name);
+    const head = Buffer.alloc(30);
+    head.writeUInt32LE(0x04034b50, 0); head.writeUInt16LE(20, 4); head.writeUInt16LE(0x21, 12);
+    head.writeUInt32LE(crc32(data), 14); head.writeUInt32LE(data.length, 18); head.writeUInt32LE(data.length, 22); head.writeUInt16LE(n.length, 26);
+    const c = Buffer.alloc(46);
+    c.writeUInt32LE(0x02014b50, 0); c.writeUInt16LE(20, 4); c.writeUInt16LE(20, 6); c.writeUInt16LE(0x21, 14);
+    c.writeUInt32LE(crc32(data), 16); c.writeUInt32LE(data.length, 20); c.writeUInt32LE(data.length, 24); c.writeUInt16LE(n.length, 28); c.writeUInt32LE(offset, 42);
+    locals.push(head, n, data);
+    central.push(c, n);
+    offset += 30 + n.length + data.length;
+  }
+  const cd = Buffer.concat(central);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0); end.writeUInt16LE(central.length / 2, 8); end.writeUInt16LE(central.length / 2, 10);
+  end.writeUInt32LE(cd.length, 12); end.writeUInt32LE(offset, 16);
+  return Buffer.concat([...locals, cd, end]);
+}
+const varint = (n) => { const out = []; while (n > 127) { out.push((n & 127) | 128); n = Math.floor(n / 128); } out.push(n); return Buffer.from(out); };
+const pbBytes = (field, data) => Buffer.concat([varint(field * 8 + 2), varint(data.length), data]);
+function packCrx(dir) {
+  const { publicKey, privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+  const spki = publicKey.export({ type: 'spki', format: 'der' });
+  const idBytes = createHash('sha256').update(spki).digest().subarray(0, 16);
+  const id = [...idBytes].map((b) => String.fromCharCode(97 + (b >> 4)) + String.fromCharCode(97 + (b & 15))).join('');
+  const zip = zipStored(dir);
+  const signed = pbBytes(1, idBytes);
+  const len = Buffer.alloc(4);
+  len.writeUInt32LE(signed.length);
+  const sig = createSign('sha256').update(Buffer.concat([Buffer.from('CRX3 SignedData\x00', 'latin1'), len, signed, zip])).sign(privateKey);
+  const header = Buffer.concat([pbBytes(2, Buffer.concat([pbBytes(1, spki), pbBytes(2, sig)])), pbBytes(10000, signed)]);
+  const top = Buffer.alloc(12);
+  top.write('Cr24', 0, 'latin1'); top.writeUInt32LE(3, 4); top.writeUInt32LE(header.length, 8);
+  return { id, crx: Buffer.concat([top, header, zip]) };
+}
+
+/** Всплывающее окно подогнано под содержимое (288 px по ширине у тестового расширения), а не 360×420 по умолчанию. */
+const popInfo0 = (size) => Array.isArray(size) && size[0] < 340 && size[1] < 400;
+
+/** Метка тестового расширения на странице активной вкладки окна. */
+const extMark = (win = 0) => main((_e, win) => globalThis.osTest.windows()[win].activeWebContents()?.executeJavaScript('document.documentElement.getAttribute("data-os-test-ext")'), win);
+
+async function unlockIfNeeded() {
+  const lp = await page('os://lock/', 8000);
+  if (lp) {
+    await lp.fill('#pin', '2468');
+    await lp.click('#unlock');
+    await waitFor(async () => (await state())?.locked === false);
+  }
+}
 
 // ============================================================================
 try {
@@ -924,12 +985,183 @@ try {
     check('resumed file is complete and intact (sha256)', sha === BIG_SHA, `${done?.path} ${sha.slice(0, 12)}`);
     if (done) rmSync(done.path, { force: true });
   }
+  if (STAGE >= 6) {
+    // --- 29. Расширения Chrome по профилям ---
+    step('29. Расширения: установка CRX в профиль 1, скрипт на странице, нет в профиле 2 и инкогнито');
+    await main(() => globalThis.osTest.windows()[0].openProfile(1));
+    const { id: extId, crx } = packCrx(join(root, 'test', 'extension'));
+    const bad = Buffer.from(crx);
+    bad[bad.length - 40] ^= 0xff;
+    const rBad = await main((_e, b64) => globalThis.osTest.installCrx(1, b64), bad.toString('base64'));
+    check('tampered CRX is rejected by the signature check', rBad && rBad.ok === false && rBad.error === 'bad', JSON.stringify(rBad));
+    const r29 = await main((_e, b64) => globalThis.osTest.installCrx(1, b64), crx.toString('base64'));
+    check('test extension installed into profile 1 from a signed CRX3', r29?.ok === true && r29.id === extId, JSON.stringify(r29));
+    await flush();
+    const ej = readJson('extensions');
+    check('extensions.json lists it for profile 1 only, enabled', ej?.profiles?.['1']?.some((e) => e.id === extId && e.enabled && e.version === '1.2.3') && !ej?.profiles?.['2']);
+    const manifest = JSON.parse(readFileSync(join(userData, 'extensions', '1', extId, 'manifest.json'), 'utf8'));
+    check('manifest gets the store key, so the extension ID matches the package ID', typeof manifest.key === 'string' && manifest.key.length > 200);
+    const loaded1 = await main(({ session }, id) => !!session.fromPartition('persist:profile_1').extensions.getExtension(id), extId);
+    check('extension loaded into the profile 1 session', loaded1);
+    await key('Ctrl+T');
+    await typeAddress(`${SITE}/page/ext`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/page/ext') && !x.loading; });
+    check('content script of the extension marks the test page in profile 1', await waitFor(async () => (await extMark()) === 'ok', 8000));
+    const bg = await waitFor(async () => (await main(() => globalThis.osTest.windows()[0].activeWebContents().executeJavaScript('document.documentElement.getAttribute("data-os-test-bg")'))) ?? null, 8000);
+    check('content script talks to the MV3 service worker (runtime messaging + storage)', bg === 'pong', String(bg));
+    await keyScreen('29-extension-on-page', 'tab');
+    await main(() => globalThis.osTest.windows()[0].navigate('os://start'));
+    await waitFor(async () => { const x = await state(); return x.url === '' && !x.loading; });
+    await sleep(500);
+    check('extension does not touch own os:// pages (start page)', (await extMark()) === null);
+    const uiExt = await main(({ session }) => session.fromPartition('os-ui').extensions.getAllExtensions().length);
+    check('browser UI session has no extensions', uiExt === 0, `${uiExt}`);
+    await main(() => globalThis.osTest.windows()[0].openProfile(2));
+    await key('Ctrl+T');
+    await typeAddress(`${SITE}/page/ext2`);
+    await waitFor(async () => { const x = await state(); return x.profile?.id === 2 && x.url.endsWith('/page/ext2') && !x.loading; });
+    await sleep(800);
+    check('profile 2 does not have the extension (no mark, empty session list)',
+      (await extMark()) === null && (await main(({ session }) => session.fromPartition('persist:profile_2').extensions.getAllExtensions().length)) === 0);
+    await key('Ctrl+Shift+N');
+    await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) === 2);
+    const iw = await waitFor(() => app.windows().filter((p) => p.url().startsWith('os://ui/?incognito')).pop());
+    await iw.waitForSelector('#address');
+    await main((_e, url) => globalThis.osTest.windows()[1].navigate(url), `${SITE}/page/ext-incognito`);
+    await waitFor(async () => { const x = await state(1); return x.url.endsWith('/page/ext-incognito') && !x.loading; });
+    await sleep(800);
+    check('incognito runs without extensions', (await extMark(1)) === null);
+    check('no extensions button in incognito', (await iw.$('#ext-btn')) === null);
+    await main(() => globalThis.osTest.windows()[1].win.close());
+    await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) === 1);
+
+    step('30. Кнопка расширений в шапке: меню и всплывающее окно расширения');
+    await main(() => globalThis.osTest.windows()[0].openProfile(1));
+    const ui6 = await page('os://ui/');
+    await ui6.waitForSelector('#ext-btn');
+    await ui6.click('#ext-btn');
+    await ui6.waitForSelector(`.menu button[data-ext="${extId}"]`);
+    check('toolbar menu lists the profile extension', true);
+    await keyScreen('30-extensions-menu', 'chrome');
+    await ui6.click(`.menu button[data-ext="${extId}"]`);
+    const pop = await page(`chrome-extension://${extId}/popup.html`, 10000);
+    check('popup of the extension opens (action.default_popup)', pop);
+    if (pop) {
+      await pop.waitForSelector('#rid');
+      const ridText = await waitFor(async () => { const x = await pop.textContent('#rid'); return x.includes(extId) && x; }, 5000);
+      check('popup runs with the extension API (chrome.runtime.id)', ridText, ridText);
+      const cnt = await waitFor(async () => /pings: [1-9]/.test(await pop.textContent('#count')) && await pop.textContent('#count'), 5000);
+      check('popup reads chrome.storage written by the service worker', cnt, String(cnt));
+      check('popup window sized to its content', popInfo0(await main(({ BrowserWindow }, id) => BrowserWindow.getAllWindows().find((x) => x.webContents.getURL().startsWith(`chrome-extension://${id}/`))?.getContentSize(), extId)));
+      check('popup has no os:// bridge', (await pop.evaluate(() => typeof window.os)) === 'undefined');
+      const popInfo = await main(({ BrowserWindow, session }, id) => {
+        const w = BrowserWindow.getAllWindows().find((x) => x.webContents.getURL().startsWith(`chrome-extension://${id}/`));
+        return w ? { partition: w.webContents.session === session.fromPartition('persist:profile_1'), frame: w.getBounds() } : null;
+      }, extId).catch(() => null);
+      check('popup lives in the profile session', popInfo?.partition === true, JSON.stringify(popInfo));
+      try { await pop.screenshot({ path: join(OUT, '30-extension-popup.png') }); } catch { /* снимок для человека */ }
+      await main(({ BrowserWindow }, id) => BrowserWindow.getAllWindows().find((x) => x.webContents.getURL().startsWith(`chrome-extension://${id}/`))?.close(), extId);
+    }
+
+    step('31. Экран os://extensions: список, выключение, перезапуск, удаление');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://extensions/?profile=1'));
+    const ep = await page('os://extensions/');
+    await ep.waitForSelector(`.ext[data-id="${extId}"]`);
+    check('extensions screen lists the extension with its name and version', (await ep.textContent(`.ext[data-id="${extId}"]`)).includes('Os test extension'));
+    check('extensions screen warns that only some extensions work', (await ep.textContent('#ext-warning')).includes('declarativeNetRequest'));
+    check('extension icon shown', (await ep.$(`.ext[data-id="${extId}"] img[src^="data:image/png"]`)) !== null);
+    await keyScreen('31-extensions-screen', 'page');
+    await windowShot('extensions');
+    await ep.click(`.ext[data-id="${extId}"] [data-k="enabled"] button >> nth=1`);
+    await sleep(500);
+    await flush();
+    check('turning off is saved', readJson('extensions')?.profiles?.['1']?.find((e) => e.id === extId)?.enabled === false);
+    check('turned-off extension is unloaded', !(await main(({ session }, id) => !!session.fromPartition('persist:profile_1').extensions.getExtension(id), extId)));
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await key('Ctrl+T');
+    await typeAddress(`${SITE}/page/ext-off`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/page/ext-off') && !x.loading; });
+    await sleep(800);
+    check('turned-off extension does not run on pages', (await extMark()) === null);
+    await app.close();
+    await launch();
+    await unlockIfNeeded();
+    await waitFor(async () => (await state())?.profile?.id === 1);
+    check('after restart the extension stays off', readJson('extensions')?.profiles?.['1']?.find((e) => e.id === extId)?.enabled === false &&
+      !(await main(({ session }, id) => !!session.fromPartition('persist:profile_1').extensions.getExtension(id), extId)));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://extensions/?profile=1'));
+    const ep2 = await page('os://extensions/');
+    await ep2.waitForSelector(`.ext[data-id="${extId}"]`);
+    await ep2.click(`.ext[data-id="${extId}"] [data-k="enabled"] button >> nth=0`);
+    check('turning on loads it again', await waitFor(() => main(({ session }, id) => !!session.fromPartition('persist:profile_1').extensions.getExtension(id), extId)));
+    await app.close();
+    await launch();
+    await unlockIfNeeded();
+    await waitFor(async () => (await state())?.profile?.id === 1);
+    check('enabled extension is loaded at startup (before the first tab)', await main(({ session }, id) => !!session.fromPartition('persist:profile_1').extensions.getExtension(id), extId));
+    await key('Ctrl+T');
+    await typeAddress(`${SITE}/page/ext-again`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/page/ext-again') && !x.loading; });
+    check('after restart the content script works again', await waitFor(async () => (await extMark()) === 'ok', 8000));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://extensions/?profile=1'));
+    const ep3 = await page('os://extensions/');
+    await ep3.waitForSelector(`.ext[data-id="${extId}"] [data-k="options"]`);
+    await ep3.click(`.ext[data-id="${extId}"] [data-k="options"]`);
+    const opt = await page(`chrome-extension://${extId}/options.html`, 8000);
+    check('options page of the extension opens', opt);
+    await main(({ BrowserWindow }, id) => BrowserWindow.getAllWindows().find((x) => x.webContents.getURL().startsWith(`chrome-extension://${id}/`))?.close(), extId);
+    await ep3.click(`.ext[data-id="${extId}"] [data-k="remove"]`);
+    await ep3.click('.modal .btn.accent');
+    await sleep(800);
+    await flush();
+    check('removal is saved', !(readJson('extensions')?.profiles?.['1'] ?? []).some((e) => e.id === extId));
+    check('removed extension is unloaded', !(await main(({ session }, id) => !!session.fromPartition('persist:profile_1').extensions.getExtension(id), extId)));
+    check('extensions screen shows the empty state', await ep3.waitForSelector('#ext-empty', { timeout: 5000 }).then(() => true).catch(() => false));
+    await app.close();
+    await launch();
+    await unlockIfNeeded();
+    check('after restart the removed extension is gone (list, session and files)',
+      !(readJson('extensions')?.profiles?.['1'] ?? []).some((e) => e.id === extId) &&
+      !(await main(({ session }, id) => !!session.fromPartition('persist:profile_1').extensions.getExtension(id), extId)) &&
+      await waitFor(() => !existsSync(join(userData, 'extensions', '1', extId)), 5000));
+
+    // --- 32. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки. ---
+    step('32. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');
+    const report = (text) => { line('extensions-report.txt', text); line('checks.txt', `note ${text}`); };
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://extensions/?profile=3'));
+    const sp = await page('os://extensions/?profile=3');
+    const real = [
+      { id: 'eimadpbcbfnmbkopoojfekhnkhdbieeh', name: 'Dark Reader', url: `${SITE}/page/dark`, probe: 'document.querySelector("style.darkreader, .darkreader") !== null || document.documentElement.hasAttribute("data-darkreader-scheme")' },
+      { id: 'bcjindcccaagfpapjjmafapmmgkkhgoa', name: 'JSON Formatter', url: `${SITE}/data.json`, probe: 'document.body.querySelectorAll("*").length > 3 || !!document.querySelector("#jsonFormatterParsed, .json-formatter-container")' },
+      { id: 'ddkjiahejlhfcafbddmgiahcphecmpfh', name: 'uBlock Origin Lite', url: `${SITE}/tracked`, probe: 'false' },
+      { id: 'nngceckbapebfimnlniiiahkandclblb', name: 'Bitwarden', url: `${SITE}/page/bw`, probe: 'false' },
+    ];
+    for (const ext of real) {
+      await sp.fill('#ext-input', `https://chromewebstore.google.com/detail/x/${ext.id}`);
+      await sp.click('#ext-install');
+      const done = await waitFor(async () => !(await sp.isDisabled('#ext-install')) && (await sp.$('.toast')), 120000, 500);
+      const msg = done ? await sp.textContent('.toast').catch(() => '') : 'timeout';
+      const info = (await main((_e, id) => globalThis.osTest.extensions(3).find((x) => x.id === id) ?? null, ext.id)) ?? null;
+      if (!info) { report(`${ext.name}: not installed — ${msg}`); continue; }
+      let works = 'n/a';
+      if (info.loaded) {
+        await main((_e, url) => { const w = globalThis.osTest.windows()[0]; w.openProfile(3); w.newTab(url); }, ext.url);
+        await waitFor(async () => { const x = await state(); return x.url.startsWith(ext.url) && !x.loading; }, 15000);
+        const ok = await waitFor(() => main((_e, js) => globalThis.osTest.windows()[0].activeWebContents().executeJavaScript(js), ext.probe), 8000);
+        works = ok ? 'content script works' : 'no visible effect on the test page';
+        await keyScreen(`32-${ext.name.replace(/\W+/g, '-').toLowerCase()}`, 'tab').catch(() => {});
+        await main(() => globalThis.osTest.windows()[0].openPanel('os://extensions/?profile=3'));
+      }
+      report(`${ext.name} ${info.version}: installed, loaded=${info.loaded}${info.error ? ' error=' + info.error : ''}, popup=${info.popup ?? '-'}; ${works}`);
+    }
+    await keyScreen('32-extensions-store', 'page');
+  }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));
 } finally {
   try { await flush(); } catch { /* приложение уже закрыто */ }
   try {
-    for (const f of ['settings', 'profiles', 'pins', 'tabs', 'onboarding', 'history', 'bookmarks', 'downloads', 'saved_pages', 'stats', 'notes', 'site_permissions']) {
+    for (const f of ['settings', 'profiles', 'pins', 'tabs', 'onboarding', 'history', 'bookmarks', 'downloads', 'saved_pages', 'stats', 'notes', 'site_permissions', 'extensions']) {
       const j = readJson(f);
       if (j) writeFileSync(join(OUT, `state-${f}.json`), JSON.stringify(j, null, 1));
     }

@@ -5,7 +5,7 @@ import { installGlobalGuards, cleanUserAgent } from './security';
 import { applyLanguage } from './i18n';
 import { flushAll } from './store';
 import { installIpc, applyTheme } from './ipc';
-import { OsWindow, lockAll, mainWindow, windows } from './window';
+import { OsWindow, lockAll, mainWindow, profileSession, windows } from './window';
 import { setBlockedListener } from './privacy';
 import { installNotifications, shownForTest, clickLastForTest } from './notify';
 import { incomingUrl } from './defaultbrowser';
@@ -14,6 +14,7 @@ import { suspendAll } from './downloads';
 import * as Onboarding from './onboarding';
 import * as Tabs from './tabs';
 import * as Profiles from './profiles';
+import * as Extensions from './extensions';
 
 /**
  * Ось Browser для Windows: главный процесс. Профили — изолированные партиции, вкладки — WebContentsView,
@@ -45,7 +46,7 @@ if (!app.requestSingleInstanceLock()) {
     if (url) w.openUrl(url);
   });
 
-  app.whenReady().then(() => {
+  app.whenReady().then(async () => {
     app.userAgentFallback = cleanUserAgent();
     Menu.setApplicationMenu(null);
     installGlobalGuards();
@@ -60,6 +61,8 @@ if (!app.requestSingleInstanceLock()) {
     powerMonitor.on('lock-screen', lockAll);
     powerMonitor.on('suspend', lockAll);
     Updater.start();
+    // Расширения профилей загружаются до первых вкладок, иначе их скрипты не попадут на первую страницу.
+    await Promise.all(Extensions.profilesInUse().map((id) => { profileSession(id); return Extensions.ready(id); }));
     if (process.env.OS_TEST_DELAY) setTimeout(createMain, Number(process.env.OS_TEST_DELAY));
     else createMain();
   });
@@ -96,5 +99,9 @@ if (process.env.OS_TEST === '1') {
     dist: () => join(__dirname, '..'),
     notifications: () => shownForTest(),
     clickNotification: () => clickLastForTest(),
+    // Установка из CRX-файла, собранного приёмкой (без сети), и список расширений профиля.
+    installCrx: (profile: number, base64: string) => Extensions.installCrx(profileSession(profile), profile, Buffer.from(base64, 'base64'), null),
+    extensions: (profile: number) => Extensions.info(profileSession(profile), profile, 'en'),
+    extensionFiles: (profile: number, id: string) => Extensions.hasFiles(profile, id),
   };
 }

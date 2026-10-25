@@ -5,7 +5,7 @@ import { basename, dirname, extname, join } from 'node:path';
 import { applyLanguage, currentLang, isRtl, strings, t } from './i18n';
 import { settings, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
 import { THEME_IDS, themeNameKey } from './themes';
-import { OsWindow, byWebContents, mainWindow, openIncognito, profileInfo, profileSession, saveWithToast, windows } from './window';
+import { OsWindow, byWebContents, mainWindow, openExtensionWindow, openIncognito, profileInfo, profileSession, saveWithToast, windows } from './window';
 import { fromInput, isWebUrl } from './urls';
 import * as Profiles from './profiles';
 import * as Pins from './pins';
@@ -22,6 +22,7 @@ import * as Lock from './lock';
 import { blocklistSize } from './privacy';
 import * as DefaultBrowser from './defaultbrowser';
 import * as Updater from './updater';
+import * as Extensions from './extensions';
 import { LANGS, LANG_NAMES } from '../shared/format';
 import type { Suggestion, UiInit } from '../shared/types';
 
@@ -440,6 +441,56 @@ on(['page'], 'groupDelete', (w, profile, id) => { Tabs.deleteGroup(profileArg(pr
 on(['page'], 'notes', () => Notes.all());
 on(['page'], 'noteSave', (_w, id, text) => Notes.save(typeof id === 'string' ? id : null, str(text, 20000)));
 on(['page'], 'noteDelete', (_w, id) => Notes.remove(str(id, 100)));
+
+// --- Расширения профиля ---
+const extArg = (x: unknown) => {
+  const id = str(x, 40);
+  if (!Extensions.isExtId(id)) throw new Error('bad extension');
+  return id;
+};
+on(['page'], 'extensions', async (_w, profile) => {
+  const p = profileArg(profile);
+  const ses = profileSession(p);
+  await Extensions.ready(p);
+  return { profile: profileInfo(p), list: Extensions.info(ses, p, currentLang()) };
+});
+on(['page'], 'extInstall', async (_w, profile, text) => {
+  const p = profileArg(profile);
+  const r = await Extensions.installFromStore(profileSession(p), p, str(text, 500));
+  broadcast();
+  return r;
+});
+on(['page'], 'extEnable', async (_w, profile, id, enabled) => {
+  const p = profileArg(profile);
+  const ok = await Extensions.setEnabled(profileSession(p), p, extArg(id), enabled === true);
+  broadcast();
+  return ok;
+});
+on(['page'], 'extRemove', async (_w, profile, id) => {
+  const p = profileArg(profile);
+  await Extensions.remove(profileSession(p), p, extArg(id));
+  broadcast();
+});
+on(['page'], 'extOptions', (w, profile, id) => {
+  const p = profileArg(profile);
+  const url = Extensions.pageUrl(profileSession(p), p, extArg(id), 'options');
+  if (url) openExtensionWindow(w, p, url, null);
+  return !!url;
+});
+// Кнопка расширений в шапке: только профиль, открытый в этом окне (в инкогнито расширений нет).
+on(['chrome'], 'extMenu', async (w) => {
+  if (w.incognito || w.profile == null) return [];
+  const p = w.profile;
+  await Extensions.ready(p);
+  return Extensions.info(profileSession(p), p, currentLang()).filter((e) => e.enabled && e.loaded)
+    .map((e) => ({ id: e.id, name: e.name, icon: e.icon, popup: !!e.popup }));
+});
+on(['chrome'], 'extPopup', (w, id, left, right, bottom) => {
+  if (w.incognito || w.profile == null) return false;
+  const url = Extensions.pageUrl(profileSession(w.profile), w.profile, extArg(id), 'popup');
+  if (url) openExtensionWindow(w, w.profile, url, { left: num(left), right: num(right), bottom: num(bottom) });
+  return !!url;
+});
 
 // --- О приложении ---
 on(['page'], 'about', () => ({
