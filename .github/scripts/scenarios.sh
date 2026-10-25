@@ -10,6 +10,13 @@ mkdir -p "$OUT"
 exec > >(tee -a "$OUT/steps.txt") 2>&1
 
 adb install -r app/build/outputs/apk/debug/app-debug.apk
+# Ни одна команда adb не висит дольше 60 с (зависший uiautomator или запуск на тяжёлом сайте
+# раньше останавливал всю часть до общего лимита времени); зависание помечается в steps.txt.
+adb() {
+  timeout 60 command adb "$@"; local rc=$?
+  [ $rc = 124 ] && echo "TIMEOUT: adb $*" >&2
+  return $rc
+}
 for a in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global "$a" 0; done
 adb logcat -c; adb logcat -b crash -c
 
@@ -28,6 +35,7 @@ stop() { adb shell am force-stop "$PKG"; }
 sc() {
   local name="$1"; shift
   N=$((N + 1))
+  echo "== $name $(date +%T)"
   local before; before=$(crashes)
   eval "$@"
   shot "$name"
