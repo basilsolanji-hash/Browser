@@ -66,6 +66,8 @@ object Gecko {
         runtime = it
         installReader(it)
         it.webNotificationDelegate = Notify.delegate(ctx)
+        // Пароли — свои у каждого профиля, зашифрованы на телефоне (Passwords).
+        it.autocompleteStorageDelegate = Passwords.storage(ctx.applicationContext)
     }
 
     /** Встроенное расширение режима чтения (assets/reader, Mozilla Readability) — в том числе для инкогнито. */

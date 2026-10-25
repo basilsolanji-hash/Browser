@@ -19,8 +19,30 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
-/** Настройки: тема, количество профилей (1–50), названия профилей, очистка данных. */
+/**
+ * Настройки. Главная — поиск и группы с иконками (Основные, Профили, Панели и вкладки,
+ * Конфиденциальность, Данные, Библиотека, О приложении); нажатие открывает группу.
+ * При вводе в поиск показываются подходящие разделы из всех групп.
+ */
 class SettingsActivity : AppCompatActivity() {
+
+    companion object {
+        const val EXTRA_GROUP = "group"
+
+        /** Группы: id, ключ названия, иконка. */
+        val GROUPS = listOf(
+            Triple("general", "sg_general", R.drawable.ic_settings),
+            Triple("profiles", "sg_profiles", R.drawable.ic_group),
+            Triple("panels", "sg_panels", R.drawable.ic_tabs),
+            Triple("privacy", "sg_privacy", R.drawable.ic_shield),
+            Triple("data", "sg_data", R.drawable.ic_delete),
+            Triple("library", "sg_library", R.drawable.ic_book),
+            Triple("about", "sg_about", R.drawable.ic_info),
+        )
+    }
+
+    /** null — главная страница настроек. */
+    private var group: String? = null
 
     private lateinit var countLabel: TextView
     private lateinit var seek: SeekBar
@@ -35,6 +57,7 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Tr.apply(this)
         Ui.init(this)
+        group = intent.getStringExtra(EXTRA_GROUP)?.takeIf { g -> GROUPS.any { it.first == g } }
 
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -49,16 +72,23 @@ class SettingsActivity : AppCompatActivity() {
         applyEdgeToEdge(root)
 
         content.addView(header())
-        content.addView(searchField())
+        if (group == null) content.addView(searchField())
         this.content = content
+        groupList = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        content.addView(groupList)
 
-        section(Tr.t("pinned_tabs")).apply {
-            addView(PinEditor(this@SettingsActivity, null).view)
-            addView(hint(Tr.t("pinned_desc_common")))
-        }
+        currentGroup = "general"
         section(Tr.t("language")).addView(button(languageLabel(Settings.language(this))) { languageDialog() })
         section(Tr.t("theme")).addView(button(themeLabel(Settings.themeId(this))) { themeDialog() })
         section(Tr.t("search_engine")).addView(button(Search.current(this).title) { searchDialog() })
+        currentGroup = "privacy"
+        section(Tr.t("block_screenshots")).apply {
+            addView(switchRow(R.drawable.ic_shield, Tr.t("block_screenshots"), Tr.t("block_screenshots_desc"),
+                Settings.hideContent(this@SettingsActivity)) {
+                Settings.setHideContent(this@SettingsActivity, it)
+                AppLock.onResume(this@SettingsActivity)
+            })
+        }
         section(Tr.t("privacy_security")).apply {
             addView(button(Tr.t("security_check")) {
                 startActivity(Intent(this@SettingsActivity, SecurityCheckActivity::class.java))
@@ -74,18 +104,17 @@ class SettingsActivity : AppCompatActivity() {
             if (!AppLock.deviceSecure(this@SettingsActivity)) {
                 addView(hint(Tr.t("no_screen_lock")))
             }
-            addView(segmented(listOf(false, true), Settings.hideContent(this@SettingsActivity),
-                { if (it) Tr.t("hide_content") else Tr.t("show") }) {
-                Settings.setHideContent(this@SettingsActivity, it)
-                recreate()
-            }, spaced())
-            addView(hint(Tr.t("hide_content_desc")))
             addView(segmented(listOf(false, true), Settings.httpsOnly(this@SettingsActivity),
                 { if (it) Tr.t("https_on") else Tr.t("https_off") }) {
                 Settings.setHttpsOnly(this@SettingsActivity, it)
                 recreate()
             }, spaced())
             addView(hint(Tr.t("https_desc")))
+        }
+        currentGroup = "panels"
+        section(Tr.t("bottom_button")).apply {
+            addView(button(bottomLabel(Settings.bottomButton(this@SettingsActivity))) { bottomDialog() })
+            addView(hint(Tr.t("bottom_button_desc")))
         }
         section(Tr.t("scroll_bars")).addView(segmented(listOf(true, false), Settings.autoHideBars(this),
             { if (it) Tr.t("hide_bars") else Tr.t("always_visible") }) {
@@ -97,10 +126,12 @@ class SettingsActivity : AppCompatActivity() {
             Settings.setBarPosition(this, it)
             recreate()
         })
+        currentGroup = "profiles"
         section(Tr.t("profile_strip")).addView(segmented(listOf(false, true), Settings.showSwitcher(this), { if (it) Tr.t("show") else Tr.t("hide") }) {
             Settings.setShowSwitcher(this, it)
             recreate()
         })
+        currentGroup = "panels"
         section(Tr.t("live_tabs")).apply {
             addView(segmented(Settings.KEEP_ALIVE_OPTIONS, Settings.keepAlive(this@SettingsActivity), { it.toString() }) {
                 Settings.setKeepAlive(this@SettingsActivity, it)
@@ -108,12 +139,18 @@ class SettingsActivity : AppCompatActivity() {
             })
             addView(hint(Tr.t("live_tabs_desc")))
         }
+        currentGroup = "profiles"
         section(Tr.t("profiles_count")).addView(countSelector())
         section(Tr.t("profile_names")).apply {
             names = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
             addView(names)
             renderNames()
         }
+        section(Tr.t("pinned_tabs")).apply {
+            addView(PinEditor(this@SettingsActivity, null).view)
+            addView(hint(Tr.t("pinned_desc_common")))
+        }
+        currentGroup = "data"
         section(Tr.t("data")).apply {
             addView(button(Tr.t("clear_cache_all")) {
                 Gecko.clearCache(this@SettingsActivity)
@@ -126,26 +163,131 @@ class SettingsActivity : AppCompatActivity() {
                 }
             })
         }
-        ExtrasSettings.addTo(this) { section(it) }
+        // Разделы блоков D/E: в свои группы по названию.
+        val extrasGroups = mapOf(
+            Tr.t("home_page") to "general", Tr.t("default_browser") to "general",
+            Tr.t("my_library") to "library", Tr.t("about_section") to "about",
+        )
+        ExtrasSettings.addTo(this) { title -> currentGroup = extrasGroups[title] ?: "about"; section(title) }
+        renderGroups()
         nothingFound = hint(Tr.t("nothing_found")).apply {
             gravity = Gravity.CENTER
             setPadding(0, dp(32), 0, 0)
             visibility = View.GONE
         }
         content.addView(nothingFound)
+        filter("")
     }
 
     // --- Поиск в настройках (№32): фильтр секций по переведённым заголовкам и подписям ---
 
     private lateinit var content: LinearLayout
+    private lateinit var groupList: LinearLayout
     private lateinit var nothingFound: TextView
     private val sections = mutableListOf<LinearLayout>()
+    private val sectionGroup = mutableMapOf<LinearLayout, String>()
+    private var currentGroup = "general"
 
     private fun section(title: String): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         addView(sectionTitle(title))
         content.addView(this)
         sections += this
+        sectionGroup[this] = currentGroup
+        setTag(R.id.profile_row, title) // исходное название (заголовок раздела показывается заглавными)
+    }
+
+    /** Главная настроек: карточки групп с иконкой и перечнем разделов. */
+    private fun renderGroups() {
+        groupList.removeAllViews()
+        if (group != null) return
+        GROUPS.forEach { (id, key, iconRes) ->
+            val titles = sections.filter { sectionGroup[it] == id }
+                .mapNotNull { (it.getTag(R.id.profile_row) as? String) }
+                .filter { !it.equals(Tr.t(key), true) }
+            groupList.addView(LinearLayout(this).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                background = Ui.rounded(Ui.SURFACE, dpf(12), dp(1))
+                setPadding(dp(14), dp(12), dp(10), dp(12))
+                contentDescription = Tr.t(key)
+                setOnClickListener {
+                    startActivity(Intent(this@SettingsActivity, SettingsActivity::class.java).putExtra(EXTRA_GROUP, id))
+                }
+                addView(android.widget.FrameLayout(context).apply {
+                    background = Ui.oval(Ui.BG)
+                    addView(icon(iconRes, Ui.ACCENT, 22), android.widget.FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER))
+                }, LinearLayout.LayoutParams(dp(44), dp(44)))
+                addView(LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(dp(14), 0, dp(6), 0)
+                    addView(TextView(context).apply {
+                        text = Tr.t(key)
+                        textSize = 16f
+                        typeface = Typeface.DEFAULT_BOLD
+                        setTextColor(Ui.TEXT)
+                    })
+                    addView(TextView(context).apply {
+                        text = titles.joinToString(" · ")
+                        visibility = if (titles.isEmpty()) View.GONE else View.VISIBLE
+                        textSize = 12f
+                        setTextColor(Ui.MUTED)
+                        maxLines = 2
+                        ellipsize = android.text.TextUtils.TruncateAt.END
+                    })
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                addView(icon(R.drawable.ic_forward, Ui.MUTED, 18))
+            }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                .apply { topMargin = dp(10) })
+        }
+    }
+
+    /** Строка-переключатель: иконка, название, пояснение, Switch справа. */
+    private fun switchRow(iconRes: Int, title: String, desc: String, checked: Boolean, onChange: (Boolean) -> Unit): View {
+        val sw = androidx.appcompat.widget.SwitchCompat(this).apply {
+            isChecked = checked
+            contentDescription = title
+            thumbTintList = android.content.res.ColorStateList(
+                arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()), intArrayOf(Ui.ACCENT, Ui.MUTED))
+            setOnCheckedChangeListener { _, on -> onChange(on) }
+        }
+        return LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
+            setPadding(dp(14), dp(10), dp(10), dp(10))
+            setOnClickListener { sw.toggle() }
+            addView(icon(iconRes, Ui.TEXT, 22))
+            addView(LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(14), 0, dp(8), 0)
+                addView(TextView(context).apply { text = title; textSize = 15f; setTextColor(Ui.TEXT) })
+                addView(TextView(context).apply { text = desc; textSize = 12f; setTextColor(Ui.MUTED) })
+            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(sw)
+            layoutParams = spaced()
+        }
+    }
+
+    private fun bottomLabel(id: String) = when (id) {
+        "clear" -> Tr.t("clear_short")
+        "favorites" -> Tr.t("favorites")
+        "tabs" -> Tr.t("tabs")
+        "notes" -> Tr.t("notes")
+        "saved" -> Tr.t("saved_pages")
+        "share" -> Tr.t("share")
+        "find" -> Tr.t("find_in_page")
+        else -> Tr.t("downloads")
+    }
+
+    private fun bottomDialog() {
+        val ids = Settings.BOTTOM_BUTTONS
+        AlertDialog.Builder(this)
+            .setTitle(Tr.t("bottom_button"))
+            .setSingleChoiceItems(ids.map { bottomLabel(it) }.toTypedArray(), ids.indexOf(Settings.bottomButton(this))) { d, i ->
+                Settings.setBottomButton(this, ids[i])
+                d.dismiss()
+                recreate()
+            }
+            .show()
     }
 
     private fun spaced() = LinearLayout.LayoutParams(
@@ -173,13 +315,17 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun filter(query: String) {
         val q = query.trim().lowercase()
+        // Главная без запроса — только группы; в группе — её разделы; с запросом — совпадения.
+        val home = group == null && q.isEmpty()
+        groupList.visibility = if (home) View.VISIBLE else View.GONE
         var shown = 0
         sections.forEach { sec ->
-            val match = q.isEmpty() || texts(sec).any { it.lowercase().contains(q) }
+            val inScope = group == null || sectionGroup[sec] == group
+            val match = !home && inScope && (q.isEmpty() || texts(sec).any { it.lowercase().contains(q) })
             sec.visibility = if (match) View.VISIBLE else View.GONE
             if (match) shown++
         }
-        nothingFound.visibility = if (shown == 0) View.VISIBLE else View.GONE
+        nothingFound.visibility = if (!home && shown == 0) View.VISIBLE else View.GONE
     }
 
     /** Все видимые подписи секции (без полей ввода — в них пользовательские данные). */
@@ -196,7 +342,7 @@ class SettingsActivity : AppCompatActivity() {
         addView(iconButton(R.drawable.ic_back, Tr.t("back")) { finish() },
             LinearLayout.LayoutParams(dp(40), dp(40)))
         addView(TextView(context).apply {
-            text = Tr.t("settings")
+            text = GROUPS.firstOrNull { it.first == group }?.let { Tr.t(it.second) } ?: Tr.t("settings")
             textSize = 20f
             typeface = Typeface.DEFAULT_BOLD
             setTextColor(Ui.TEXT)

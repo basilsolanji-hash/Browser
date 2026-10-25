@@ -45,8 +45,8 @@ object Home {
         session.load(GeckoSession.Loader().data(StartPage.html(), "text/html"))
     }
 
-    /** Позитивная фраза дня (№36) или null, если контекст ещё не готов. */
-    fun phrase(): String? = app?.let { Phrases.today(it) }
+    /** Позитивная фраза (№36), каждый показ — новая; null, если контекст ещё не готов. */
+    fun phrase(): String? = app?.let { Phrases.next(it) }
 
     fun normalize(url: String): String {
         val t = url.trim()
@@ -59,44 +59,53 @@ object Home {
 }
 
 /**
- * Фраза дня (№36): локально, без сети и погоды. Колода фраз перемешивается, каждый день —
- * следующая; пока колода не кончится, фразы не повторяются (и на стыке колод — тоже).
+ * Позитивные фразы (№36): 300 штук на 10 языках, локально (assets/phrases/<язык>.txt, строка N —
+ * одна и та же фраза на всех языках). Показываются в случайном порядке и не повторяются, пока не
+ * пройдут все; новая колода не начинается с последней показанной фразы.
  */
 object Phrases {
-    const val COUNT = 30
+    private val cache = mutableMapOf<String, List<String>>()
+
+    fun all(ctx: Context, lang: String = Tr.lang): List<String> = synchronized(cache) {
+        cache.getOrPut(lang) {
+            runCatching {
+                ctx.assets.open("phrases/$lang.txt").bufferedReader(Charsets.UTF_8).readLines().map { it.trim() }.filter { it.isNotEmpty() }
+            }.getOrDefault(emptyList())
+        }.ifEmpty { if (lang != "en") all(ctx, "en") else emptyList() }
+    }
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("phrases", Context.MODE_PRIVATE)
 
-    fun today(ctx: Context): String = Tr.t("phrase_" + (indexFor(ctx, dayNumber()) + 1))
-
-    private fun dayNumber(): Long {
-        val now = System.currentTimeMillis()
-        return (now + java.util.TimeZone.getDefault().getOffset(now)) / 86_400_000L
+    /** Следующая фраза при каждом показе. */
+    fun next(ctx: Context): String? {
+        val list = all(ctx)
+        if (list.isEmpty()) return null
+        return list[nextIndex(ctx, list.size)]
     }
 
     @Synchronized
-    private fun indexFor(ctx: Context, day: Long): Int {
+    internal fun nextIndex(ctx: Context, count: Int): Int {
         val p = prefs(ctx)
-        val deck = p.getString("deck", null)?.split(',')?.mapNotNull { it.toIntOrNull() }
-            ?.takeIf { it.size == COUNT && it.toSet().size == COUNT }
-        val pos = p.getInt("pos", -1)
-        val lastDay = p.getLong("day", -1)
-        if (deck != null && pos in deck.indices && lastDay == day) return deck[pos]
-
-        var d = deck ?: shuffled(-1)
-        var next = pos + 1
-        if (deck == null) next = 0
-        if (next >= COUNT) {
+        var deck = p.getString("deck", null)?.split(',')?.mapNotNull { it.toIntOrNull() }
+            ?.takeIf { it.size == count && it.toSet().size == count }
+        var pos = p.getInt("pos", -1) + 1
+        if (deck == null || pos >= count) {
             // Новая колода не начинается с фразы, которой закончилась прошлая.
-            d = shuffled(d[COUNT - 1]); next = 0
+            val last = deck?.lastOrNull() ?: -1
+            deck = (0 until count).shuffled().toMutableList().also { if (it[0] == last && count > 1) it.add(it.removeAt(0)) }
+            pos = 0
         }
-        p.edit().putString("deck", d.joinToString(",")).putInt("pos", next).putLong("day", day).apply()
-        return d[next]
+        p.edit().putString("deck", deck.joinToString(",")).putInt("pos", pos).apply()
+        return deck[pos]
     }
 
-    private fun shuffled(notFirst: Int): List<Int> {
-        val list = (0 until COUNT).shuffled().toMutableList()
-        if (list[0] == notFirst) list.add(list.removeAt(0))
-        return list
-    }
+    /** Приветствие по времени суток: утро 5–12, день 12–17, вечер 17–23, ночь. */
+    fun greeting(hour: Int = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)): String = Tr.t(
+        when (hour) {
+            in 5..11 -> "greet_morning"
+            in 12..16 -> "greet_day"
+            in 17..22 -> "greet_evening"
+            else -> "greet_night"
+        }
+    )
 }

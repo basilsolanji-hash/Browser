@@ -25,7 +25,23 @@ object Profiles {
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("profiles", Context.MODE_PRIVATE)
 
-    fun all(ctx: Context): List<Profile> = order(ctx).map { get(ctx, it) }
+    /** Закреплённые — всегда сверху, дальше остальные в своём порядке. */
+    fun all(ctx: Context): List<Profile> = sorted(ctx).map { get(ctx, it) }
+
+    fun sorted(ctx: Context): List<Int> {
+        val pinned = pinned(ctx)
+        return order(ctx).sortedBy { if (it in pinned) 0 else 1 }
+    }
+
+    fun pinned(ctx: Context): Set<Int> =
+        prefs(ctx).getString("pinned", null).orEmpty().split(',').mapNotNull { it.toIntOrNull() }.toSet()
+
+    fun isPinned(ctx: Context, id: Int) = id in pinned(ctx)
+
+    fun setPinned(ctx: Context, id: Int, on: Boolean) {
+        val ids = if (on) pinned(ctx) + id else pinned(ctx) - id
+        prefs(ctx).edit().putString("pinned", ids.sorted().joinToString(",")).apply()
+    }
 
     /** Порядок профилей, заданный пользователем (перетаскивание на главном); новые — в конце. */
     fun order(ctx: Context): List<Int> {

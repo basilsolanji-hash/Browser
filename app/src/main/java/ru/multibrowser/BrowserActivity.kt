@@ -29,6 +29,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import org.mozilla.geckoview.AllowOrDeny
+import org.mozilla.geckoview.Autocomplete
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
@@ -155,6 +156,7 @@ class BrowserActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         AppLock.onResume(this)
+        Passwords.activeProfile = if (incognito) 0 else profileId
         if (profileId != 0 && !incognito && Tabs.isTab(pin.id) && Tabs.byId(this, profileId, pin.id) == null) {
             // Текущую вкладку закрыли в сетке вкладок — переходим на соседнюю.
             geckoView.releaseSession()
@@ -285,6 +287,7 @@ class BrowserActivity : AppCompatActivity() {
         pin = newPin
         Profiles.saveLastPinId(this, newPin.id)
         Profiles.saveLastProfile(this, id)
+        Passwords.activeProfile = id
 
         val p = Profiles.get(this, id)
         chipDot.background = Ui.oval(p.color)
@@ -353,7 +356,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun showUrl(url: String) {
         currentUrl = url
         val internal = url.startsWith("data:") || url.startsWith("os:") || url == Pins.START || url == "about:blank"
-        lockIcon.visibility = if (url.startsWith("https://")) View.VISIBLE else View.GONE
+        lockIcon.visibility = if (url.startsWith("https://") && !urlBar.hasFocus()) View.VISIBLE else View.GONE
         if (!urlBar.hasFocus()) urlBar.setText(if (internal) "" else Uri.parse(Reader.original(url)).host ?: url)
     }
 
@@ -577,6 +580,7 @@ class BrowserActivity : AppCompatActivity() {
         incognitoSession?.let { attached.remove(it); it.close() }
         incognitoSession = null
         incognito = false
+        Passwords.activeProfile = profileId
         Gecko.canGoBack.remove("incognito")
         Gecko.canGoForward.remove("incognito")
     }
@@ -585,6 +589,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun openIncognito(url: String) {
         geckoView.releaseSession()
         incognito = true
+        Passwords.activeProfile = 0
         val s = Gecko.privateSession(this, url)
         attached += s
         s.progressDelegate = object : GeckoSession.ProgressDelegate {
@@ -691,6 +696,7 @@ class BrowserActivity : AppCompatActivity() {
                 item(R.drawable.ic_shield, Tr.t("site_permissions"), web) { SitePermissions.openFor(this, currentUrl) },
             ),
             listOf(
+                item(R.drawable.ic_lock, Tr.t("cabinet")) { openCabinet() },
                 item(R.drawable.ic_download, Tr.t("dl_title"), action = open(DownloadsActivity::class.java)),
                 item(R.drawable.ic_star, Tr.t("favorites")) { BookmarksActivity.open(this, profileId) },
                 item(R.drawable.ic_tabs, Tr.t("tabs")) { showTabs() },
@@ -716,6 +722,136 @@ class BrowserActivity : AppCompatActivity() {
             else listOf(item(R.drawable.ic_os, Tr.t("default_make")) { DefaultBrowser.request(this) }),
         )
         BrowserMenu(this).show(top, groups)
+    }
+
+    private fun openCabinet() {
+        startActivity(Intent(this, AccountActivity::class.java).putExtra(AccountActivity.EXTRA_PROFILE, profileId))
+    }
+
+    /** Вид настраиваемой кнопки нижней панели: иконка и подпись. */
+    private fun bottomButtonLook(id: String): Pair<Int, String> = when (id) {
+        "clear" -> R.drawable.ic_delete to Tr.t("clear_short")
+        "favorites" -> R.drawable.ic_star to Tr.t("favorites")
+        "tabs" -> R.drawable.ic_tabs to Tr.t("tabs")
+        "notes" -> R.drawable.ic_note to Tr.t("notes")
+        "saved" -> R.drawable.ic_offline to Tr.t("saved_pages")
+        "share" -> R.drawable.ic_share to Tr.t("share")
+        "find" -> R.drawable.ic_find to Tr.t("find_in_page")
+        else -> R.drawable.ic_download to Tr.t("downloads")
+    }
+
+    private fun bottomButtonAction(id: String) {
+        when (id) {
+            "clear" -> showClear()
+            "favorites" -> BookmarksActivity.open(this, profileId)
+            "tabs" -> showTabs()
+            "notes" -> startActivity(Intent(this, NotesActivity::class.java))
+            "saved" -> startActivity(Intent(this, SavedPagesActivity::class.java))
+            "share" -> sharePage()
+            "find" -> if (currentUrl.startsWith("http")) findBar.show()
+            else -> startActivity(Intent(this, DownloadsActivity::class.java))
+        }
+    }
+
+    /** Чип профиля: список профилей, текущий отмечен; выбор сразу переключает. */
+    private fun showProfilePicker() {
+        val all = Profiles.all(this)
+        val dialog = android.app.Dialog(this)
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, dp(12), 0, dp(8))
+            addView(TextView(context).apply {
+                text = Tr.t("switch_profile")
+                textSize = 16f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Ui.TEXT)
+                setPadding(dp(20), dp(4), dp(20), dp(10))
+            })
+        }
+        all.forEach { p ->
+            val current = !incognito && p.id == profileId
+            content.addView(LinearLayout(this).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(dp(20), dp(6), dp(16), dp(6))
+                minimumHeight = dp(56)
+                if (current) setBackgroundColor(Ui.BG)
+                contentDescription = p.name
+                setOnClickListener {
+                    dialog.dismiss()
+                    if (current) return@setOnClickListener
+                    exitIncognito()
+                    openTab(p.id, if (Tabs.isTab(pin.id)) Pins.all(this@BrowserActivity, p.id).first()
+                        else Pins.resolve(this@BrowserActivity, pin.id, p.id))
+                }
+                addView(TextView(context).apply {
+                    text = p.name.take(1).uppercase()
+                    textSize = 14f
+                    typeface = Typeface.DEFAULT_BOLD
+                    gravity = Gravity.CENTER
+                    setTextColor(Color.WHITE)
+                    background = Ui.oval(p.color)
+                }, LinearLayout.LayoutParams(dp(32), dp(32)))
+                addView(LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(dp(14), 0, dp(8), 0)
+                    addView(TextView(context).apply {
+                        text = p.name
+                        textSize = 15f
+                        setTextColor(Ui.TEXT)
+                        if (current) typeface = Typeface.DEFAULT_BOLD
+                        maxLines = 1
+                        ellipsize = TextUtils.TruncateAt.END
+                    })
+                    val sub = p.email ?: p.description.takeIf { it.isNotBlank() }
+                    if (sub != null) addView(TextView(context).apply {
+                        text = sub
+                        textSize = 12f
+                        setTextColor(Ui.MUTED)
+                        maxLines = 1
+                        ellipsize = TextUtils.TruncateAt.END
+                    })
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                if (Profiles.isPinned(this@BrowserActivity, p.id)) addView(icon(R.drawable.ic_pin, Ui.MUTED, 16))
+                if (current) addView(icon(R.drawable.ic_check, Ui.ACCENT, 20).apply {
+                    contentDescription = Tr.t("profile_current")
+                    (layoutParams as LinearLayout.LayoutParams).marginStart = dp(8)
+                })
+            })
+        }
+        content.addView(View(this).apply { setBackgroundColor(Ui.BORDER) },
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)).apply { topMargin = dp(6); bottomMargin = dp(6) })
+        content.addView(LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(20), 0, dp(16), 0)
+            minimumHeight = dp(52)
+            setOnClickListener {
+                dialog.dismiss()
+                exitIncognito()
+                startActivity(Intent(this@BrowserActivity, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+            }
+            addView(icon(R.drawable.ic_group, Ui.TEXT, 22))
+            addView(TextView(context).apply {
+                text = Tr.t("all_profiles")
+                textSize = 15f
+                setTextColor(Ui.TEXT)
+                setPadding(dp(18), 0, 0, 0)
+            })
+        })
+        dialog.setContentView(android.widget.ScrollView(this).apply {
+            background = Ui.rounded(Ui.SURFACE, dpf(18))
+            addView(content)
+        })
+        dialog.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+            setDimAmount(0.25f)
+            setGravity(Gravity.TOP or Gravity.START)
+            attributes = attributes.apply { x = dp(8); y = dp(8) }
+            val dm = resources.displayMetrics
+            setLayout(minOf(dp(320), dm.widthPixels - dp(16)), android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        dialog.show()
     }
 
     /** «Поделиться» адресом текущей страницы через системное окно. */
@@ -852,11 +988,8 @@ class BrowserActivity : AppCompatActivity() {
             setPadding(dp(10), 0, dp(12), 0)
             addView(chipDot, LinearLayout.LayoutParams(dp(10), dp(10)).apply { marginEnd = dp(8) })
             addView(chipName)
-            setOnClickListener {
-                exitIncognito()
-                startActivity(Intent(this@BrowserActivity, MainActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
-            }
+            contentDescription = Tr.t("switch_profile")
+            setOnClickListener { showProfilePicker() }
         }
 
         // Полоса закреплённых вкладок (настраивается в настройках); прокручивается, если их много.
@@ -922,22 +1055,33 @@ class BrowserActivity : AppCompatActivity() {
                 } else false
             }
         }
+        val engineBadge = FrameLayout(this).apply { visibility = View.GONE }
+        val clearButton = iconButton(R.drawable.ic_close, Tr.t("clear_text")) { urlBar.setText("") }
+            .apply { visibility = View.GONE }
         val addressBox = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
             setPadding(dp(12), 0, dp(4), 0)
             addView(lockIcon)
+            addView(engineBadge, LinearLayout.LayoutParams(dp(24), dp(24)))
             addView(urlBar, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
+            addView(clearButton, LinearLayout.LayoutParams(dp(34), dp(34)))
         }
         urlBar.setOnFocusChangeListener { v, focused ->
             addressBox.background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1), if (focused) Ui.ACCENT else Ui.BORDER)
+            // При вводе слева — значок поисковика (куда уйдёт запрос), справа — «Очистить».
+            engineBadge.visibility = if (focused) View.VISIBLE else View.GONE
+            lockIcon.visibility = if (!focused && currentUrl.startsWith("https://")) View.VISIBLE else View.GONE
             if (focused) {
+                engineBadge.removeAllViews()
+                engineBadge.addView(engineLetter(), FrameLayout.LayoutParams(dp(24), dp(24)))
                 urlBar.setText(if (currentUrl.startsWith("data:")) "" else Reader.original(currentUrl))
                 urlBar.post { urlBar.selectAll() }
                 addressPanel.show(if (incognito) 0 else profileId,
                     pageTitles[key]?.takeIf { it.first == currentUrl }?.second.orEmpty(), Reader.original(currentUrl))
             } else {
+                clearButton.visibility = View.GONE
                 addressPanel.hide()
                 urlBar.setText(Uri.parse(Reader.original(currentUrl)).host ?: currentUrl)
                 getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(v.windowToken, 0)
@@ -990,7 +1134,9 @@ class BrowserActivity : AppCompatActivity() {
             else session?.let { Gecko.loadUrl(it, if (Tabs.isTab(pin.id)) Pins.START else pin.url) }
         }
         action(R.drawable.ic_history, Tr.t("history")) { showHistory() }
-        action(R.drawable.ic_delete, Tr.t("clear_short")) { showClear() }
+        // Настраиваемая кнопка (по умолчанию — скачанные файлы).
+        val (bottomIcon, bottomLabel) = bottomButtonLook(Settings.bottomButton(this))
+        action(bottomIcon, bottomLabel) { bottomButtonAction(Settings.bottomButton(this)) }
         action(R.drawable.ic_refresh, Tr.t("refresh")) { session?.reload() }
 
         // Нижняя полоса: быстрое переключение между профилями без возврата к списку.
@@ -1013,11 +1159,15 @@ class BrowserActivity : AppCompatActivity() {
             onShare = { urlBar.clearFocus(); sharePage() },
             onCopy = { copyUrl() },
             onEdit = { urlBar.setSelection(urlBar.text.length) },
+            onFill = { text -> urlBar.setText(text); urlBar.setSelection(urlBar.text.length) },
         )
         urlBar.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: android.text.Editable?) { if (urlBar.hasFocus()) addressPanel.render(s?.toString().orEmpty()) }
+            override fun afterTextChanged(s: android.text.Editable?) {
+                clearButton.visibility = if (urlBar.hasFocus() && !s.isNullOrEmpty()) View.VISIBLE else View.GONE
+                if (urlBar.hasFocus()) addressPanel.render(s?.toString().orEmpty())
+            }
         })
         val contentArea = FrameLayout(this).apply {
             addView(refresher, FrameLayout.LayoutParams(match, match))
@@ -1080,6 +1230,18 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun toUrl(input: String): String = Search.toUrl(this, input)
+
+    /** Кружок с первой буквой текущего поисковика — без значков из сети. */
+    private fun engineLetter() = TextView(this).apply {
+        val engine = Search.current(this@BrowserActivity)
+        text = engine.title.take(1)
+        textSize = 13f
+        typeface = android.graphics.Typeface.DEFAULT_BOLD
+        gravity = Gravity.CENTER
+        setTextColor(android.graphics.Color.WHITE)
+        background = Ui.oval(Search.color(engine))
+        contentDescription = engine.title
+    }
 
     private var forwardedUrl: String? = null
     private var forwardedAt = 0L
@@ -1194,6 +1356,57 @@ class BrowserActivity : AppCompatActivity() {
                     result.complete(prompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.NEGATIVE))
                 }
                 .setOnDismissListener { if (!answered) result.complete(prompt.dismiss()) }
+                .show()
+            return result
+        }
+
+        // Сохранить пароль после входа на сайт: в профиль открытой вкладки, не в инкогнито.
+        override fun onLoginSave(
+            session: GeckoSession,
+            request: GeckoSession.PromptDelegate.AutocompleteRequest<Autocomplete.LoginSaveOption>,
+        ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
+            val option = request.options.firstOrNull() ?: return null
+            val host = Uri.parse(option.value.origin).host.orEmpty()
+            val id = profileId
+            if (incognito || id == 0 || !Passwords.offer(this@BrowserActivity) || host in Passwords.never(this@BrowserActivity, id)) {
+                return GeckoResult.fromValue(request.dismiss())
+            }
+            val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
+            var answered = false
+            dialog(Tr.t("password_save_q", host), option.value.username?.takeIf { it.isNotBlank() })
+                .setPositiveButton(Tr.t("save")) { _, _ ->
+                    answered = true
+                    Passwords.activeProfile = id
+                    result.complete(request.confirm(option))
+                }
+                .setNeutralButton(Tr.t("password_never")) { _, _ ->
+                    answered = true
+                    Passwords.setNever(this@BrowserActivity, id, host, true)
+                    result.complete(request.dismiss())
+                }
+                .setNegativeButton(Tr.t("not_now")) { _, _ -> answered = true; result.complete(request.dismiss()) }
+                .setOnDismissListener { if (!answered) result.complete(request.dismiss()) }
+                .show()
+            return result
+        }
+
+        // Несколько сохранённых аккаунтов на сайте — выбрать, каким войти.
+        override fun onLoginSelect(
+            session: GeckoSession,
+            request: GeckoSession.PromptDelegate.AutocompleteRequest<Autocomplete.LoginSelectOption>,
+        ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
+            val options = request.options
+            if (options.isEmpty()) return null
+            if (options.size == 1) return GeckoResult.fromValue(request.confirm(options[0]))
+            val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
+            var answered = false
+            AlertDialog.Builder(this@BrowserActivity)
+                .setTitle(Tr.t("login_pick"))
+                .setItems(options.map { it.value.username?.ifBlank { null } ?: "—" }.toTypedArray()) { _, i ->
+                    answered = true
+                    result.complete(request.confirm(options[i]))
+                }
+                .setOnDismissListener { if (!answered) result.complete(request.dismiss()) }
                 .show()
             return result
         }

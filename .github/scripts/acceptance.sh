@@ -127,9 +127,17 @@ tabstate after-close-all
 tabs --ei profile 7;                                                      shot 84-tabs-after-close 4
 adb shell input keyevent KEYCODE_BACK; sleep 1
 settings;                                                                 shot 09-settings 6
-# Светлая тема (2-й пункт переключателя «Тема» рядом с верхом). Тап по координате сегмента «Светлая».
-adb shell input tap 540 340; sleep 2;                                     shot 10-settings-light 3
+# Группы настроек: основные, конфиденциальность (запрет скриншотов), панели (кнопка панели).
+settings --es group general;                                              shot 09b-settings-general 4
+settings --es group privacy;                                              shot 09c-settings-privacy 4
+settings --es group panels;                                               shot 09d-settings-panels 4
+settings --es group profiles;                                             shot 10-settings-profiles 4
 browser --ei profile 5 --es site claude --es url https://claude.ai/;      shot 11-claude-light 40
+# Чип профиля в браузере — выбор другого профиля.
+tap "Switch profile"; sleep 2;                                            shot 11b-profile-picker 2
+adb shell input keyevent 4; sleep 1
+# Личный кабинет профиля: пароли, наборы вкладок, резервная копия.
+adb shell am start -n "$PKG/ru.multibrowser.AccountActivity" --ei profile 1 >/dev/null; shot 11c-cabinet 4
 main;                                                                     shot 12-main-light 5
 adb shell am force-stop "$PKG"; sleep 2
 main;                                                                     shot 13-relaunch 8
@@ -302,6 +310,8 @@ adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb shell cat /sdcard
 adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 1
 # Профили: перетаскивание («Personal» → на место «Work»), описание профиля.
 adb shell am force-stop "$PKG"; main; sleep 6
+# Над списком — приветствие и фраза: прокручиваем, чтобы оба профиля были на экране.
+adb shell input swipe 160 520 160 180 600; sleep 2
 from=$(find_xy "Personal"); to=$(find_xy "Work")
 echo "drag: '$from' -> '$to'" >> "$X"
 [ -n "$from" ] && [ -n "$to" ] && adb shell input draganddrop $from $to 2500
@@ -383,9 +393,10 @@ sleep 6;                                                                    shot
 kill "$NWPID" 2>/dev/null || true
 
 # Смена языка: сразу меняются и настройки, и главный экран под ними (и имена профилей-примеров).
-settings; sleep 4
+settings --es group general; sleep 4
 xtap "System"; sleep 2; xtap "Русский"; sleep 4;                    shot 67-lang-settings-ru 1
 adb shell input keyevent 4; sleep 3;                                        shot 68-lang-main-ru 1
+adb shell input swipe 160 520 160 180 600; sleep 2
 echo "lang ru main: $(find_xy "Личное")" >> "$X"
 adb logcat -d -v time > "$OUT/logcat.txt"
 grep -E "OsDiag|GeckoConsole|AndroidRuntime|FATAL|Gecko" "$OUT/logcat.txt" | tail -800 > "$OUT/diag.txt"

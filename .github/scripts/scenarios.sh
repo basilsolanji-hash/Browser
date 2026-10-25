@@ -95,7 +95,7 @@ cp .github/scripts/scenario_server.py "$WEB/"
 SRV=$!
 adb reverse tcp:8770 tcp:8770
 
-SCREENS="MainActivity SettingsActivity AboutActivity HelpActivity StatsActivity NotesActivity SavedPagesActivity DownloadsActivity BookmarksActivity SiteSettingsActivity SecurityCheckActivity OnboardingActivity"
+SCREENS="MainActivity AccountActivity SettingsActivity AboutActivity HelpActivity StatsActivity NotesActivity SavedPagesActivity DownloadsActivity BookmarksActivity SiteSettingsActivity SecurityCheckActivity OnboardingActivity"
 
 case "$SHARD" in
 1)  # --- Все экраны на 10 языках (и проверка перевода заголовков) ---
@@ -238,7 +238,7 @@ CASES
     adb shell settings put system user_rotation 0; sleep 1
   done
   # Каждый пункт меню ⋮ открывается без падения.
-  for key in new_tab new_incognito new_tab_group history clear_title site_permissions dl_title favorites tabs saved_pages \
+  for key in new_tab new_incognito new_tab_group history clear_title site_permissions cabinet dl_title favorites tabs saved_pages \
     notes zoom share find_in_page reader_mode copy_link open_external desktop_site full_screen settings help_feedback diagnostics \
     save_page refresh; do
     item=$(tr_text "$key" en | sed 's/&amp;/\&/g')

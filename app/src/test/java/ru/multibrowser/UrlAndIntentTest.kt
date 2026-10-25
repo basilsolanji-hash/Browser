@@ -156,3 +156,32 @@ class ReaderUrlTest(private val url: String, private val wrapped: String) {
         assertEquals(false, Reader.isReader(Reader.original(w)))
     }
 }
+
+/** Прошлые запросы для подсказок адресной строки — из адресов страниц результатов. */
+@RunWith(ParameterizedRobolectricTestRunner::class)
+class SearchQueryOfTest(private val url: String, private val expected: String?) {
+
+    companion object {
+        @JvmStatic
+        @Parameters(name = "{0}")
+        fun cases(): List<Array<Any?>> = listOf(
+            "https://duckduckgo.com/?q=hello+world" to "hello world",
+            "https://duckduckgo.com/?q=%D0%BF%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0&ia=web" to "погода",
+            "https://duckduckgo.com/?t=h_&q=c%2B%2B" to "c++",
+            "https://www.google.com/search?q=weather&hl=ru" to "weather",
+            "https://yandex.ru/search/?text=%D1%80%D0%BF%D1%82%D0%BC&lr=213" to "рптм",
+            "https://www.bing.com/search?q=news#top" to "news",
+            "https://search.brave.com/search?q=brave" to "brave",
+            "https://www.startpage.com/sp/search?query=start" to "start",
+            "https://duckduckgo.com/" to null,
+            "https://duckduckgo.com/?q=" to null,
+            "https://duckduckgo.com/?q=+++" to null,
+            "https://example.com/?q=test" to null,
+            "https://www.google.com/maps?q=paris" to null,
+            "https://yandex.ru/search/?lr=213" to null,
+        ).map { arrayOf(it.first, it.second) }
+    }
+
+    @Test
+    fun query() = assertEquals(expected, Search.queryOf(url))
+}

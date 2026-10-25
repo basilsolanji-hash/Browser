@@ -52,6 +52,16 @@ object Settings {
         prefs(ctx).edit().putBoolean("secure", on).apply()
     }
 
+    /** Кнопка нижней панели между «Историей» и «Обновить» (раньше всегда «Очистка»). */
+    val BOTTOM_BUTTONS = listOf("downloads", "clear", "favorites", "tabs", "notes", "saved", "share", "find")
+
+    fun bottomButton(ctx: Context): String =
+        prefs(ctx).getString("bottom_button", null)?.takeIf { it in BOTTOM_BUTTONS } ?: "downloads"
+
+    fun setBottomButton(ctx: Context, id: String) {
+        prefs(ctx).edit().putString("bottom_button", id).apply()
+    }
+
     /** Только HTTPS: незащищённые адреса повышаются до HTTPS, без него сайт не откроется. */
     fun httpsOnly(ctx: Context) = prefs(ctx).getBoolean("https_only", false)
 
