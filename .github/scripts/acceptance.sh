@@ -396,6 +396,7 @@ kill "$NWPID" 2>/dev/null || true
 settings --es group general; sleep 4
 xtap "System"; sleep 2; xtap "Русский"; sleep 4;                    shot 67-lang-settings-ru 1
 adb shell input keyevent 4; sleep 3;                                        shot 68-lang-main-ru 1
+adb shell input swipe 160 520 160 180 600; sleep 2
 echo "lang ru main: $(find_xy "Личное")" >> "$X"
 adb logcat -d -v time > "$OUT/logcat.txt"
 grep -E "OsDiag|GeckoConsole|AndroidRuntime|FATAL|Gecko" "$OUT/logcat.txt" | tail -800 > "$OUT/diag.txt"
