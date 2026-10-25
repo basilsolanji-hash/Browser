@@ -107,3 +107,29 @@ class EffectiveMimeTest(private val mime: String, private val name: String, priv
         assertEquals(inOs, Downloads.viewableInOs(m))
     }
 }
+
+/** Генератор паролей: длина, обязательные виды символов, без похожих, разные результаты. */
+class PasswordGenTest {
+    @org.junit.Test
+    fun rules() {
+        repeat(200) {
+            val p = PasswordGen.generate(16)
+            org.junit.Assert.assertEquals(16, p.length)
+            org.junit.Assert.assertTrue(p, p.any { it.isLowerCase() } && p.any { it.isUpperCase() } && p.any { it.isDigit() } && p.any { !it.isLetterOrDigit() })
+            org.junit.Assert.assertTrue(p, p.none { it in "0O1lI" })
+        }
+        val noSym = PasswordGen.generate(12, symbols = false)
+        org.junit.Assert.assertTrue(noSym.all { it.isLetterOrDigit() })
+        org.junit.Assert.assertEquals(8, PasswordGen.generate(3).length)
+        org.junit.Assert.assertEquals(64, PasswordGen.generate(500).length)
+        org.junit.Assert.assertEquals(100, (1..100).map { PasswordGen.generate() }.toSet().size)
+    }
+
+    @org.junit.Test
+    fun strength() {
+        org.junit.Assert.assertEquals(0, PasswordGen.strength("12345"))
+        org.junit.Assert.assertEquals(1, PasswordGen.strength("abcdefg1"))
+        org.junit.Assert.assertEquals(2, PasswordGen.strength("Abcdefghij12"))
+        org.junit.Assert.assertEquals(3, PasswordGen.strength(PasswordGen.generate()))
+    }
+}

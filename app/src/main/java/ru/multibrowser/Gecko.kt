@@ -45,6 +45,7 @@ object Gecko {
             .consoleOutput(ctx.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0)
             // Масштаб пальцами разрешён на любом сайте.
             .forceUserScalableEnabled(true)
+            .locales(locales())
             .allowInsecureConnections(httpsMode(ctx))
             // Защита как в стандартном режиме Firefox: блокируются соцтрекеры, майнеры и сборщики
             // отпечатков, сторонние cookies изолируются по сайтам (вход через Google работает),
@@ -65,10 +66,20 @@ object Gecko {
     ).also {
         runtime = it
         installReader(it)
+        installPasswordSuggest(it)
         it.webNotificationDelegate = Notify.delegate(ctx)
         // Пароли — свои у каждого профиля, зашифрованы на телефоне (Passwords).
         it.autocompleteStorageDelegate = Passwords.storage(ctx.applicationContext)
     }
+
+    /** «Предложить надёжный пароль» на формах регистрации (assets/pwgen): пароль создаётся на устройстве. */
+    private fun installPasswordSuggest(rt: GeckoRuntime) {
+        rt.webExtensionController.ensureBuiltIn("resource://android/assets/pwgen/", "pwgen@os.browser")
+            .accept({}, { err -> Diag.log("pwgen", "extension: ${err?.message}") })
+    }
+
+    /** Язык сайтов и встроенных подсказок — язык приложения (Accept-Language, navigator.language). */
+    private fun locales() = arrayOf(Tr.lang, "en")
 
     /** Встроенное расширение режима чтения (assets/reader, Mozilla Readability) — в том числе для инкогнито. */
     private fun installReader(rt: GeckoRuntime) {
@@ -103,6 +114,7 @@ object Gecko {
 
     /** Сменился язык интерфейса: стартовые страницы — на новом языке. */
     fun onLanguageChanged() {
+        runtime?.settings?.setLocales(locales())
         onStartPage.toList().forEach { Home.load(it) }
     }
 

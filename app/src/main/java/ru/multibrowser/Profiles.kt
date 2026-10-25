@@ -65,6 +65,33 @@ object Profiles {
         setOrder(ctx, ids)
     }
 
+    // --- Папки профилей ---
+
+    /** Папка профиля или пустая строка («без папки»). */
+    fun folder(ctx: Context, id: Int): String = prefs(ctx).getString("folder_$id", null).orEmpty()
+
+    fun setFolder(ctx: Context, id: Int, folder: String) {
+        val edit = prefs(ctx).edit()
+        if (folder.isBlank()) edit.remove("folder_$id") else edit.putString("folder_$id", folder.trim())
+        edit.apply()
+    }
+
+    /** Папки, в которых есть профили, по алфавиту. */
+    fun folders(ctx: Context): List<String> =
+        order(ctx).map { folder(ctx, it) }.filter { it.isNotEmpty() }.distinct().sortedBy { it.lowercase() }
+
+    fun renameFolder(ctx: Context, from: String, to: String) =
+        order(ctx).filter { folder(ctx, it) == from }.forEach { setFolder(ctx, it, to) }
+
+    /** Удалить папку: профили остаются, просто без папки. */
+    fun deleteFolder(ctx: Context, name: String) = renameFolder(ctx, name, "")
+
+    /** Свёрнута ли папка на главном экране. */
+    fun folderCollapsed(ctx: Context, name: String) = prefs(ctx).getBoolean("collapsed_$name", false)
+
+    fun setFolderCollapsed(ctx: Context, name: String, on: Boolean) =
+        prefs(ctx).edit().putBoolean("collapsed_$name", on).apply()
+
     fun setDescription(ctx: Context, id: Int, text: String) {
         val edit = prefs(ctx).edit()
         if (text.isBlank()) edit.remove("desc_$id") else edit.putString("desc_$id", text.trim())

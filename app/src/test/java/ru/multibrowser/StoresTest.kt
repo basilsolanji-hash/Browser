@@ -451,3 +451,45 @@ class HistoryRangeTest {
         assertEquals(d.dropLast(1), d.dropLast(1).sorted())
     }
 }
+
+/** Папки профилей: назначение, список по алфавиту, переименование, удаление без потери профилей. */
+@RunWith(RobolectricTestRunner::class)
+class ProfileFoldersTest {
+    private val ctx: Context = ApplicationProvider.getApplicationContext()
+
+    @Test
+    fun folders() {
+        ctx.getSharedPreferences("profiles", Context.MODE_PRIVATE).edit().clear().commit()
+        assertTrue(Profiles.folders(ctx).isEmpty())
+        Profiles.setFolder(ctx, 2, "Работа")
+        Profiles.setFolder(ctx, 3, "Клиенты")
+        Profiles.setFolder(ctx, 4, "Работа")
+        assertEquals(listOf("Клиенты", "Работа"), Profiles.folders(ctx))
+        Profiles.renameFolder(ctx, "Работа", "Офис")
+        assertEquals("Офис", Profiles.folder(ctx, 2))
+        assertEquals("Офис", Profiles.folder(ctx, 4))
+        Profiles.deleteFolder(ctx, "Офис")
+        assertEquals("", Profiles.folder(ctx, 2))
+        assertEquals(listOf("Клиенты"), Profiles.folders(ctx))
+        Profiles.setFolderCollapsed(ctx, "Клиенты", true)
+        assertTrue(Profiles.folderCollapsed(ctx, "Клиенты"))
+        assertEquals(Settings.profileCount(ctx), Profiles.all(ctx).size)
+    }
+
+    @Test
+    fun backupAllProfilesRoundTrip() {
+        Passwords.codec = object : Passwords.Codec {
+            override fun encrypt(plain: String) = plain
+            override fun decrypt(stored: String) = stored
+        }
+        ctx.getSharedPreferences("passwords", Context.MODE_PRIVATE).edit().clear().commit()
+        Passwords.upsert(ctx, 1, "https://a.example", "u1", "p1")
+        Passwords.upsert(ctx, 2, "https://b.example", "u2", "p2")
+        val file = Backup.encrypt(Backup.collectAll(ctx), "secret-1")
+        ctx.getSharedPreferences("passwords", Context.MODE_PRIVATE).edit().clear().commit()
+        val r = Backup.applyAny(ctx, 1, Backup.decrypt(file, "secret-1")!!)
+        assertEquals(2, r.passwords)
+        assertEquals("p1", Passwords.list(ctx, 1)[0].password)
+        assertEquals("p2", Passwords.list(ctx, 2)[0].password)
+    }
+}
