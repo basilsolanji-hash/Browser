@@ -121,6 +121,25 @@ object Backup {
         return Restored(logins.size, sets.size, favorites, notes)
     }
 
+    /** Копия всех профилей одним файлом: {"v":2,"profiles":[{"id":N,"data":{…}}]}. */
+    fun collectAll(ctx: Context): JSONObject = JSONObject().put("v", 2).put("profiles", JSONArray().apply {
+        Profiles.order(ctx).forEach { id -> put(JSONObject().put("id", id).put("data", collect(ctx, id))) }
+    })
+
+    /** Восстановить копию: v2 — в профили с теми же номерами (если такие есть), v1 — в [profile]. */
+    fun applyAny(ctx: Context, profile: Int, data: JSONObject): Restored {
+        val all = data.optJSONArray("profiles") ?: return apply(ctx, profile, data)
+        var p = 0; var t = 0; var f = 0; var n = 0
+        val count = Settings.profileCount(ctx)
+        for (i in 0 until all.length()) {
+            val o = all.getJSONObject(i)
+            val id = o.optInt("id").takeIf { it in 1..count } ?: continue
+            val r = apply(ctx, id, o.getJSONObject("data"))
+            p += r.passwords; t += r.tabSets; f += r.favorites; n += r.notes
+        }
+        return Restored(p, t, f, n)
+    }
+
     fun encrypt(data: JSONObject, password: String): String {
         val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
         val iv = ByteArray(12).also { SecureRandom().nextBytes(it) }

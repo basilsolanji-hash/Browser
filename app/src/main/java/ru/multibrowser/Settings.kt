@@ -52,6 +52,11 @@ object Settings {
         prefs(ctx).edit().putBoolean("secure", on).apply()
     }
 
+    /** Профили на главном: плиткой (true) или списком. */
+    fun profilesGrid(ctx: Context) = prefs(ctx).getBoolean("profiles_grid", false)
+
+    fun setProfilesGrid(ctx: Context, on: Boolean) = prefs(ctx).edit().putBoolean("profiles_grid", on).apply()
+
     /** Кнопка нижней панели между «Историей» и «Обновить» (раньше всегда «Очистка»). */
     val BOTTOM_BUTTONS = listOf("downloads", "clear", "favorites", "tabs", "notes", "saved", "share", "find")
 

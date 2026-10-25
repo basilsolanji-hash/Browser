@@ -45,6 +45,7 @@ object Gecko {
             .consoleOutput(ctx.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0)
             // Масштаб пальцами разрешён на любом сайте.
             .forceUserScalableEnabled(true)
+            .locales(locales())
             .allowInsecureConnections(httpsMode(ctx))
             // Защита как в стандартном режиме Firefox: блокируются соцтрекеры, майнеры и сборщики
             // отпечатков, сторонние cookies изолируются по сайтам (вход через Google работает),
@@ -65,10 +66,20 @@ object Gecko {
     ).also {
         runtime = it
         installReader(it)
+        installPasswordSuggest(it)
         it.webNotificationDelegate = Notify.delegate(ctx)
         // Пароли — свои у каждого профиля, зашифрованы на телефоне (Passwords).
         it.autocompleteStorageDelegate = Passwords.storage(ctx.applicationContext)
     }
+
+    /** «Предложить надёжный пароль» на формах регистрации (assets/pwgen): пароль создаётся на устройстве. */
+    private fun installPasswordSuggest(rt: GeckoRuntime) {
+        rt.webExtensionController.ensureBuiltIn("resource://android/assets/pwgen/", "pwgen@os.browser")
+            .accept({}, { err -> Diag.log("pwgen", "extension: ${err?.message}") })
+    }
+
+    /** Язык сайтов и встроенных подсказок — язык приложения (Accept-Language, navigator.language). */
+    private fun locales() = arrayOf(Tr.lang, "en")
 
     /** Встроенное расширение режима чтения (assets/reader, Mozilla Readability) — в том числе для инкогнито. */
     private fun installReader(rt: GeckoRuntime) {
@@ -77,6 +88,15 @@ object Gecko {
             if (e != null && !e.metaData.allowedInPrivateBrowsing) ext.setAllowedInPrivateBrowsing(e, true)
         }, { err -> Diag.log("reader", "extension: ${err?.message}") })
     }
+
+    /** Идёт выделение текста (показана панель «Копировать…») — панели браузера не двигаем. */
+    @Volatile var selecting = false
+
+    /** Когда пользователь последний раз касался страницы (elapsedRealtime) — для звука после нажатия. */
+    @Volatile var lastUserTouch = 0L
+
+    /** Звук запускается в ответ на нажатие (плеер сайта стартует чуть позже касания) — это не автозапуск. */
+    fun recentlyTouched(now: Long = android.os.SystemClock.elapsedRealtime()) = now - lastUserTouch in 0..10_000
 
     /** Вкладки в режиме «Версия для ПК» (ключ вкладки). */
     val desktop = HashSet<String>()
@@ -94,6 +114,7 @@ object Gecko {
 
     /** Сменился язык интерфейса: стартовые страницы — на новом языке. */
     fun onLanguageChanged() {
+        runtime?.settings?.setLocales(locales())
         onStartPage.toList().forEach { Home.load(it) }
     }
 
@@ -156,10 +177,21 @@ object Gecko {
         loadUrl(session, url)
         sessions[key] = session
 
+        // Сначала выгружаем давно не открытые вкладки, но не страницы входа: при перезагрузке такая
+        // страница заново отправляет код подтверждения (SMS), и сайт может временно заблокировать вход.
         while (sessions.size > Settings.keepAlive(ctx)) {
-            drop(sessions.entries.first().key)
+            val keys = sessions.keys.toList()
+            drop(keys.firstOrNull { it != key && !isSignInPage(tabUrls[it]) } ?: keys.first())
         }
         return session
+    }
+
+    /** Страница входа или подтверждения кода (Apple ID, Google, Microsoft, OAuth…). */
+    fun isSignInPage(url: String?): Boolean {
+        if (url.isNullOrBlank()) return false
+        if (Popups.isAuthPopup(url)) return true
+        val path = Uri.parse(url).path.orEmpty().lowercase()
+        return listOf("signin", "sign-in", "login", "2fa", "two-factor", "verify", "challenge", "mfa").any { it in path }
     }
 
     fun userAgentFor(url: String): String? =
@@ -176,6 +208,9 @@ object Gecko {
 
     /** Вкладка упала или выгружена системой — забываем её, чтобы следующий вызов session() создал новую. */
     fun forget(key: String) = drop(key)
+
+    /** Выгрузить все вкладки профиля из памяти (перед удалением его cookies). */
+    fun dropProfileSessions(id: Int) = sessions.keys.filter { it.startsWith("$id:") }.forEach { drop(it) }
 
     /** Закрыть обычную вкладку профиля: выгрузить её сессию. */
     fun close(id: Int, tabId: String) = drop("$id:$tabId")
