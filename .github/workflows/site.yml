@@ -21,8 +21,6 @@ on:
 
 permissions:
   contents: write # пуш результатов в ветку site-results
-  pages: write
-  id-token: write
 
 # Публикацию не прерываем на середине: следующий прогон дождётся текущего.
 concurrency:
@@ -80,11 +78,15 @@ jobs:
           export CHROME_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")"
           npx lhci autorun
 
-      # lychee проверяет файлы, а ссылки на сайте абсолютные (/Browser/…): кладём dist в
-      # _lychee/Browser и даём корень _lychee. Канонические адреса github.io сводим к тем же файлам,
-      # иначе до первой публикации они были бы «битыми».
+      # lychee проверяет файлы, а ссылки на сайте абсолютные (/ru/… или /Browser/…): кладём dist
+      # под тем же путём в _lychee и даём корень _lychee. Канонические адреса сайта сводим к тем же
+      # файлам — так проверяется то, что будет выложено, а не прошлая версия.
+      # Адрес и базовый путь сайта — из links.json, как при сборке (scripts/site-config.mjs).
+      - name: Site address
+        run: node --input-type=module -e "import { SITE, BASE } from './scripts/site-config.mjs'; console.log('SITE=' + SITE + '\nBASE=' + BASE)" >> "$GITHUB_ENV"
+
       - name: Stage dist for link check
-        run: rm -rf ../_lychee && mkdir -p ../_lychee && cp -r dist ../_lychee/Browser
+        run: rm -rf ../_lychee && mkdir -p "../_lychee$BASE" && cp -r dist/. "../_lychee$BASE/"
 
       - name: Link check (lychee)
         id: lychee
@@ -101,8 +103,8 @@ jobs:
             --index-files index.html
             --accept 200,429
             --max-concurrency 8
-            --remap 'https://basilsolanji-hash\.github\.io/Browser file://${{ github.workspace }}/_lychee/Browser'
-            '_lychee/Browser/**/*.html'
+            --remap '${{ env.SITE }}${{ env.BASE }} file://${{ github.workspace }}/_lychee${{ env.BASE }}'
+            '_lychee/**/*.html'
 
       # Результаты — в отдельную ветку, как у Android-приёмки: site-results для main,
       # site-results-feat-x для веток (параллельные прогоны не мешают друг другу).
@@ -133,37 +135,38 @@ jobs:
           echo "acceptance=${{ steps.acceptance.outcome }} lighthouse=${{ steps.lhci.outcome }} lychee=${{ steps.lychee.outcome }}"
           exit 1
 
-      # Артефакт для Pages — только с main: ветки сайта лишь проверяются.
-      - name: Upload Pages artifact
+      # Выкладка на хостинг Beget по FTP — только из main и только когда заданы секреты
+      # BEGET_FTP_HOST, BEGET_FTP_USER, BEGET_FTP_PASSWORD (BEGET_FTP_DIR — папка сайта на хостинге).
+      # Служебные папки хостинга (cgi-bin, проверка сертификата .well-known/acme-challenge) не трогаем.
+      - name: Deploy to Beget
+        id: deploy
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site/dist
-
-  deploy:
-    needs: build-test
-    # push в main, ручной запуск с main и workflow_run (он всегда идёт от ветки по умолчанию).
-    if: github.ref == 'refs/heads/main' && needs.build-test.result == 'success'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      # Pages в репозитории пока выключены. enablement пытается включить их сам, но токену
-      # GITHUB_TOKEN на это обычно не хватает прав — тогда владелец один раз выставляет
-      # Settings → Pages → Source: GitHub Actions, и дальше всё работает само.
-      - id: pages
-        uses: actions/configure-pages@v5
-        continue-on-error: true
-        with:
-          enablement: true
-
-      # Пока Pages не включены, прогон не краснеет: сборка и приёмка уже прошли, публикация ждёт владельца.
-      - name: Pages not enabled yet
-        if: steps.pages.outcome == 'failure'
+        env:
+          HOST: ${{ secrets.BEGET_FTP_HOST }}
+          USER: ${{ secrets.BEGET_FTP_USER }}
+          PASS: ${{ secrets.BEGET_FTP_PASSWORD }}
+          DIR: ${{ secrets.BEGET_FTP_DIR }}
         run: |
-          echo "::warning::GitHub Pages выключены — сайт не опубликован. Settings → Pages → Source: GitHub Actions."
+          if [ -z "$HOST" ] || [ -z "$USER" ] || [ -z "$PASS" ]; then
+            echo "::warning::Нет секретов BEGET_FTP_* — сайт собран и проверен, но не выложен."
+            exit 0
+          fi
+          sudo apt-get install -y -q lftp > /dev/null
+          # Сертификат FTP у Beget выдан на имя сервера, а не на адрес аккаунта: шифруем, но имя не сверяем.
+          lftp -u "$USER,$PASS" -e "set ftp:ssl-allow true; set ssl:verify-certificate no; set net:max-retries 3; set net:timeout 30; \
+            mirror --reverse --delete --parallel=4 --exclude-glob cgi-bin/ --exclude-glob .well-known/acme-challenge/ dist/ ${DIR:-os-browser.com/public_html}/; quit" "$HOST"
+          echo "deployed=1" >> "$GITHUB_OUTPUT"
 
-      - id: deployment
-        if: steps.pages.outcome == 'success'
-        uses: actions/deploy-pages@v4
+      # Живой сайт после выкладки: страницы открываются, версия совпадает со сборкой, заголовки на месте.
+      - name: Check live site
+        if: steps.deploy.outputs.deployed == '1'
+        run: |
+          sleep 10
+          VER=$(node -p "require('./src/data/releases.json').android.latest.version")
+          curl -fsS "$SITE/ru/download/" | grep -q "$VER" || { echo "::error::На $SITE/ru/download/ нет версии $VER"; exit 1; }
+          curl -fsSI "$SITE/" | tee /tmp/h.txt | head -20
+          grep -qi '^content-security-policy:' /tmp/h.txt || echo "::warning::Нет заголовка CSP — проверьте, что .htaccess выложен"
+          curl -fsS -o /dev/null "$SITE/privacy.html"
+          for u in "http://os-browser.com/" "https://os-browser.com/"; do
+            curl -sSI "$u" | grep -i '^location:' || echo "::warning::$u не переадресует на www"
+          done
