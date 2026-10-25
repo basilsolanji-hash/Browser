@@ -3,6 +3,7 @@ import { copyFile, mkdir, readdir, rename, rm, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import { applyLanguage, currentLang, isRtl, strings, t } from './i18n';
+import { greeting, next } from './phrases';
 import { settings, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
 import { THEME_IDS, themeNameKey } from './themes';
 import { OsWindow, byWebContents, mainWindow, openIncognito, profileInfo, profileSession, saveWithToast, windows } from './window';
@@ -66,6 +67,8 @@ on(both, 'openProfile', (w, id, tab) => w.openProfile(profileArg(id), typeof tab
 on(both, 'openUrl', (w, url) => { const u = fromInput(str(url)); if (u && isWebUrl(u)) w.openUrl(u); });
 on(both, 'incognito', () => { openIncognito(); });
 on(both, 'closePanel', (w) => w.closePanel());
+// Приветствие и фраза для главного экрана (в инкогнито фраз нет).
+on(['page'], 'phrase', (w) => (w.incognito ? null : { greeting: greeting(), phrase: next() }));
 
 // --- Шапка ---
 on(['chrome'], 'state', (w) => w.state());
