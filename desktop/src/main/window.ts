@@ -391,6 +391,7 @@ export class OsWindow implements TabHost {
       fullscreen: this.win.isFullScreen(),
       engine: settings.get().engine,
       toolbarButton: toolbarButton(),
+      hasDownloads: Downloads.list().length > 0,
     };
   }
 
@@ -958,6 +959,8 @@ export class OsWindow implements TabHost {
     if (ctrl && input.shift && (code === 'KeyT')) { this.reopenClosed(); return true; }
     if (ctrl && input.shift && code === 'KeyN') { openIncognito(); return true; }
     if (ctrl && !input.shift && code === 'KeyT') { this.newTab(); this.focusAddress(); return true; }
+    // Ctrl+N — как привыкли в Chrome: новая вкладка (окно на профиль одно).
+    if (ctrl && !input.shift && code === 'KeyN' && (this.profile != null || this.incognito)) { this.newTab(); this.focusAddress(); return true; }
     if (ctrl && code === 'KeyW') { if (this.panel && this.profile != null) this.closePanel(); else this.closeTab(); return true; }
     if (ctrl && (k === 'Tab' || k === 'PageDown' || k === 'PageUp')) {
       this.cycle(k === 'PageUp' || (k === 'Tab' && input.shift) ? -1 : 1);
@@ -983,7 +986,12 @@ export class OsWindow implements TabHost {
       if (r != null) this.toast(t(r ? 'added_favorite' : 'fav_removed'));
       return true;
     }
-    if (ctrl && !input.shift && code === 'KeyF') { this.openFind(); return true; }
+    if (ctrl && !input.shift && code === 'KeyF') {
+      // На своих экранах (настройки, история…) — в их собственное поле поиска.
+      if (this.panel) void this.page.webContents.executeJavaScript("document.querySelector('input[type=search]')?.focus()").catch(() => {});
+      else this.openFind();
+      return true;
+    }
     if (ctrl && !input.shift && code === 'KeyP') { this.print(); return true; }
     if (k === 'F3') { if (this.find?.text) this.findText(this.find.text, !input.shift, true); else this.openFind(); return true; }
     if (k === 'Escape' && this.find && !this.panel) { this.closeFind(); return true; }

@@ -71,6 +71,8 @@ export interface WindowState {
   engine: string;
   /** Что стоит на кнопке справа от адресной строки. */
   toolbarButton: string;
+  /** Есть хотя бы одна загрузка (кнопка «Загрузки» на панели появляется после первой). */
+  hasDownloads: boolean;
 }
 
 export interface Suggestion { kind: 'search' | 'query' | 'history' | 'favorite' | 'url'; title: string; url: string }

@@ -89,7 +89,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-interface Item { k?: string; label?: string; icon?: string; kbd?: string; disabled?: boolean; checked?: boolean; run?: () => void; sep?: boolean; head?: string; el?: HTMLElement }
+interface Item { k?: string; sub?: boolean; label?: string; icon?: string; kbd?: string; disabled?: boolean; checked?: boolean; run?: () => void; sep?: boolean; head?: string; el?: HTMLElement }
 
 function menu(items: Item[]): HTMLElement {
   const box = h('div', { class: 'menu', role: 'menu' });
@@ -103,10 +103,12 @@ function menu(items: Item[]): HTMLElement {
         role: it.checked === undefined ? 'menuitem' : 'menuitemcheckbox',
         'aria-checked': it.checked === undefined ? null : String(it.checked),
         disabled: !!it.disabled,
-        onclick: () => { hideDrop(); it.run?.(); },
+        // Подменю открывается на месте меню (без мигания шапки).
+        onclick: () => { if (it.sub || it.k === 'back-menu') it.run?.(); else { hideDrop(); it.run?.(); } },
       }, it.icon ? icon(it.icon) : h('span', { class: 'ic', style: 'width:20px' }), h('span', { class: 'grow' }, it.label ?? ''),
       it.kbd ? h('span', { class: 'kbd' }, it.kbd) : null,
-      it.checked ? h('span', { class: 'mark-cur' }, icon('check', 18)) : null));
+      it.checked ? h('span', { class: 'mark-cur' }, icon('check', 18)) : null,
+      it.sub ? h('span', { class: 'kbd sub-arrow' }, icon('next', 18)) : null));
     }
   }
   return box;
@@ -329,6 +331,8 @@ function renderRow2(): void {
     placeholder: t('address_hint'),
     value: st.url ? host(st.url) : '',
     class: 'rest',
+    // Адрес всегда слева направо (как в Chrome на арабском), подсказка — по языку.
+    dir: 'auto',
   });
   const input = address;
   // Как в Chrome: по фокусу — полный адрес, выделенный целиком (и щелчок мышью выделение не снимает).
@@ -421,6 +425,8 @@ function toolbarItem(s: WindowState): HTMLElement | null {
     find: ['search', t('find_in_page'), web ? () => void os.call('findOpen') : null],
   };
   const [name, label, run] = items[s.toolbarButton] ?? items.downloads;
+  // Как в Chrome: кнопка загрузок появляется после первой загрузки.
+  if (s.toolbarButton === 'downloads' && !s.hasDownloads) return null;
   if (s.incognito && !['downloads', 'share', 'find'].includes(s.toolbarButton)) return null;
   const b = iconButton(name, label, () => run?.());
   b.id = 'tb-btn';
@@ -491,7 +497,7 @@ function pageCard(): HTMLElement | null {
   const url = st.url;
   return h('div', { class: 'pagecard' },
     letterOf(url),
-    h('span', { class: 'grow' }, h('span', { class: 'ttl' }, st.title || host(url)), h('span', { class: 'url' }, url)),
+    h('span', { class: 'grow' }, h('span', { class: 'ttl', dir: 'auto' }, st.title || host(url)), h('span', { class: 'url', dir: 'ltr' }, url)),
     keep('pc-share', 'share', t('share'), () => { const r = document.getElementById('addr')!.getBoundingClientRect(); address?.blur(); shareMenu(r); }),
     keep('pc-copy', 'link', t('copy_link'), () => { void os.call('copy', url); toast(t('link_copied')); }),
     keep('pc-edit', 'edit', t('edit_address'), () => {
@@ -526,8 +532,8 @@ function paintSuggestions(): void {
         'aria-selected': String(i === selected),
         'data-kind': s.kind,
         onmousedown: (e: MouseEvent) => { e.preventDefault(); go(target(s)); },
-      }, icon(ic), h('span', { class: 'grow' }, h('span', { class: 'ttl' }, label),
-        s.kind !== 'search' && s.kind !== 'query' && s.title !== s.url ? h('span', { class: 'url' }, s.url) : null));
+      }, icon(ic), h('span', { class: 'grow' }, h('span', { class: 'ttl', dir: 'auto' }, label),
+        s.kind !== 'search' && s.kind !== 'query' && s.title !== s.url ? h('span', { class: 'url', dir: 'ltr' }, s.url) : null));
       if (i > 0) {
         row.append(keep('fill', 'fill', t('fill_in'), () => {
           if (!address) return;
@@ -572,7 +578,7 @@ function mainMenu(anchor: DOMRect): void {
     round('back', t('back'), () => void os.call('back'), st.canBack),
     round('forward', t('forward'), () => void os.call('forward'), st.canForward),
     round('star', st.bookmarked ? t('fav_remove') : t('add_favorite'), () => void os.call('toggleBookmark'), web && !st.incognito, st.bookmarked),
-    round('download', t('save_page'), () => void os.call('savePage'), web),
+    round('savepage', t('save_page'), () => void os.call('savePage'), web),
     round('refresh', t('refresh'), () => void os.call('reload'), !!st.url));
   const zoomRow = h('div', { class: 'zoomrow' },
     icon('zoom'),
@@ -598,28 +604,21 @@ function mainMenu(anchor: DOMRect): void {
       { label: t('dl_title'), icon: 'download', kbd: 'Ctrl+J', run: panel('os://downloads/') },
       { label: t('favorites'), icon: 'star', kbd: 'Ctrl+Shift+O', run: panel('os://favorites/') },
       { label: t('tabs'), icon: 'tabs', kbd: 'Ctrl+Shift+A', run: panel(`os://tabs/?profile=${id}`) },
-      { label: t('saved_pages'), icon: 'saved', run: panel('os://saved/') },
-      { label: t('notes'), icon: 'note', run: panel('os://notes/') },
     ]);
   } else {
     groups.push([{ label: t('dl_title'), icon: 'download', kbd: 'Ctrl+J', run: panel('os://downloads/') }]);
   }
-  groups.push([{ el: zoomRow }]);
   groups.push([
-    { k: 'share', label: t('share'), icon: 'share', disabled: !web, run: () => shareMenu(anchor) },
+    { el: zoomRow },
     { label: t('find_in_page'), icon: 'search', kbd: 'Ctrl+F', disabled: !web, run: () => void os.call('findOpen') },
     { label: st.reader ? t('reader_exit') : t('reader_mode'), icon: 'book', kbd: 'Ctrl+Alt+R', disabled: !web, run: () => void os.call('reader') },
-    { label: t('copy_link'), icon: 'link', disabled: !web, run: () => { void os.call('copy', st!.url); toast(t('link_copied')); } },
-    { label: t('open_external'), icon: 'external', disabled: !web, run: () => void browsersMenu(anchor) },
-    { k: 'mobile', label: t('dt_mobile_site'), icon: 'phone', disabled: !web, checked: st.mobile, run: () => void os.call('mobileSite') },
     { label: st.fullscreen ? t('exit_full_screen') : t('full_screen'), icon: 'fullscreen', kbd: 'F11', run: () => void os.call('fullscreen') },
-    { label: t('dt_print'), icon: 'file', kbd: 'Ctrl+P', disabled: !web, run: () => void os.call('print') },
+    { k: 'more-tools', label: t('dt_more_tools'), icon: 'more', sub: true, run: () => moreTools(anchor, web, id) },
   ]);
   if (!st.incognito) {
     groups.push([
       { label: t('settings'), icon: 'settings', run: panel('os://settings/') },
       { label: t('help_feedback'), icon: 'help', run: panel('os://help/') },
-      { k: 'diag', label: t('diagnostics'), icon: 'bug', run: () => void diagnostics(anchor) },
       ...(st.lockEnabled ? [{ label: t('dt_lock_now'), icon: 'lock', run: () => void os.call('lockNow') }] : []),
     ]);
     if (!st.isDefault) groups.push([{ label: t('default_make'), icon: 'globe', run: () => void os.call('makeDefault') }]);
@@ -628,7 +627,30 @@ function mainMenu(anchor: DOMRect): void {
   for (const g of groups) items.push({ sep: true }, ...g);
   const box = menu(items);
   box.classList.add('main-menu');
-  openDrop(box, anchor, 'end', 320);
+  openDrop(box, anchor, 'end');
+}
+
+/** «Другие инструменты ▸» (как в Chrome): редкие пункты, чтобы меню влезало на экран ноутбука. */
+function moreTools(anchor: DOMRect, web: boolean, id: number | undefined): void {
+  const items: Item[] = [
+    { k: 'back-menu', label: t('dt_more_tools'), icon: 'back', run: () => mainMenu(anchor) },
+    { sep: true },
+    ...(id != null ? [
+      { label: t('saved_pages'), icon: 'saved', run: () => void os.call('openPanel', 'os://saved/') },
+      { label: t('notes'), icon: 'note', run: () => void os.call('openPanel', 'os://notes/') },
+      { sep: true },
+    ] : []),
+    { k: 'share', label: t('share'), icon: 'share', disabled: !web, run: () => shareMenu(anchor) },
+    { label: t('copy_link'), icon: 'link', disabled: !web, run: () => { void os.call('copy', st!.url); toast(t('link_copied')); } },
+    { label: t('open_external'), icon: 'external', disabled: !web, run: () => void browsersMenu(anchor) },
+    { k: 'mobile', label: t('dt_mobile_site'), icon: 'phone', disabled: !web, checked: !!st?.mobile, run: () => void os.call('mobileSite') },
+    { label: t('dt_print'), icon: 'file', kbd: 'Ctrl+P', disabled: !web, run: () => void os.call('print') },
+    { sep: true },
+    { k: 'diag', label: t('diagnostics'), icon: 'bug', run: () => void diagnostics(anchor) },
+  ];
+  const box = menu(items);
+  box.classList.add('main-menu');
+  openDrop(box, anchor, 'end');
 }
 
 function shareMenu(anchor: DOMRect): void {

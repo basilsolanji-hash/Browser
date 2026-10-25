@@ -147,3 +147,11 @@ html[dir="rtl"] [data-k="back"] .ic, html[dir="rtl"] [data-k="fwd"] .ic { transf
 #layer.through { pointer-events: none; }
 #layer.through > * { pointer-events: auto; }
 #addr [hidden] { display: none !important; }
+#find::-webkit-search-cancel-button { display: none; }
+/* Меню ⋮ — ширина по содержимому, подписи не обрезаются; строки компактнее, чтобы меню влезало на ноутбук. */
+.menu.main-menu { width: max-content; min-width: 260px; max-width: 380px; }
+.menu.main-menu button { height: auto; min-height: 30px; padding-block: 3px; }
+.menu.main-menu .grow { white-space: normal; overflow: visible; }
+.menu.main-menu .kbd { padding-inline-start: 16px; }
+.menu.main-menu .sep { margin: 4px; }
+html[dir="rtl"] .sub-arrow .ic, html[dir="rtl"] [data-k="back-menu"] .ic { transform: scaleX(-1); }

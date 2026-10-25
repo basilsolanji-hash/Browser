@@ -1067,7 +1067,11 @@ try {
     check('sites get Accept-Language = app language', appLang && menuReq?.lang?.startsWith(appLang), `${appLang} / ${menuReq?.lang}`);
     const mui = await waitFor(() => app.windows().find((p) => !p.isClosed() && p.url().startsWith('os://ui') && !p.url().includes('incognito')));
     if (!(await mui.waitForSelector('#more', { timeout: 5000 }).catch(() => null))) await windowShot('34-no-menu-button');
-    const openMenu = async () => { await mui.click('#more'); await mui.waitForSelector('.main-menu'); };
+    const openMenu = async () => {
+      if (await mui.$('.main-menu')) { await mui.keyboard.press('Escape'); await mui.waitForSelector('.main-menu', { state: 'detached' }); }
+      await mui.click('#more');
+      await mui.waitForSelector('.main-menu');
+    };
     await openMenu();
     const shape = await mui.evaluate(() => {
       const m = document.querySelector('.main-menu');
@@ -1078,27 +1082,34 @@ try {
         groups: m.querySelectorAll('.sep').length,
         icons: [...m.querySelectorAll(':scope > button')].every((b) => b.querySelector('.ic svg')),
         fits: r.bottom <= window.innerHeight + 1 && r.right <= window.innerWidth + 1 && r.width < window.innerWidth,
+        height: m.scrollHeight,
+        cut: [...m.querySelectorAll('.grow')].filter((g) => g.scrollWidth > g.clientWidth + 1).map((g) => g.textContent),
         labels: [...m.querySelectorAll('.toprow .round')].every((b) => b.getAttribute('aria-label')),
       };
     });
     const s34 = await state();
     check('menu: row of 5 round buttons with labels', shape.round === 5 && shape.labels, JSON.stringify(shape));
     check('menu: Back disabled when there is nowhere to go', shape.backDisabled === !s34.canBack);
-    check('menu: at least 6 groups divided by lines, every item has an icon', shape.groups >= 6 && shape.icons, JSON.stringify(shape));
+    check('menu: groups divided by lines, every item has an icon', shape.groups >= 5 && shape.icons, JSON.stringify(shape));
+    check('menu: fits a 768 px laptop screen (rare items under «More tools»)', shape.height <= 660, `height=${shape.height}`);
+    check('menu: labels are not cut off', shape.cut.length === 0, shape.cut.join(' | '));
     check('menu: card at the corner, not full screen, fits the window', shape.fits);
     await keyScreen('34-menu', 'chrome');
     await mui.click('.main-menu .toprow .round:nth-child(3)');
     check('menu: star adds the page to favorites', await waitFor(async () => (await state()).bookmarked));
     await openMenu();
     check('menu: star shows as pressed', (await mui.getAttribute('.main-menu .toprow .round:nth-child(3)', 'aria-pressed')) === 'true');
+    const openMore = async () => { await openMenu(); await mui.click('.main-menu [data-k="more-tools"]'); await mui.waitForSelector('.main-menu [data-k="back-menu"]'); };
+    await openMore();
+    await keyScreen('34-more-tools', 'chrome');
     await mui.click('.main-menu [data-k="mobile"]');
     const tabPage = await page(`${SITE}/set?p=menu`);
     check('menu: mobile site switches the User-Agent', await waitFor(async () => /Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => ''))));
-    await openMenu();
+    await openMore();
     check('menu: mobile site item is checked', (await mui.getAttribute('.main-menu [data-k="mobile"]', 'aria-checked')) === 'true');
     await mui.click('.main-menu [data-k="mobile"]');
     check('menu: mobile site off restores the desktop User-Agent', await waitFor(async () => !/Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => 'Mobile'))));
-    await openMenu();
+    await openMore();
     await mui.click('.main-menu [data-k="diag"]');
     const diag = await mui.waitForSelector('#diag-text').then((e) => e.textContent()).catch(() => '');
     check('menu: diagnostics shows version and page log', diag.includes('p=menu') && /Ось \d/.test(diag), diag.slice(0, 200));
