@@ -117,6 +117,11 @@ export function close(profile: number, ids: string[]): void {
   });
 }
 
+/** «Удалить данные → Вкладки»: закрыть все вкладки профиля без возможности вернуть. */
+export function closeAll(profile: number): void {
+  edit(profile, (p) => { p.tabs = []; p.closed = []; p.active = null; });
+}
+
 /** Вернуть последнюю закрытую вкладку (на её прежний адрес). */
 export function reopen(profile: number): OpenTab | null {
   let tab: OpenTab | null = null;

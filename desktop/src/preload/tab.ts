@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 /**
- * Preload вкладок сайтов: только веб-уведомления. Стандартный Notification показывается как
+ * Preload вкладок сайтов: веб-уведомления и разрешение на отправку файлов. Стандартный Notification показывается как
  * уведомление Windows с именем профиля (Notify.kt). Других мостов у сайтов нет: в window ничего
  * не добавляется, обмен идёт событиями DOM, а разрешение проверяет главный процесс.
  */
@@ -60,4 +60,28 @@ window.addEventListener('os-notify', (e) => {
 });
 ipcRenderer.on('tab:notify-click', (_e, id: string) => {
   window.dispatchEvent(new CustomEvent('os-notify-click', { detail: String(id) }));
+});
+
+/**
+ * Отправка файлов (<input type=file>): перед окном выбора спрашиваем разрешение сайта у главного процесса.
+ * «Запретить» — окно не открывается; «Спросить» — после «Разрешить» в карточке окно открывается само.
+ * Слушатель — в изолированном мире preload, сайт его не видит и не может снять.
+ */
+let waiting: HTMLInputElement | null = null;
+let allowOnce = false;
+window.addEventListener('click', (e) => {
+  const el = e.target;
+  if (!(el instanceof HTMLInputElement) || el.type !== 'file') return;
+  if (allowOnce) { allowOnce = false; return; }
+  let mode = 'ALLOW';
+  try { mode = String(ipcRenderer.sendSync('tab:upload')); } catch { /* окно закрывается */ }
+  if (mode === 'ALLOW') return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  waiting = mode === 'ASK' ? el : null;
+}, true);
+ipcRenderer.on('tab:upload-go', () => {
+  const el = waiting;
+  waiting = null;
+  if (el?.isConnected) { allowOnce = true; el.click(); }
 });

@@ -26,7 +26,7 @@ async function render(): Promise<void> {
       h('div', { class: 'hint' }, d.profile.name),
       ...section(t('site_permissions'), h('div', { class: 'card' }, ...d.kinds.map((k) => h('div', { class: 'perm' },
         h('div', { class: 'label' }, k.title),
-        seg(['ASK', 'ALLOW', 'BLOCK'], m[k.key] ?? 'ASK', (x) => void os.call('sitePermSet', profile, host, k.key, x).then(render), `p-${k.key}`))))),
+        seg(['ASK', 'ALLOW', 'BLOCK'], m[k.key] ?? k.current, (x) => void os.call('sitePermSet', profile, host, k.key, x).then(render), `p-${k.key}`))))),
       h('button', { class: 'btn', style: 'margin-top:12px', onclick: () => void os.call('sitePermClear', profile, host).then(render) }, t('perm_reset_site')),
     );
     return;

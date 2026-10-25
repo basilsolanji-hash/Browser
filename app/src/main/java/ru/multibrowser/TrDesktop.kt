@@ -6,6 +6,9 @@ package ru.multibrowser
  */
 internal object TrDesktop {
     val M: Map<String, List<String>> = mapOf(
+        "dt_copy_path" to listOf("Copy file path", "Копировать путь к файлу", "Copiar ruta del archivo", "Copiar caminho do arquivo", "Copier le chemin du fichier", "Dateipfad kopieren", "نسخ مسار الملف", "फ़ाइल का पथ कॉपी करें", "Dosya yolunu kopyala", "复制文件路径"),
+        "dt_dl_waiting" to listOf("Waiting for your permission", "Ждёт вашего разрешения", "Esperando tu permiso", "Aguardando sua permissão", "En attente de votre autorisation", "Wartet auf deine Erlaubnis", "بانتظار إذنك", "आपकी अनुमति का इंतज़ार", "İzninizi bekliyor", "等待你的许可"),
+        "dt_dl_delete_q" to listOf("Delete «%s» from the computer?", "Удалить «%s» с компьютера?", "¿Eliminar «%s» del equipo?", "Excluir «%s» do computador?", "Supprimer « %s » de l'ordinateur ?", "«%s» vom Computer löschen?", "حذف «%s» من الكمبيوتر؟", "«%s» को कंप्यूटर से हटाएँ?", "«%s» bilgisayardan silinsin mi?", "要从电脑中删除“%s”吗？"),
         "dt_all_profiles" to listOf("All profiles", "Все профили", "Todos los perfiles", "Todos os perfis", "Tous les profils", "Alle Profile", "كل الملفات", "सभी प्रोफ़ाइल", "Tüm profiller", "所有配置文件"),
         "dt_close_others" to listOf("Close other tabs", "Закрыть другие вкладки", "Cerrar las demás pestañas", "Fechar as outras abas", "Fermer les autres onglets", "Andere Tabs schließen", "إغلاق العلامات الأخرى", "अन्य टैब बंद करें", "Diğer sekmeleri kapat", "关闭其他标签"),
         "dt_copy_image_link" to listOf("Copy image link", "Копировать ссылку на изображение", "Copiar enlace de la imagen", "Copiar link da imagem", "Copier le lien de l'image", "Bildlink kopieren", "نسخ رابط الصورة", "छवि का लिंक कॉपी करें", "Görsel bağlantısını kopyala", "复制图片链接"),
