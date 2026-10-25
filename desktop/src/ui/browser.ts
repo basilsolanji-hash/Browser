@@ -53,8 +53,10 @@ function openDrop(el: HTMLElement, anchor: DOMRect, align: 'start' | 'end' = 'st
   place();
   requestAnimationFrame(place);
   onDismiss = dismiss;
+  layer.classList.remove('through');
   closeDrop = () => {
     layer.hidden = true;
+    layer.classList.remove('through');
     layer.replaceChildren();
     closeDrop = null;
     onDismiss = null;
@@ -395,11 +397,36 @@ function renderRow2(): void {
     addr.append(star);
   }
   if (st.zoom !== 100) nodes.push(h('button', { class: 'zoom', title: t('reset'), onclick: () => void os.call('zoom', 0) }, st.zoom + '%'));
+  const tb = toolbarItem(st);
+  if (tb) nodes.push(tb);
   const more = iconButton('more', t('menu'), () => mainMenu(more.getBoundingClientRect()));
   more.id = 'more';
   nodes.push(more);
   row2.replaceChildren(...nodes);
   updateNavButtons();
+}
+
+/** Настраиваемая кнопка справа от адресной строки (по умолчанию — «Скачанные файлы»). */
+function toolbarItem(s: WindowState): HTMLElement | null {
+  const id = s.profile?.id;
+  const web = /^https?:/.test(s.url);
+  const items: Record<string, [string, string, (() => void) | null]> = {
+    downloads: ['download', t('dl_title'), () => void os.call('openPanel', 'os://downloads/')],
+    clear: ['delete', t('clear_short'), id != null ? () => void os.call('openPanel', `os://clear/?profile=${id}`) : null],
+    favorites: ['star', t('favorites'), () => void os.call('openPanel', 'os://favorites/')],
+    tabs: ['tabs', t('tabs'), id != null ? () => void os.call('openPanel', `os://tabs/?profile=${id}`) : null],
+    notes: ['note', t('notes'), () => void os.call('openPanel', 'os://notes/')],
+    saved: ['saved', t('saved_pages'), () => void os.call('openPanel', 'os://saved/')],
+    share: ['share', t('share'), web ? () => shareMenu(document.getElementById('tb-btn')!.getBoundingClientRect()) : null],
+    find: ['search', t('find_in_page'), web ? () => void os.call('findOpen') : null],
+  };
+  const [name, label, run] = items[s.toolbarButton] ?? items.downloads;
+  if (s.incognito && !['downloads', 'share', 'find'].includes(s.toolbarButton)) return null;
+  const b = iconButton(name, label, () => run?.());
+  b.id = 'tb-btn';
+  b.dataset.k = s.toolbarButton;
+  b.disabled = !run;
+  return b;
 }
 
 function updateNavButtons(): void {
@@ -523,6 +550,8 @@ function paintSuggestions(): void {
     return;
   }
   openDrop(box, r, 'start', r.width, false);
+  // Подсказки не закрывают шапку: щелчок по строке адреса или кнопкам проходит сквозь слой.
+  layer.classList.add('through');
 }
 
 /** Меню ⋮ как в Chrome (BrowserMenu.kt): ряд круглых кнопок сверху, ниже группы пунктов через линию. */

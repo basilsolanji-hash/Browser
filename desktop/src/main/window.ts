@@ -1,12 +1,13 @@
-import { BrowserWindow, WebContentsView, clipboard, screen, session, type Session, type WebContents } from 'electron';
+import { BrowserWindow, WebContentsView, clipboard, dialog, screen, session, shell, systemPreferences, type Session, type WebContents } from 'electron';
 import { join } from 'node:path';
 import { JsonFile } from './store';
 import { WEB_PREFS, hardenSession, openExternal } from './security';
 import { handleUiSession, handleWebSession, isPanelUrl } from './protocol';
 import { INCOGNITO_PALETTE, palette } from './themes';
-import { settings, searchUrl } from './settings';
+import { settings, searchUrl, toolbarButton } from './settings';
 import { TabView, type TabHost } from './tabview';
 import { isDefaultCached } from './defaultbrowser';
+import { isSignInPage } from './signin';
 import { START, fromInput, isOwnUrl, isWebUrl } from './urls';
 import { t } from './i18n';
 import * as Tabs from './tabs';
@@ -108,6 +109,20 @@ export function permissionMode(ses: Session, host: string, kind: string): Perms.
   return sessionModes.get(ses)?.(host, kind) ?? 'BLOCK';
 }
 
+/** Доступ приложения к камере или микрофону выключен в настройках Windows. */
+function osMediaDenied(kind: 'camera' | 'microphone'): boolean {
+  if (process.platform !== 'win32' && process.platform !== 'darwin') return false;
+  return systemPreferences.getMediaAccessStatus(kind) === 'denied';
+}
+
+async function explainOsDenied(w: OsWindow, kind: 'camera' | 'microphone'): Promise<void> {
+  const what = t(Perms.kind(kind)?.titleKey ?? kind);
+  const r = await dialog.showMessageBox(w.win, {
+    type: 'info', message: t('dt_perm_os_off', what), buttons: [t('open_settings'), t('close')], defaultId: 0, cancelId: 1, noLink: true,
+  });
+  if (r.response === 0 && process.platform === 'win32') void shell.openExternal(kind === 'camera' ? 'ms-settings:privacy-webcam' : 'ms-settings:privacy-microphone');
+}
+
 function installPermissions(ses: Session, profile: number | null): void {
   const memory = new Map<string, Perms.Mode>();
   const mode = (host: string, kind: string): Perms.Mode =>
@@ -119,9 +134,21 @@ function installPermissions(ses: Session, profile: number | null): void {
     const host = hostOf(details.requestingUrl || wc?.getURL() || '');
     if (!kinds || !wc || !host) return cb(false);
     const modes = kinds.map((k) => mode(host, k));
-    if (modes.includes('BLOCK')) return cb(false);
-    if (modes.every((m) => m === 'ALLOW')) return cb(true);
     const w = [...windows].find((x) => x.owns(wc));
+    // Запрещено для сайта — не молча: подсказка, где это поменять.
+    const blocked = kinds[modes.indexOf('BLOCK')];
+    if (blocked) {
+      w?.toast(t('perm_blocked_for', t(Perms.kind(blocked)?.titleKey ?? blocked), host));
+      return cb(false);
+    }
+    // Доступ выключен в самой Windows («Конфиденциальность» → микрофон или камера) — объясняем и ведём туда.
+    const off = kinds.find((k): k is 'camera' | 'microphone' => (k === 'camera' || k === 'microphone') && osMediaDenied(k));
+    if (off) {
+      cb(false);
+      if (w) void explainOsDenied(w, off);
+      return;
+    }
+    if (modes.every((m) => m === 'ALLOW')) return cb(true);
     if (!w) return cb(false);
     w.askPermission(wc, host, kinds, (allow, remember) => {
       if (remember) {
@@ -363,6 +390,7 @@ export class OsWindow implements TabHost {
       isDefault: isDefaultCached(),
       fullscreen: this.win.isFullScreen(),
       engine: settings.get().engine,
+      toolbarButton: toolbarButton(),
     };
   }
 
@@ -832,7 +860,8 @@ export class OsWindow implements TabHost {
     if (!this.incognito) {
       const p = Number(tab.key.split(':')[0]);
       const real = tab.url();
-      if (Tabs.isTab(tab.id)) Tabs.update(p, tab.id, { url: real.startsWith('os://start') ? START : real });
+      // Страницу входа не запоминаем: после перезапуска вкладка не должна снова слать код подтверждения.
+      if (isSignInPage(real)) { /* последний адрес вкладки остаётся прежним */ } else if (Tabs.isTab(tab.id)) Tabs.update(p, tab.id, { url: real.startsWith('os://start') ? START : real });
       else Tabs.setPinState(p, tab.id, real, tab.wc.getTitle());
       if (isWebUrl(url)) History.add(p, url);
     } else {

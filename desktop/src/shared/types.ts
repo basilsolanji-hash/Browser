@@ -69,6 +69,8 @@ export interface WindowState {
   fullscreen: boolean;
   /** Выбранный поисковик (значок слева в строке при вводе). */
   engine: string;
+  /** Что стоит на кнопке справа от адресной строки. */
+  toolbarButton: string;
 }
 
 export interface Suggestion { kind: 'search' | 'query' | 'history' | 'favorite' | 'url'; title: string; url: string }

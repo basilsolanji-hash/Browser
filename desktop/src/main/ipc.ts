@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import { applyLanguage, currentLang, isRtl, strings, t } from './i18n';
 import { greeting, next } from './phrases';
-import { engine, settings, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
+import { engine, settings, toolbarButton, TOOLBAR_BUTTONS, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
 import { THEME_IDS, themeNameKey } from './themes';
 import { OsWindow, byWebContents, mainWindow, openIncognito, profileInfo, profileSession, saveWithToast, windows } from './window';
 import { fromInput, isWebUrl } from './urls';
@@ -24,14 +24,14 @@ import { blocklistSize } from './privacy';
 import * as DefaultBrowser from './defaultbrowser';
 import * as Diag from './diag';
 import { frequentSites, hints } from './addrpanel';
-import { openExternal } from './security';
+import { applyAcceptLanguage, openExternal } from './security';
 import { spawn } from 'node:child_process';
 import * as Updater from './updater';
 import { LANGS, LANG_NAMES } from '../shared/format';
 import type { Suggestion, UiInit } from '../shared/types';
 
 /** Адрес для отзывов — тот же, что в Android-версии (HelpActivity.FEEDBACK_EMAIL). */
-const FEEDBACK_EMAIL = 'moonstar20moon19@gmail.com';
+const FEEDBACK_EMAIL = 'hello@os-browser.com';
 
 /**
  * IPC своих страниц. Каждый вызов проверяет отправителя: это шапка или экран нашего окна,
@@ -366,10 +366,11 @@ on(['page'], 'fileDelete', async (_w, id, name) => { await rm(ownedFile(profileA
 
 // --- Настройки ---
 on(['page'], 'settings', () => ({
-  values: { ...settings.get(), lock: !!settings.get().lock, profileCount: profileCount() },
+  values: { ...settings.get(), lock: !!settings.get().lock, profileCount: profileCount(), toolbarButton: toolbarButton() },
   langs: [{ id: 'system', name: t('system') }, ...LANGS.map((l) => ({ id: l, name: LANG_NAMES[l] }))],
   themes: THEME_IDS.map((id) => ({ id, name: t(themeNameKey(id)) })),
   engines: ENGINES.map((e) => ({ id: e.id, name: e.title })),
+  toolbarButtons: Object.entries(TOOLBAR_BUTTONS).map(([id, key]) => ({ id, name: t(key) })),
   minProfiles: MIN_PROFILES,
   maxProfiles: MAX_PROFILES,
 }));
@@ -378,6 +379,7 @@ on(['page'], 'setSetting', (_w, key, value) => {
   if (k === 'lang' && (value === 'system' || (LANGS as readonly string[]).includes(str(value)))) {
     settings.update((d) => { d.lang = str(value); });
     applyLanguage();
+    applyAcceptLanguage();
     lookChanged();
   } else if (k === 'theme' && THEME_IDS.includes(str(value))) {
     settings.update((d) => { d.theme = str(value); });
@@ -401,6 +403,9 @@ on(['page'], 'setSetting', (_w, key, value) => {
   } else if (k === 'hideContent') {
     settings.update((d) => { d.hideContent = value === true; });
     for (const w of windows) w.win.setContentProtection(value === true);
+  } else if (k === 'toolbarButton' && str(value) in TOOLBAR_BUTTONS) {
+    settings.update((d) => { d.toolbarButton = str(value); });
+    for (const w of windows) w.push();
   } else if (k === 'zoom') {
     settings.update((d) => { d.zoom = Math.min(250, Math.max(50, int(value))); });
   } else {

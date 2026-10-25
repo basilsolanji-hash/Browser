@@ -56,11 +56,17 @@ let bigDrop = true;
 const uploaded = [];
 const server = createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
-  seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '', range: req.headers.range });
+  seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '', range: req.headers.range, lang: req.headers['accept-language'] });
   res.setHeader('content-type', 'text/html; charset=utf-8');
   if (u.pathname === '/set') {
     res.setHeader('set-cookie', `os_test=${u.searchParams.get('p')}; Path=/; Max-Age=86400`);
     res.end(`<title>Set ${u.searchParams.get('p')}</title><h1>cookie set</h1>`);
+  } else if (u.pathname === '/sound') {
+    // Звук после нажатия (§15): плеер включается через секунду после щелчка.
+    res.end(`<title>Sound</title><button id="b" style="width:200px;height:80px">play</button><script>
+      window.before = new AudioContext().state;
+      document.getElementById('b').onclick = () => setTimeout(() => { const c = new AudioContext(); window.after = c.state; }, 1000);
+    </script>`);
   } else if (u.pathname === '/get') {
     res.end(`<title>Get</title><h1 id="c">${(req.headers.cookie ?? '').replace(/</g, '')}</h1><script>document.title='Get '+(document.cookie||'none')</script>`);
   } else if (u.pathname === '/big.bin') {
@@ -1056,6 +1062,9 @@ try {
     await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/set?p=menu`);
     const s34a = await waitFor(async () => { const x = await state(); return x.url.includes('p=menu') && !x.loading && x; });
     check('menu: test page opened in a profile tab', s34a && !s34a.panel, JSON.stringify(s34a && { panel: s34a.panel, url: s34a.url }));
+    const menuReq = seen.filter((r) => r.path === '/set?p=menu').pop();
+    const appLang = readJson('settings')?.lang;
+    check('sites get Accept-Language = app language', appLang && menuReq?.lang?.startsWith(appLang), `${appLang} / ${menuReq?.lang}`);
     const mui = await waitFor(() => app.windows().find((p) => !p.isClosed() && p.url().startsWith('os://ui') && !p.url().includes('incognito')));
     if (!(await mui.waitForSelector('#more', { timeout: 5000 }).catch(() => null))) await windowShot('34-no-menu-button');
     const openMenu = async () => { await mui.click('#more'); await mui.waitForSelector('.main-menu'); };
@@ -1112,13 +1121,14 @@ try {
     await mui.click('#address');
     await mui.waitForSelector('.addr-panel', { timeout: 5000 }).catch(() => null);
     const empty = await mui.evaluate(() => ({
-      engine: !document.getElementById('engine')?.hidden && document.getElementById('engine')?.dataset.engine,
+      engine: window.getComputedStyle(document.getElementById('engine')).display !== 'none' && document.getElementById('engine')?.dataset.engine,
+      lockHidden: [...document.querySelectorAll('#addr > .ic')].every((x) => window.getComputedStyle(x).display === 'none'),
       card: !!document.querySelector('.addr-panel .pagecard'),
       tiles: [...document.querySelectorAll('.addr-panel .tile')].map((x) => [x.title, x.querySelector('.lbl').textContent]),
       clear: !document.getElementById('addr-clear')?.hidden,
       net: [...document.querySelectorAll('.addr-panel img')].length,
     }));
-    check('address: engine badge on the left while typing', !!empty.engine, JSON.stringify(empty));
+    check('address: engine badge on the left while typing (instead of the lock)', !!empty.engine && empty.lockHidden, JSON.stringify(empty));
     check('address: current page card on empty input', empty.card);
     check('address: frequent sites tiles (letter + page title, not domain)', empty.tiles.length > 0 && empty.tiles.length <= 8 && empty.tiles.some(([h, l]) => l && l !== h), JSON.stringify(empty.tiles));
     check('address: tiles do not load icons from the network', empty.net === 0);
@@ -1137,6 +1147,47 @@ try {
     await mui.click('#addr-clear');
     check('address: × clears the field and shows tiles again', await waitFor(async () => (await mui.inputValue('#address')) === '' && (await mui.$('.addr-panel .tile')) !== null));
     await mui.keyboard.press('Escape');
+
+    // --- 36. Звук после нажатия (WINDOWS_SYNC §15) ---
+    step('36. Звук: сам сайт не включает, после нажатия плеер играет со звуком');
+    await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/sound`);
+    const snd = await page(`${SITE}/sound`);
+    await snd.waitForLoadState();
+    check('no sound without a user action (autoplay blocked)', (await snd.evaluate(() => window.before)) === 'suspended', await snd.evaluate(() => window.before));
+    await snd.click('#b');
+    const after = await waitFor(() => snd.evaluate(() => window.after), 5000);
+    check('sound allowed for a player started shortly after a click', after === 'running', String(after));
+
+    // --- 37. Микрофон, камера, геолокация: «Разрешить» и понятный запрет (WINDOWS_SYNC §18) ---
+    step('37. Разрешения: «Разрешить» по умолчанию для камеры и микрофона, запрет — с подсказкой');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://site/?profile=1'));
+    const sp = await page('os://site/');
+    await sp.waitForSelector('#d-camera');
+    const segs = await sp.$$eval('#d-location button, #d-camera button, #d-microphone button', (b) => b.length);
+    check('location, camera and microphone defaults: Ask · Allow · Block', segs === 9, `buttons=${segs}`);
+    await keyScreen('37-site-permissions', 'page');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'location', 'BLOCK'));
+    await snd.evaluate(() => { window.navigator.geolocation.getCurrentPosition(() => {}, () => {}); });
+    const ui37 = await page('os://ui');
+    const toast37 = await ui37.waitForSelector('.toast', { timeout: 5000 }).then((e) => e.textContent()).catch(() => '');
+    check('blocked permission is explained (site settings), not silent', /127\.0\.0\.1/.test(toast37), toast37);
+    await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'location', null));
+
+    // --- 38. Кнопка на панели на выбор (WINDOWS_SYNC §6) ---
+    step('38. Кнопка справа от адресной строки: по умолчанию «Скачанные файлы», меняется в настройках');
+    check('toolbar button defaults to Downloads', (await ui37.getAttribute('#tb-btn', 'data-k')) === 'downloads');
+    await ui37.click('#tb-btn');
+    check('toolbar button opens Downloads', await page('os://downloads/', 5000));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    const st38 = await page('os://settings/');
+    await st38.selectOption('#toolbar-button', 'find');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    check('toolbar button switched to «Find on page»', await waitFor(async () => (await ui37.getAttribute('#tb-btn', 'data-k')) === 'find'));
+    await ui37.click('#tb-btn');
+    check('find button opens the find bar', await waitFor(async () => !!(await state()).find));
+    await keyScreen('38-toolbar-find', 'chrome');
+    await key('Escape');
   }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));

@@ -144,3 +144,6 @@ html[dir="rtl"] [data-k="back"] .ic, html[dir="rtl"] [data-k="fwd"] .ic { transf
 .addr-panel .hint-row .grow { flex: 1; }
 .addr-panel .hint-row .url { color: var(--muted); }
 [dir="rtl"] .addr-panel .fill .ic { transform: scaleX(-1); }
+#layer.through { pointer-events: none; }
+#layer.through > * { pointer-events: auto; }
+#addr [hidden] { display: none !important; }
