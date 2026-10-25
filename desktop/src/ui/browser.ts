@@ -1,4 +1,4 @@
-import { boot, h, icon, iconButton, os, svg, t, init } from '../shared/ui';
+import { boot, h, icon, iconButton, os, svg, t } from '../shared/ui';
 import { MARK } from '../shared/icons';
 import type { ProfileInfo, StripTab, Suggestion, WindowState } from '../shared/types';
 
@@ -8,6 +8,7 @@ import type { ProfileInfo, StripTab, Suggestion, WindowState } from '../shared/t
  */
 const row1 = document.getElementById('row1')!;
 const row2 = document.getElementById('row2')!;
+const row3 = document.getElementById('row3')!;
 const layer = document.getElementById('layer')!;
 const incognito = new URLSearchParams(location.search).has('incognito');
 
@@ -134,7 +135,7 @@ function tabEl(tab: StripTab, groups: Map<string, { name: string; color: string 
     onauxclick: (e: MouseEvent) => { if (e.button === 1) void os.call('closeTab', tab.id); },
     onkeydown: (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') void os.call('activate', tab.id); },
     oncontextmenu: (e: MouseEvent) => { e.preventDefault(); tabMenu(tab, el.getBoundingClientRect()); },
-  }, favicon(tab), h('span', { class: 'label' }, tab.pinned ? short(label, 18) : label));
+  }, favicon(tab), h('span', { class: 'label', dir: 'auto' }, tab.pinned ? short(label, 18) : label));
   if (!tab.pinned) {
     el.append(h('button', {
       class: 'x', title: t('close_tab'), 'aria-label': t('close_tab'),
@@ -229,10 +230,13 @@ function renderRow1(): void {
     nodes.push(chip);
   }
   if (st.profile || st.incognito) {
+    // Закреплённые вкладки не прокручиваются и всегда видны (как в Chrome); листается только полоса обычных.
+    const pinned = h('div', { id: 'pins', role: 'tablist' });
     const strip = h('div', { id: 'strip', role: 'tablist' });
     const groups = new Map(st.groups.map((g) => [g.id, g]));
     let prevGroup: string | null = null;
     for (const tab of st.tabs) {
+      if (tab.pinned) { pinned.append(tabEl(tab, groups)); continue; }
       if (tab.group && tab.group !== prevGroup && groups.has(tab.group)) {
         const g = groups.get(tab.group)!;
         strip.append(h('span', {
@@ -244,6 +248,7 @@ function renderRow1(): void {
       strip.append(tabEl(tab, groups));
     }
     strip.addEventListener('wheel', (e) => { strip.scrollLeft += e.deltaY; }, { passive: true });
+    if (pinned.childElementCount) nodes.push(pinned);
     nodes.push(strip);
     nodes.push(iconButton('add', `${t('new_tab')} (Ctrl+T)`, () => void os.call('newTab'), 'newtab'));
     nodes.push(h('div', { class: 'grow' }));
@@ -252,9 +257,6 @@ function renderRow1(): void {
     nodes.push(h('div', { class: 'title1' }, st.panelTitle || t('profiles')));
     nodes.push(h('div', { class: 'grow' }));
     nodes.push(iconButton('incognito', `${t('dt_new_incognito_window')} (Ctrl+Shift+N)`, () => void os.call('incognito'), 'newtab'));
-  }
-  if (init.platform === 'darwin') {
-    // На macOS кнопки окна системные (слева), здесь ничего не добавляем.
   }
   row1.replaceChildren(...nodes);
   // Узкие вкладки — только значок (как в Chrome, когда вкладок много).
@@ -454,6 +456,8 @@ function mainMenu(anchor: DOMRect): void {
     { label: t('copy_link'), icon: 'globe', disabled: !st.url, run: () => void os.call('copy', st!.url) },
   );
   items.push(
+    { label: t('dt_find'), icon: 'search', kbd: 'Ctrl+F', disabled: !!st.panel, run: () => void os.call('findOpen') },
+    { label: t('dt_print'), icon: 'file', kbd: 'Ctrl+P', run: () => void os.call('print') },
     { label: st.reader ? t('reader_exit') : t('reader_mode'), icon: 'note', kbd: 'Ctrl+Alt+R', disabled: !st.url, run: () => void os.call('reader') },
     { label: t('save_page'), icon: 'saved', kbd: 'Ctrl+S', disabled: !st.url, run: () => void os.call('savePage') },
   );
@@ -513,15 +517,43 @@ function renderPrompt(): void {
   openDrop(card, new DOMRect(r.left + 8, r.top, 360, r.height), 'start', 360, false, () => void os.call('permissionAnswer', p.id, false, false));
 }
 
+/** Строка «Найти на странице» (Ctrl+F): ввод ищет сразу, Enter — дальше, Shift+Enter — назад, Esc — закрыть. */
+function renderFind(): void {
+  const f = st?.find;
+  row3.hidden = !f;
+  if (!f) { row3.replaceChildren(); return; }
+  const count = f.text ? (f.matches ? t('dt_find_count', f.active, f.matches) : t('dt_find_none')) : '';
+  let input = document.getElementById('find') as HTMLInputElement | null;
+  if (!input) {
+    input = h('input', { id: 'find', type: 'search', spellcheck: false, placeholder: t('dt_find_hint'), 'aria-label': t('dt_find') });
+    const el = input;
+    el.value = f.text;
+    el.addEventListener('input', () => void os.call('find', el.value, true, false));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); void os.call('find', el.value, !e.shiftKey, true); }
+      if (e.key === 'Escape') { e.preventDefault(); void os.call('findClose'); }
+    });
+    row3.replaceChildren(icon('search', 16), el, h('span', { class: 'find-count', id: 'find-count', role: 'status' }),
+      iconButton('up', `${t('dt_find_prev')} (Shift+Enter)`, () => void os.call('find', el.value, false, true)),
+      iconButton('chevron', `${t('dt_find_next')} (Enter)`, () => void os.call('find', el.value, true, true)),
+      iconButton('close', `${t('close')} (Esc)`, () => void os.call('findClose')));
+  }
+  input.classList.toggle('none', !!f.text && f.matches === 0);
+  document.getElementById('find-count')!.textContent = count;
+}
+
 function render(): void {
   renderRow1();
   renderRow2();
+  renderFind();
   renderPrompt();
 }
 
+let booted = false;
 os.on('state', (s) => {
   st = s as WindowState;
-  render();
+  // Состояние может прийти раньше переводов (boot) — тогда отрисуем после загрузки.
+  if (booted) render();
 });
 let toastTimer = 0;
 os.on('toast', (text) => {
@@ -532,6 +564,10 @@ os.on('toast', (text) => {
   clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => el.remove(), 2600);
 });
+os.on('focusFind', () => {
+  const el = document.getElementById('find') as HTMLInputElement | null;
+  if (el) { el.focus(); el.select(); } else setTimeout(() => (document.getElementById('find') as HTMLInputElement | null)?.focus(), 50);
+});
 os.on('focusAddress', () => {
   const el = document.getElementById('address') as HTMLInputElement | null;
   el?.focus();
@@ -540,5 +576,6 @@ os.on('focusAddress', () => {
 void boot(async () => {
   document.title = incognito ? t('incognito') : 'Ось Browser';
   st = await os.call<WindowState>('state');
+  booted = true;
   render();
 });

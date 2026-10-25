@@ -52,6 +52,8 @@ export interface WindowState {
   panelCanBack: boolean;
   maximized: boolean;
   zoom: number;
+  /** Строка «Найти на странице»: текст, номер текущего совпадения, всего совпадений. */
+  find: { text: string; active: number; matches: number } | null;
   bookmarked: boolean;
   /** Запрос разрешения сайта для текущей вкладки. */
   prompt: { id: number; text: string; canRemember: boolean } | null;

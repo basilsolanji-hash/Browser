@@ -1,4 +1,4 @@
-import { Menu, WebContentsView, clipboard, type Session, type WebContents } from 'electron';
+import { BrowserWindow, Menu, WebContentsView, clipboard, type Session, type WebContents } from 'electron';
 import { join } from 'node:path';
 import { sourceOf } from './reader';
 import { WEB_PREFS, openExternal } from './security';
@@ -20,6 +20,7 @@ export interface TabHost {
   searchText(text: string, opener: TabView): void;
   shareText(text: string, tab: TabView, how: 'copy' | 'mail'): void;
   shortcut(input: Electron.Input, wc: WebContents): boolean;
+  onFound(wc: WebContents, r: Electron.Result): void;
 }
 
 const AUTH_HOSTS = new Set([
@@ -44,6 +45,8 @@ function allowedFromSite(url: string): boolean {
 export class TabView {
   readonly view: WebContentsView;
   favicon: string | null = null;
+  /** Открытое со страницы окно входа (не больше одного на вкладку). */
+  private popup: BrowserWindow | null = null;
   /** Адрес, который не открылся (на экране — страница ошибки os://error). */
   failedUrl: string | null = null;
 
@@ -54,10 +57,15 @@ export class TabView {
     const wc = this.view.webContents;
     wc.setWindowOpenHandler(({ url, disposition }) => {
       if (!allowedFromSite(url)) return { action: 'deny' };
-      if (isAuthPopup(url)) return { action: 'allow', overrideBrowserWindowOptions: this.host.popupOptions() };
+      // Окно входа — настоящее окно с opener, но одно на вкладку; второе открывается вкладкой.
+      if (isAuthPopup(url) && (!this.popup || this.popup.isDestroyed())) {
+        return { action: 'allow', overrideBrowserWindowOptions: this.host.popupOptions() };
+      }
       this.host.openTab(url, this, disposition !== 'background-tab');
       return { action: 'deny' };
     });
+    wc.on('did-create-window', (win) => this.guardPopup(win));
+    wc.on('found-in-page', (_e, r) => this.host.onFound(wc, r));
     const guard = (e: Electron.Event, url: string) => {
       if (allowedFromSite(url)) return;
       e.preventDefault();
@@ -68,8 +76,9 @@ export class TabView {
     wc.on('will-frame-navigate', (e) => { if (!e.isMainFrame && !allowedFromSite(e.url) && !e.url.startsWith('data:')) e.preventDefault(); });
     wc.on('did-start-loading', () => this.host.onTabUpdated(this));
     wc.on('did-stop-loading', () => this.host.onTabUpdated(this));
+    // Счётчик трекеров — с начала перехода: запросы страницы могут блокироваться раньше did-navigate.
+    wc.on('did-start-navigation', (e) => { if (e.isMainFrame && !e.isSameDocument) resetTab(wc.id); });
     wc.on('did-navigate', (_e, url) => {
-      resetTab(wc.id);
       if (!url.startsWith('os://error')) this.failedUrl = null;
       this.favicon = null;
       this.host.onNavigated(this, url);
@@ -166,7 +175,33 @@ export class TabView {
     Menu.buildFromTemplate(items).popup();
   }
 
+  /**
+   * Окно входа живёт по тем же правилам, что вкладка: только веб-адреса, новые окна из него —
+   * вкладками в окне браузера, в заголовке всегда виден сайт (адресной строки у попапа нет).
+   */
+  private guardPopup(win: BrowserWindow): void {
+    this.popup = win;
+    const pwc = win.webContents;
+    const host = () => { try { return new URL(pwc.getURL()).host; } catch { return ''; } };
+    pwc.setWindowOpenHandler(({ url }) => {
+      if (allowedFromSite(url)) this.host.openTab(url, this, true);
+      return { action: 'deny' };
+    });
+    const guard = (e: Electron.Event, url: string) => {
+      if (allowedFromSite(url)) return;
+      e.preventDefault();
+      if (/^mailto:/i.test(url)) openExternal(url);
+    };
+    pwc.on('will-navigate', (e) => guard(e, e.url));
+    pwc.on('will-redirect', (e) => guard(e, e.url));
+    pwc.on('will-frame-navigate', (e) => { if (!e.isMainFrame && !allowedFromSite(e.url) && !e.url.startsWith('data:')) e.preventDefault(); });
+    pwc.on('page-title-updated', (e, title) => { e.preventDefault(); win.setTitle(`${host()} — ${title}`); });
+    pwc.on('did-navigate', () => win.setTitle(host()));
+    win.on('closed', () => { if (this.popup === win) this.popup = null; });
+  }
+
   destroy(): void {
+    if (this.popup && !this.popup.isDestroyed()) this.popup.close();
     try {
       if (!this.wc.isDestroyed()) this.wc.close();
     } catch {
