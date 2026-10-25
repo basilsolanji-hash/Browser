@@ -17,6 +17,7 @@ async function render(): Promise<void> {
   app.replaceChildren(
     h('div', { class: 'top' },
       iconButton('incognito', `${t('dt_new_incognito_window')} (Ctrl+Shift+N)`, () => void os.call('incognito')),
+      iconButton('lock', t('cabinet'), () => { location.href = 'os://cabinet/'; }, 'cabinet-all'),
       iconButton('settings', t('settings'), () => { location.href = 'os://settings/'; })),
     h('div', { class: 'hero' },
       svg(WORDMARK, 'wordmark'),
@@ -90,6 +91,7 @@ function menu(p: ProfileInfo, all: ProfileInfo[], x: number, y: number): void {
   contextMenu(x, y, [
     { label: t('open'), icon: 'forward', run: () => void os.call('openProfile', p.id) },
     { label: t('profile_info'), icon: 'edit', run: () => { location.href = `os://profile/?id=${p.id}`; } },
+    { label: t('cabinet'), icon: 'lock', run: () => { location.href = `os://cabinet/?profile=${p.id}`; } },
     { label: t('rename'), icon: 'edit', run: () => void rename(p) },
     i > 0 ? { label: t('move_up'), icon: 'up', run: () => void os.call('moveProfile', p.id, -1).then(render) } : null,
     i < all.length - 1 ? { label: t('move_down'), icon: 'chevron', run: () => void os.call('moveProfile', p.id, 1).then(render) } : null,

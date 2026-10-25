@@ -493,10 +493,11 @@ function mainMenu(anchor: DOMRect): void {
 
 let shownPrompt = 0;
 
-/** Запрос разрешения сайта: карточка под адресной строкой. */
+/** Запрос разрешения сайта (или вопрос о пароле): карточка под адресной строкой. */
 function renderPrompt(): void {
   const p = st?.prompt;
   if (!p) {
+    if (st?.pw) { renderPw(st.pw); return; }
     if (shownPrompt && layer.querySelector('.perm-card')) hideDrop();
     shownPrompt = 0;
     return;
@@ -515,6 +516,28 @@ function renderPrompt(): void {
       h('button', { class: 'pbtn accent', id: 'perm-allow', onclick: () => answer(true) }, t('perm_allow'))));
   const r = addr.getBoundingClientRect();
   openDrop(card, new DOMRect(r.left + 8, r.top, 360, r.height), 'start', 360, false, () => void os.call('permissionAnswer', p.id, false, false));
+}
+
+/** «Сохранить пароль для сайта?» после входа или выбор аккаунта для подстановки (как карточка разрешения). */
+function renderPw(q: NonNullable<WindowState['pw']>): void {
+  if (q.id === shownPrompt) return;
+  const addr = document.getElementById('addr');
+  if (!addr) return;
+  shownPrompt = q.id;
+  const answer = (action: string) => { hideDrop(); void os.call('pwAnswer', q.id, action); };
+  const card = q.kind === 'save'
+    ? h('div', { class: 'menu perm-card pw-card', role: 'dialog', 'aria-label': q.text },
+      h('div', { class: 'perm-text' }, q.text),
+      h('div', { class: 'perm-actions wrap' },
+        h('button', { class: 'pbtn', id: 'pw-later', onclick: () => answer('later') }, t('not_now')),
+        h('button', { class: 'pbtn', id: 'pw-never', onclick: () => answer('never') }, t('password_never')),
+        h('button', { class: 'pbtn accent', id: 'pw-save', onclick: () => answer('save') }, t('save'))))
+    : h('div', { class: 'menu perm-card pw-card', role: 'dialog', 'aria-label': q.text },
+      h('div', { class: 'perm-text' }, q.text),
+      h('div', { class: 'head' }, q.host),
+      ...q.users.map((u) => h('button', { role: 'menuitem', class: 'pw-user', onclick: () => answer(u.g) }, icon('person'), h('span', { class: 'grow' }, u.u))));
+  const r = addr.getBoundingClientRect();
+  openDrop(card, new DOMRect(r.left + 8, r.top, 380, r.height), 'start', 380, q.kind === 'pick', () => void os.call('pwAnswer', q.id, 'later'));
 }
 
 /** Строка «Найти на странице» (Ctrl+F): ввод ищет сразу, Enter — дальше, Shift+Enter — назад, Esc — закрыть. */

@@ -8,6 +8,8 @@ import { installIpc, applyTheme } from './ipc';
 import { OsWindow, lockAll, mainWindow, windows } from './window';
 import { setBlockedListener } from './privacy';
 import { installNotifications, shownForTest, clickLastForTest } from './notify';
+import { installAutofill } from './autofill';
+import { setTestPath } from './backup';
 import { incomingUrl } from './defaultbrowser';
 import * as Updater from './updater';
 import { suspendAll } from './downloads';
@@ -53,6 +55,7 @@ if (!app.requestSingleInstanceLock()) {
     applyTheme();
     installIpc();
     installNotifications();
+    installAutofill();
     nativeTheme.on('updated', () => { for (const w of windows) w.refreshLook(); });
     // Счётчик заблокированных трекеров в адресной строке.
     setBlockedListener((wcId) => { for (const w of windows) if (w.liveTabs().some((v) => v.wc.id === wcId)) w.push(); });
@@ -96,5 +99,6 @@ if (process.env.OS_TEST === '1') {
     dist: () => join(__dirname, '..'),
     notifications: () => shownForTest(),
     clickNotification: () => clickLastForTest(),
+    backupPath: (p: string | null) => setTestPath(p),
   };
 }

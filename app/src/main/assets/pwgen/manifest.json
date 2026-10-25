@@ -1,0 +1,13 @@
+{
+  "manifest_version": 2,
+  "name": "Os Password Suggest",
+  "version": "1.0",
+  "description": "Suggests a strong password on sign-up forms (generated on the device)",
+  "browser_specific_settings": { "gecko": { "id": "pwgen@os.browser" } },
+  "content_scripts": [{
+    "matches": ["http://*/*", "https://*/*"],
+    "js": ["pwgen.js"],
+    "run_at": "document_idle",
+    "all_frames": true
+  }]
+}

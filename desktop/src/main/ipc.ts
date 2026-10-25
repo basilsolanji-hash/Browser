@@ -19,6 +19,11 @@ import * as Saved from './saved';
 import * as Stats from './stats';
 import * as Perms from './permissions';
 import * as Lock from './lock';
+import * as Passwords from './passwords';
+import * as TabSets from './tabsets';
+import * as Backup from './backup';
+import { verify } from './hello';
+import { MIN_PASSWORD } from './backupcrypto';
 import { blocklistSize } from './privacy';
 import * as DefaultBrowser from './defaultbrowser';
 import * as Updater from './updater';
@@ -112,6 +117,7 @@ on(['chrome'], 'toggleBookmark', (w) => {
   w.toast(t(r == null ? 'fav_unavailable' : r ? 'added_favorite' : 'fav_removed'));
 });
 on(['chrome'], 'savePage', (w) => saveWithToast(w));
+on(['chrome'], 'pwAnswer', (w, id, action) => w.answerPassword(int(id), str(action, 100)));
 on(['chrome'], 'permissionAnswer', (w, id, allow, remember) => w.answerPrompt(int(id), allow === true, remember === true));
 on(['chrome'], 'lockNow', () => { for (const w of windows) w.lock(); });
 on(['chrome'], 'reader', (w) => w.toggleReader());
@@ -455,6 +461,76 @@ on(['page'], 'groupDelete', (w, profile, id) => { Tabs.deleteGroup(profileArg(pr
 on(['page'], 'notes', () => Notes.all());
 on(['page'], 'noteSave', (_w, id, text) => Notes.save(typeof id === 'string' ? id : null, str(text, 20000)));
 on(['page'], 'noteDelete', (_w, id) => Notes.remove(str(id, 100)));
+
+// --- Личный кабинет: пароли, наборы вкладок, резервная копия ---
+on(['page'], 'cabinet', (_w, profile) => {
+  const p = profileArg(profile);
+  return {
+    profile: profileInfo(p),
+    logins: Passwords.infos(p),
+    offer: Passwords.offer(),
+    never: Passwords.never(p),
+    crypto: Passwords.available(),
+    sets: TabSets.list(p).map((s) => ({ id: s.id, name: s.n, time: s.t, count: s.tabs.length })),
+    open: TabSets.openWeb(p).length,
+  };
+});
+// Общий кабинет «Все профили»: сводка и логины всех профилей (без паролей).
+on(['page'], 'cabinetAll', () => ({
+  profiles: Profiles.order().map((id) => ({ ...profileInfo(id), passwords: Passwords.count(id), sets: TabSets.list(id).length })),
+  logins: Profiles.order().flatMap((id) => Passwords.infos(id).map((l) => ({ ...l, profile: id, profileName: Profiles.name(id) }))),
+  offer: Passwords.offer(),
+  crypto: Passwords.available(),
+  last: Tabs.tabsFile.get().lastProfile ?? Profiles.order()[0],
+}));
+on(['page'], 'copyText', (_w, text) => { clipboard.writeText(str(text, 200)); return true; });
+// Пароль уходит на экран кабинета (os://) только после Windows Hello.
+on(['page'], 'pwReveal', async (_w, profile, guid) => {
+  const p = profileArg(profile);
+  const g = str(guid, 100);
+  if (!Passwords.infos(p).some((l) => l.g === g) || !(await verify(t('dt_hello_reason')))) return null;
+  return Passwords.password(p, g);
+});
+on(['page'], 'pwCopy', async (_w, profile, guid, what) => {
+  const p = profileArg(profile);
+  const l = Passwords.infos(p).find((x) => x.g === str(guid, 100));
+  if (!l) return false;
+  if (what !== 'password') { clipboard.writeText(l.u); return true; }
+  if (!(await verify(t('dt_hello_reason')))) return false;
+  const pass = Passwords.password(p, l.g);
+  if (pass == null) return false;
+  clipboard.writeText(pass);
+  return true;
+});
+on(['page'], 'pwSave', (_w, profile, site, user, pass, guid) => {
+  const s = str(site, 500).trim();
+  const ok = !!s && Passwords.upsert(profileArg(profile), s.includes('://') ? s : 'https://' + s, str(user, 300).trim(), str(pass, 1000), typeof guid === 'string' ? guid : null);
+  if (ok) broadcast();
+  return ok;
+});
+on(['page'], 'pwRemove', (_w, profile, guid) => { Passwords.remove(profileArg(profile), str(guid, 100)); broadcast(); });
+on(['page'], 'pwOffer', (_w, on) => { Passwords.setOffer(on === true); broadcast(); });
+on(['page'], 'pwNever', (_w, profile, host, on) => { Passwords.setNever(profileArg(profile), str(host, 300), on === true); broadcast(); });
+on(['page'], 'tabSetSave', (_w, profile, name) => { const s = TabSets.saveOpen(profileArg(profile), str(name, 100)); broadcast(); return !!s; });
+on(['page'], 'tabSetOpen', (w, profile, id) => {
+  const p = profileArg(profile);
+  const first = TabSets.restore(p, str(id, 100));
+  if (first) w.openProfile(p, first);
+  return !!first;
+});
+on(['page'], 'tabSetRemove', (_w, profile, id) => { TabSets.remove(profileArg(profile), str(id, 100)); broadcast(); });
+on(['page'], 'backupExport', (w, profile, pw, again) => {
+  const a = str(pw, 500);
+  if (a.length < MIN_PASSWORD) return 'short';
+  if (a !== str(again, 500)) return 'mismatch';
+  return Backup.exportTo(w.win, profile === 0 ? 0 : profileArg(profile), a);
+});
+on(['page'], 'backupPick', (w) => Backup.pick(w.win));
+on(['page'], 'backupImport', async (_w, profile, pw) => {
+  const r = await Backup.importPicked(profileArg(profile), str(pw, 500));
+  if (typeof r === 'object') broadcast();
+  return r;
+});
 
 // --- О приложении ---
 on(['page'], 'about', () => ({

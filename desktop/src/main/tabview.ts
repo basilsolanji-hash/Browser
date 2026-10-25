@@ -1,4 +1,5 @@
 import { BrowserWindow, Menu, WebContentsView, clipboard, type Session, type WebContents } from 'electron';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { sourceOf } from './reader';
 import { WEB_PREFS, openExternal } from './security';
@@ -35,6 +36,22 @@ export function isAuthPopup(url: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * «Предложить надёжный пароль» на формах регистрации — тот же скрипт, что расширение Android
+ * (assets/pwgen/pwgen.js), в своём изолированном мире: сайт не видит ни код, ни генератор.
+ */
+const PWGEN_WORLD = 1998;
+let pwgen: string | null = null;
+function suggestPasswords(wc: WebContents): void {
+  if (!isWebUrl(wc.getURL())) return;
+  try {
+    pwgen ??= readFileSync(join(__dirname, '..', 'content', 'pwgen.js'), 'utf8');
+  } catch {
+    return;
+  }
+  wc.executeJavaScriptInIsolatedWorld(PWGEN_WORLD, [{ code: pwgen }]).catch(() => { /* страница ушла */ });
 }
 
 /** Схемы, которые сайт может открыть сам: только веб. Почта — во внешней программе. */
@@ -76,6 +93,7 @@ export class TabView {
     wc.on('will-frame-navigate', (e) => { if (!e.isMainFrame && !allowedFromSite(e.url) && !e.url.startsWith('data:')) e.preventDefault(); });
     wc.on('did-start-loading', () => this.host.onTabUpdated(this));
     wc.on('did-stop-loading', () => this.host.onTabUpdated(this));
+    wc.on('dom-ready', () => suggestPasswords(wc));
     // Счётчик трекеров — с начала перехода: запросы страницы могут блокироваться раньше did-navigate.
     wc.on('did-start-navigation', (e) => { if (e.isMainFrame && !e.isSameDocument) resetTab(wc.id); });
     wc.on('did-navigate', (_e, url) => {

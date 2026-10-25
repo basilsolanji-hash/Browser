@@ -75,6 +75,8 @@ const preload = () => join(__dirname, '..', 'preload', 'preload.js');
 interface MemTab { id: string; title: string; url: string }
 
 interface Prompt { id: number; wcId: number; host: string; kinds: string[]; resolve: (allow: boolean, remember: boolean) => void }
+/** Вопрос о пароле: сохранить после входа или выбрать аккаунт для подстановки. */
+export interface PwPrompt { id: number; wcId: number; kind: 'save' | 'pick'; host: string; users: { g: string; u: string }[]; resolve: (action: string) => void }
 let promptSeq = 0;
 
 const SIMPLE_ALLOW = new Set(['fullscreen', 'clipboard-sanitized-write', 'pointerLock']);
@@ -161,6 +163,7 @@ export class OsWindow implements TabHost {
   private memSeq = 0;
   /** Запросы разрешений сайтов, ждущие ответа пользователя. */
   private prompts: Prompt[] = [];
+  private pwPrompts: PwPrompt[] = [];
   /** Поиск на странице: текст и найденное (null — строка поиска закрыта). */
   private find: { text: string; active: number; matches: number } | null = null;
   /** Окно заблокировано PIN-ом: видно только os://lock. */
@@ -352,6 +355,7 @@ export class OsWindow implements TabHost {
       find: this.find && !this.panel ? this.find : null,
       bookmarked: isWebUrl(url) && !!Bookmarks.findByUrl(url),
       prompt: this.currentPrompt(),
+      pw: this.currentPw(),
       blocked: wc ? Privacy.blockedOnTab(wc.id) : 0,
       locked: this.locked,
       lockEnabled: Lock.enabled(),
@@ -435,6 +439,8 @@ export class OsWindow implements TabHost {
     this.panel = url;
     const wc = this.page.webContents;
     if (wc.getURL() !== url) void wc.loadURL(url);
+    // Тот же экран открыт снова — данные могли поменяться (вкладки, пароли): пусть перечитает.
+    else wc.send('os:event', 'changed', null);
     this.layout();
     this.push();
     wc.focus();
@@ -676,6 +682,40 @@ export class OsWindow implements TabHost {
     const [p] = this.prompts.splice(i, 1);
     p.resolve(allow, remember && !this.incognito);
     this.push();
+  }
+
+  /** Вопрос о пароле для вкладки; новый вопрос той же вкладки заменяет старый. */
+  askPassword(wc: WebContents, q: Omit<PwPrompt, 'id' | 'wcId'>): void {
+    if (this.incognito) return;
+    for (const old of this.pwPrompts.filter((x) => x.wcId === wc.id)) this.answerPassword(old.id, 'later');
+    const p: PwPrompt = { ...q, id: ++promptSeq, wcId: wc.id };
+    this.pwPrompts.push(p);
+    const cancel = () => this.answerPassword(p.id, 'later');
+    // Выбор аккаунта — только для этой страницы; «Сохранить?» живёт, пока вкладка на том же сайте (после входа сайт обычно переходит на другую страницу).
+    const nav = (e: Electron.Event<Electron.WebContentsDidStartNavigationEventParams>) => {
+      if (!e.isMainFrame || e.isSameDocument) return;
+      let host = '';
+      try { host = new URL(e.url).hostname.toLowerCase(); } catch { /* не адрес */ }
+      if (p.kind === 'pick' || host !== p.host) { wc.off('did-start-navigation', nav); cancel(); }
+    };
+    wc.once('destroyed', cancel);
+    wc.on('did-start-navigation', nav);
+    this.push();
+  }
+
+  answerPassword(id: number, action: string): void {
+    const i = this.pwPrompts.findIndex((p) => p.id === id);
+    if (i < 0) return;
+    const [p] = this.pwPrompts.splice(i, 1);
+    p.resolve(action);
+    this.push();
+  }
+
+  private currentPw(): WindowState['pw'] {
+    const wc = this.shown?.wc;
+    const p = wc && !this.panel ? this.pwPrompts.find((x) => x.wcId === wc.id) : undefined;
+    if (!p) return null;
+    return { id: p.id, kind: p.kind, text: p.kind === 'save' ? t('password_save_q', p.host) : t('login_pick'), host: p.host, users: p.users };
   }
 
   private currentPrompt(): WindowState['prompt'] {
