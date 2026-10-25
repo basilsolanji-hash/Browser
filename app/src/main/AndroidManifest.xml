@@ -10,6 +10,8 @@
     <!-- Запрашиваются только когда сайт попросил и пользователь разрешил ему (SitePermissions). -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Звонки и голосовые сообщения на сайтах (WebRTC): переключение режима звука. Без запроса пользователю. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
