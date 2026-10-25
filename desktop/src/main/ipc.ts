@@ -571,7 +571,13 @@ function sender(e: IpcMainInvokeEvent) {
 
 export function installIpc(): void {
   // Ход загрузок — экранам «Загрузки» (не чаще, чем шлёт downloads.ts).
-  Downloads.setListener(() => { for (const w of windows) w.page.webContents.send('os:event', 'downloads', null); });
+  let had = Downloads.list().length > 0;
+  Downloads.setListener(() => {
+    for (const w of windows) w.page.webContents.send('os:event', 'downloads', null);
+    // Первая загрузка (или очищенный список) — показать или спрятать кнопку «Загрузки» на панели.
+    const has = Downloads.list().length > 0;
+    if (has !== had) { had = has; for (const w of windows) w.push(); }
+  });
   Updater.setListener(() => { for (const w of windows) w.page.webContents.send('os:event', 'update', null); });
   ipcMain.handle('os', async (e, cmd: unknown, ...args: unknown[]) => {
     const who = sender(e);
