@@ -1,6 +1,7 @@
 import { app, shell, type DownloadItem, type Session, type WebContents } from 'electron';
 import { execFile } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { Worker } from 'node:worker_threads';
 import { existsSync, linkSync, mkdirSync, renameSync, rmSync, statSync } from 'node:fs';
 import { readFile, statfs } from 'node:fs/promises';
 import { dirname } from 'node:path';
@@ -306,6 +307,16 @@ export function viewPath(path: string, name: string, profile: number, mime = eff
   return `os://file/${token}/${encodeURIComponent(name)}`;
 }
 
+/** Документ → HTML в отдельном потоке: не дольше 20 с и не больше 512 МБ памяти, иначе «не открылся». */
+function docInWorker(path: string, name: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const w = new Worker(join(__dirname, 'docworker.js'), { workerData: { path, name }, resourceLimits: { maxOldGenerationSizeMb: 512 } });
+    const timer = setTimeout(() => { void w.terminate(); resolve(null); }, 20000);
+    w.once('message', (html: string | null) => { clearTimeout(timer); resolve(html); void w.terminate(); });
+    w.once('error', () => { clearTimeout(timer); resolve(null); });
+  });
+}
+
 /** Ключи раздачи файлов во вкладки (только до выхода из браузера). */
 const tokens = new Map<string, { path: string; name: string; profile: number; mime: string }>();
 
@@ -336,7 +347,7 @@ export async function serve(token: string, ses: Session): Promise<Response> {
   // Документ — страница HTML, собранная на компьютере (без сети), со строгим CSP: картинки только встроенные.
   if (DocView.supports(d.name)) {
     try {
-      const html = DocView.toHtml(await readFile(d.path), d.name) ?? `<!doctype html><meta charset="utf-8"><title>${DocView.esc(d.name)}</title><p>${DocView.esc(t('dt_doc_broken'))}</p>`;
+      const html = (await docInWorker(d.path, d.name)) ?? `<!doctype html><meta charset="utf-8"><title>${DocView.esc(d.name)}</title><p>${DocView.esc(t('dt_doc_broken'))}</p>`;
       return new Response(html, { headers: {
         'content-type': 'text/html; charset=utf-8', 'x-content-type-options': 'nosniff', 'cache-control': 'no-store',
         'content-security-policy': "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox",

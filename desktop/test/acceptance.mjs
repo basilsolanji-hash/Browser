@@ -163,6 +163,19 @@ const server = createServer((req, res) => {
     // Форма входа для личного кабинета: вопрос «Сохранить пароль?» и подстановка.
     res.end('<title>Login</title><form method="post" action="/welcome"><input type="text" id="user" name="user">' +
       '<input type="password" id="pass" name="pass"><button id="go">Sign in</button></form>');
+  } else if (u.pathname === '/hidden' || u.pathname === '/offscreen') {
+    // Трекер с невидимой формой входа: ждёт подстановки и шлёт пароль на сервер (QA №3).
+    const style = u.pathname === '/hidden' ? 'display:none' : 'position:absolute;left:-9999px;top:0';
+    res.end(`<title>Tracker</title><input id="visible" type="text" placeholder="search"><form style="${style}"><input type="email" id="hu"><input type="password" id="hp"></form>
+      <script>document.getElementById('hp').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      setTimeout(() => fetch('/leak?p=' + encodeURIComponent(document.getElementById('hp').value)), 2500);</script>`);
+  } else if (u.pathname === '/leak') {
+    res.end('ok');
+  } else if (u.pathname === '/geo-top') {
+    // Сторонний iframe (localhost) просит геолокацию на странице 127.0.0.1.
+    res.end(`<title>Geo top</title><iframe allow="geolocation" src="http://localhost:${server.address().port}/geo-frame"></iframe>`);
+  } else if (u.pathname === '/geo-frame') {
+    res.end('<script>navigator.geolocation.getCurrentPosition(() => {}, () => {});</script>');
   } else if (u.pathname === '/signup') {
     // Регистрация: два новых пароля — Ось предлагает надёжный пароль (assets/pwgen).
     res.end('<title>Sign up</title><form method="post" action="/welcome"><input type="email" id="user" name="email">' +
@@ -1297,6 +1310,20 @@ try {
     check('blocked permission is explained (site settings), not silent', /127\.0\.0\.1/.test(toast37), toast37);
     await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'location', null));
 
+    // Сторонний iframe спрашивает геолокацию: вопрос и решение — за сайтом вкладки (QA №3).
+    await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/geo-top`);
+    const gp = await waitFor(async () => (await state()).prompt, 8000);
+    check('permission asked by a third-party iframe names the tab site, not the iframe', gp && gp.text.includes('127.0.0.1') && !gp.text.includes('localhost'), JSON.stringify(gp));
+    await ui37.waitForSelector('#perm-remember');
+    check('«Remember» is off by default for location, camera and microphone', !(await ui37.isChecked('#perm-remember')));
+    await keyScreen('37-iframe-permission', 'chrome');
+    await ui37.click('#perm-remember');
+    await ui37.click('#perm-allow');
+    await flush();
+    const sp37 = readJson('site_permissions')?.sites?.['1'] ?? {};
+    check('the decision is stored for the tab site only', sp37['127.0.0.1']?.location === 'ALLOW' && !sp37.localhost, JSON.stringify(sp37));
+    await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'location', null));
+
     // --- 38. Кнопка на панели на выбор (WINDOWS_SYNC §6) ---
     step('38. Кнопка справа от адресной строки: по умолчанию «Скачанные файлы», меняется в настройках');
     check('toolbar button defaults to Downloads', (await ui37.getAttribute('#tb-btn', 'data-k')) === 'downloads');
@@ -1366,14 +1393,22 @@ try {
 
     // Подстановка в профиле 1.
     lp = await inProfile(1, `${SITE}/login`);
+    await lp.waitForSelector('#pass');
+    await sleep(800);
+    check('Личный кабинет: nothing is filled before the user acts (no autofill on page load)', (await lp.inputValue('#pass')) === '' && (await state()).pw === null);
+    await lp.click('#pass');
+    const offer = await waitFor(async () => { const x = await state(); return x.pw?.kind === 'pick' && x.pw; });
+    check('Личный кабинет: a click in the password field offers «Sign in as…»', offer && offer.users.length === 1 && offer.users[0].u === 'anna', JSON.stringify(offer));
+    await uiP.click('.pw-user >> nth=0');
     const filled = await waitFor(async () => (await lp.inputValue('#pass')) === PW1 && (await lp.inputValue('#user')) === 'anna');
     check('Личный кабинет: saved login fills the sign-in form in profile 1', filled);
     await keyScreen('39-password-filled', 'tab');
     // Другой сайт (localhost ≠ 127.0.0.1) пароль не получает.
     lp = await inProfile(1, `http://localhost:${PORT}/login`);
     await lp.waitForSelector('#pass');
+    await lp.click('#pass');
     await sleep(1200);
-    check('Личный кабинет: password is not given to another site', (await lp.inputValue('#pass')) === '');
+    check('Личный кабинет: password is not given to another site', (await lp.inputValue('#pass')) === '' && (await state()).pw === null);
     // Инкогнито: не спрашиваем и не подставляем.
     const incW = await main(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
     await key('Ctrl+Shift+N');
@@ -1382,6 +1417,7 @@ try {
     await main((_e, { wi, url }) => globalThis.osTest.windows()[wi].navigate(url), { wi, url: `${SITE}/login` });
     const ip = await waitFor(() => app.windows().filter((x) => !x.isClosed() && x.url() === `${SITE}/login`).pop());
     await ip.waitForSelector('#pass');
+    await ip.click('#pass');
     await sleep(1000);
     const incFilled = await ip.inputValue('#pass');
     await login(ip, 'anna', 'Incognito-Pw-3');
@@ -1431,6 +1467,8 @@ try {
 
     // Выбор аккаунта при двух входах для сайта.
     lp = await inProfile(1, `${SITE}/login`);
+    await lp.waitForSelector('#pass');
+    await lp.click('#pass');
     const pick = await waitFor(async () => { const x = await state(); return x.pw?.kind === 'pick' && x.pw; });
     check('Личный кабинет: two accounts for the site → account choice', pick && pick.users.length === 2, JSON.stringify(pick));
     await uiP.waitForSelector('.pw-user');
@@ -1438,6 +1476,16 @@ try {
     const pickIdx = pick ? pick.users.findIndex((u) => u.u === 'second') : 1;
     await uiP.click(`.pw-user >> nth=${pickIdx}`);
     check('Личный кабинет: the chosen account fills the form', await waitFor(async () => (await lp.inputValue('#user')) === 'second' && (await lp.inputValue('#pass')) === PW2));
+
+    // Скрытые и вынесенные за экран формы (приём трекеров): пароль туда не подставляется и не утекает.
+    for (const path of ['/hidden', '/offscreen']) {
+      const hp = await inProfile(1, `${SITE}${path}`);
+      await hp.waitForSelector('#visible');
+      await hp.click('#visible');
+      await sleep(3500);
+      const leaked = seen.filter((r) => r.path.startsWith('/leak') && (r.path.includes(encodeURIComponent(PW1)) || r.path.includes(encodeURIComponent(PW2)) || r.path.includes(PW1) || r.path.includes(PW2)));
+      check(`Личный кабинет: invisible login form on ${path} gets no password`, leaked.length === 0 && (await state()).pw === null, JSON.stringify(leaked));
+    }
 
     // Никакого открытого текста паролей в userData.
     await flush();

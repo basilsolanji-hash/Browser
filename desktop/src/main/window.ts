@@ -1,7 +1,7 @@
-import { BrowserWindow, WebContentsView, clipboard, dialog, ipcMain, screen, session, shell, systemPreferences, type Session, type WebContents } from 'electron';
+import { BrowserWindow, WebContentsView, clipboard, dialog, ipcMain, screen, session, systemPreferences, type Session, type WebContents } from 'electron';
 import { join } from 'node:path';
 import { JsonFile } from './store';
-import { WEB_PREFS, hardenSession, openExternal } from './security';
+import { WEB_PREFS, hardenSession, openExternal, openSystemSettings } from './security';
 import { handleUiSession, handleWebSession, isPanelUrl } from './protocol';
 import { INCOGNITO_PALETTE, palette } from './themes';
 import { settings, searchUrl, toolbarButton } from './settings';
@@ -131,7 +131,7 @@ async function explainOsDenied(w: OsWindow, kind: 'camera' | 'microphone'): Prom
   const r = await dialog.showMessageBox(w.win, {
     type: 'info', message: t('dt_perm_os_off', what), buttons: [t('open_settings'), t('close')], defaultId: 0, cancelId: 1, noLink: true,
   });
-  if (r.response === 0 && process.platform === 'win32') void shell.openExternal(kind === 'camera' ? 'ms-settings:privacy-webcam' : 'ms-settings:privacy-microphone');
+  if (r.response === 0) openSystemSettings(kind === 'camera' ? 'ms-settings:privacy-webcam' : 'ms-settings:privacy-microphone');
 }
 
 function installPermissions(ses: Session, profile: number | null): void {
@@ -146,7 +146,9 @@ function installPermissions(ses: Session, profile: number | null): void {
   ses.setPermissionRequestHandler((wc, permission, cb, details) => {
     if (SIMPLE_ALLOW.has(permission)) return cb(true);
     const kinds = kindsFor(permission, details as { mediaTypes?: string[] });
-    const host = hostOf(details.requestingUrl || wc?.getURL() || '');
+    // Решение — за сайтом вкладки (как в Chrome), а не за встроенным фреймом: иначе рекламный iframe,
+    // разрешённый один раз, получил бы доступ на любом сайте. Фрейму доступ даёт ещё и его allow=.
+    const host = hostOf(wc?.getURL() ?? '');
     if (!kinds || !wc || !host) return cb(false);
     const modes = kinds.map((k) => mode(host, k));
     const w = [...windows].find((x) => x.owns(wc));
@@ -175,10 +177,10 @@ function installPermissions(ses: Session, profile: number | null): void {
       cb(allow);
     });
   });
-  ses.setPermissionCheckHandler((_wc, permission, origin, details) => {
+  ses.setPermissionCheckHandler((wc, permission, origin, details) => {
     if (SIMPLE_ALLOW.has(permission)) return true;
     const kinds = kindsFor(permission, details as { mediaType?: string });
-    const host = hostOf(origin);
+    const host = hostOf((details as { embeddingOrigin?: string }).embeddingOrigin || wc?.getURL() || origin);
     return !!kinds && !!host && kinds.every((k) => mode(host, k) === 'ALLOW');
   });
 }
@@ -793,7 +795,9 @@ export class OsWindow implements TabHost {
     const p = wc && !this.panel ? this.prompts.find((x) => x.wcId === wc.id) : undefined;
     if (!p) return null;
     const text = p.text ? p.text : p.kinds.length === 2 ? t('perm_q_camera_mic', p.host) : t(Perms.kind(p.kinds[0])!.askKey, p.host);
-    return { id: p.id, text, canRemember: !this.incognito };
+    // Камера, микрофон и местоположение: «Запомнить» — только явным выбором (как в Chrome).
+    const sensitive = p.kinds.some((k) => k === 'camera' || k === 'microphone' || k === 'location');
+    return { id: p.id, text, canRemember: !this.incognito, rememberDefault: !sensitive };
   }
 
   // --- Блокировка ---

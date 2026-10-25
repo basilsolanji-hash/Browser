@@ -6,8 +6,8 @@ import type { TabView } from './tabview';
 import { broadcast } from './ipc';
 
 /**
- * Пароли на сайтах: preload вкладки (изолированный мир) сообщает о форме входа и об отправке логина
- * с паролем. Здесь решаем всё сами: только вкладки сайтов (http/https, главный фрейм), не инкогнито;
+ * Пароли на сайтах: preload вкладки (изолированный мир) сообщает, что пользователь щёлкнул в видимое
+ * поле входа, и об отправке логина с паролем. Здесь решаем всё сами: только вкладки сайтов (http/https, главный фрейм), не инкогнито;
  * пароль отдаётся только странице того же сайта и только из профиля этой вкладки.
  */
 interface Who { w: OsWindow; tab: TabView; profile: number; url: URL; frame: WebFrameMain }
@@ -43,7 +43,8 @@ function onForm(e: IpcMainEvent): void {
   if (!x) return;
   const logins = Passwords.forDomain(x.profile, x.url.hostname).filter((l) => fits(l, x.url));
   if (!logins.length) return;
-  if (logins.length === 1) { fill(x.frame, logins[0]); return; }
+  // Всегда через карточку «Войти как…»: пароль уходит в страницу только по выбору пользователя,
+  // даже если аккаунт один (и тем более для поддомена или родительского домена).
   const wc = x.tab.wc;
   x.w.askPassword(wc, {
     kind: 'pick', host: x.url.hostname.toLowerCase(), users: logins.map((l) => ({ g: l.g, u: l.u || '—' })),

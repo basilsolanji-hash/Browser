@@ -36,6 +36,12 @@ export function openExternal(url: string): void {
   if (isWebUrl(url) || /^mailto:/i.test(url)) void shell.openExternal(url);
 }
 
+/** Системные настройки Windows — только этот список адресов (ms-settings:), остальное — нельзя. */
+const SYSTEM_SETTINGS = /^ms-settings:(privacy-webcam|privacy-microphone|privacy-location|defaultapps(\?registeredAppUser=Os%20Browser)?)$/;
+export function openSystemSettings(uri: string): void {
+  if (process.platform === 'win32' && SYSTEM_SETTINGS.test(uri)) void shell.openExternal(uri);
+}
+
 const hardened = new WeakSet<Session>();
 const live: WeakRef<Session>[] = [];
 

@@ -88,16 +88,30 @@ ipcRenderer.on('tab:upload-go', () => {
 
 // --- Формы входа (изолированный мир preload): сайт не видит ни этот код, ни переданные пароли. ---
 // Главный процесс сам проверяет вкладку, профиль и сайт; отсюда уходят только логин и пароль формы.
-const visible = (el: HTMLInputElement) => !el.disabled && el.type !== 'hidden' && (el.offsetWidth > 0 || el.offsetHeight > 0);
+// Пароль подставляется только после действия пользователя (щелчок или ввод в поле входа) и только
+// в видимое поле: скрытые и вынесенные за экран формы — приём трекеров, собирающих логины.
+
+/** Поле видно человеку: не скрыто стилями, есть размер и оно не вынесено за пределы страницы. */
+function shown(el: HTMLInputElement): boolean {
+  if (!el.isConnected || el.disabled || el.type === 'hidden' || el.offsetParent === null) return false;
+  const r = el.getBoundingClientRect();
+  if (r.width < 4 || r.height < 4 || r.right <= 0 || r.bottom + window.scrollY <= 0) return false;
+  if (r.left >= Math.max(window.innerWidth, document.documentElement.scrollWidth)) return false;
+  for (let n: Element | null = el; n; n = n.parentElement) {
+    const cs = getComputedStyle(n);
+    if (cs.visibility === 'hidden' || Number(cs.opacity) < 0.1) return false;
+  }
+  return true;
+}
 
 /** Поле пароля и поле логина перед ним (текст, почта, телефон) в той же форме или на странице. */
 function loginFields(root: ParentNode): { user: HTMLInputElement | null; pass: HTMLInputElement } | null {
   const inputs = [...root.querySelectorAll('input')];
-  const pass = inputs.find((i) => i.type === 'password' && visible(i)) ?? inputs.find((i) => i.type === 'password');
+  const pass = inputs.find((i) => i.type === 'password' && !i.autocomplete.includes('new-password') && shown(i));
   if (!pass) return null;
-  const before = inputs.slice(0, inputs.indexOf(pass)).filter((i) => /^(text|email|tel)$/.test(i.type) && visible(i));
-  const user = inputs.find((i) => i.autocomplete === 'username') ?? before[before.length - 1] ?? null;
-  return { user, pass };
+  const before = inputs.slice(0, inputs.indexOf(pass)).filter((i) => /^(text|email|tel)$/.test(i.type) && shown(i));
+  const named = inputs.find((i) => i.autocomplete === 'username' && shown(i));
+  return { user: named ?? before[before.length - 1] ?? null, pass };
 }
 
 document.addEventListener('submit', (e) => {
@@ -106,27 +120,28 @@ document.addEventListener('submit', (e) => {
   ipcRenderer.send('tab:pw-submit', JSON.stringify({ u: f.user?.value ?? '', p: f.pass.value }));
 }, true);
 
-let asked = false;
-// Подстановка — только в формы входа: поля нового пароля (регистрация) не заполняем.
-const LOGIN_FIELD = 'input[type="password"]:not([autocomplete~="new-password"])';
-function checkForm(): void {
-  if (asked || !document.querySelector(LOGIN_FIELD)) return;
-  asked = true;
+/** Форма, в поле которой пользователь щёлкнул или начал ввод, — только в неё и подставляем. */
+let target: ParentNode | null = null;
+let askedAt = 0;
+function onUserAction(e: Event): void {
+  if (!e.isTrusted) return;
+  const el = e.target;
+  if (!(el instanceof HTMLInputElement) || !/^(password|text|email|tel)$/.test(el.type) || !shown(el)) return;
+  const root = el.form ?? document;
+  const f = loginFields(root);
+  if (!f || (el !== f.pass && el !== f.user)) return;
+  target = root;
+  // Не засыпаем главный процесс вопросами: одна карточка на несколько секунд.
+  if (Date.now() - askedAt < 3000) return;
+  askedAt = Date.now();
   ipcRenderer.send('tab:pw-form');
 }
-window.addEventListener('DOMContentLoaded', () => {
-  checkForm();
-  if (asked) return;
-  // Форма может появиться позже (страницы на скриптах): следим недолго.
-  const obs = new MutationObserver(() => { checkForm(); if (asked) obs.disconnect(); });
-  obs.observe(document.documentElement, { childList: true, subtree: true });
-  setTimeout(() => obs.disconnect(), 15000);
-});
+document.addEventListener('pointerdown', onUserAction, true);
+document.addEventListener('keydown', onUserAction, true);
 
 ipcRenderer.on('tab:pw-fill', (_e, d: { u?: unknown; p?: unknown }) => {
-  const field = document.querySelector<HTMLInputElement>(LOGIN_FIELD);
-  const f = field ? loginFields(field.form ?? document) : null;
-  if (!f || typeof d?.p !== 'string' || f.pass.autocomplete.includes('new-password')) return;
+  const f = target ? loginFields(target) : null;
+  if (!f || typeof d?.p !== 'string') return;
   const set = (el: HTMLInputElement, v: string) => {
     el.value = v;
     el.dispatchEvent(new Event('input', { bubbles: true }));

@@ -13,6 +13,9 @@ const common = { bundle: true, sourcemap: 'linked', target: 'chrome140', logLeve
 
 await build({ ...common, platform: 'node', format: 'cjs', external: ['electron'],
   entryPoints: [join(src, 'main/main.ts')], outfile: join(dist, 'main/main.js') });
+// Разбор документов (DocView) — в отдельном потоке, чтобы большой файл не подвешивал браузер.
+await build({ ...common, platform: 'node', format: 'cjs', external: ['electron'],
+  entryPoints: [join(src, 'main/docworker.ts')], outfile: join(dist, 'main/docworker.js') });
 // Preload в песочнице: один файл, без require своих модулей.
 await build({ ...common, platform: 'node', format: 'cjs', external: ['electron'],
   entryPoints: [join(src, 'preload/preload.ts')], outfile: join(dist, 'preload/preload.js') });

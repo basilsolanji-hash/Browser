@@ -18,7 +18,7 @@ export function toHtml(data: Buffer, name: string): string | null {
   try {
     const ext = extOf(name);
     let body: string;
-    if (ext === 'csv') body = csv(data.toString('utf8').replace(/^\uFEFF/, ''));
+    if (ext === 'csv') body = csv(data.subarray(0, 20 * 1024 * 1024).toString('utf8').replace(/^\uFEFF/, ''));
     else {
       const zip = unzip(data);
       if (ext === 'docx') body = docx(zip);
@@ -35,35 +35,60 @@ export function toHtml(data: Buffer, name: string): string | null {
 
 // --- Общее ---
 
-/** Распаковка zip по центральному каталогу: «stored» и «deflate», без внешних библиотек. */
-export function unzip(buf: Buffer): Map<string, Buffer> {
-  let end = -1;
-  for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65557); i--) {
-    if (buf.readUInt32LE(i) === 0x06054b50) { end = i; break; }
+/** Сколько всего можно распаковать из одного документа: защита от «zip-бомб» (много записей по 40 МБ). */
+const MAX_TOTAL = 100 * 1024 * 1024;
+
+/**
+ * Zip по центральному каталогу: «stored» и «deflate», без внешних библиотек. Записи распаковываются
+ * по требованию — только те, что нужны документу, и не больше MAX_TOTAL на файл.
+ */
+export class Zip {
+  private entries = new Map<string, { method: number; start: number; csize: number; size: number }>();
+  private used = 0;
+  private buf: Buffer;
+
+  constructor(buf: Buffer) {
+    this.buf = buf;
+    let end = -1;
+    for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65557); i--) {
+      if (buf.readUInt32LE(i) === 0x06054b50) { end = i; break; }
+    }
+    if (end < 0) throw new Error('not a zip');
+    const count = buf.readUInt16LE(end + 10);
+    let p = buf.readUInt32LE(end + 16);
+    for (let n = 0; n < count; n++) {
+      if (buf.readUInt32LE(p) !== 0x02014b50) throw new Error('bad zip');
+      const method = buf.readUInt16LE(p + 10);
+      const csize = buf.readUInt32LE(p + 20);
+      const size = buf.readUInt32LE(p + 24);
+      const nameLen = buf.readUInt16LE(p + 28);
+      const name = buf.toString('utf8', p + 46, p + 46 + nameLen);
+      const local = buf.readUInt32LE(p + 42);
+      p += 46 + nameLen + buf.readUInt16LE(p + 30) + buf.readUInt16LE(p + 32);
+      if (name.endsWith('/') || size > MAX_ENTRY) continue;
+      const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
+      this.entries.set(name, { method, start, csize, size });
+    }
   }
-  if (end < 0) throw new Error('not a zip');
-  const count = buf.readUInt16LE(end + 10);
-  let p = buf.readUInt32LE(end + 16);
-  const out = new Map<string, Buffer>();
-  for (let n = 0; n < count; n++) {
-    if (buf.readUInt32LE(p) !== 0x02014b50) throw new Error('bad zip');
-    const method = buf.readUInt16LE(p + 10);
-    const csize = buf.readUInt32LE(p + 20);
-    const size = buf.readUInt32LE(p + 24);
-    const nameLen = buf.readUInt16LE(p + 28);
-    const extraLen = buf.readUInt16LE(p + 30);
-    const commentLen = buf.readUInt16LE(p + 32);
-    const local = buf.readUInt32LE(p + 42);
-    const name = buf.toString('utf8', p + 46, p + 46 + nameLen);
-    p += 46 + nameLen + extraLen + commentLen;
-    if (name.endsWith('/') || size > MAX_ENTRY) continue;
-    const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
-    const raw = buf.subarray(start, start + csize);
-    if (method === 0) out.set(name, raw);
-    else if (method === 8) out.set(name, inflateRawSync(raw, { maxOutputLength: MAX_ENTRY }));
+
+  keys(): string[] {
+    return [...this.entries.keys()];
   }
-  return out;
+
+  get(name: string): Buffer | undefined {
+    const e = this.entries.get(name);
+    if (!e) return undefined;
+    // Объявленный размер может лгать: ограничиваем и сам распакованный объём.
+    const left = Math.min(MAX_ENTRY, MAX_TOTAL - this.used);
+    if (left <= 0) throw new Error('document too large');
+    const raw = this.buf.subarray(e.start, e.start + e.csize);
+    const out = e.method === 0 ? raw : e.method === 8 ? inflateRawSync(raw, { maxOutputLength: left }) : undefined;
+    if (out) this.used += out.length;
+    return out;
+  }
 }
+
+export const unzip = (buf: Buffer) => new Zip(buf);
 
 interface Ev { t: 'start' | 'end' | 'text'; name: string; attrs: Record<string, string>; text: string }
 
@@ -136,7 +161,7 @@ function relations(bytes: Buffer | undefined): Map<string, string> {
 
 // --- Word (DOCX) ---
 
-function docx(zip: Map<string, Buffer>): string {
+function docx(zip: Zip): string {
   const doc = zip.get('word/document.xml');
   if (!doc) throw new Error('no document.xml');
   const rels = relations(zip.get('word/_rels/document.xml.rels'));
@@ -207,7 +232,7 @@ function docx(zip: Map<string, Buffer>): string {
 
 // --- Excel (XLSX) ---
 
-function xlsx(zip: Map<string, Buffer>): string {
+function xlsx(zip: Zip): string {
   const shared: string[] = [];
   const ss = zip.get('xl/sharedStrings.xml');
   if (ss) {
@@ -231,7 +256,7 @@ function xlsx(zip: Map<string, Buffer>): string {
       if (t) sheets.push([e.attrs.name ?? '', t.startsWith('/') ? t.slice(1) : `xl/${t}`]);
     }
   }
-  if (!sheets.length) [...zip.keys()].filter((k) => k.startsWith('xl/worksheets/sheet')).sort().forEach((k, n) => sheets.push([String(n + 1), k]));
+  if (!sheets.length) zip.keys().filter((k) => k.startsWith('xl/worksheets/sheet')).sort().forEach((k, n) => sheets.push([String(n + 1), k]));
   let sb = '';
   for (const [name, path] of sheets) {
     const bytes = zip.get(path);
@@ -299,8 +324,8 @@ function sheetTable(bytes: Buffer, shared: string[]): string {
 
 // --- PowerPoint (PPTX) ---
 
-function pptx(zip: Map<string, Buffer>): string {
-  const slides = [...zip.keys()]
+function pptx(zip: Zip): string {
+  const slides = zip.keys()
     .map((k) => { const m = /^ppt\/slides\/slide(\d+)\.xml$/.exec(k); return m ? ([Number(m[1]), k] as const) : null; })
     .filter((x): x is readonly [number, string] => x != null)
     .sort((a, b) => a[0] - b[0]);
@@ -323,7 +348,7 @@ function pptx(zip: Map<string, Buffer>): string {
 
 // --- OpenDocument (ODT, ODS, ODP) ---
 
-function odf(zip: Map<string, Buffer>): string {
+function odf(zip: Zip): string {
   const content = zip.get('content.xml');
   if (!content) throw new Error('no content.xml');
   const sb: string[] = [];

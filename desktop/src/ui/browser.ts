@@ -731,7 +731,7 @@ function renderPrompt(): void {
   const addr = document.getElementById('addr');
   if (!addr) return;
   shownPrompt = p.id;
-  const remember = h('input', { type: 'checkbox', id: 'perm-remember', checked: true, disabled: !p.canRemember });
+  const remember = h('input', { type: 'checkbox', id: 'perm-remember', checked: p.canRemember && p.rememberDefault, disabled: !p.canRemember });
   const answer = (allow: boolean) => { hideDrop(); void os.call('permissionAnswer', p.id, allow, remember.checked); };
   const card = h('div', { class: 'menu perm-card', role: 'dialog', 'aria-label': p.text },
     h('div', { class: 'perm-text' }, p.text),
