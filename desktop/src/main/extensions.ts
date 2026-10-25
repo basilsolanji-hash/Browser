@@ -107,10 +107,12 @@ export async function installFromStore(ses: Session, profile: number, input: str
   try {
     const res = await net.fetch(url, { signal: AbortSignal.timeout(90_000), cache: 'no-store' });
     if (res.status === 204 || res.status === 404) return { ok: false, error: 'notfound' };
-    if (!res.ok || !res.url.startsWith('https://')) return { ok: false, error: 'network', detail: `HTTP ${res.status}` };
+    // Адрес ответа после переадресаций (если Electron его сообщает) — тоже только HTTPS; целостность даёт подпись CRX.
+    if (!res.ok || (res.url && !res.url.startsWith('https://'))) return { ok: false, error: 'network', detail: `HTTP ${res.status} ${res.url}` };
     if (Number(res.headers.get('content-length') ?? 0) > 200 * 1024 * 1024) return { ok: false, error: 'bad', detail: 'too big' };
     crx = Buffer.from(await res.arrayBuffer());
   } catch (e) {
+    console.error('[extensions] download', id, e);
     return { ok: false, error: 'network', detail: String((e as Error).message ?? e) };
   }
   if (!crx.length) return { ok: false, error: 'notfound' };

@@ -37,7 +37,8 @@ async function install(input: HTMLInputElement): Promise<void> {
     toast(t('dt_ext_installed', r.name));
   } else {
     const key = { id: 'dt_ext_err_id', network: 'dt_ext_err_network', notfound: 'dt_ext_err_notfound', bad: 'dt_ext_err_bad', load: 'dt_ext_err_load' }[r.error] ?? 'dt_ext_err_load';
-    toast(t(key, r.detail ?? ''));
+    // Техническая причина сбоя сети — в скобках, чтобы её можно было прислать в отзыве.
+    toast(t(key, r.detail ?? '') + (r.error === 'network' && r.detail ? ` (${r.detail})` : ''));
   }
   await render();
 }
