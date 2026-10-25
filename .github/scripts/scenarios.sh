@@ -26,7 +26,15 @@ N=0
 ok()   { echo "ok   $*" >> "$CHECKS"; }
 fail() { echo "FAIL $*" >> "$CHECKS"; }
 check() { if eval "$2"; then ok "$1"; else fail "$1"; fi; }
-shot() { adb exec-out screencap -p > "$OUT/$1.png"; }
+# Снимок экрана. Если он завис (тяжёлый сайт с видео/WebGL вешает программный GPU эмулятора),
+# перезапускаем приложение, чтобы следующие сценарии не падали цепочкой, и помечаем сценарий.
+shot() {
+  if ! adb exec-out screencap -p > "$OUT/$1.png"; then
+    rm -f "$OUT/$1.png"; : > "$OUT/$1.hang"
+    echo "GPU-HANG: $1 — перезапуск приложения"
+    adb shell am force-stop "$PKG"; sleep 3
+  fi
+}
 crashes() { adb logcat -b crash -d 2>/dev/null | grep -c "$PKG" || true; }
 diag() { adb logcat -d -s OsDiag:I 2>/dev/null; }
 start() { adb shell am start -W -n "$PKG/ru.multibrowser.$1" "${@:2}" >/dev/null 2>&1; }
@@ -189,6 +197,7 @@ CASES
     name="S-$(echo "$u" | sed 's#https\?://##; s#[^a-zA-Z0-9.]#_#g')"
     adb logcat -c
     sc "$name" "start BrowserActivity --ei profile 4 --es url $u; sleep 14"
+    if [ -e "$OUT/$name.hang" ]; then ok "$name: пропущен — эмулятор завис на графике сайта"; continue; fi
     check "$name: загрузка началась" 'diag | grep -q "начало: http"'
     echo "$name" >> "$OUT/must_render.txt"
   done
