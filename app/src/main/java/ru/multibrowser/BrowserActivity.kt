@@ -718,6 +718,132 @@ class BrowserActivity : AppCompatActivity() {
         BrowserMenu(this).show(top, groups)
     }
 
+    /** Вид настраиваемой кнопки нижней панели: иконка и подпись. */
+    private fun bottomButtonLook(id: String): Pair<Int, String> = when (id) {
+        "clear" -> R.drawable.ic_delete to Tr.t("clear_short")
+        "favorites" -> R.drawable.ic_star to Tr.t("favorites")
+        "tabs" -> R.drawable.ic_tabs to Tr.t("tabs")
+        "notes" -> R.drawable.ic_note to Tr.t("notes")
+        "saved" -> R.drawable.ic_offline to Tr.t("saved_pages")
+        "share" -> R.drawable.ic_share to Tr.t("share")
+        "find" -> R.drawable.ic_find to Tr.t("find_in_page")
+        else -> R.drawable.ic_download to Tr.t("downloads")
+    }
+
+    private fun bottomButtonAction(id: String) {
+        when (id) {
+            "clear" -> showClear()
+            "favorites" -> BookmarksActivity.open(this, profileId)
+            "tabs" -> showTabs()
+            "notes" -> startActivity(Intent(this, NotesActivity::class.java))
+            "saved" -> startActivity(Intent(this, SavedPagesActivity::class.java))
+            "share" -> sharePage()
+            "find" -> if (currentUrl.startsWith("http")) findBar.show()
+            else -> startActivity(Intent(this, DownloadsActivity::class.java))
+        }
+    }
+
+    /** Чип профиля: список профилей, текущий отмечен; выбор сразу переключает. */
+    private fun showProfilePicker() {
+        val all = Profiles.all(this)
+        val dialog = android.app.Dialog(this)
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, dp(12), 0, dp(8))
+            addView(TextView(context).apply {
+                text = Tr.t("switch_profile")
+                textSize = 16f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Ui.TEXT)
+                setPadding(dp(20), dp(4), dp(20), dp(10))
+            })
+        }
+        all.forEach { p ->
+            val current = !incognito && p.id == profileId
+            content.addView(LinearLayout(this).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(dp(20), dp(6), dp(16), dp(6))
+                minimumHeight = dp(56)
+                if (current) setBackgroundColor(Ui.BG)
+                contentDescription = p.name
+                setOnClickListener {
+                    dialog.dismiss()
+                    if (current) return@setOnClickListener
+                    exitIncognito()
+                    openTab(p.id, if (Tabs.isTab(pin.id)) Pins.all(this@BrowserActivity, p.id).first()
+                        else Pins.resolve(this@BrowserActivity, pin.id, p.id))
+                }
+                addView(TextView(context).apply {
+                    text = p.name.take(1).uppercase()
+                    textSize = 14f
+                    typeface = Typeface.DEFAULT_BOLD
+                    gravity = Gravity.CENTER
+                    setTextColor(Color.WHITE)
+                    background = Ui.oval(p.color)
+                }, LinearLayout.LayoutParams(dp(32), dp(32)))
+                addView(LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(dp(14), 0, dp(8), 0)
+                    addView(TextView(context).apply {
+                        text = p.name
+                        textSize = 15f
+                        setTextColor(Ui.TEXT)
+                        if (current) typeface = Typeface.DEFAULT_BOLD
+                        maxLines = 1
+                        ellipsize = TextUtils.TruncateAt.END
+                    })
+                    val sub = p.email ?: p.description.takeIf { it.isNotBlank() }
+                    if (sub != null) addView(TextView(context).apply {
+                        text = sub
+                        textSize = 12f
+                        setTextColor(Ui.MUTED)
+                        maxLines = 1
+                        ellipsize = TextUtils.TruncateAt.END
+                    })
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                if (Profiles.isPinned(this@BrowserActivity, p.id)) addView(icon(R.drawable.ic_pin, Ui.MUTED, 16))
+                if (current) addView(icon(R.drawable.ic_check, Ui.ACCENT, 20).apply {
+                    contentDescription = Tr.t("profile_current")
+                    (layoutParams as LinearLayout.LayoutParams).marginStart = dp(8)
+                })
+            })
+        }
+        content.addView(View(this).apply { setBackgroundColor(Ui.BORDER) },
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)).apply { topMargin = dp(6); bottomMargin = dp(6) })
+        content.addView(LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(20), 0, dp(16), 0)
+            minimumHeight = dp(52)
+            setOnClickListener {
+                dialog.dismiss()
+                exitIncognito()
+                startActivity(Intent(this@BrowserActivity, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+            }
+            addView(icon(R.drawable.ic_group, Ui.TEXT, 22))
+            addView(TextView(context).apply {
+                text = Tr.t("all_profiles")
+                textSize = 15f
+                setTextColor(Ui.TEXT)
+                setPadding(dp(18), 0, 0, 0)
+            })
+        })
+        dialog.setContentView(android.widget.ScrollView(this).apply {
+            background = Ui.rounded(Ui.SURFACE, dpf(18))
+            addView(content)
+        })
+        dialog.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+            setDimAmount(0.25f)
+            setGravity(Gravity.TOP or Gravity.START)
+            attributes = attributes.apply { x = dp(8); y = dp(8) }
+            val dm = resources.displayMetrics
+            setLayout(minOf(dp(320), dm.widthPixels - dp(16)), android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        dialog.show()
+    }
+
     /** «Поделиться» адресом текущей страницы через системное окно. */
     private fun sharePage() {
         val url = Reader.original(currentUrl)
@@ -852,11 +978,8 @@ class BrowserActivity : AppCompatActivity() {
             setPadding(dp(10), 0, dp(12), 0)
             addView(chipDot, LinearLayout.LayoutParams(dp(10), dp(10)).apply { marginEnd = dp(8) })
             addView(chipName)
-            setOnClickListener {
-                exitIncognito()
-                startActivity(Intent(this@BrowserActivity, MainActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
-            }
+            contentDescription = Tr.t("switch_profile")
+            setOnClickListener { showProfilePicker() }
         }
 
         // Полоса закреплённых вкладок (настраивается в настройках); прокручивается, если их много.
@@ -1001,7 +1124,9 @@ class BrowserActivity : AppCompatActivity() {
             else session?.let { Gecko.loadUrl(it, if (Tabs.isTab(pin.id)) Pins.START else pin.url) }
         }
         action(R.drawable.ic_history, Tr.t("history")) { showHistory() }
-        action(R.drawable.ic_delete, Tr.t("clear_short")) { showClear() }
+        // Настраиваемая кнопка (по умолчанию — скачанные файлы).
+        val (bottomIcon, bottomLabel) = bottomButtonLook(Settings.bottomButton(this))
+        action(bottomIcon, bottomLabel) { bottomButtonAction(Settings.bottomButton(this)) }
         action(R.drawable.ic_refresh, Tr.t("refresh")) { session?.reload() }
 
         // Нижняя полоса: быстрое переключение между профилями без возврата к списку.

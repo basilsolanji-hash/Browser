@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         /** Сколько профилей видно сразу; остальные — под «Показать все». */
-        const val VISIBLE = 5
+        const val VISIBLE = 10
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -125,7 +125,8 @@ class MainActivity : AppCompatActivity() {
         })
         list.addView(ExtrasUi.hint(this, Tr.t("profiles_reorder_hint")).apply { setPadding(0, 0, 0, dp(4)) })
         val all = Profiles.all(this)
-        all.take(if (expanded) all.size else VISIBLE).forEach { list.addView(row(it)) }
+        val current = Profiles.lastProfile(this)
+        all.take(if (expanded) all.size else VISIBLE).forEach { list.addView(row(it, it.id == current)) }
         if (all.size > VISIBLE) {
             list.addView(ExtrasUi.button(this, if (expanded) Tr.t("profiles_fewer") else Tr.t("profiles_all", all.size)) {
                 expanded = !expanded
@@ -238,12 +239,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun row(p: Profile): View {
+    /** [current] — профиль, которым пользовались последним: выделен рамкой и отметкой. */
+    private fun row(p: Profile, current: Boolean): View {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             minimumHeight = dp(62)
-            background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
+            background = if (current) Ui.rounded(Ui.SURFACE, dpf(6), dp(2), Ui.ACCENT) else Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
             clipToOutline = true
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -270,13 +272,21 @@ class MainActivity : AppCompatActivity() {
         row.addView(LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(10), dp(8), dp(10))
-            addView(TextView(context).apply {
-                text = p.name
-                textSize = 15f
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(Ui.TEXT)
-                maxLines = 1
-                ellipsize = TextUtils.TruncateAt.END
+            addView(LinearLayout(context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                if (Profiles.isPinned(this@MainActivity, p.id)) addView(icon(R.drawable.ic_pin, Ui.ACCENT, 14).apply {
+                    contentDescription = Tr.t("profile_pinned")
+                    (layoutParams as LinearLayout.LayoutParams).marginEnd = dp(4)
+                })
+                addView(TextView(context).apply {
+                    text = p.name
+                    textSize = 15f
+                    typeface = Typeface.DEFAULT_BOLD
+                    setTextColor(Ui.TEXT)
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                if (current) addView(icon(R.drawable.ic_check, Ui.ACCENT, 16).apply { contentDescription = Tr.t("profile_current") })
             })
             addView(TextView(context).apply {
                 text = p.email ?: Tr.t("not_signed_in")
@@ -316,8 +326,10 @@ class MainActivity : AppCompatActivity() {
         row.addView(HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             addView(pillRow)
-            setPadding(0, 0, dp(12), 0)
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        // Настройки профиля: имя, описание, вкладки, файлы, закрепление.
+        row.addView(iconButton(R.drawable.ic_settings, Tr.t("profile_settings")) { openInfo(p) }.apply { background = null },
+            LinearLayout.LayoutParams(dp(40), dp(40)).apply { marginStart = dp(2); marginEnd = dp(4) })
         return row
     }
 
@@ -343,8 +355,11 @@ class MainActivity : AppCompatActivity() {
     private fun profileMenu(p: Profile) {
         val order = Profiles.order(this)
         val actions = mutableListOf<Pair<String, () -> Unit>>(
-            Tr.t("profile_info") to { openInfo(p) },
+            Tr.t("profile_settings") to { openInfo(p) },
             Tr.t("rename") to { renameDialog(p) },
+            (if (Profiles.isPinned(this, p.id)) Tr.t("profile_unpin") else Tr.t("profile_pin")) to {
+                Profiles.setPinned(this, p.id, !Profiles.isPinned(this, p.id)); render()
+            },
         )
         if (order.firstOrNull() != p.id) actions += Tr.t("move_up") to { Profiles.move(this, p.id, -1); render() }
         if (order.lastOrNull() != p.id) actions += Tr.t("move_down") to { Profiles.move(this, p.id, 1); render() }

@@ -127,9 +127,15 @@ tabstate after-close-all
 tabs --ei profile 7;                                                      shot 84-tabs-after-close 4
 adb shell input keyevent KEYCODE_BACK; sleep 1
 settings;                                                                 shot 09-settings 6
-# Светлая тема (2-й пункт переключателя «Тема» рядом с верхом). Тап по координате сегмента «Светлая».
-adb shell input tap 540 340; sleep 2;                                     shot 10-settings-light 3
+# Группы настроек: основные, конфиденциальность (запрет скриншотов), панели (кнопка панели).
+settings --es group general;                                              shot 09b-settings-general 4
+settings --es group privacy;                                              shot 09c-settings-privacy 4
+settings --es group panels;                                               shot 09d-settings-panels 4
+settings --es group profiles;                                             shot 10-settings-profiles 4
 browser --ei profile 5 --es site claude --es url https://claude.ai/;      shot 11-claude-light 40
+# Чип профиля в браузере — выбор другого профиля.
+tap "Switch profile"; sleep 2;                                            shot 11b-profile-picker 2
+adb shell input keyevent 4; sleep 1
 main;                                                                     shot 12-main-light 5
 adb shell am force-stop "$PKG"; sleep 2
 main;                                                                     shot 13-relaunch 8
@@ -383,7 +389,7 @@ sleep 6;                                                                    shot
 kill "$NWPID" 2>/dev/null || true
 
 # Смена языка: сразу меняются и настройки, и главный экран под ними (и имена профилей-примеров).
-settings; sleep 4
+settings --es group general; sleep 4
 xtap "System"; sleep 2; xtap "Русский"; sleep 4;                    shot 67-lang-settings-ru 1
 adb shell input keyevent 4; sleep 3;                                        shot 68-lang-main-ru 1
 echo "lang ru main: $(find_xy "Личное")" >> "$X"

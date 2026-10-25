@@ -20,7 +20,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** Карточка профиля: описание (для чего этот аккаунт) и прикреплённые к нему файлы. */
+/** Настройки профиля: имя, закрепление, описание, вкладки, файлы и очистка данных — всё в одном месте. */
 class ProfileActivity : AppCompatActivity() {
 
     companion object {
@@ -30,6 +30,7 @@ class ProfileActivity : AppCompatActivity() {
     private var profile = 1 // не «id»: внутри apply { } у View есть своё id
     private lateinit var list: LinearLayout
     private lateinit var description: EditText
+    private lateinit var name: EditText
 
     private val pickFiles = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         if (uris.isEmpty()) return@registerForActivityResult
@@ -49,6 +50,18 @@ class ProfileActivity : AppCompatActivity() {
         Ui.init(this)
         profile = intent.getIntExtra(EXTRA_PROFILE, 1).coerceIn(1, Settings.profileCount(this))
         list = ExtrasUi.screen(this)
+        name = EditText(this).apply {
+            setText(Profiles.customName(this@ProfileActivity, profile))
+            hint = Tr.t("profile_n", profile)
+            contentDescription = Tr.t("profile_name")
+            setSingleLine()
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            textSize = 15f
+            setTextColor(Ui.TEXT)
+            setHintTextColor(Ui.MUTED)
+            background = Ui.rounded(Ui.SURFACE, dpf(6), dp(1))
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+        }
         description = EditText(this).apply {
             setText(Profiles.get(this@ProfileActivity, profile).description)
             hint = Tr.t("profile_desc_hint")
@@ -75,6 +88,8 @@ class ProfileActivity : AppCompatActivity() {
         // Не трогаем, если не меняли: описание-пример хранится ключом и переводится вместе с языком.
         val text = description.text.toString()
         if (text != Profiles.get(this, profile).description) Profiles.setDescription(this, profile, text)
+        val newName = name.text.toString()
+        if (newName != Profiles.customName(this, profile)) Profiles.rename(this, profile, newName)
     }
 
     private fun render() {
@@ -82,6 +97,15 @@ class ProfileActivity : AppCompatActivity() {
         val p = Profiles.get(this, profile)
         list.addView(ExtrasUi.header(this, p.name,
             ExtrasUi.headerAction(this, "+", Tr.t("add_files")) { pickFiles.launch(arrayOf("*/*")) }))
+
+        list.addView(sectionTitle(Tr.t("profile_name")))
+        (name.parent as? LinearLayout)?.removeView(name)
+        list.addView(name, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        val pinned = Profiles.isPinned(this, profile)
+        list.addView(ExtrasUi.segmented(this, listOf(false, true), pinned,
+            { if (it) Tr.t("profile_pinned") else Tr.t("profile_pin") }) {
+            Profiles.setPinned(this, profile, it); render()
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(8) })
 
         list.addView(sectionTitle(Tr.t("profile_desc")))
         (description.parent as? LinearLayout)?.removeView(description)
@@ -107,6 +131,16 @@ class ProfileActivity : AppCompatActivity() {
         }
         list.addView(ExtrasUi.button(this, Tr.t("add_files")) { pickFiles.launch(arrayOf("*/*")) })
         list.addView(ExtrasUi.hint(this, Tr.t("profile_files_local")))
+
+        list.addView(sectionTitle(Tr.t("data")))
+        list.addView(ExtrasUi.button(this, Tr.t("logout_clear")) {
+            AlertDialog.Builder(this)
+                .setTitle(Tr.t("clear_q", p.name))
+                .setMessage(Tr.t("clear_profile_msg"))
+                .setPositiveButton(Tr.t("clear")) { _, _ -> Gecko.clearProfile(this, profile); render() }
+                .setNegativeButton(Tr.t("cancel"), null)
+                .show()
+        })
     }
 
     private fun fileMenu(f: File) {
