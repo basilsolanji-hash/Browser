@@ -310,6 +310,8 @@ adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb shell cat /sdcard
 adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 1
 # Профили: перетаскивание («Personal» → на место «Work»), описание профиля.
 adb shell am force-stop "$PKG"; main; sleep 6
+# Над списком — приветствие и фраза: прокручиваем, чтобы оба профиля были на экране.
+adb shell input swipe 160 520 160 180 600; sleep 2
 from=$(find_xy "Personal"); to=$(find_xy "Work")
 echo "drag: '$from' -> '$to'" >> "$X"
 [ -n "$from" ] && [ -n "$to" ] && adb shell input draganddrop $from $to 2500
