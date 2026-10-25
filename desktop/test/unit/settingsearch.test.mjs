@@ -20,8 +20,9 @@ test('search by titles and descriptions in all groups', () => {
   assert.deepEqual(searchSettings(items, '   '), []);
 });
 
-test('group summary lists sections without the group title', () => {
-  assert.deepEqual(groupSummary(items, 'general', 'Основные'), ['Главная страница']);
-  assert.deepEqual(groupSummary(items, 'privacy', 'Безопасность'), ['Конфиденциальность']);
-  assert.deepEqual(groupSummary(items, 'about', 'О приложении'), []);
+test('group summary lists item titles without repeats', () => {
+  assert.deepEqual(groupSummary(items, 'general'), ['Язык', 'Тема', 'Ось']);
+  assert.deepEqual(groupSummary(items, 'general', 2), ['Язык', 'Тема']);
+  assert.deepEqual(groupSummary([...items, { id: 'x', group: 'privacy', section: '', texts: ['только https'] }], 'privacy'), ['Только HTTPS', 'Запретить скриншоты']);
+  assert.deepEqual(groupSummary(items, 'about'), []);
 });

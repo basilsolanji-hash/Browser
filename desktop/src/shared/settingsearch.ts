@@ -16,13 +16,13 @@ export function searchSettings(items: SettingItem[], query: string): SettingItem
   });
 }
 
-/** Краткое содержимое группы для карточки на главной настроек: названия её разделов без повторов. */
-export function groupSummary(items: SettingItem[], group: string, groupTitle: string, max = 6): string[] {
+/** Краткое содержимое группы для карточки на главной настроек: названия её пунктов без повторов. */
+export function groupSummary(items: SettingItem[], group: string, max = 5): string[] {
   const out: string[] = [];
   for (const it of items) {
     if (it.group !== group) continue;
-    const s = it.section.trim();
-    if (s && norm(s) !== norm(groupTitle) && !out.some((x) => norm(x) === norm(s))) out.push(s);
+    const s = (it.texts[0] ?? '').trim();
+    if (s && !out.some((x) => norm(x) === norm(s))) out.push(s);
   }
   return out.slice(0, max);
 }
