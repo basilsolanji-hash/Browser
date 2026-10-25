@@ -5,15 +5,16 @@
 | Название, краткое и полное описание, «Что нового» — 10 языков | `listing-ru.md`, `listing-en.md`, `listing-es.md`, `listing-pt-BR.md`, `listing-fr.md`, `listing-de.md`, `listing-ar.md`, `listing-hi.md`, `listing-tr.md`, `listing-zh-CN.md` |
 | Ответы для анкет Play Console (безопасность данных, рейтинг, аудитория, разрешения, подпись, тестирование) | `console-forms.md` |
 | Значок 512×512 | `graphics/icon-512.png` |
-| Баннер 1024×500 | `graphics/feature-graphic-ru.png`, `graphics/feature-graphic-en.png` |
-| Скриншоты телефона 1080×1920 (ru, en) | `screenshots/phone/` |
-| Скриншоты планшета 2560×1440 (ru, en) | `screenshots/tablet/` |
+| Баннер 1024×500 — 10 языков | `graphics/feature-graphic-<язык>.png` |
+| Скриншоты телефона 1080×1920 — 10 языков | `screenshots/phone/<язык>-NN-экран.jpg` |
+| Скриншоты планшета 2560×1440 — 10 языков | `screenshots/tablet/` |
+| Снимки для сайта 1200×1600 (3:4) — 10 языков | `screenshots/site-3x4/` |
 | Политика конфиденциальности | `site/public/privacy.html` (ru), `site/public/privacy-en.html` (en) → https://www.os-browser.com/privacy.html |
 | Сборка для загрузки (AAB) | GitHub Releases, последний `build-N` → `Os-Browser-build-N.aab` |
 
 ## Какие 8 скриншотов загружать (порядок)
 `01-main`, `02-browser`, `07-cabinet`, `04-profiles`, `03-menu`, `09-notes`, `08-downloads`, `11-privacy`
-(префикс `ru-` для русской карточки, `en-` — для английской и остальных языков). Остальные
+(префикс — код языка: `ru-`, `en-`, `es-`, `pt-`, `fr-`, `de-`, `ar-`, `hi-`, `tr-`, `zh-`). Остальные
 (`05-address`, `06-start`, `10-settings`, `12-tabs`) — запасные.
 
 ## Порядок публикации
@@ -32,3 +33,9 @@
   до отправки на проверку.
 - Почта **hello@os-browser.com** — должна принимать письма (её увидят пользователи и Google).
 - Ключ загрузки: секреты CI `OS_KEYSTORE` / `OS_KEYSTORE_PASSWORD` уже используются для релизов.
+
+## Как обновить скриншоты
+1. `git push -f origin HEAD:test/store-shots` — CI снимает телефон и планшет на 10 языках
+   (ветки `store-shots-results-<устройство>-<языки>`).
+2. Локально: `node docs/play/tools/compose.js <сырые> <выход> phone|tablet|site` — подписи из
+   `docs/play/tools/captions.json`; баннеры — `node docs/play/tools/graphics.js`.

@@ -1,9 +1,9 @@
-// node compose.js <сырые снимки> <выход> <phone|tablet>
+// node compose.js <сырые снимки> <выход> <phone|tablet|site>  (site — 1200×1600, пропорция 3:4 для сайта)
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path');
 const [raw, out, kind] = process.argv.slice(2);
 const C = JSON.parse(fs.readFileSync(path.join(__dirname, 'captions.json'), 'utf8'));
-const W = kind === 'tablet' ? 2560 : 1080, H = kind === 'tablet' ? 1440 : 1920;
+const W = kind === 'tablet' ? 2560 : kind === 'site' ? 1200 : 1080, H = kind === 'tablet' ? 1440 : kind === 'site' ? 1600 : 1920;
 (async () => {
   fs.mkdirSync(out, { recursive: true });
   const b = await chromium.launch();
