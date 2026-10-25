@@ -94,7 +94,7 @@ class BookmarksActivity : AppCompatActivity() {
         }
         val scroll = ScrollView(this).apply {
             isFillViewport = true
-            addView(list)
+            addView(list, readableWidth())
         }
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL

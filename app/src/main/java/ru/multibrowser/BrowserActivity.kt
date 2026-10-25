@@ -878,52 +878,11 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun showHistory() {
-        val visits = History.list(this, profileId)
-        val name = Profiles.get(this, profileId).name
-        if (visits.isEmpty()) {
-            Toast.makeText(this, Tr.t("history_empty", name), Toast.LENGTH_SHORT).show()
-            return
-        }
-        val fmt = SimpleDateFormat("dd.MM HH:mm", Locale.getDefault())
-        val labels = visits.map { v ->
-            val head = v.title.ifBlank { Uri.parse(v.url).host ?: v.url }
-            "$head\n${Uri.parse(v.url).host ?: ""} · ${fmt.format(Date(v.time))}"
-        }.toTypedArray()
-        AlertDialog.Builder(this)
-            .setTitle(Tr.t("history_title", name))
-            .setItems(labels) { _, i -> session?.loadUri(visits[i].url) }
-            .setNeutralButton(Tr.t("clear_history")) { _, _ ->
-                History.clear(this, profileId)
-                Toast.makeText(this, Tr.t("history_cleared"), Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton(Tr.t("close"), null)
-            .show()
+        startActivity(Intent(this, HistoryActivity::class.java).putExtra(HistoryActivity.EXTRA_PROFILE, profileId))
     }
 
     private fun showClear() {
-        val name = Profiles.get(this, profileId).name
-        val options = arrayOf(
-            Tr.t("opt_history", name),
-            Tr.t("opt_cache"),
-            Tr.t("opt_logout", name),
-        )
-        val checked = booleanArrayOf(true, true, false)
-        AlertDialog.Builder(this)
-            .setTitle(Tr.t("clear_title"))
-            .setMultiChoiceItems(options, checked) { _, i, on -> checked[i] = on }
-            .setPositiveButton(Tr.t("clear")) { _, _ ->
-                if (checked[0]) History.clear(this, profileId)
-                if (checked[1]) Gecko.clearCache(this)
-                if (checked[2]) {
-                    // Закрываем вкладки профиля, стираем его данные и открываем заново — уже без входа.
-                    geckoView.releaseSession()
-                    Gecko.clearProfile(this, profileId)
-                    openTab(profileId, Tabs.resolve(this, profileId, pin.id))
-                }
-                Toast.makeText(this, Tr.t("done"), Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton(Tr.t("cancel"), null)
-            .show()
+        startActivity(Intent(this, ClearDataActivity::class.java).putExtra(ClearDataActivity.EXTRA_PROFILE, profileId))
     }
 
     private fun showDiagnostics() {
@@ -1109,7 +1068,7 @@ class BrowserActivity : AppCompatActivity() {
         refresher = OsRefreshLayout(this).apply {
             setColorSchemeColors(Ui.ACCENT)
             setProgressBackgroundColorSchemeColor(Ui.SURFACE)
-            canScrollContentUp = { !geckoView.canPullToRefresh }
+            canScrollContentUp = { !geckoView.canPullToRefresh || Gecko.selecting }
             setOnRefreshListener {
                 setBarsHidden(false)
                 session?.reload()
