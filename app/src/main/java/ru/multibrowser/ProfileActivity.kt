@@ -98,6 +98,9 @@ class ProfileActivity : AppCompatActivity() {
         list.addView(ExtrasUi.header(this, p.name,
             ExtrasUi.headerAction(this, "+", Tr.t("add_files")) { pickFiles.launch(arrayOf("*/*")) }))
 
+        list.addView(ExtrasUi.button(this, Tr.t("cabinet")) {
+            startActivity(Intent(this, AccountActivity::class.java).putExtra(AccountActivity.EXTRA_PROFILE, profile))
+        })
         list.addView(sectionTitle(Tr.t("profile_name")))
         (name.parent as? LinearLayout)?.removeView(name)
         list.addView(name, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))

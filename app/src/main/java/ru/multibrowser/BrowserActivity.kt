@@ -29,6 +29,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import org.mozilla.geckoview.AllowOrDeny
+import org.mozilla.geckoview.Autocomplete
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
@@ -155,6 +156,7 @@ class BrowserActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         AppLock.onResume(this)
+        Passwords.activeProfile = if (incognito) 0 else profileId
         if (profileId != 0 && !incognito && Tabs.isTab(pin.id) && Tabs.byId(this, profileId, pin.id) == null) {
             // Текущую вкладку закрыли в сетке вкладок — переходим на соседнюю.
             geckoView.releaseSession()
@@ -285,6 +287,7 @@ class BrowserActivity : AppCompatActivity() {
         pin = newPin
         Profiles.saveLastPinId(this, newPin.id)
         Profiles.saveLastProfile(this, id)
+        Passwords.activeProfile = id
 
         val p = Profiles.get(this, id)
         chipDot.background = Ui.oval(p.color)
@@ -577,6 +580,7 @@ class BrowserActivity : AppCompatActivity() {
         incognitoSession?.let { attached.remove(it); it.close() }
         incognitoSession = null
         incognito = false
+        Passwords.activeProfile = profileId
         Gecko.canGoBack.remove("incognito")
         Gecko.canGoForward.remove("incognito")
     }
@@ -585,6 +589,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun openIncognito(url: String) {
         geckoView.releaseSession()
         incognito = true
+        Passwords.activeProfile = 0
         val s = Gecko.privateSession(this, url)
         attached += s
         s.progressDelegate = object : GeckoSession.ProgressDelegate {
@@ -691,6 +696,7 @@ class BrowserActivity : AppCompatActivity() {
                 item(R.drawable.ic_shield, Tr.t("site_permissions"), web) { SitePermissions.openFor(this, currentUrl) },
             ),
             listOf(
+                item(R.drawable.ic_lock, Tr.t("cabinet")) { openCabinet() },
                 item(R.drawable.ic_download, Tr.t("dl_title"), action = open(DownloadsActivity::class.java)),
                 item(R.drawable.ic_star, Tr.t("favorites")) { BookmarksActivity.open(this, profileId) },
                 item(R.drawable.ic_tabs, Tr.t("tabs")) { showTabs() },
@@ -716,6 +722,10 @@ class BrowserActivity : AppCompatActivity() {
             else listOf(item(R.drawable.ic_os, Tr.t("default_make")) { DefaultBrowser.request(this) }),
         )
         BrowserMenu(this).show(top, groups)
+    }
+
+    private fun openCabinet() {
+        startActivity(Intent(this, AccountActivity::class.java).putExtra(AccountActivity.EXTRA_PROFILE, profileId))
     }
 
     /** Вид настраиваемой кнопки нижней панели: иконка и подпись. */
@@ -1346,6 +1356,57 @@ class BrowserActivity : AppCompatActivity() {
                     result.complete(prompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.NEGATIVE))
                 }
                 .setOnDismissListener { if (!answered) result.complete(prompt.dismiss()) }
+                .show()
+            return result
+        }
+
+        // Сохранить пароль после входа на сайт: в профиль открытой вкладки, не в инкогнито.
+        override fun onLoginSave(
+            session: GeckoSession,
+            request: GeckoSession.PromptDelegate.AutocompleteRequest<Autocomplete.LoginSaveOption>,
+        ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
+            val option = request.options.firstOrNull() ?: return null
+            val host = Uri.parse(option.value.origin).host.orEmpty()
+            val id = profileId
+            if (incognito || id == 0 || !Passwords.offer(this@BrowserActivity) || host in Passwords.never(this@BrowserActivity, id)) {
+                return GeckoResult.fromValue(request.dismiss())
+            }
+            val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
+            var answered = false
+            dialog(Tr.t("password_save_q", host), option.value.username?.takeIf { it.isNotBlank() })
+                .setPositiveButton(Tr.t("save")) { _, _ ->
+                    answered = true
+                    Passwords.activeProfile = id
+                    result.complete(request.confirm(option))
+                }
+                .setNeutralButton(Tr.t("password_never")) { _, _ ->
+                    answered = true
+                    Passwords.setNever(this@BrowserActivity, id, host, true)
+                    result.complete(request.dismiss())
+                }
+                .setNegativeButton(Tr.t("not_now")) { _, _ -> answered = true; result.complete(request.dismiss()) }
+                .setOnDismissListener { if (!answered) result.complete(request.dismiss()) }
+                .show()
+            return result
+        }
+
+        // Несколько сохранённых аккаунтов на сайте — выбрать, каким войти.
+        override fun onLoginSelect(
+            session: GeckoSession,
+            request: GeckoSession.PromptDelegate.AutocompleteRequest<Autocomplete.LoginSelectOption>,
+        ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
+            val options = request.options
+            if (options.isEmpty()) return null
+            if (options.size == 1) return GeckoResult.fromValue(request.confirm(options[0]))
+            val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
+            var answered = false
+            AlertDialog.Builder(this@BrowserActivity)
+                .setTitle(Tr.t("login_pick"))
+                .setItems(options.map { it.value.username?.ifBlank { null } ?: "—" }.toTypedArray()) { _, i ->
+                    answered = true
+                    result.complete(request.confirm(options[i]))
+                }
+                .setOnDismissListener { if (!answered) result.complete(request.dismiss()) }
                 .show()
             return result
         }

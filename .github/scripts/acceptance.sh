@@ -136,6 +136,8 @@ browser --ei profile 5 --es site claude --es url https://claude.ai/;      shot 1
 # Чип профиля в браузере — выбор другого профиля.
 tap "Switch profile"; sleep 2;                                            shot 11b-profile-picker 2
 adb shell input keyevent 4; sleep 1
+# Личный кабинет профиля: пароли, наборы вкладок, резервная копия.
+adb shell am start -n "$PKG/ru.multibrowser.AccountActivity" --ei profile 1 >/dev/null; shot 11c-cabinet 4
 main;                                                                     shot 12-main-light 5
 adb shell am force-stop "$PKG"; sleep 2
 main;                                                                     shot 13-relaunch 8

@@ -293,3 +293,118 @@ class PhraseDeckTest {
         assertEquals(300, seen.toSet().size)
     }
 }
+
+/** Личный кабинет: пароли по профилям, наборы вкладок, резервная копия под паролем. */
+@RunWith(RobolectricTestRunner::class)
+class CabinetTest {
+    private val ctx: Context = ApplicationProvider.getApplicationContext()
+
+    @Before
+    fun setUp() {
+        Tr.lang = "en"
+        // В тестах нет Android Keystore — шифрование подменяем обратимым кодеком.
+        Passwords.codec = object : Passwords.Codec {
+            override fun encrypt(plain: String) = plain.reversed()
+            override fun decrypt(stored: String) = stored.reversed()
+        }
+        listOf("passwords", "tab_sets", "tabs", "bookmarks", "notes").forEach {
+            ctx.getSharedPreferences(it, Context.MODE_PRIVATE).edit().clear().commit()
+        }
+    }
+
+    @Test
+    fun passwordsArePerProfileAndStoredEncoded() {
+        Passwords.upsert(ctx, 1, "https://mail.example.com/login", "anna", "secret1")
+        Passwords.upsert(ctx, 2, "https://shop.example.org/", "bob", "secret2")
+        assertEquals(listOf("anna"), Passwords.list(ctx, 1).map { it.username })
+        assertEquals(listOf("bob"), Passwords.list(ctx, 2).map { it.username })
+        assertEquals("https://mail.example.com", Passwords.list(ctx, 1)[0].origin)
+        val raw = ctx.getSharedPreferences("passwords", Context.MODE_PRIVATE).getString("p_1", null)!!
+        assertFalse("пароль не хранится открытым текстом", raw.contains("secret1") && raw.contains("\"p\":\"secret1\""))
+    }
+
+    @Test
+    fun upsertUpdatesSameSiteAndUser() {
+        Passwords.upsert(ctx, 1, "https://a.example.com", "anna", "old")
+        Passwords.upsert(ctx, 1, "https://a.example.com/other", "anna", "new")
+        Passwords.upsert(ctx, 1, "https://a.example.com", "boris", "x")
+        val list = Passwords.list(ctx, 1)
+        assertEquals(2, list.size)
+        assertEquals("new", list.first { it.username == "anna" }.password)
+    }
+
+    @Test
+    fun domainMatchingIncludesSubdomains() {
+        Passwords.upsert(ctx, 3, "https://accounts.example.com", "u", "p")
+        Passwords.upsert(ctx, 3, "https://other.org", "v", "q")
+        assertEquals(listOf("u"), Passwords.forDomain(ctx, 3, "example.com").map { it.username })
+        assertEquals(listOf("u"), Passwords.forDomain(ctx, 3, "accounts.example.com").map { it.username })
+        assertTrue(Passwords.forDomain(ctx, 4, "example.com").isEmpty())
+    }
+
+    @Test
+    fun removeAndNeverList() {
+        Passwords.upsert(ctx, 1, "https://x.com", "u", "p")
+        Passwords.remove(ctx, 1, Passwords.list(ctx, 1)[0].guid)
+        assertTrue(Passwords.list(ctx, 1).isEmpty())
+        Passwords.setNever(ctx, 1, "x.com", true)
+        assertTrue("x.com" in Passwords.never(ctx, 1))
+        assertFalse("x.com" in Passwords.never(ctx, 2))
+        Passwords.setNever(ctx, 1, "x.com", false)
+        assertTrue(Passwords.never(ctx, 1).isEmpty())
+    }
+
+    @Test
+    fun originNormalization() {
+        assertEquals("https://example.com", Passwords.originOf("https://Example.com/path?q=1"))
+        assertEquals("http://example.com:8080", Passwords.originOf("http://example.com:8080/x"))
+        assertNull(Passwords.originOf("not a url"))
+    }
+
+    @Test
+    fun tabSetsSaveAndRestore() {
+        Tabs.add(ctx, 5, "https://a.com/")
+        Tabs.add(ctx, 5, Pins.START)
+        Tabs.add(ctx, 5, "https://b.com/")
+        val set = TabSets.saveOpen(ctx, 5, "Work")!!
+        assertEquals(listOf("https://a.com/", "https://b.com/"), set.tabs.map { it.second })
+        assertEquals(1, TabSets.list(ctx, 5).size)
+        assertTrue(TabSets.list(ctx, 6).isEmpty())
+        Tabs.closeAll(ctx, 5)
+        assertNotNull(TabSets.restore(ctx, 5, set))
+        assertEquals(2, Tabs.count(ctx, 5))
+        TabSets.remove(ctx, 5, set.id)
+        assertTrue(TabSets.list(ctx, 5).isEmpty())
+    }
+
+    @Test
+    fun emptyTabSetIsNotSaved() = assertNull(TabSets.saveOpen(ctx, 7, "x"))
+
+    @Test
+    fun backupRoundTripAndWrongPassword() {
+        Passwords.upsert(ctx, 1, "https://bank.example", "anna", "s3cret")
+        Tabs.add(ctx, 1, "https://news.example/")
+        TabSets.saveOpen(ctx, 1, "Morning")
+        Bookmarks.add(ctx, "Docs", "https://docs.example/")
+        Notes.add(ctx, "Call Ivan", "https://crm.example/")
+        val file = Backup.encrypt(Backup.collect(ctx, 1), "correct horse")
+        assertFalse("файл не содержит пароль открытым текстом", file.contains("s3cret"))
+        assertNull(Backup.decrypt(file, "wrong password"))
+        val data = Backup.decrypt(file, "correct horse")!!
+        val r = Backup.apply(ctx, 2, data)
+        assertEquals(1, r.passwords)
+        assertEquals(1, r.tabSets)
+        assertEquals("s3cret", Passwords.list(ctx, 2)[0].password)
+        assertEquals("Morning", TabSets.list(ctx, 2)[0].name)
+        // Избранное и заметки уже есть — не дублируются.
+        assertEquals(0, r.favorites)
+        assertEquals(0, r.notes)
+        assertEquals(1, Bookmarks.all(ctx).size)
+    }
+
+    @Test
+    fun damagedBackupIsRejected() {
+        assertNull(Backup.decrypt("{}", "x"))
+        assertNull(Backup.decrypt("not json", "x"))
+    }
+}

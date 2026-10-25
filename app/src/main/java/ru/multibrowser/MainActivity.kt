@@ -366,6 +366,9 @@ class MainActivity : AppCompatActivity() {
     private fun profileMenu(p: Profile) {
         val order = Profiles.order(this)
         val actions = mutableListOf<Pair<String, () -> Unit>>(
+            Tr.t("cabinet") to {
+                startActivity(Intent(this, AccountActivity::class.java).putExtra(AccountActivity.EXTRA_PROFILE, p.id))
+            },
             Tr.t("profile_settings") to { openInfo(p) },
             Tr.t("rename") to { renameDialog(p) },
             (if (Profiles.isPinned(this, p.id)) Tr.t("profile_unpin") else Tr.t("profile_pin")) to {
