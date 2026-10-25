@@ -156,10 +156,21 @@ object Gecko {
         loadUrl(session, url)
         sessions[key] = session
 
+        // Сначала выгружаем давно не открытые вкладки, но не страницы входа: при перезагрузке такая
+        // страница заново отправляет код подтверждения (SMS), и сайт может временно заблокировать вход.
         while (sessions.size > Settings.keepAlive(ctx)) {
-            drop(sessions.entries.first().key)
+            val keys = sessions.keys.toList()
+            drop(keys.firstOrNull { it != key && !isSignInPage(tabUrls[it]) } ?: keys.first())
         }
         return session
+    }
+
+    /** Страница входа или подтверждения кода (Apple ID, Google, Microsoft, OAuth…). */
+    fun isSignInPage(url: String?): Boolean {
+        if (url.isNullOrBlank()) return false
+        if (Popups.isAuthPopup(url)) return true
+        val path = Uri.parse(url).path.orEmpty().lowercase()
+        return listOf("signin", "sign-in", "login", "2fa", "two-factor", "verify", "challenge", "mfa").any { it in path }
     }
 
     fun userAgentFor(url: String): String? =

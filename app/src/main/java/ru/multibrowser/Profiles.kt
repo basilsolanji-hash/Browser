@@ -106,8 +106,8 @@ object Profiles {
     }
 
     fun saveLastUrl(ctx: Context, id: Int, pin: Pin, url: String) {
-        // Страницы входа не запоминаем, чтобы вкладка не открывалась на форме логина.
-        if (url.startsWith("http") && !url.contains("accounts.google.com")) {
+        // Страницы входа не запоминаем: вкладка не открывается на форме логина и не шлёт код повторно.
+        if (url.startsWith("http") && !Gecko.isSignInPage(url)) {
             prefs(ctx).edit().putString(urlKey(id, pin), url).apply()
         }
     }
