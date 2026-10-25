@@ -1,0 +1,54 @@
+Performing Streamed Install
+Success
+/tmp/settings.xml: 1 file pushed, 0 skipped. 2.8 MB/s (186 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 1.4 MB/s (107 bytes in 0.000s)
+/tmp/profiles.xml: 1 file pushed, 0 skipped. 9.8 MB/s (670 bytes in 0.000s)
+/tmp/tabs.xml: 1 file pushed, 0 skipped. 4.1 MB/s (573 bytes in 0.000s)
+/tmp/history.xml: 1 file pushed, 0 skipped. 18.6 MB/s (1026 bytes in 0.000s)
+/tmp/notes.xml: 1 file pushed, 0 skipped. 9.4 MB/s (725 bytes in 0.000s)
+/tmp/downloads.xml: 1 file pushed, 0 skipped. 9.7 MB/s (781 bytes in 0.000s)
+shot ru-01-main
+shot ru-02-browser
+tap 'Меню'
+shot ru-03-menu
+tap 'Сменить профиль'
+shot ru-04-profiles
+shot ru-05-address
+shot ru-06-start
+tap 'Добавить пароль'
+tap 'Сайт'
+tap 'Логин'
+tap 'Пароль'
+tap 'Сохранить'
+shot ru-07-cabinet
+shot ru-08-downloads
+shot ru-09-notes
+shot ru-10-settings
+shot ru-11-privacy
+shot ru-12-tabs
+/tmp/settings.xml: 1 file pushed, 0 skipped. 3.2 MB/s (186 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 1.6 MB/s (107 bytes in 0.000s)
+/tmp/profiles.xml: 1 file pushed, 0 skipped. 12.2 MB/s (670 bytes in 0.000s)
+/tmp/tabs.xml: 1 file pushed, 0 skipped. 11.1 MB/s (576 bytes in 0.000s)
+/tmp/history.xml: 1 file pushed, 0 skipped. 19.4 MB/s (1022 bytes in 0.000s)
+/tmp/notes.xml: 1 file pushed, 0 skipped. 11.4 MB/s (623 bytes in 0.000s)
+/tmp/downloads.xml: 1 file pushed, 0 skipped. 13.7 MB/s (781 bytes in 0.000s)
+shot en-01-main
+shot en-02-browser
+tap 'Menu'
+shot en-03-menu
+tap 'Switch profile'
+shot en-04-profiles
+shot en-05-address
+shot en-06-start
+tap 'Add password'
+tap 'Site'
+tap 'Username'
+tap 'Password'
+tap 'Save'
+shot en-07-cabinet
+shot en-08-downloads
+shot en-09-notes
+shot en-10-settings
+shot en-11-privacy
+shot en-12-tabs
