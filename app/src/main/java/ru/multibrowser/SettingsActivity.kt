@@ -66,7 +66,7 @@ class SettingsActivity : AppCompatActivity() {
         val root = ScrollView(this).apply {
             setBackgroundColor(Ui.BG)
             isFillViewport = true
-            addView(content)
+            addView(content, readableWidth())
         }
         setContentView(root)
         applyEdgeToEdge(root)

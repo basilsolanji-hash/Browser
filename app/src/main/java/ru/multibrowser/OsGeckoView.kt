@@ -29,11 +29,14 @@ class OsGeckoView(context: Context) : GeckoView(context) {
     // rawY, а не event.y: при скрытии/показе панелей сам GeckoView сдвигается, и event.y «прыгает».
     private var lastRawY = 0f
     private var travel = 0f
+    private var holdBars = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                Gecko.lastUserTouch = android.os.SystemClock.elapsedRealtime()
+                holdBars = false
                 lastRawY = event.rawY
                 travel = 0f
                 canPullToRefresh = false
@@ -51,6 +54,13 @@ class OsGeckoView(context: Context) : GeckoView(context) {
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
+                // Долгое нажатие без движения — это выделение текста (или меню ссылки), а не прокрутка:
+                // панели не трогаем до отпускания пальца, иначе страница прыгает и выделение съезжает.
+                if (Gecko.selecting || (event.eventTime - event.downTime > ViewConfiguration.getLongPressTimeout() && kotlin.math.abs(travel) < slop)) {
+                    lastRawY = event.rawY
+                    holdBars = true
+                }
+                if (holdBars) return super.onTouchEvent(event)
                 val dy = event.rawY - lastRawY
                 lastRawY = event.rawY
                 travel = if ((travel > 0) == (dy > 0)) travel + dy else dy

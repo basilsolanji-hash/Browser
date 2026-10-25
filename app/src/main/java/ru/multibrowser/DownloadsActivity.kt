@@ -85,7 +85,7 @@ class DownloadsActivity : AppCompatActivity() {
         val root = ScrollView(this).apply {
             setBackgroundColor(Ui.BG)
             isFillViewport = true
-            addView(list)
+            addView(list, readableWidth())
         }
         setContentView(root)
         applyEdgeToEdge(root)

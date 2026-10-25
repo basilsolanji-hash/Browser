@@ -13,7 +13,7 @@ class HelpActivity : AppCompatActivity() {
 
     companion object {
         /** Адрес для отзывов — из docs/privacy.html (контакт разработчика). Поменять здесь при смене. */
-        const val FEEDBACK_EMAIL = "moonstar20moon19@gmail.com"
+        const val FEEDBACK_EMAIL = "hello@os-browser.com"
         private const val TOPICS = 6
     }
 

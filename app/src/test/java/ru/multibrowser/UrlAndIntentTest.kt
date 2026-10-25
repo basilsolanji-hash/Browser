@@ -185,3 +185,27 @@ class SearchQueryOfTest(private val url: String, private val expected: String?) 
     @Test
     fun query() = assertEquals(expected, Search.queryOf(url))
 }
+
+/** Страницы входа не выгружаются и не восстанавливаются сами — иначе сайт шлёт код повторно. */
+@RunWith(ParameterizedRobolectricTestRunner::class)
+class SignInPageTest(private val url: String, private val expected: Boolean) {
+    companion object {
+        @JvmStatic
+        @Parameters(name = "{0}")
+        fun cases(): List<Array<Any>> = listOf(
+            "https://appleid.apple.com/auth/authorize?client_id=x" to true,
+            "https://accounts.google.com/v3/signin/challenge/pwd" to true,
+            "https://login.microsoftonline.com/common/oauth2" to true,
+            "https://example.com/account/login" to true,
+            "https://github.com/sessions/two-factor" to true,
+            "https://claude.ai/login" to true,
+            "https://example.com/" to false,
+            "https://en.wikipedia.org/wiki/Moon" to false,
+            "https://mail.google.com/mail/u/0/" to false,
+            "" to false,
+        ).map { arrayOf(it.first, it.second) }
+    }
+
+    @Test
+    fun detect() = assertEquals(expected, Gecko.isSignInPage(url))
+}

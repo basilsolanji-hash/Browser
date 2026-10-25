@@ -36,9 +36,9 @@ object SitePermissions {
 
     /** Тип разрешения: ключ хранения, подпись, допустимые значения по умолчанию и исходное значение. */
     enum class Kind(val key: String, val titleKey: String, val askKey: String, val defaults: List<Mode>, val initial: Mode) {
-        LOCATION("location", "perm_location", "perm_q_location", listOf(Mode.ASK, Mode.BLOCK), Mode.ASK),
-        CAMERA("camera", "perm_camera", "perm_q_camera", listOf(Mode.ASK, Mode.BLOCK), Mode.ASK),
-        MICROPHONE("microphone", "perm_microphone", "perm_q_microphone", listOf(Mode.ASK, Mode.BLOCK), Mode.ASK),
+        LOCATION("location", "perm_location", "perm_q_location", listOf(Mode.ASK, Mode.ALLOW, Mode.BLOCK), Mode.ASK),
+        CAMERA("camera", "perm_camera", "perm_q_camera", listOf(Mode.ASK, Mode.ALLOW, Mode.BLOCK), Mode.ASK),
+        MICROPHONE("microphone", "perm_microphone", "perm_q_microphone", listOf(Mode.ASK, Mode.ALLOW, Mode.BLOCK), Mode.ASK),
         NOTIFICATIONS("notifications", "perm_notifications", "perm_q_notifications", listOf(Mode.ASK, Mode.BLOCK), Mode.ASK),
         POPUPS("popups", "perm_popups", "perm_q_popups", listOf(Mode.ASK, Mode.BLOCK, Mode.ALLOW), Mode.ASK),
         AUTOPLAY("autoplay", "perm_autoplay", "perm_autoplay", listOf(Mode.BLOCK, Mode.ALLOW), Mode.BLOCK),
@@ -282,6 +282,14 @@ object SitePermissions {
                     GeckoResult.fromValue(ContentPermission.VALUE_ALLOW)
                 }
             }
+            // Видео со звуком, запущенное нажатием пользователя (плееры GitHub, YouTube и др. вызывают
+            // play() не сразу), разрешаем — блокируется только настоящий автозапуск без касания.
+            if (perm.permission == PermissionDelegate.PERMISSION_AUTOPLAY_AUDIBLE && Gecko.recentlyTouched() &&
+                !(host != null && get(activity, host, Kind.AUTOPLAY) == Mode.BLOCK)
+            ) {
+                forgetLater(activity, perm)
+                return GeckoResult.fromValue(ContentPermission.VALUE_ALLOW)
+            }
             val kind = kindOf(perm.permission)
             // Неизвестный тип, XR, постоянное хранилище, страница без домена — тихий отказ (без записи).
             if (kind == null || host == null) return GeckoResult.fromValue(ContentPermission.VALUE_PROMPT)
@@ -334,9 +342,35 @@ object SitePermissions {
                 val ok = needed.all { p ->
                     res[p] == true || (p in location && location.any { res[it] == true })
                 }
-                if (ok) callback.grant() else callback.reject()
+                if (ok) callback.grant() else {
+                    callback.reject()
+                    // Android больше не показывает свой запрос («Не спрашивать снова») — ведём в настройки приложения.
+                    val blocked = needed.filter { res[it] != true && !activity.shouldShowRequestPermissionRationale(it) }
+                    if (blocked.isNotEmpty()) androidSettingsDialog(blocked)
+                }
             }
             runCatching { launcher.launch(needed.toTypedArray()) }.onFailure { launcher.unregister(); callback.reject() }
+        }
+
+        private fun androidSettingsDialog(permissions: List<String>) {
+            val what = permissions.map {
+                when (it) {
+                    Manifest.permission.RECORD_AUDIO -> Tr.t("perm_microphone")
+                    Manifest.permission.CAMERA -> Tr.t("perm_camera")
+                    else -> Tr.t("perm_location")
+                }
+            }.distinct().joinToString(", ")
+            AlertDialog.Builder(activity)
+                .setTitle(what)
+                .setMessage(Tr.t("perm_android_off", what))
+                .setPositiveButton(Tr.t("open_settings")) { _, _ ->
+                    runCatching {
+                        activity.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.fromParts("package", activity.packageName, null)))
+                    }
+                }
+                .setNegativeButton(Tr.t("cancel"), null)
+                .show()
         }
 
         override fun onMediaPermissionRequest(
@@ -353,7 +387,12 @@ object SitePermissions {
             val kinds = listOfNotNull(cam?.let { Kind.CAMERA }, mic?.let { Kind.MICROPHONE })
             if (kinds.isEmpty()) { callback.reject(); return }
             val modes = kinds.map { decided(activity, host, it).first }
-            if (Mode.BLOCK in modes) { callback.reject(); return }
+            if (Mode.BLOCK in modes) {
+                // Не молча: подсказываем, где снять запрет.
+                val blocked = kinds.first { decided(activity, host, it).first == Mode.BLOCK }
+                Toast.makeText(activity, Tr.t("perm_blocked_for", Tr.t(blocked.titleKey), host), Toast.LENGTH_LONG).show()
+                callback.reject(); return
+            }
             if (modes.all { it == Mode.ALLOW }) { callback.grant(cam, mic); return }
             val message = when {
                 cam != null && mic != null -> Tr.t("perm_q_camera_mic", host)
