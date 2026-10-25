@@ -3,7 +3,8 @@ import { copyFile, mkdir, readdir, rename, rm, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import { applyLanguage, currentLang, isRtl, strings, t } from './i18n';
-import { settings, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
+import { greeting, next } from './phrases';
+import { engine, settings, toolbarButton, TOOLBAR_BUTTONS, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
 import { THEME_IDS, themeNameKey } from './themes';
 import { OsWindow, byWebContents, mainWindow, openIncognito, profileInfo, profileSession, saveWithToast, windows } from './window';
 import { fromInput, isWebUrl } from './urls';
@@ -26,12 +27,16 @@ import { verify } from './hello';
 import { MIN_PASSWORD } from './backupcrypto';
 import { blocklistSize } from './privacy';
 import * as DefaultBrowser from './defaultbrowser';
+import * as Diag from './diag';
+import { frequentSites, hints } from './addrpanel';
+import { applyAcceptLanguage, openExternal } from './security';
+import { spawn } from 'node:child_process';
 import * as Updater from './updater';
 import { LANGS, LANG_NAMES } from '../shared/format';
 import type { Suggestion, UiInit } from '../shared/types';
 
 /** Адрес для отзывов — тот же, что в Android-версии (HelpActivity.FEEDBACK_EMAIL). */
-const FEEDBACK_EMAIL = 'moonstar20moon19@gmail.com';
+const FEEDBACK_EMAIL = 'hello@os-browser.com';
 
 /**
  * IPC своих страниц. Каждый вызов проверяет отправителя: это шапка или экран нашего окна,
@@ -71,6 +76,8 @@ on(both, 'openProfile', (w, id, tab) => w.openProfile(profileArg(id), typeof tab
 on(both, 'openUrl', (w, url) => { const u = fromInput(str(url)); if (u && isWebUrl(u)) w.openUrl(u); });
 on(both, 'incognito', () => { openIncognito(); });
 on(both, 'closePanel', (w) => w.closePanel());
+// Приветствие и фраза для главного экрана (в инкогнито фраз нет).
+on(['page'], 'phrase', (w) => (w.incognito ? null : { greeting: greeting(), phrase: next() }));
 
 // --- Шапка ---
 on(['chrome'], 'state', (w) => w.state());
@@ -95,6 +102,8 @@ on(['chrome'], 'fullscreen', (w) => w.win.setFullScreen(!w.win.isFullScreen()));
 on(['chrome'], 'copy', (_w, text) => clipboard.writeText(str(text, 8000)));
 on(['chrome'], 'profileList', () => Profiles.order().map(profileInfo));
 on(['chrome'], 'suggest', (w, text) => suggest(w, str(text, 500)));
+// Пустой ввод: плитки частых сайтов профиля (в инкогнито истории нет).
+on(['chrome'], 'frequent', (w) => (w.profile != null && !w.incognito ? frequentSites(History.list(w.profile)) : []));
 on(['chrome'], 'win', (w, action) => {
   if (action === 'min') w.win.minimize();
   else if (action === 'max') { if (w.win.isMaximized()) w.win.unmaximize(); else w.win.maximize(); }
@@ -121,6 +130,22 @@ on(['chrome'], 'pwAnswer', (w, id, action) => w.answerPassword(int(id), str(acti
 on(['chrome'], 'permissionAnswer', (w, id, allow, remember) => w.answerPrompt(int(id), allow === true, remember === true));
 on(['chrome'], 'lockNow', () => { for (const w of windows) w.lock(); });
 on(['chrome'], 'reader', (w) => w.toggleReader());
+on(['chrome'], 'mobileSite', (w) => { const v = w.current; if (v && isWebUrl(v.url())) { v.setMobile(!v.mobile); w.push(); } });
+on(['chrome'], 'diagnostics', (w) => `Ось ${app.getVersion()} (${process.platform} ${process.arch}, Chromium ${process.versions.chrome})\n${w.state().url}\n\n${Diag.text() || t('no_events')}`);
+on(['chrome'], 'refreshDefault', async (w) => { const was = DefaultBrowser.isDefaultCached(); if ((await DefaultBrowser.refreshDefault()) !== was) w.push(); });
+on(['chrome'], 'otherBrowsers', () => DefaultBrowser.otherBrowsers());
+on(['chrome'], 'openInBrowser', async (w, exe) => {
+  const url = w.current?.url() ?? '';
+  if (!isWebUrl(url)) return;
+  // Только браузер из списка установленных — произвольную программу страница меню запустить не может.
+  const b = (await DefaultBrowser.otherBrowsers()).find((x) => x.exe === exe);
+  if (b) spawn(b.exe, [url], { detached: true, stdio: 'ignore' }).unref();
+  else if (exe == null) void shell.openExternal(url);
+});
+on(['chrome'], 'shareMail', (w) => {
+  const url = w.current?.url() ?? '';
+  if (isWebUrl(url)) openExternal(`mailto:?subject=${encodeURIComponent(w.current?.wc.getTitle() ?? '')}&body=${encodeURIComponent(url)}`);
+});
 on(['chrome'], 'findOpen', (w) => w.openFind());
 on(['chrome'], 'find', (w, text, forward, next) => w.findText(str(text, 500), forward !== false, next === true));
 on(['chrome'], 'findClose', (w) => w.closeFind());
@@ -128,7 +153,7 @@ on(['chrome'], 'print', (w) => w.print());
 
 // --- Браузер по умолчанию, справка ---
 on(['page'], 'defaultBrowser', async () => ({ isDefault: await DefaultBrowser.isDefault(), supported: process.platform === 'win32' }));
-on(['page'], 'makeDefault', () => DefaultBrowser.openSystemSettings());
+on(both, 'makeDefault', () => DefaultBrowser.openSystemSettings());
 on(['page'], 'feedback', (_w, kind) => {
   const v = app.getVersion();
   const subject = kind === 'problem' ? t('problem_subject', v) : t('feedback_subject', v);
@@ -347,10 +372,11 @@ on(['page'], 'fileDelete', async (_w, id, name) => { await rm(ownedFile(profileA
 
 // --- Настройки ---
 on(['page'], 'settings', () => ({
-  values: { ...settings.get(), lock: !!settings.get().lock, profileCount: profileCount() },
+  values: { ...settings.get(), lock: !!settings.get().lock, profileCount: profileCount(), toolbarButton: toolbarButton() },
   langs: [{ id: 'system', name: t('system') }, ...LANGS.map((l) => ({ id: l, name: LANG_NAMES[l] }))],
   themes: THEME_IDS.map((id) => ({ id, name: t(themeNameKey(id)) })),
   engines: ENGINES.map((e) => ({ id: e.id, name: e.title })),
+  toolbarButtons: Object.entries(TOOLBAR_BUTTONS).map(([id, key]) => ({ id, name: t(key) })),
   minProfiles: MIN_PROFILES,
   maxProfiles: MAX_PROFILES,
 }));
@@ -359,6 +385,7 @@ on(['page'], 'setSetting', (_w, key, value) => {
   if (k === 'lang' && (value === 'system' || (LANGS as readonly string[]).includes(str(value)))) {
     settings.update((d) => { d.lang = str(value); });
     applyLanguage();
+    applyAcceptLanguage();
     lookChanged();
   } else if (k === 'theme' && THEME_IDS.includes(str(value))) {
     settings.update((d) => { d.theme = str(value); });
@@ -382,6 +409,9 @@ on(['page'], 'setSetting', (_w, key, value) => {
   } else if (k === 'hideContent') {
     settings.update((d) => { d.hideContent = value === true; });
     for (const w of windows) w.win.setContentProtection(value === true);
+  } else if (k === 'toolbarButton' && str(value) in TOOLBAR_BUTTONS) {
+    settings.update((d) => { d.toolbarButton = str(value); });
+    for (const w of windows) w.push();
   } else if (k === 'zoom') {
     settings.update((d) => { d.zoom = Math.min(250, Math.max(50, int(value))); });
   } else {
@@ -553,7 +583,13 @@ function sender(e: IpcMainInvokeEvent) {
 
 export function installIpc(): void {
   // Ход загрузок — экранам «Загрузки» (не чаще, чем шлёт downloads.ts).
-  Downloads.setListener(() => { for (const w of windows) w.page.webContents.send('os:event', 'downloads', null); });
+  let had = Downloads.list().length > 0;
+  Downloads.setListener(() => {
+    for (const w of windows) w.page.webContents.send('os:event', 'downloads', null);
+    // Первая загрузка (или очищенный список) — показать или спрятать кнопку «Загрузки» на панели.
+    const has = Downloads.list().length > 0;
+    if (has !== had) { had = has; for (const w of windows) w.push(); }
+  });
   Updater.setListener(() => { for (const w of windows) w.page.webContents.send('os:event', 'update', null); });
   ipcMain.handle('os', async (e, cmd: unknown, ...args: unknown[]) => {
     const who = sender(e);
@@ -601,26 +637,16 @@ async function clearProfile(id: number): Promise<void> {
 }
 
 /** Подсказки адресной строки: поиск, история профиля, избранное. */
+/** Подсказки адресной строки: первая строка — сам ввод (переход или поиск), дальше прошлые запросы, избранное, история. */
 function suggest(w: OsWindow, text: string): Suggestion[] {
-  const q = text.trim().toLowerCase();
+  const q = text.trim();
   if (!q) return [];
-  const out: Suggestion[] = [];
-  const asUrl = fromInput(text);
-  if (asUrl && isWebUrl(asUrl)) out.push({ kind: 'url', title: asUrl, url: asUrl });
-  out.push({ kind: 'search', title: text.trim(), url: '' });
-  const seen = new Set(out.map((s) => s.url));
-  const match = (title: string, url: string) => title.toLowerCase().includes(q) || url.toLowerCase().replace(/^https?:\/\/(www\.)?/, '').includes(q);
-  for (const b of Bookmarks.all()) {
-    if (out.length >= 9) break;
-    if (match(b.t, b.u) && !seen.has(b.u)) { out.push({ kind: 'favorite', title: b.t, url: b.u }); seen.add(b.u); }
-  }
-  if (w.profile != null && !w.incognito) {
-    for (const v of History.list(w.profile)) {
-      if (out.length >= 9) break;
-      if (match(v.t, v.u) && !seen.has(v.u)) { out.push({ kind: 'history', title: v.t || v.u, url: v.u }); seen.add(v.u); }
-    }
-  }
-  return out;
+  const asUrl = fromInput(q);
+  const first: Suggestion = asUrl && isWebUrl(asUrl) && !asUrl.startsWith(engine().query)
+    ? { kind: 'url', title: asUrl, url: asUrl }
+    : { kind: 'search', title: q, url: '' };
+  const visits = w.profile != null && !w.incognito ? History.list(w.profile) : [];
+  return [first, ...hints(q, visits, Bookmarks.all())];
 }
 
 // --- Файлы профиля ---

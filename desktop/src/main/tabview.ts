@@ -2,10 +2,14 @@ import { BrowserWindow, Menu, WebContentsView, clipboard, type Session, type Web
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { sourceOf } from './reader';
-import { WEB_PREFS, openExternal } from './security';
+import { WEB_PREFS, cleanUserAgent, openExternal } from './security';
 import { isWebUrl } from './urls';
 import { t } from './i18n';
 import { resetTab } from './privacy';
+import * as Diag from './diag';
+
+/** «Мобильная версия» сайта: User-Agent Chrome для Android (без версии устройства). */
+const mobileUa = () => cleanUserAgent().replace(/\([^)]*\)/, '(Linux; Android 10; K)').replace(/ Safari\//, ' Mobile Safari/');
 
 /**
  * Одна вкладка — один WebContentsView в сессии профиля (или инкогнито). Мостов preload у сайтов нет.
@@ -66,6 +70,8 @@ export class TabView {
   private popup: BrowserWindow | null = null;
   /** Адрес, который не открылся (на экране — страница ошибки os://error). */
   failedUrl: string | null = null;
+  /** Сайт открыт в мобильной версии (пункт меню с галочкой). */
+  mobile = false;
 
   constructor(readonly key: string, readonly id: string, ses: Session, private host: TabHost, bg: string) {
     // Preload вкладки — только для веб-уведомлений (см. preload/tab.ts), мостов в window нет.
@@ -96,7 +102,8 @@ export class TabView {
     wc.on('dom-ready', () => suggestPasswords(wc));
     // Счётчик трекеров — с начала перехода: запросы страницы могут блокироваться раньше did-navigate.
     wc.on('did-start-navigation', (e) => { if (e.isMainFrame && !e.isSameDocument) resetTab(wc.id); });
-    wc.on('did-navigate', (_e, url) => {
+    wc.on('did-navigate', (_e, url, code) => {
+      Diag.log(this.id, `${code || ''} ${url.slice(0, 200)}`);
       if (!url.startsWith('os://error')) this.failedUrl = null;
       this.favicon = null;
       this.host.onNavigated(this, url);
@@ -107,12 +114,14 @@ export class TabView {
     wc.on('did-fail-load', (_e, code, _desc, url, isMainFrame) => {
       // -3 — навигацию отменили (новая загрузка, скачивание): это не ошибка.
       if (!isMainFrame || code === -3 || !isWebUrl(url)) return;
+      Diag.log(this.id, `error ${code} ${_desc} ${url.slice(0, 200)}`);
       this.failedUrl = url;
       void wc.loadURL(`os://error/?code=${code}&url=${encodeURIComponent(url)}`);
     });
     wc.on('before-input-event', (e, input) => { if (this.host.shortcut(input, wc)) e.preventDefault(); });
     wc.on('context-menu', (_e, p) => this.contextMenu(p));
-    wc.on('render-process-gone', () => this.host.onTabUpdated(this));
+    wc.on('render-process-gone', (_e, d) => { Diag.log(this.id, `renderer ${d.reason}`); this.host.onTabUpdated(this); });
+    wc.on('unresponsive', () => Diag.log(this.id, 'unresponsive'));
   }
 
   get wc(): WebContents {
@@ -124,6 +133,13 @@ export class TabView {
     const u = this.wc.getURL();
     if (u.startsWith('os://reader')) return sourceOf(u) ?? u;
     return u.startsWith('os://error') && this.failedUrl ? this.failedUrl : u;
+  }
+
+  /** Мобильная версия сайта для этой вкладки: другой User-Agent, страница перезагружается. */
+  setMobile(on: boolean): void {
+    this.mobile = on;
+    this.wc.setUserAgent(on ? mobileUa() : cleanUserAgent());
+    this.wc.reload();
   }
 
   /** Сейчас показан режим чтения. */

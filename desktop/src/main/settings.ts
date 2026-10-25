@@ -19,6 +19,8 @@ export interface SettingsData {
   /** PIN входа: соль и хеш scrypt (сам PIN не хранится). */
   lock: { salt: string; hash: string } | null;
   autoUpdate: boolean;
+  /** Кнопка справа от адресной строки (BrowserActivity: кнопка нижней панели). */
+  toolbarButton: string;
 }
 
 export const settings = new JsonFile<SettingsData>('settings', () => ({
@@ -35,7 +37,15 @@ export const settings = new JsonFile<SettingsData>('settings', () => ({
   hideContent: false,
   lock: null,
   autoUpdate: true,
+  toolbarButton: 'downloads',
 }));
+
+/** Что можно поставить на кнопку панели и подписи (ключи из Android). */
+export const TOOLBAR_BUTTONS: Record<string, string> = {
+  downloads: 'dl_title', clear: 'clear_short', favorites: 'favorites', tabs: 'tabs',
+  notes: 'notes', saved: 'saved_pages', share: 'share', find: 'find_in_page',
+};
+export const toolbarButton = () => (settings.get().toolbarButton in TOOLBAR_BUTTONS ? settings.get().toolbarButton : 'downloads');
 
 export const profileCount = () =>
   Math.min(MAX_PROFILES, Math.max(MIN_PROFILES, Math.trunc(settings.get().profileCount) || 15));

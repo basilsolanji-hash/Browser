@@ -56,11 +56,17 @@ let bigDrop = true;
 const uploaded = [];
 const server = createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
-  seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '', range: req.headers.range });
+  seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '', range: req.headers.range, lang: req.headers['accept-language'] });
   res.setHeader('content-type', 'text/html; charset=utf-8');
   if (u.pathname === '/set') {
     res.setHeader('set-cookie', `os_test=${u.searchParams.get('p')}; Path=/; Max-Age=86400`);
     res.end(`<title>Set ${u.searchParams.get('p')}</title><h1>cookie set</h1>`);
+  } else if (u.pathname === '/sound') {
+    // Звук после нажатия (§15): плеер включается через секунду после щелчка.
+    res.end(`<title>Sound</title><button id="b" style="width:200px;height:80px">play</button><script>
+      window.before = new AudioContext().state;
+      document.getElementById('b').onclick = () => setTimeout(() => { const c = new AudioContext(); window.after = c.state; }, 1000);
+    </script>`);
   } else if (u.pathname === '/get') {
     res.end(`<title>Get</title><h1 id="c">${(req.headers.cookie ?? '').replace(/</g, '')}</h1><script>document.title='Get '+(document.cookie||'none')</script>`);
   } else if (u.pathname === '/big.bin') {
@@ -882,7 +888,7 @@ try {
     await main(() => globalThis.osTest.windows()[0].openPanel('os://help/'));
     const hp4 = await page('os://help/');
     await hp4.waitForSelector('.qa');
-    check('help has 6 answers and a feedback address', (await hp4.$$eval('.qa', (e) => e.length)) === 6 && (await hp4.textContent('body')).includes('@gmail.com'));
+    check('help has 6 answers and a feedback address', (await hp4.$$eval('.qa', (e) => e.length)) === 6 && (await hp4.textContent('body')).includes('hello@os-browser.com'));
     await keyScreen('25-help', 'page');
 
     // --- 26. Язык во всех окнах сразу ---
@@ -1062,10 +1068,154 @@ try {
     // --- 33. Свои страницы без ошибок скриптов ---
     step('33. Свои страницы (os://) отработали без ошибок скриптов');
     check('no script errors on own pages (os://)', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
+
+    // --- 34. Меню ⋮ как в Chrome (WINDOWS_SYNC §1) ---
+    step('34. Меню ⋮: ряд кнопок, группы, избранное, мобильная версия, диагностика');
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
+    await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/set?p=menu`);
+    const s34a = await waitFor(async () => { const x = await state(); return x.url.includes('p=menu') && !x.loading && x; });
+    check('menu: test page opened in a profile tab', s34a && !s34a.panel, JSON.stringify(s34a && { panel: s34a.panel, url: s34a.url }));
+    const menuReq = seen.filter((r) => r.path === '/set?p=menu').pop();
+    const appLang = readJson('settings')?.lang;
+    check('sites get Accept-Language = app language', appLang && menuReq?.lang?.startsWith(appLang), `${appLang} / ${menuReq?.lang}`);
+    const mui = await waitFor(() => app.windows().find((p) => !p.isClosed() && p.url().startsWith('os://ui') && !p.url().includes('incognito')));
+    if (!(await mui.waitForSelector('#more', { timeout: 5000 }).catch(() => null))) await windowShot('34-no-menu-button');
+    const openMenu = async () => {
+      if (await mui.$('.main-menu')) { await mui.keyboard.press('Escape'); await mui.waitForSelector('.main-menu', { state: 'detached' }); }
+      await mui.click('#more');
+      await mui.waitForSelector('.main-menu');
+    };
+    await openMenu();
+    const shape = await mui.evaluate(() => {
+      const m = document.querySelector('.main-menu');
+      const r = m.getBoundingClientRect();
+      return {
+        round: m.querySelectorAll('.toprow .round').length,
+        backDisabled: m.querySelector('.toprow .round').disabled,
+        groups: m.querySelectorAll('.sep').length,
+        icons: [...m.querySelectorAll(':scope > button')].every((b) => b.querySelector('.ic svg')),
+        fits: r.bottom <= window.innerHeight + 1 && r.right <= window.innerWidth + 1 && r.width < window.innerWidth,
+        height: m.scrollHeight,
+        cut: [...m.querySelectorAll('.grow')].filter((g) => g.scrollWidth > g.clientWidth + 1).map((g) => g.textContent),
+        labels: [...m.querySelectorAll('.toprow .round')].every((b) => b.getAttribute('aria-label')),
+      };
+    });
+    const s34 = await state();
+    check('menu: row of 5 round buttons with labels', shape.round === 5 && shape.labels, JSON.stringify(shape));
+    check('menu: Back disabled when there is nowhere to go', shape.backDisabled === !s34.canBack);
+    check('menu: groups divided by lines, every item has an icon', shape.groups >= 5 && shape.icons, JSON.stringify(shape));
+    check('menu: fits a 768 px laptop screen (rare items under «More tools»)', shape.height <= 660, `height=${shape.height}`);
+    check('menu: labels are not cut off', shape.cut.length === 0, shape.cut.join(' | '));
+    check('menu: card at the corner, not full screen, fits the window', shape.fits);
+    await keyScreen('39-menu', 'chrome');
+    await mui.click('.main-menu .toprow .round:nth-child(3)');
+    check('menu: star adds the page to favorites', await waitFor(async () => (await state()).bookmarked));
+    await openMenu();
+    check('menu: star shows as pressed', (await mui.getAttribute('.main-menu .toprow .round:nth-child(3)', 'aria-pressed')) === 'true');
+    const openMore = async () => { await openMenu(); await mui.click('.main-menu [data-k="more-tools"]'); await mui.waitForSelector('.main-menu [data-k="back-menu"]'); };
+    await openMore();
+    await keyScreen('39-more-tools', 'chrome');
+    await mui.click('.main-menu [data-k="mobile"]');
+    const tabPage = await page(`${SITE}/set?p=menu`);
+    check('menu: mobile site switches the User-Agent', await waitFor(async () => /Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => ''))));
+    await openMore();
+    check('menu: mobile site item is checked', (await mui.getAttribute('.main-menu [data-k="mobile"]', 'aria-checked')) === 'true');
+    await mui.click('.main-menu [data-k="mobile"]');
+    check('menu: mobile site off restores the desktop User-Agent', await waitFor(async () => !/Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => 'Mobile'))));
+    await openMore();
+    await mui.click('.main-menu [data-k="diag"]');
+    const diag = await mui.waitForSelector('#diag-text').then((e) => e.textContent()).catch(() => '');
+    check('menu: diagnostics shows version and page log', diag.includes('p=menu') && /Ось \d/.test(diag), diag.slice(0, 200));
+    await keyScreen('39-diagnostics', 'chrome');
+    await mui.keyboard.press('Escape');
+    await openMenu();
+    await mui.click('.main-menu [data-k="group"]');
+    const tp = await page('os://tabs/');
+    check('menu: New tab group asks for the group name', tp && await tp.waitForSelector('.modal input', { timeout: 5000 }).then(() => true).catch(() => false));
+    await tp?.keyboard.press('Escape');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+
+    // --- 35. Панель адресной строки как в Chrome (WINDOWS_SYNC §3) ---
+    step('35. Адресная строка: поисковик, «Очистить», карточка страницы, частые сайты, прошлые запросы, ↖');
+    await main(() => {
+      globalThis.osTest.addHistory(1, 'https://duckduckgo.com/?q=weather+moscow', 'weather moscow at DuckDuckGo');
+      globalThis.osTest.addHistory(1, 'https://yandex.ru/search/?text=weather+spb&lr=2', '');
+    });
+    await waitFor(async () => !(await state()).panel);
+    await mui.click('#address');
+    await mui.waitForSelector('.addr-panel', { timeout: 5000 }).catch(() => null);
+    const empty = await mui.evaluate(() => ({
+      engine: window.getComputedStyle(document.getElementById('engine')).display !== 'none' && document.getElementById('engine')?.dataset.engine,
+      lockHidden: [...document.querySelectorAll('#addr > .ic')].every((x) => window.getComputedStyle(x).display === 'none'),
+      card: !!document.querySelector('.addr-panel .pagecard'),
+      tiles: [...document.querySelectorAll('.addr-panel .tile')].map((x) => [x.title, x.querySelector('.lbl').textContent]),
+      clear: !document.getElementById('addr-clear')?.hidden,
+      net: [...document.querySelectorAll('.addr-panel img')].length,
+    }));
+    check('address: engine badge on the left while typing (instead of the lock)', !!empty.engine && empty.lockHidden, JSON.stringify(empty));
+    check('address: current page card on empty input', empty.card);
+    check('address: frequent sites tiles (letter + page title, not domain)', empty.tiles.length > 0 && empty.tiles.length <= 8 && empty.tiles.some(([h, l]) => l && l !== h), JSON.stringify(empty.tiles));
+    check('address: tiles do not load icons from the network', empty.net === 0);
+    check('address: clear button shown when there is text', empty.clear);
+    await keyScreen('40-address-empty', 'chrome');
+    await mui.fill('#address', '');
+    await mui.keyboard.type('weath', { delay: 10 });
+    await mui.waitForSelector('.addr-panel .hint-row[data-kind="query"]', { timeout: 5000 }).catch(() => null);
+    const rows = await mui.$$eval('.addr-panel .hint-row', (els) => els.map((e) => [e.dataset.kind, e.querySelector('.ttl').textContent, !!e.querySelector('.fill')]));
+    check('address: first row is the typed query itself', rows[0]?.[0] === 'search' && rows[0][1].includes('weath') && !rows[0][2], JSON.stringify(rows));
+    check('address: past search queries from history (q=, text=)', rows.filter((r) => r[0] === 'query').map((r) => r[1]).join('|') === 'weather spb|weather moscow', JSON.stringify(rows));
+    check('address: every row except the first has ↖ «fill in»', rows.slice(1).every((r) => r[2]));
+    await keyScreen('40-address-typing', 'chrome');
+    await mui.click('.addr-panel .hint-row[data-kind="query"] .fill');
+    check('address: ↖ puts the suggestion into the field', await waitFor(async () => (await mui.inputValue('#address')) === 'weather spb'), await mui.inputValue('#address'));
+    await mui.click('#addr-clear');
+    check('address: × clears the field and shows tiles again', await waitFor(async () => (await mui.inputValue('#address')) === '' && (await mui.$('.addr-panel .tile')) !== null));
+    await mui.keyboard.press('Escape');
+
+    // --- 36. Звук после нажатия (WINDOWS_SYNC §15) ---
+    step('36. Звук: сам сайт не включает, после нажатия плеер играет со звуком');
+    await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/sound`);
+    const snd = await page(`${SITE}/sound`);
+    await snd.waitForLoadState();
+    check('no sound without a user action (autoplay blocked)', (await snd.evaluate(() => window.before)) === 'suspended', await snd.evaluate(() => window.before));
+    await snd.click('#b');
+    const after = await waitFor(() => snd.evaluate(() => window.after), 5000);
+    check('sound allowed for a player started shortly after a click', after === 'running', String(after));
+
+    // --- 37. Микрофон, камера, геолокация: «Разрешить» и понятный запрет (WINDOWS_SYNC §18) ---
+    step('37. Разрешения: «Разрешить» по умолчанию для камеры и микрофона, запрет — с подсказкой');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://site/?profile=1'));
+    const sp = await page('os://site/');
+    await sp.waitForSelector('#d-camera');
+    const segs = await sp.$$eval('#d-location button, #d-camera button, #d-microphone button', (b) => b.length);
+    check('location, camera and microphone defaults: Ask · Allow · Block', segs === 9, `buttons=${segs}`);
+    await keyScreen('42-site-permissions', 'page');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'location', 'BLOCK'));
+    await snd.evaluate(() => { window.navigator.geolocation.getCurrentPosition(() => {}, () => {}); });
+    const ui37 = await page('os://ui');
+    const toast37 = await ui37.waitForSelector('.toast', { timeout: 5000 }).then((e) => e.textContent()).catch(() => '');
+    check('blocked permission is explained (site settings), not silent', /127\.0\.0\.1/.test(toast37), toast37);
+    await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'location', null));
+
+    // --- 38. Кнопка на панели на выбор (WINDOWS_SYNC §6) ---
+    step('38. Кнопка справа от адресной строки: по умолчанию «Скачанные файлы», меняется в настройках');
+    check('toolbar button defaults to Downloads', (await ui37.getAttribute('#tb-btn', 'data-k')) === 'downloads');
+    await ui37.click('#tb-btn');
+    check('toolbar button opens Downloads', await page('os://downloads/', 5000));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    const st38 = await page('os://settings/');
+    await st38.selectOption('#toolbar-button', 'find');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    check('toolbar button switched to «Find on page»', await waitFor(async () => (await ui37.getAttribute('#tb-btn', 'data-k')) === 'find'));
+    await ui37.click('#tb-btn');
+    check('find button opens the find bar', await waitFor(async () => !!(await state()).find));
+    await keyScreen('38-toolbar-find', 'chrome');
+    await key('Escape');
   }
   if (STAGE >= 7) {
-    // --- 34. Личный кабинет: пароли ---
-    step('34. Личный кабинет: пароли раздельны по профилям, вопрос о сохранении, подстановка, без открытого текста');
+    // --- 39. Личный кабинет: пароли ---
+    step('39. Личный кабинет: пароли раздельны по профилям, вопрос о сохранении, подстановка, без открытого текста');
     const PW1 = 'Os-Secret-Pw-91';
     const PW2 = 'Os-Second-Pw-47';
     let loginSeq = 0;
@@ -1092,7 +1242,7 @@ try {
     await uiP.waitForSelector('#pw-save');
     check('Личный кабинет: the card offers Save · Never for this site · Not now',
       (await uiP.isVisible('#pw-save')) && (await uiP.isVisible('#pw-never')) && (await uiP.isVisible('#pw-later')));
-    await keyScreen('34-password-save-prompt', 'chrome');
+    await keyScreen('39-password-save-prompt', 'chrome');
     await uiP.click('#pw-save');
     let pj = await waitFor(async () => { const j = await pwJson(); return j.profiles?.['1']?.length === 1 && j; });
     check('Личный кабинет: password saved in profile 1 (site + login)', pj && pj.profiles['1'][0].o === SITE && pj.profiles['1'][0].u === 'anna', JSON.stringify(pj?.profiles));
@@ -1119,7 +1269,7 @@ try {
     lp = await inProfile(1, `${SITE}/login`);
     const filled = await waitFor(async () => (await lp.inputValue('#pass')) === PW1 && (await lp.inputValue('#user')) === 'anna');
     check('Личный кабинет: saved login fills the sign-in form in profile 1', filled);
-    await keyScreen('34-password-filled', 'tab');
+    await keyScreen('39-password-filled', 'tab');
     // Другой сайт (localhost ≠ 127.0.0.1) пароль не получает.
     lp = await inProfile(1, `http://localhost:${PORT}/login`);
     await lp.waitForSelector('#pass');
@@ -1157,13 +1307,13 @@ try {
     check('Личный кабинет: login added by hand is stored for the http site with port', pj.profiles['1'].some((l) => l.u === 'second' && l.o === SITE), JSON.stringify(pj.profiles['1'].map((l) => l.o)));
     const width = await cab.evaluate(() => document.getElementById('app').getBoundingClientRect().width);
     check('Личный кабинет: content is not wider than 720px', width <= 720, String(width));
-    await keyScreen('34-cabinet', 'page');
+    await keyScreen('39-cabinet', 'page');
     await cab.click('.login >> nth=0 >> .login-menu');
     await cab.waitForSelector('.ctx');
     await cab.click('.ctx button >> nth=0');
     const shown = await waitFor(async () => (await cab.$('#pw-revealed')) && cab.textContent('#pw-revealed'));
     check('Личный кабинет: «Show password» shows the saved password', shown === PW1 || shown === PW2, String(shown));
-    await keyScreen('34-cabinet-show-password', 'page');
+    await keyScreen('39-cabinet-show-password', 'page');
     await cab.keyboard.press('Escape');
     await main(({ clipboard }) => clipboard.writeText(''));
     await cab.click('.login >> nth=0 >> .login-menu');
@@ -1185,7 +1335,7 @@ try {
     const pick = await waitFor(async () => { const x = await state(); return x.pw?.kind === 'pick' && x.pw; });
     check('Личный кабинет: two accounts for the site → account choice', pick && pick.users.length === 2, JSON.stringify(pick));
     await uiP.waitForSelector('.pw-user');
-    await keyScreen('34-password-pick', 'chrome');
+    await keyScreen('39-password-pick', 'chrome');
     const pickIdx = pick ? pick.users.findIndex((u) => u.u === 'second') : 1;
     await uiP.click(`.pw-user >> nth=${pickIdx}`);
     check('Личный кабинет: the chosen account fills the form', await waitFor(async () => (await lp.inputValue('#user')) === 'second' && (await lp.inputValue('#pass')) === PW2));
@@ -1209,8 +1359,8 @@ try {
     walk(userData);
     check('Личный кабинет: no plain-text password anywhere in userData (grep)', leaks.length === 0, leaks.slice(0, 5).join(' | '));
 
-    // --- 35. Наборы вкладок ---
-    step('35. Личный кабинет: наборы вкладок без стартовых страниц');
+    // --- 40. Наборы вкладок ---
+    step('40. Личный кабинет: наборы вкладок без стартовых страниц');
     await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.newTab(); });
     await flush();
     const open1 = readJson('tabs').profiles['1'].tabs;
@@ -1230,14 +1380,14 @@ try {
     check('Личный кабинет: tab set saved with a name, without os:// start pages',
       sets.length === 1 && sets[0].n === 'Набор Q' && sets[0].tabs.length === web1.length && sets[0].tabs.every((x) => /^https?:/.test(x.url)), JSON.stringify(sets.map((s) => [s.n, s.tabs.length])));
     check('Личный кабинет: list shows name, tab count and date', (await cab2.textContent('.set')).includes('Набор Q'));
-    await keyScreen('35-cabinet-tabsets', 'page');
+    await keyScreen('40-cabinet-tabsets', 'page');
     const before35 = (await state()).tabs.filter((x) => !x.pinned).length;
     await cab2.click('.set-open');
     const after35 = await waitFor(async () => { const x = await state(); return !x.panel && x.tabs.filter((t) => !t.pinned).length === before35 + web1.length && x; });
     check('Личный кабинет: «Open» adds the set tabs to the open ones', after35, `${before35} + ${web1.length}`);
 
-    // --- 36. Резервная копия ---
-    step('36. Личный кабинет: резервная копия — неверный пароль, восстановление в другой профиль без дублей');
+    // --- 41. Резервная копия ---
+    step('41. Личный кабинет: резервная копия — неверный пароль, восстановление в другой профиль без дублей');
     const bfile = join(tmpdir(), `os-acc-${Date.now()}.osbackup`);
     await main((_e, p) => globalThis.osTest.backupPath(p), bfile);
     await flush();
@@ -1276,14 +1426,14 @@ try {
     await flush();
     check('Личный кабинет: wrong backup password → «Wrong password or damaged file», nothing restored',
       bad === strings.backup_bad && !(readJson('passwords').profiles['3'] ?? []).length, String(bad));
-    await keyScreen('36-backup-wrong-password', 'page');
+    await keyScreen('41-backup-wrong-password', 'page');
     await cab4.click('#backup-import');
     await cab4.fill('#f-bpw', 'Kopiya-77');
     await cab4.click('#form-ok');
     const restored = await waitFor(() => cab4.textContent('#restored').catch(() => null), 8000);
     check('Личный кабинет: restore shows what was restored (2 passwords, 1 set, 0 favorites, 0 notes)',
       restored === strings.backup_restored.replace('%1$d', '2').replace('%2$d', '1').replace('%3$d', '0').replace('%4$d', '0'), String(restored));
-    await keyScreen('36-backup-restored', 'page');
+    await keyScreen('41-backup-restored', 'page');
     await cab4.keyboard.press('Escape');
     await flush();
     const p3 = readJson('passwords').profiles['3'] ?? [];
@@ -1304,8 +1454,8 @@ try {
     check('Личный кабинет: restored passwords work in profile 3 (account choice)', await waitFor(async () => (await state()).pw?.kind === 'pick'));
     rmSync(bfile, { force: true });
 
-    // --- 37. Генератор, «Предложить надёжный пароль», общий кабинет ---
-    step('37. Личный кабинет: «Предложить надёжный пароль», генератор, общий кабинет и копия всех профилей');
+    // --- 42. Генератор, «Предложить надёжный пароль», общий кабинет ---
+    step('42. Личный кабинет: «Предложить надёжный пароль», генератор, общий кабинет и копия всех профилей');
     lp = await inProfile(4, `${SITE}/signup`);
     await lp.waitForSelector('#pass');
     await sleep(800);
@@ -1313,7 +1463,7 @@ try {
     await lp.click('#pass');
     const chipSel = 'div[role=button]:has-text("🔑")';
     check('Личный кабинет: sign-up form offers «Suggest a strong password»', await waitFor(() => lp.isVisible(chipSel)));
-    await keyScreen('37-suggest-password', 'tab');
+    await keyScreen('42-suggest-password', 'tab');
     await lp.click(chipSel);
     const s1v = await lp.inputValue('#pass');
     const s2v = await lp.inputValue('#pass2');
@@ -1337,7 +1487,7 @@ try {
     check('Личный кабинет: generator length 24 without digits, strength shown',
       g2.length === 24 && !/\d/.test(g2) && (await cg.textContent('#gen-meta')).includes(strings.pw_very_strong), `${g2} ${await cg.textContent('#gen-meta')}`);
     await sleep(300);
-    await keyScreen('37-password-generator', 'page');
+    await keyScreen('42-password-generator', 'page');
     await cg.click('#gen-new');
     const g3 = await cg.textContent('#gen-out');
     check('Личный кабинет: «New» makes another password', g3 !== g2 && g3.length === 24);
@@ -1365,7 +1515,7 @@ try {
     await ca.fill('#pw-search', 'second');
     const found = await waitFor(async () => { const r = await ca.$$eval('#pw-results .login', (els) => els.map((e) => e.dataset.profile)); return r.length && r; });
     check('Личный кабинет: search finds passwords in all profiles', found && found.length === 2 && found.includes('1') && found.includes('3'), JSON.stringify(found));
-    await keyScreen('37-cabinet-all', 'page');
+    await keyScreen('42-cabinet-all', 'page');
     await ca.click('#backup-export');
     await ca.fill('#f-bpw', 'Vse-profili-1');
     await ca.fill('#f-bpw2', 'Vse-profili-1');

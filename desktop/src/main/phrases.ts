@@ -1,39 +1,35 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { JsonFile } from './store';
-import { t } from './i18n';
+import { currentLang, t } from './i18n';
+import { greetingKey, nextIndex, type Deck } from './phrasedeck';
 
 /**
- * Фраза дня (Home.kt → Phrases): локально, без сети. Колода перемешивается, каждый день — следующая;
- * пока колода не кончится, фразы не повторяются (и на стыке колод — тоже).
+ * Позитивные фразы (Home.kt → Phrases): 300 штук на 10 языках, локально (assets/phrases/<язык>.txt,
+ * строка N — одна и та же фраза на всех языках). Новая фраза при каждом показе, без повторов.
  */
-const COUNT = 30;
-const file = new JsonFile<{ deck: number[]; pos: number; day: number }>('phrases', () => ({ deck: [], pos: -1, day: -1 }));
+const file = new JsonFile<Deck>('phrases', () => ({ deck: [], pos: -1 }));
+const cache = new Map<string, string[]>();
 
-function dayNumber(): number {
-  const now = new Date();
-  return Math.floor((now.getTime() - now.getTimezoneOffset() * 60000) / 86400000);
-}
-
-function shuffled(notFirst: number): number[] {
-  const list = [...Array(COUNT).keys()];
-  for (let i = list.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [list[i], list[j]] = [list[j], list[i]];
+function all(code: string): string[] {
+  let list = cache.get(code);
+  if (!list) {
+    try {
+      list = readFileSync(join(__dirname, '..', 'assets', 'phrases', code + '.txt'), 'utf8').split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+    } catch {
+      list = [];
+    }
+    cache.set(code, list);
   }
-  if (list[0] === notFirst) list.push(list.shift()!);
-  return list;
+  return list.length || code === 'en' ? list : all('en');
 }
 
-export function today(): string {
-  const day = dayNumber();
-  const p = file.get();
-  const valid = p.deck.length === COUNT && new Set(p.deck).size === COUNT;
-  if (valid && p.pos >= 0 && p.pos < COUNT && p.day === day) return t('phrase_' + (p.deck[p.pos] + 1));
-  let deck = valid ? p.deck : shuffled(-1);
-  let next = valid ? p.pos + 1 : 0;
-  if (next >= COUNT) {
-    deck = shuffled(deck[COUNT - 1]);
-    next = 0;
-  }
-  file.update((d) => { d.deck = deck; d.pos = next; d.day = day; });
-  return t('phrase_' + (deck[next] + 1));
+export function next(): string {
+  const list = all(currentLang());
+  if (!list.length) return '';
+  const { index, state } = nextIndex(file.get(), list.length);
+  file.update((d) => { d.deck = state.deck; d.pos = state.pos; });
+  return list[index] ?? '';
 }
+
+export const greeting = (hour = new Date().getHours()) => t(greetingKey(hour));
