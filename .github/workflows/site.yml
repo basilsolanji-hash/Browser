@@ -152,9 +152,18 @@ jobs:
       # Pages в репозитории пока выключены. enablement пытается включить их сам, но токену
       # GITHUB_TOKEN на это обычно не хватает прав — тогда владелец один раз выставляет
       # Settings → Pages → Source: GitHub Actions, и дальше всё работает само.
-      - uses: actions/configure-pages@v5
+      - id: pages
+        uses: actions/configure-pages@v5
+        continue-on-error: true
         with:
           enablement: true
 
+      # Пока Pages не включены, прогон не краснеет: сборка и приёмка уже прошли, публикация ждёт владельца.
+      - name: Pages not enabled yet
+        if: steps.pages.outcome == 'failure'
+        run: |
+          echo "::warning::GitHub Pages выключены — сайт не опубликован. Settings → Pages → Source: GitHub Actions."
+
       - id: deployment
+        if: steps.pages.outcome == 'success'
         uses: actions/deploy-pages@v4

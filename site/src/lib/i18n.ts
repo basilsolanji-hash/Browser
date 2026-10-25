@@ -14,7 +14,8 @@ export const isRtl = (lang: string) => RTL.includes(lang);
 export function t(lang: string, key: string, vars: Record<string, string | number> = {}) {
   const s = dict(lang)[key] ?? dict('en')[key];
   if (s === undefined) throw new Error(`Нет ключа перевода: ${key}`);
-  return s.replace(/\{(\w+)\}/g, (_, v) => String(vars[v] ?? `{${v}}`));
+  // {app:ключ} — название из переводов приложения, чтобы сайт и приложение называли вещи одинаково.
+  return s.replace(/\{app:(\w+)\}/g, (_, k) => appText(lang, k)).replace(/\{(\w+)\}/g, (_, v) => String(vars[v] ?? `{${v}}`));
 }
 
 /** Строка из переводов приложения (Tr*.kt). */

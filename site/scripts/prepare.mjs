@@ -16,7 +16,8 @@ mkdirSync(join(root, 'public/fonts'), { recursive: true });
 for (const f of fonts) copyFileSync(join(root, 'node_modules/@fontsource', f), join(root, 'public/fonts', f.split('/').pop()));
 
 // Ключи приложения, которые сайт показывает дословно, чтобы сайт и приложение говорили одинаково.
-const APP_KEYS = /^(help_[qa]\d+|about_desc|about_privacy)$/;
+// и названия функций, на которые ссылаются тексты сайта как {app:ключ}.
+const APP_KEYS = /^(help_[qa]\d+|about_desc|about_privacy|add_to_note|saved_pages|help_feedback|perm_allow|clear_short|security_check)$/;
 const all = load();
 const out = {};
 LANGS.forEach((lang, i) => {
