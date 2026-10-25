@@ -42,6 +42,9 @@ export function isAuthPopup(url: string): boolean {
   }
 }
 
+/** Расширение встроенного просмотрщика PDF Chromium (постоянный id). */
+const PDF_VIEWER = 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/';
+
 /**
  * «Предложить надёжный пароль» на формах регистрации — тот же скрипт, что расширение Android
  * (assets/pwgen/pwgen.js), в своём изолированном мире: сайт не видит ни код, ни генератор.
@@ -96,7 +99,8 @@ export class TabView {
     };
     wc.on('will-navigate', (e) => guard(e, e.url));
     wc.on('will-redirect', (e) => guard(e, e.url));
-    wc.on('will-frame-navigate', (e) => { if (!e.isMainFrame && !allowedFromSite(e.url) && !e.url.startsWith('data:')) e.preventDefault(); });
+    // Встроенный просмотрщик PDF Chromium рисует документ во вложенной рамке своего расширения — её пропускаем.
+    wc.on('will-frame-navigate', (e) => { if (!e.isMainFrame && !allowedFromSite(e.url) && !e.url.startsWith('data:') && !e.url.startsWith(PDF_VIEWER)) e.preventDefault(); });
     wc.on('did-start-loading', () => this.host.onTabUpdated(this));
     wc.on('did-stop-loading', () => this.host.onTabUpdated(this));
     wc.on('dom-ready', () => suggestPasswords(wc));

@@ -150,6 +150,15 @@ html[dir="rtl"] [data-k="back"] .ic, html[dir="rtl"] [data-k="fwd"] .ic { transf
 #layer.through { pointer-events: none; }
 #layer.through > * { pointer-events: auto; }
 #addr [hidden] { display: none !important; }
+/* Список профилей у чипа: кружок с буквой, имя и почта в две строки, текущий отмечен. */
+.pmenu { max-height: calc(100vh - 60px); overflow-y: auto; }
+.pmenu .pitem { height: auto; min-height: 44px; padding: 6px 12px; }
+.pmenu .pitem.cur { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.pmenu .pav { width: 28px; height: 28px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.pmenu .grow { display: flex; flex-direction: column; }
+.pmenu .pname { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.pmenu .pmail { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+.pmenu .mark-pin { color: var(--muted); display: inline-flex; }
 #find::-webkit-search-cancel-button { display: none; }
 /* Меню ⋮ — ширина по содержимому, подписи не обрезаются; строки компактнее, чтобы меню влезало на ноутбук. */
 .menu.main-menu { width: max-content; min-width: 260px; max-width: 380px; }

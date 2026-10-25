@@ -12,11 +12,67 @@ interface ProfilesData {
   desc: Record<string, string>;
   email: Record<string, string>;
   unread: Record<string, number>;
+  /** Закреплённые профили — всегда сверху списка; хранятся отдельно от порядка. */
+  pinned: number[];
+  /** Папки профилей: профиль → название папки (без записи — «Без папки»). */
+  folders: Record<string, string>;
+  /** Свёрнутые папки на главном экране. */
+  collapsed: string[];
+  /** Вид главного экрана: списком или плиткой. */
+  view: 'list' | 'grid';
 }
 
 export const profilesFile = new JsonFile<ProfilesData>('profiles', () => ({
-  order: [], names: {}, desc: {}, email: {}, unread: {},
+  order: [], names: {}, desc: {}, email: {}, unread: {}, pinned: [], folders: {}, collapsed: [], view: 'list',
 }));
+
+// --- Папки и вид главного экрана ---
+
+export const folderOf = (id: number): string => profilesFile.get().folders?.[id] ?? '';
+
+export function setFolder(id: number, name: string): void {
+  const f = name.trim().slice(0, 60);
+  profilesFile.update((d) => {
+    d.folders ??= {};
+    if (f) d.folders[id] = f;
+    else delete d.folders[id];
+  });
+}
+
+/** Существующие папки по алфавиту (на языке интерфейса). */
+export const folders = (): string[] =>
+  [...new Set(Object.values(profilesFile.get().folders ?? {}))].sort((a, b) => a.localeCompare(b));
+
+export function renameFolder(from: string, to: string): void {
+  const f = to.trim().slice(0, 60);
+  if (!f) return;
+  profilesFile.update((d) => {
+    for (const k of Object.keys(d.folders ?? {})) if (d.folders[k] === from) d.folders[k] = f;
+    d.collapsed = (d.collapsed ?? []).map((x) => (x === from ? f : x));
+  });
+}
+
+/** Убрать папку: профили остаются, просто без папки. */
+export function removeFolder(name: string): void {
+  profilesFile.update((d) => {
+    for (const k of Object.keys(d.folders ?? {})) if (d.folders[k] === name) delete d.folders[k];
+    d.collapsed = (d.collapsed ?? []).filter((x) => x !== name);
+  });
+}
+
+export const collapsed = (): string[] => profilesFile.get().collapsed ?? [];
+
+export function setCollapsed(name: string, on: boolean): void {
+  profilesFile.update((d) => {
+    const rest = (d.collapsed ?? []).filter((x) => x !== name);
+    d.collapsed = on ? [...rest, name] : rest;
+  });
+}
+
+export const view = (): 'list' | 'grid' => (profilesFile.get().view === 'grid' ? 'grid' : 'list');
+export function setView(v: string): void {
+  profilesFile.update((d) => { d.view = v === 'grid' ? 'grid' : 'list'; });
+}
 
 const COLORS = [
   '#E53935', '#8E24AA', '#3949AB', '#1E88E5', '#00897B', '#43A047', '#F4511E', '#6D4C41',
@@ -49,8 +105,24 @@ export function setOrder(ids: number[]): void {
   profilesFile.update((d) => { d.order = ids.filter((id) => Number.isInteger(id)); });
 }
 
-export function move(id: number, delta: number): void {
+export const isPinned = (id: number) => (profilesFile.get().pinned ?? []).includes(id);
+
+export function setPinned(id: number, on: boolean): void {
+  profilesFile.update((d) => {
+    const rest = (d.pinned ?? []).filter((x) => x !== id);
+    d.pinned = on ? [...rest, id].sort((a, b) => a - b) : rest;
+  });
+}
+
+/** Порядок для экранов: закреплённые сверху (в своём порядке), дальше остальные (MainActivity.kt). */
+export function sorted(): number[] {
   const ids = order();
+  return [...ids.filter(isPinned), ...ids.filter((id) => !isPinned(id))];
+}
+
+/** «Выше»/«Ниже» в показанном списке (закреплённые остаются сверху). */
+export function move(id: number, delta: number): void {
+  const ids = sorted();
   const from = ids.indexOf(id);
   const to = Math.min(ids.length - 1, Math.max(0, from + delta));
   if (from < 0 || from === to) return;

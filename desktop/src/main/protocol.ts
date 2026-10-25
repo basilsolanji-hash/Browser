@@ -5,6 +5,7 @@ import { errorHtml, startHtml } from './startpage';
 import { INCOGNITO_PALETTE, palette } from './themes';
 import { settings } from './settings';
 import { READER_CSP, readerHtml } from './reader';
+import { serve as serveDownload } from './downloads';
 
 /**
  * Свои страницы — по схеме os:// (protocol.handle), со строгим CSP. В сессиях сайтов доступны только
@@ -59,6 +60,8 @@ export function handleWebSession(ses: Session, incognito: boolean): void {
   ses.protocol.handle('os', (req) => {
     const u = new URL(req.url);
     if (u.host === 'start') return html(startHtml(themed(incognito), incognito), START_CSP);
+    // Скачанный файл (PDF, картинка, текст) во вкладке — только в сессии своего профиля.
+    if (u.host === 'file') return serveDownload(u.pathname.split('/')[1] ?? '', ses);
     if (u.host === 'reader') return html(readerHtml(Number(u.searchParams.get('id')), themed(incognito)), READER_CSP);
     if (u.host === 'error') {
       return html(errorHtml(themed(incognito), Number(u.searchParams.get('code')), u.searchParams.get('url') ?? ''), START_CSP);

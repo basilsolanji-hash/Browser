@@ -1,8 +1,25 @@
-.item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+#dl-search { width: 100%; margin: 10px 0 4px; }
+.diskrow { gap: 8px; color: var(--muted); margin: 8px 0 4px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.diskrow .hint { margin: 0; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0 4px; scrollbar-width: thin; }
+.chip { height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px 0 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); white-space: nowrap; flex: none; }
+.chip .ic { color: var(--muted); }
+.chip.on { border-color: var(--accent); background: var(--surface); font-weight: 600; }
+.chip.on .ic { color: var(--accent); }
+.group-title { margin: 20px 0 8px; font-weight: 600; }
+.item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border); min-height: 64px; }
 .item:last-child { border-bottom: 0; }
-.item .ic { color: var(--muted); }
+.item.openable:hover { background: color-mix(in srgb, var(--text) 5%, transparent); }
 .item .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .item .u { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
-.bar span { display: block; height: 100%; background: var(--accent); }
-.bar.stopped span { background: var(--muted); }
+.lead { width: 44px; height: 44px; flex: none; position: relative; display: flex; align-items: center; justify-content: center; }
+.lead.kind { border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+.ringbox .ic { position: absolute; color: var(--accent); }
+.ring { width: 44px; height: 44px; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 3; }
+.ring .track { stroke: var(--border); }
+.ring .arc { stroke: var(--accent); stroke-linecap: round; transition: stroke-dasharray .3s; }
+.ring.stopped .arc { stroke: var(--muted); }
+.ring.busy { animation: spin 1.2s linear infinite; }
+@keyframes spin { to { transform: rotate(270deg); } }
+[dir="rtl"] .ring { transform: rotate(-90deg) scaleY(-1); }

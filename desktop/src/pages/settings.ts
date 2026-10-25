@@ -1,19 +1,35 @@
-import { boot, h, os, t } from '../shared/ui';
-import { confirmDialog, promptDialog, section, toast } from './common';
+import { boot, h, icon, os, t } from '../shared/ui';
+import { confirmDialog, param, promptDialog, toast } from './common';
 import { pinEditor } from './_pins';
+import { groupSummary, searchSettings, type SettingItem } from '../shared/settingsearch';
 
-/** Настройки (SettingsActivity.kt): язык, тема, поиск, главная страница, вкладки, профили, данные. */
+/**
+ * Настройки (SettingsActivity.kt): сверху поиск по всем пунктам; главная — 7 групп с иконками и кратким
+ * содержимым, нажатие открывает группу (os://settings/?g=…); при вводе — подходящие пункты из всех групп.
+ */
 interface Opt { id: string; name: string }
 interface SettingsInfo {
   values: {
-    lang: string; theme: string; engine: string; toolbarButton: string; profileCount: number; homeMode: string; homeUrl: string;
+    lang: string; theme: string; engine: string; toolbarButton: string; profileCount: number; homeMode: string; homeUrl: string; zoom: number;
     trackingProtection: boolean; httpsOnly: boolean; blockThirdPartyCookies: boolean; hideContent: boolean; lock: boolean; autoUpdate: boolean;
   };
   langs: Opt[]; themes: Opt[]; engines: Opt[]; toolbarButtons: Opt[]; minProfiles: number; maxProfiles: number;
 }
 
+/** Группы: id, ключ названия, значок. */
+const GROUPS: [string, string, string][] = [
+  ['general', 'sg_general', 'settings'],
+  ['profiles', 'sg_profiles', 'group'],
+  ['panels', 'sg_panels', 'tabs'],
+  ['privacy', 'sg_privacy', 'shield'],
+  ['data', 'sg_data', 'delete'],
+  ['library', 'sg_library', 'book'],
+  ['about', 'sg_about', 'info'],
+];
+
 const app = document.getElementById('app')!;
 app.className = 'wrap';
+const group = GROUPS.some((g) => g[0] === param('g')) ? param('g')! : null;
 
 const set = (key: string, value: unknown) => os.call('setSetting', key, value);
 
@@ -22,8 +38,13 @@ function select(id: string, opts: Opt[], value: string, onchange: (v: string) =>
   return s;
 }
 
-function setting(label: string, control: HTMLElement | null, sub?: string): HTMLElement {
-  return h('div', { class: 'setting' }, h('div', { class: 'label' }, h('div', null, label), sub ? h('div', { class: 'sub' }, sub) : null), control);
+function setting(label: string, control: HTMLElement | null, sub?: string, sum?: string): HTMLElement {
+  return h('div', { class: 'setting', 'data-sum': sum }, h('div', { class: 'label' }, h('div', null, label), sub ? h('div', { class: 'sub' }, sub) : null), control);
+}
+
+/** Строка-ссылка на другой экран. */
+function link(label: string, href: string, sub?: string, id?: string): HTMLElement {
+  return h('a', { class: 'setting link', href, id }, h('div', { class: 'label' }, h('div', null, label), sub ? h('div', { class: 'sub' }, sub) : null), icon('forward', 18));
 }
 
 /** Переключатель из двух вариантов (как сегменты в Android-настройках). */
@@ -59,27 +80,53 @@ async function removePinDialog(): Promise<void> {
 
 let query = '';
 
-/** Поиск в настройках (№32): прячем строки и секции без совпадений. */
-function applySearch(): void {
-  const q = query.trim().toLowerCase();
-  let any = false;
-  document.querySelectorAll<HTMLElement>('section[data-sec]').forEach((sec) => {
-    const title = sec.querySelector('h2')?.textContent?.toLowerCase() ?? '';
-    const rows = [...sec.querySelectorAll<HTMLElement>('.setting, .links > *, .hint')];
-    let visible = 0;
-    rows.forEach((r) => {
-      const hit = !q || title.includes(q) || (r.textContent ?? '').toLowerCase().includes(q);
-      r.hidden = !hit;
-      if (hit) visible++;
+/** Пункты для поиска и краткого содержимого: подписи строк (без полей ввода — в них данные пользователя). */
+function collect(): { items: SettingItem[]; rows: Map<string, HTMLElement> } {
+  const items: SettingItem[] = [];
+  const rows = new Map<string, HTMLElement>();
+  document.querySelectorAll<HTMLElement>('section[data-group]').forEach((sec, si) => {
+    const title = sec.querySelector('h2')?.textContent ?? '';
+    sec.querySelectorAll<HTMLElement>('.setting, .hint.searchable').forEach((r, ri) => {
+      const id = `${si}:${ri}`;
+      const texts = [...r.querySelectorAll<HTMLElement>('.label > div, .label .sub')].map((x) => x.textContent ?? '');
+      // Подсказки ищутся, но в краткое содержимое группы не попадают; у строк с меняющейся подписью — своё название.
+      const lead = r.classList.contains('hint') ? '' : r.dataset.sum;
+      items.push({ id, group: sec.dataset.group!, section: title, texts: [...(lead != null ? [lead] : []), ...(texts.length ? texts : [r.textContent ?? ''])] });
+      rows.set(id, r);
     });
-    sec.hidden = !!q && !visible && !title.includes(q);
-    if (!sec.hidden) any = true;
   });
-  document.getElementById('nothing')!.hidden = any;
+  return { items, rows };
+}
+
+/** Главная — только группы; в группе — её разделы; с запросом — совпадения из всех групп. */
+function applySearch(): void {
+  const { items, rows } = collect();
+  const q = query.trim();
+  const home = !group && !q;
+  document.getElementById('groups')!.hidden = !home;
+  const hits = q ? new Set(searchSettings(items, q).map((x) => x.id)) : null;
+  document.querySelectorAll<HTMLElement>('section[data-group]').forEach((sec) => {
+    if (home) { sec.hidden = true; return; }
+    if (!hits) { sec.hidden = sec.dataset.group !== group; rows.forEach((r) => { r.hidden = false; }); return; }
+    let visible = 0;
+    sec.querySelectorAll<HTMLElement>('.setting, .hint.searchable').forEach((r) => {
+      const id = [...rows].find(([, el]) => el === r)?.[0] ?? '';
+      r.hidden = !hits.has(id);
+      if (!r.hidden) visible++;
+    });
+    sec.hidden = !visible;
+  });
+  document.getElementById('nothing')!.hidden = home || !hits || hits.size > 0;
+  // Краткое содержимое групп — из названий их пунктов.
+  for (const [id] of GROUPS) {
+    const el = document.querySelector<HTMLElement>(`.gcard[data-g="${id}"] .gsum`);
+    if (el) el.textContent = groupSummary(items, id).join(' · ');
+  }
 }
 
 async function render(): Promise<void> {
-  document.title = t('settings');
+  const title = group ? t(GROUPS.find((g) => g[0] === group)![1]) : t('settings');
+  document.title = title;
   const s = await os.call<SettingsInfo>('settings');
   const lastProfile = await os.call<number>('lastProfile');
   const def = await os.call<{ isDefault: boolean; supported: boolean }>('defaultBrowser');
@@ -99,61 +146,80 @@ async function render(): Promise<void> {
     type: 'number', id: 'profile-count', min: String(s.minProfiles), max: String(s.maxProfiles), value: String(v.profileCount),
     onchange: () => void set('profileCount', Number(count.value)).then(render),
   });
+  const zooms = [50, 67, 75, 80, 90, 100, 110, 125, 150, 175, 200].map((z) => ({ id: String(z), name: `${z}%` }));
   const pins = await pinEditor(null, render);
-  const sec = (title: string, ...children: (HTMLElement | null)[]) => h('section', { 'data-sec': '' }, ...section(title, ...children));
-  const search = h('input', { type: 'search', id: 'settings-search', placeholder: t('search_settings'), value: query,
+  const sec = (g: string, heading: string, ...children: (HTMLElement | null)[]) =>
+    h('section', { 'data-group': g }, h('h2', null, heading), ...children.filter((c): c is HTMLElement => !!c));
+  const search = h('input', { type: 'search', id: 'settings-search', placeholder: t('search_settings'), value: query, 'aria-label': t('search_settings'),
     oninput: () => { query = search.value; applySearch(); } });
+  const groups = h('div', { id: 'groups', class: 'groups' }, ...GROUPS.map(([id, key, ic]) => h('a', { class: 'gcard', href: `os://settings/?g=${id}`, 'data-g': id },
+    h('span', { class: 'gicon' }, icon(ic, 22)),
+    h('div', { class: 'grow' }, h('div', { class: 'gtitle' }, t(key)), h('div', { class: 'gsum' })),
+    icon('forward', 18))));
   app.replaceChildren(
-    h('h1', null, t('settings')),
+    h('div', { class: 'row' },
+      group ? h('a', { class: 'icon-btn', href: 'os://settings/', title: t('back'), 'aria-label': t('back') }, icon('back')) : null,
+      h('h1', { class: 'grow' }, title)),
     search,
-    sec(t('general'), h('div', { class: 'card' },
+    groups,
+    sec('general', t('sg_general'), h('div', { class: 'card' },
       setting(t('language'), select('lang', s.langs, v.lang, (x) => void set('lang', x))),
       setting(t('theme'), select('theme', s.themes, v.theme, (x) => void set('theme', x))),
-      setting(t('search_engine'), select('engine', s.engines, v.engine, (x) => void set('engine', x).then(render))),
-      setting(t('bottom_button'), select('toolbar-button', s.toolbarButtons, v.toolbarButton, (x) => void set('toolbarButton', x)), t('dt_toolbar_button_desc')),
-    )),
-    sec(t('privacy_security'), h('div', { class: 'card', id: 'privacy' },
-      setting(t('sec_tracking'), toggle('tracking', v.trackingProtection, t('dt_on'), t('dt_off'), 'trackingProtection'), t('dt_tracking_desc')),
-      setting(t('perm_cookies3p'), toggle('cookies3p', v.blockThirdPartyCookies, t('perm_block'), t('perm_allow'), 'blockThirdPartyCookies'), t('dt_cookies_desc')),
-      setting(t('sec_https'), toggle('https', v.httpsOnly, t('https_on'), t('https_off'), 'httpsOnly'), t('sec_https_ok')),
-      setting(t('hide_content'), toggle('hide', v.hideContent, t('hide'), t('show'), 'hideContent'), t('dt_hide_desc')),
-      setting(t('sec_lock'), h('div', { class: 'row' },
-        h('button', { class: 'btn', id: 'pin-set', onclick: () => void pinDialog(v.lock) }, v.lock ? t('dt_pin_change') : t('dt_pin_set')),
-        v.lock ? h('button', { class: 'btn', id: 'pin-remove', onclick: () => void removePinDialog() }, t('dt_pin_remove')) : null), v.lock ? t('dt_lock_desc') : t('dt_lock_hello')),
-      setting(t('site_permissions'), h('a', { class: 'btn', href: `os://site/?profile=${lastProfile}`, style: 'text-decoration:none;color:inherit' }, t('open'))),
-      setting(t('security_check'), h('a', { class: 'btn', id: 'sec-check', href: 'os://security/', style: 'text-decoration:none;color:inherit' }, t('open'))),
-    )),
-    sec(t('default_browser'), h('div', { class: 'card' },
+      setting(t('search_engine'), select('engine', s.engines, v.engine, (x) => void set('engine', x).then(render))))),
+    sec('general', t('home_page'), h('div', { class: 'card' },
+      h('div', { class: 'setting', style: 'display:block' },
+        h('div', { class: 'label' }, h('div', null, t('home_page')), h('div', { class: 'sub' }, t('home_desc'))),
+        homeSeg,
+        v.homeMode === 'CUSTOM' ? homeUrl : null))),
+    sec('general', t('default_browser'), h('div', { class: 'card' },
       setting(def.isDefault ? t('default_is') : t('default_not'),
         def.supported ? h('button', { class: 'btn' + (def.isDefault ? '' : ' accent'), id: 'make-default', onclick: () => void os.call('makeDefault') },
           def.isDefault ? t('default_change') : t('default_make')) : null,
-        t('default_desc')))),
-    sec(t('home_page'), h('div', { class: 'card' },
-      h('div', { class: 'setting', style: 'display:block' },
-        homeSeg,
-        v.homeMode === 'CUSTOM' ? homeUrl : null,
-        h('div', { class: 'hint' }, t('home_desc')))),
-    ),
-    sec(t('pinned_tabs'), h('div', { class: 'hint' }, t('dt_pinned_desc_common')), pins),
-    sec(t('profiles'), h('div', { class: 'card' },
-      setting(t('profiles_count'), count, t('range_desc', s.minProfiles, s.maxProfiles)))),
-    sec(t('data'), h('div', { class: 'links' },
-      h('button', { class: 'btn', onclick: async () => { await os.call('clearCacheAll'); toast(t('cache_cleared')); } }, t('clear_cache_all')),
-      h('button', {
+        t('default_desc'), t('default_browser')))),
+    sec('profiles', t('sg_profiles'), h('div', { class: 'card' },
+      setting(t('profiles_count'), count, t('range_desc', s.minProfiles, s.maxProfiles)),
+      link(t('dt_all_profiles'), 'os://home/'),
+      link(t('profile_settings'), `os://profile/?id=${lastProfile}`))),
+    sec('profiles', t('pinned_tabs'), h('div', { class: 'hint searchable' }, t('dt_pinned_desc_common')), pins),
+    sec('panels', t('sg_panels'), h('div', { class: 'card' },
+      setting(t('bottom_button'), select('toolbar-button', s.toolbarButtons, v.toolbarButton, (x) => void set('toolbarButton', x)), t('dt_toolbar_button_desc')),
+      setting(t('zoom'), select('zoom', zooms, String(v.zoom), (x) => void set('zoom', Number(x)))),
+      link(t('tabs'), `os://tabs/?profile=${lastProfile}`))),
+    sec('privacy', t('sg_privacy'), h('div', { class: 'card', id: 'privacy' },
+      setting(t('block_screenshots'), toggle('hide', v.hideContent, t('dt_on'), t('dt_off'), 'hideContent'), t('block_screenshots_desc')),
+      setting(t('sec_lock'), h('div', { class: 'row' },
+        h('button', { class: 'btn', id: 'pin-set', onclick: () => void pinDialog(v.lock) }, v.lock ? t('dt_pin_change') : t('dt_pin_set')),
+        v.lock ? h('button', { class: 'btn', id: 'pin-remove', onclick: () => void removePinDialog() }, t('dt_pin_remove')) : null), v.lock ? t('dt_lock_desc') : t('dt_lock_hello')),
+      setting(t('sec_https'), toggle('https', v.httpsOnly, t('https_on'), t('https_off'), 'httpsOnly'), t('sec_https_ok')),
+      setting(t('sec_tracking'), toggle('tracking', v.trackingProtection, t('dt_on'), t('dt_off'), 'trackingProtection'), t('dt_tracking_desc')),
+      setting(t('perm_cookies3p'), toggle('cookies3p', v.blockThirdPartyCookies, t('perm_block'), t('perm_allow'), 'blockThirdPartyCookies'), t('dt_cookies_desc')),
+      link(t('site_permissions'), `os://site/?profile=${lastProfile}`),
+      link(t('security_check'), 'os://security/', undefined, 'sec-check'))),
+    sec('data', t('sg_data'), h('div', { class: 'card' },
+      link(t('clear_browsing_data'), `os://clear/?profile=${lastProfile}`, t('cd_note'), 'open-clear'),
+      link(t('history'), `os://history/?profile=${lastProfile}`),
+      setting(t('clear_cache_all'), h('button', { class: 'btn', onclick: async () => { await os.call('clearCacheAll'); toast(t('cache_cleared')); } }, t('clear'))),
+      setting(t('clear_history_all'), h('button', {
         class: 'btn', onclick: async () => {
           if (await confirmDialog(t('clear_history_all_q'), '', t('clear'), true)) { await os.call('clearHistoryAll'); toast(t('history_cleared')); }
         },
-      }, t('clear_history_all')))),
-    sec(t('dt_updates'), h('div', { class: 'card' },
+      }, t('clear'))))),
+    sec('library', t('sg_library'), h('div', { class: 'card' },
+      link(t('favorites'), 'os://favorites/'),
+      link(t('notes'), 'os://notes/'),
+      link(t('saved_pages'), 'os://saved/'),
+      link(t('dl_title'), 'os://downloads/'),
+      link(t('stats'), 'os://stats/'))),
+    sec('about', t('dt_updates'), h('div', { class: 'card' },
       setting(t('dt_update_auto'), toggle('auto-update', v.autoUpdate, t('dt_on'), t('dt_off'), 'autoUpdate'), t('dt_update_desc')),
       setting(updText[upd.state] ?? '', upd.state === 'downloaded'
         ? h('button', { class: 'btn accent', id: 'update-restart', onclick: () => void os.call('updateRestart') }, t('dt_update_restart'))
         : h('button', { class: 'btn', id: 'update-check', disabled: upd.state === 'dev' || upd.state === 'off' || upd.state === 'checking',
-          onclick: () => void os.call('updateCheck').then(render) }, t('dt_update_check'))))),
-    sec(t('about_section'), h('div', { class: 'links' },
-      h('a', { class: 'btn', href: 'os://stats/', style: 'text-decoration:none;color:inherit' }, t('stats')),
-      h('a', { class: 'btn', href: 'os://about/', style: 'text-decoration:none;color:inherit' }, t('about')),
-      h('a', { class: 'btn', href: 'os://onboarding/', style: 'text-decoration:none;color:inherit' }, t('onb_again')))),
+          onclick: () => void os.call('updateCheck').then(render) }, t('dt_update_check')), undefined, t('dt_update_check')))),
+    sec('about', t('sg_about'), h('div', { class: 'card' },
+      link(t('help_feedback'), 'os://help/'),
+      link(t('about'), 'os://about/'),
+      link(t('onb_again'), 'os://onboarding/'))),
     h('div', { class: 'empty', id: 'nothing', hidden: true }, t('nothing_found')),
   );
   applySearch();

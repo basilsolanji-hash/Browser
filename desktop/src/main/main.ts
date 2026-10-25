@@ -11,6 +11,7 @@ import { installIpc, applyTheme } from './ipc';
 import { OsWindow, lockAll, mainWindow, windows } from './window';
 import { setBlockedListener } from './privacy';
 import { installNotifications, shownForTest, clickLastForTest } from './notify';
+import { installUploads } from './window';
 import { installAutofill } from './autofill';
 import { setTestPath } from './backup';
 import { incomingUrl } from './defaultbrowser';
@@ -59,6 +60,7 @@ if (!app.requestSingleInstanceLock()) {
     installIpc();
     void refreshDefault();
     installNotifications();
+    installUploads();
     installAutofill();
     nativeTheme.on('updated', () => { for (const w of windows) w.refreshLook(); });
     // Счётчик заблокированных трекеров в адресной строке.

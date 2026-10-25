@@ -1,5 +1,6 @@
 import { safeStorage } from 'electron';
 import { JsonFile } from './store';
+import { registerPasswords } from './clearhooks';
 import { type Login, hostOf, sameSite, upsert as upsertIn } from './backupcrypto';
 
 /**
@@ -74,6 +75,12 @@ export function upsert(profile: number, origin: string, username: string, pass: 
 export function remove(profile: number, guid: string): void {
   file.update((d) => { d.profiles[profile] = raw(profile).filter((x) => x.g !== guid); });
 }
+
+// «Удалить данные о работе в браузере» (§14): пароли, сохранённые за выбранный период (t — время сохранения).
+registerPasswords({
+  count: (profile, since) => raw(profile).filter((x) => x.t >= since).length,
+  removeSince: (profile, since) => file.update((d) => { d.profiles[profile] = raw(profile).filter((x) => x.t < since); }),
+});
 
 /** Входы профиля для сайта: тот же хост, поддомен или родительский домен. */
 export const forDomain = (profile: number, domain: string): Login[] => list(profile).filter((l) => sameSite(l.o, domain));

@@ -1,4 +1,12 @@
-label.opt { display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.ph { display: flex; align-items: center; gap: 8px; }
+.ph .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.rangerow { padding: 12px 0; border: 0; }
+.rangerow select { min-width: 200px; }
+.opts { border-radius: 16px; margin-top: 4px; }
+label.opt { display: flex; gap: 16px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); }
 label.opt:last-child { border-bottom: 0; }
-label.opt input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 1px; }
+label.opt > .ic { color: var(--text); }
+label.opt input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
 label.opt .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.actions { margin-top: 16px; display: flex; justify-content: flex-end; }
+.actions .btn { border-radius: 20px; padding: 0 22px; }

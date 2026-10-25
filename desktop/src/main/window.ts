@@ -1,4 +1,4 @@
-import { BrowserWindow, WebContentsView, clipboard, dialog, screen, session, shell, systemPreferences, type Session, type WebContents } from 'electron';
+import { BrowserWindow, WebContentsView, clipboard, dialog, ipcMain, screen, session, shell, systemPreferences, type Session, type WebContents } from 'electron';
 import { join } from 'node:path';
 import { JsonFile } from './store';
 import { WEB_PREFS, hardenSession, openExternal } from './security';
@@ -76,7 +76,12 @@ const preload = () => join(__dirname, '..', 'preload', 'preload.js');
 
 interface MemTab { id: string; title: string; url: string }
 
-interface Prompt { id: number; wcId: number; host: string; kinds: string[]; resolve: (allow: boolean, remember: boolean) => void }
+interface Prompt {
+  id: number; wcId: number; host: string; kinds: string[]; resolve: (allow: boolean, remember: boolean) => void;
+  /** Свой текст вопроса (скачивание: сайт и имя файла). */
+  text?: string;
+}
+export interface AskOptions { text?: string; keepOnNavigate?: boolean }
 /** Вопрос о пароле: сохранить после входа или выбрать аккаунт для подстановки. */
 export interface PwPrompt { id: number; wcId: number; kind: 'save' | 'pick'; host: string; users: { g: string; u: string }[]; resolve: (action: string) => void }
 let promptSeq = 0;
@@ -111,6 +116,8 @@ export function permissionMode(ses: Session, host: string, kind: string): Perms.
   return sessionModes.get(ses)?.(host, kind) ?? 'BLOCK';
 }
 
+/** Запомнить решение для сайта в этой сессии: профиль — на диск, инкогнито — в памяти окна. */
+const sessionRemember = new WeakMap<Session, (host: string, kind: string, allow: boolean) => void>();
 /** Доступ приложения к камере или микрофону выключен в настройках Windows. */
 function osMediaDenied(kind: 'camera' | 'microphone'): boolean {
   if (process.platform !== 'win32' && process.platform !== 'darwin') return false;
@@ -130,6 +137,10 @@ function installPermissions(ses: Session, profile: number | null): void {
   const mode = (host: string, kind: string): Perms.Mode =>
     profile == null ? (memory.get(`${host}|${kind}`) ?? Perms.defaultMode(kind)) : Perms.effective(profile, host, kind);
   sessionModes.set(ses, mode);
+  sessionRemember.set(ses, (host, k, allow) => {
+    if (profile == null) memory.set(`${host}|${k}`, allow ? 'ALLOW' : 'BLOCK');
+    else Perms.set(profile, host, k, allow ? 'ALLOW' : 'BLOCK');
+  });
   ses.setPermissionRequestHandler((wc, permission, cb, details) => {
     if (SIMPLE_ALLOW.has(permission)) return cb(true);
     const kinds = kindsFor(permission, details as { mediaTypes?: string[] });
@@ -518,7 +529,7 @@ export class OsWindow implements TabHost {
     if (!this.overlay) v.wc.focus();
   }
 
-  newTab(url?: string, opts: { after?: string | null; foreground?: boolean } = {}): void {
+  newTab(url?: string, opts: { after?: string | null; foreground?: boolean } = {}): string {
     const target = url ?? START;
     if (this.incognito) {
       const m: MemTab = { id: `tab${Date.now()}${++this.memSeq}`, title: '', url: target === START ? homeUrl(true) : target };
@@ -527,7 +538,7 @@ export class OsWindow implements TabHost {
       else this.memTabs.push(m);
       if (opts.foreground !== false || !this.memActive) this.activate(m.id);
       else this.push();
-      return;
+      return m.id;
     }
     if (this.profile == null) {
       this.openProfile(Tabs.tabsFile.get().lastProfile ?? Profiles.order()[0]);
@@ -535,6 +546,27 @@ export class OsWindow implements TabHost {
     const tab = Tabs.add(this.profile!, target, { after: opts.after ?? null });
     if (opts.foreground !== false) this.activate(tab.id);
     else this.push();
+    return tab.id;
+  }
+
+  /** Какая вкладка открыла эту (target=_blank, window.open): вкладка → открывшая. */
+  private openers = new Map<string, string>();
+
+  /** Вкладка, открывшая [tab], если она ещё жива. */
+  openerOf(tab: TabView): TabView | undefined {
+    const id = this.openers.get(tab.id);
+    return id ? this.views.get(this.key(id)) : undefined;
+  }
+
+  /**
+   * Вкладку открыли только ради файла (PDF-вложение в новом пустом окне): закрываем её и возвращаемся
+   * к вкладке, которая её открыла. Исходную вкладку не перезагружаем (на Android это давало цикл).
+   */
+  closeBlankTab(tab: TabView): void {
+    const opener = this.openerOf(tab);
+    if (this.tabOf(tab.wc) !== tab) return;
+    this.closeTab(tab.id);
+    if (opener && this.tabOf(opener.wc) === opener) this.activate(opener.id);
   }
 
   /** Ссылка из своих экранов или извне: в текущем профиле (или последнем), в новой вкладке. */
@@ -699,16 +731,16 @@ export class OsWindow implements TabHost {
     return [...this.views.values()].some((v) => v.wc === wc);
   }
 
-  askPermission(wc: WebContents, host: string, kinds: string[], resolve: (allow: boolean, remember: boolean) => void): void {
-    const p: Prompt = { id: ++promptSeq, wcId: wc.id, host, kinds, resolve };
+  askPermission(wc: WebContents, host: string, kinds: string[], resolve: (allow: boolean, remember: boolean) => void, opts: AskOptions = {}): void {
+    const p: Prompt = { id: ++promptSeq, wcId: wc.id, host, kinds, resolve, text: opts.text };
     this.prompts.push(p);
-    // Вкладку закрыли или увели на другой сайт — запрос отклоняется.
+    // Вкладку закрыли или увели на другой сайт — запрос отклоняется (вопрос о скачивании переживает переход).
     const cancel = () => this.answerPrompt(p.id, false, false);
     const nav = (e: Electron.Event<Electron.WebContentsDidStartNavigationEventParams>) => {
       if (e.isMainFrame && !e.isSameDocument) { wc.off('did-start-navigation', nav); cancel(); }
     };
     wc.once('destroyed', cancel);
-    wc.on('did-start-navigation', nav);
+    if (!opts.keepOnNavigate) wc.on('did-start-navigation', nav);
     this.push();
   }
 
@@ -758,7 +790,7 @@ export class OsWindow implements TabHost {
     const wc = this.shown?.wc;
     const p = wc && !this.panel ? this.prompts.find((x) => x.wcId === wc.id) : undefined;
     if (!p) return null;
-    const text = p.kinds.length === 2 ? t('perm_q_camera_mic', p.host) : t(Perms.kind(p.kinds[0])!.askKey, p.host);
+    const text = p.text ? p.text : p.kinds.length === 2 ? t('perm_q_camera_mic', p.host) : t(Perms.kind(p.kinds[0])!.askKey, p.host);
     return { id: p.id, text, canRemember: !this.incognito };
   }
 
@@ -931,7 +963,8 @@ export class OsWindow implements TabHost {
 
   openTab(url: string, opener: TabView, foreground: boolean): void {
     if (!this.incognito && opener.key.split(':')[0] !== String(this.profile)) return;
-    this.newTab(url, { after: Tabs.isTab(opener.id) || this.incognito ? opener.id : null, foreground });
+    const id = this.newTab(url, { after: Tabs.isTab(opener.id) || this.incognito ? opener.id : null, foreground });
+    this.openers.set(id, opener.id);
   }
 
   addNote(text: string, url: string): void {
@@ -1086,6 +1119,9 @@ export function profileInfo(id: number): ProfileInfo {
     active: [...windows].some((w) => w.liveTabs().some((v) => v.key.startsWith(`${id}:`))),
     pins: Pins.all(id),
     ownPins: Pins.hasOwn(id),
+    pinned: Profiles.isPinned(id),
+    current: (Tabs.tabsFile.get().lastProfile ?? Profiles.sorted()[0]) === id,
+    folder: Profiles.folderOf(id),
   };
 }
 
@@ -1118,4 +1154,76 @@ export function byWebContents(wc: WebContents): { win: OsWindow; role: 'chrome' 
     if (w.page.webContents === wc) return { win: w, role: 'page' };
   }
   return null;
+}
+
+// --- Скачивание и отправка файлов: разрешения сайта (§4) ---
+
+/** Вкладка ещё ничего не показала — её открыли только ради файла. */
+const isBlank = (tab: TabView) => {
+  const u = tab.wc.mainFrame?.url ?? '';
+  return (!u || u === 'about:blank') && !tab.wc.navigationHistory.canGoBack() && (Tabs.isTab(tab.id) || tab.key.startsWith('i:'));
+};
+
+/**
+ * Можно ли сайту скачать файл: «Запретить» — загрузка не начинается, «Разрешить» — сразу, «Спросить»
+ * (по умолчанию) — файл качается, а в окне висит карточка вопроса; «Запретить» в ней удаляет файл.
+ */
+function downloadGate(r: Downloads.GateRequest): Downloads.GateAnswer {
+  const wc = r.wc && !r.wc.isDestroyed() ? r.wc : null;
+  const w = wc ? [...windows].find((x) => x.owns(wc)) : undefined;
+  const tab = w && wc ? w.tabOf(wc) : undefined;
+  const blank = !!tab && isBlank(tab);
+  const opener = blank && w ? w.openerOf(tab!) : undefined;
+  // Чей это файл: страница вкладки, а у пустой вкладки — страница, которая её открыла.
+  const page = blank ? opener?.url() ?? '' : tab?.url() ?? '';
+  const host = hostOf(isWebUrl(page) ? page : r.url);
+  const mode = host ? permissionMode(r.ses, host, 'downloads') : 'ALLOW';
+  if (blank) setTimeout(() => { if (!tab!.wc.isDestroyed()) w!.closeBlankTab(tab!); }, 0);
+  if (mode === 'BLOCK') {
+    w?.toast(t('perm_blocked_for', t('perm_downloads'), host));
+    return 'block';
+  }
+  if (mode === 'ALLOW' || !w) return 'allow';
+  return new Promise<boolean>((resolve) => {
+    const ask = () => {
+      const target = blank ? (opener && !opener.wc.isDestroyed() ? opener.wc : w.activeWebContents()) : wc;
+      if (!target || target.isDestroyed()) { resolve(true); return; }
+      w.askPermission(target, host, ['downloads'], (allow, remember) => {
+        if (remember) sessionRemember.get(r.ses)?.(host, 'downloads', allow);
+        resolve(allow);
+      }, { text: t('perm_q_downloads', host, r.name), keepOnNavigate: true });
+    };
+    if (blank) setTimeout(ask, 0);
+    else ask();
+  });
+}
+Downloads.setGate(downloadGate);
+
+/**
+ * Отправка файлов (<input type=file>): preload вкладки спрашивает перед окном выбора файла.
+ * По умолчанию «Разрешено»; «Запретить» — окно не открывается; «Спросить» — карточка, после «Разрешить»
+ * окно выбора открывается (жест пользователя даёт главный процесс).
+ */
+export function installUploads(): void {
+  ipcMain.on('tab:upload', (e) => {
+    let mode: Perms.Mode = 'ALLOW';
+    for (const w of windows) {
+      const tab = w.tabOf(e.sender);
+      if (!tab) continue;
+      const host = hostOf(tab.url());
+      if (!host) break;
+      mode = permissionMode(tab.wc.session, host, 'uploads');
+      if (mode === 'BLOCK') w.toast(t('perm_blocked_for', t('perm_uploads'), host));
+      if (mode === 'ASK') {
+        const wc = tab.wc;
+        w.askPermission(wc, host, ['uploads'], (allow, remember) => {
+          if (remember) sessionRemember.get(wc.session)?.(host, 'uploads', allow);
+          if (!allow || wc.isDestroyed()) return;
+          void wc.executeJavaScript('0', true).then(() => { if (!wc.isDestroyed()) wc.send('tab:upload-go'); }).catch(() => {});
+        }, { text: t('perm_q_uploads', host) });
+      }
+      break;
+    }
+    e.returnValue = mode;
+  });
 }

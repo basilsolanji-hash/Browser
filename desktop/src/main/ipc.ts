@@ -33,6 +33,8 @@ import { applyAcceptLanguage, openExternal } from './security';
 import { spawn } from 'node:child_process';
 import * as Updater from './updater';
 import { LANGS, LANG_NAMES } from '../shared/format';
+import { countSince, sinceFor } from '../shared/days';
+import * as ClearHooks from './clearhooks';
 import type { Suggestion, UiInit } from '../shared/types';
 
 /** Адрес для отзывов — тот же, что в Android-версии (HelpActivity.FEEDBACK_EMAIL). */
@@ -100,7 +102,7 @@ on(['chrome'], 'overlay', (w, open) => w.setOverlay(open === true));
 on(['chrome'], 'zoom', (w, step) => w.zoom(Math.sign(int(step))));
 on(['chrome'], 'fullscreen', (w) => w.win.setFullScreen(!w.win.isFullScreen()));
 on(['chrome'], 'copy', (_w, text) => clipboard.writeText(str(text, 8000)));
-on(['chrome'], 'profileList', () => Profiles.order().map(profileInfo));
+on(['chrome'], 'profileList', () => Profiles.sorted().map(profileInfo));
 on(['chrome'], 'suggest', (w, text) => suggest(w, str(text, 500)));
 // Пустой ввод: плитки частых сайтов профиля (в инкогнито истории нет).
 on(['chrome'], 'frequent', (w) => (w.profile != null && !w.incognito ? frequentSites(History.list(w.profile)) : []));
@@ -251,8 +253,32 @@ on(['page'], 'favRemoveFolder', (_w, name, keep) => { Bookmarks.removeFolder(str
 on(['page'], 'lastProfile', () => Tabs.tabsFile.get().lastProfile ?? Profiles.order()[0]);
 
 // --- Загрузки ---
-on(['page'], 'downloads', () => ({ list: Downloads.list(), folder: Downloads.folder() }));
-on(['page'], 'dlOpen', (_w, id) => Downloads.open(str(id, 100)));
+on(['page'], 'downloads', async () => ({
+  list: Downloads.list().map((d) => ({ ...d, eta: Downloads.eta(d), urlChain: undefined })),
+  folder: Downloads.folder(),
+  disk: await Downloads.disk(),
+  openWith: process.platform === 'win32',
+}));
+// PDF, картинки и текст — во вкладке Оси (профиль загрузки), остальное — системным приложением.
+on(['page'], 'dlOpen', async (w, id) => {
+  const i = str(id, 100);
+  const view = Downloads.viewUrl(i);
+  const p = Downloads.profileOf(i);
+  if (view && p != null && Profiles.exists(p) && !w.incognito) {
+    w.openProfile(p);
+    w.newTab(view);
+    return true;
+  }
+  return Downloads.open(i);
+});
+on(['page'], 'dlOpenWith', (_w, id) => Downloads.openWith(str(id, 100)));
+on(['page'], 'dlDelete', (_w, id) => Downloads.deleteFile(str(id, 100)));
+on(['page'], 'dlCopy', (_w, id, what) => {
+  const d = Downloads.list().find((x) => x.id === str(id, 100));
+  if (!d) return false;
+  clipboard.writeText(what === 'url' ? d.url : d.path);
+  return true;
+});
 on(['page'], 'dlShow', (_w, id) => Downloads.show(str(id, 100)));
 on(['page'], 'dlCancel', (_w, id) => Downloads.cancel(str(id, 100)));
 on(['page'], 'dlPause', (_w, id) => Downloads.pause(str(id, 100)));
@@ -292,23 +318,61 @@ on(['page'], 'stats', () => {
 });
 on(['page'], 'statsReset', () => Stats.reset());
 
-// --- Очистка данных профиля ---
-on(['page'], 'clearData', async (w, profile, what) => {
+// --- «Удалить данные о работе в браузере» (ClearDataActivity.kt) ---
+on(['page'], 'clearInfo', (_w, profile, range) => {
+  const p = profileArg(profile);
+  const since = sinceFor(str(range, 40), Date.now());
+  return {
+    profile: profileInfo(p),
+    history: countSince(History.list(p), (v) => v.d, since),
+    tabs: Tabs.list(p).length,
+    passwords: ClearHooks.passwordCount(p, since),
+    sites: Object.keys(Perms.sites(p)).length,
+  };
+});
+on(['page'], 'clearData', async (_w, profile, what) => {
   const p = profileArg(profile);
   const o = (what ?? {}) as Record<string, unknown>;
-  if (o.history === true) History.clear(p);
-  if (o.cache === true) for (let id = 1; id <= profileCount(); id++) await profileSession(id).clearCache();
-  if (o.logout === true) await clearProfile(p);
+  const since = sinceFor(str(o.range, 40), Date.now());
+  const ses = profileSession(p);
+  if (o.history === true) History.clearSince(p, since);
+  // Cookies и данные сайтов — для всего профиля (движок не удаляет их за период).
+  if (o.cookies === true) {
+    await ses.clearStorageData();
+    await ses.clearAuthCache();
+    Profiles.forget(p);
+    for (const w of windows) for (const v of w.liveTabs()) if (v.key.startsWith(`${p}:`) && !v.wc.isDestroyed()) v.wc.reload();
+  }
+  if (o.cache === true) await ses.clearCache();
+  if (o.tabs === true) {
+    const ids = Tabs.list(p).map((x) => x.id);
+    for (const w of windows) {
+      if (w.incognito) continue;
+      if (w.profile === p) w.closeTabs(ids);
+      else w.dropProfileViews(p);
+    }
+    Tabs.closeAll(p);
+  }
+  if (o.passwords === true) await ClearHooks.removePasswords(p, since);
+  if (o.sites === true) Perms.clearProfile(p);
   broadcast();
-  void w;
   return true;
 });
 
 // --- Экран профилей ---
 on(['page'], 'profiles', () => ({
-  list: Profiles.order().map(profileInfo),
+  list: Profiles.sorted().map(profileInfo),
   count: profileCount(),
+  folders: Profiles.folders(),
+  collapsed: Profiles.collapsed(),
+  view: Profiles.view(),
 }));
+on(['page'], 'setPinned', (_w, id, on) => { Profiles.setPinned(profileArg(id), on === true); broadcast(); });
+on(['page'], 'setFolder', (_w, id, name) => { Profiles.setFolder(profileArg(id), str(name, 60)); broadcast(); });
+on(['page'], 'renameFolder', (_w, from, to) => { Profiles.renameFolder(str(from, 60), str(to, 60)); broadcast(); });
+on(['page'], 'removeFolder', (_w, name) => { Profiles.removeFolder(str(name, 60)); broadcast(); });
+on(['page'], 'setCollapsed', (_w, name, on) => { Profiles.setCollapsed(str(name, 60), on === true); });
+on(['page'], 'setView', (_w, v) => { Profiles.setView(str(v, 10)); });
 on(['page'], 'setOrder', (_w, ids) => {
   const n = Array.isArray(ids) ? ids.map(int).filter(Profiles.exists) : [];
   Profiles.setOrder([...n, ...Profiles.order().filter((x) => !n.includes(x))]);

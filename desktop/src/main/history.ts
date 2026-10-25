@@ -28,6 +28,12 @@ export function setTitle(profile: number, url: string, title: string): void {
   historyFile.update(() => { first.t = title; });
 }
 
+/** Удалить записи начиная с [since] (мс); 0 — всю историю профиля. */
+export function clearSince(profile: number, since: number): void {
+  if (since <= 0) clear(profile);
+  else historyFile.update((d) => { d.h[profile] = list(profile).filter((v) => v.d < since); });
+}
+
 export function clear(profile: number): void {
   historyFile.update((d) => { delete d.h[profile]; });
 }

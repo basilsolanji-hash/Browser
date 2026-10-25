@@ -3,3 +3,9 @@
 .head input { font-size: 20px; font-weight: 700; flex: 1; }
 .file .ic { color: var(--muted); }
 .saved-note { color: var(--muted); font-size: 12px; min-height: 16px; }
+.plink { width: 100%; color: inherit; text-decoration: none; border: 0; border-bottom: 1px solid var(--border); background: none; text-align: start; }
+.plink:hover { background: color-mix(in srgb, var(--text) 5%, transparent); }
+.plink > .ic { color: var(--muted); }
+.plink.danger, .plink.danger > .ic { color: var(--accent); }
+.btn.on { border-color: var(--accent); color: var(--accent); }
+.hint.cur { display: flex; align-items: center; gap: 6px; color: var(--accent); }
