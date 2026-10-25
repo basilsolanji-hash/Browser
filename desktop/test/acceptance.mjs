@@ -1544,19 +1544,22 @@ try {
     const cab3 = await page('os://cabinet/');
     await cab3.waitForSelector('#backup-export');
     const toastIs = (text) => waitFor(async () => (await cab3.textContent('.toast').catch(() => null)) === text, 4000);
+    check('Личный кабинет: backup warns that the file is protected only by its password', !!(await cab3.$('#backup-warning')));
+    for (const weak of ['12345', 'abcdef', '1234567890123']) {
+      await cab3.click('#backup-export');
+      await cab3.fill('#f-bpw', weak);
+      await cab3.fill('#f-bpw2', weak);
+      await cab3.click('#form-ok');
+      check(`Личный кабинет: weak backup password «${weak}» is refused (10+ chars, not only digits)`, (await toastIs(strings.dt_backup_pw_rule)) && !existsSync(bfile));
+    }
     await cab3.click('#backup-export');
-    await cab3.fill('#f-bpw', '12345');
-    await cab3.fill('#f-bpw2', '12345');
-    await cab3.click('#form-ok');
-    check('Личный кабинет: backup password shorter than 6 is refused', (await toastIs(strings.backup_pw_short)) && !existsSync(bfile));
-    await cab3.click('#backup-export');
-    await cab3.fill('#f-bpw', 'Kopiya-77');
+    await cab3.fill('#f-bpw', 'Kopiya-777x');
     await cab3.fill('#f-bpw2', 'Kopiya-78');
     await cab3.click('#form-ok');
     check('Личный кабинет: backup passwords must match', (await toastIs(strings.backup_pw_mismatch)) && !existsSync(bfile));
     await cab3.click('#backup-export');
-    await cab3.fill('#f-bpw', 'Kopiya-77');
-    await cab3.fill('#f-bpw2', 'Kopiya-77');
+    await cab3.fill('#f-bpw', 'Kopiya-777x');
+    await cab3.fill('#f-bpw2', 'Kopiya-777x');
     await cab3.click('#form-ok');
     const written = await waitFor(() => existsSync(bfile) && readFileSync(bfile, 'utf8'));
     const bj = written ? JSON.parse(written) : {};
@@ -1575,7 +1578,7 @@ try {
       bad === strings.backup_bad && !(readJson('passwords').profiles['3'] ?? []).length, String(bad));
     await keyScreen('41-backup-wrong-password', 'page');
     await cab4.click('#backup-import');
-    await cab4.fill('#f-bpw', 'Kopiya-77');
+    await cab4.fill('#f-bpw', 'Kopiya-777x');
     await cab4.click('#form-ok');
     const restored = await waitFor(() => cab4.textContent('#restored').catch(() => null), 8000);
     check('Личный кабинет: restore shows what was restored (2 passwords, 1 set, 0 favorites, 0 notes)',
@@ -1589,7 +1592,7 @@ try {
     check('Личный кабинет: favorites and notes not duplicated', (readJson('bookmarks')?.list ?? []).length === favCount && (readJson('notes')?.list ?? []).length === noteCount,
       `${favCount} ${noteCount}`);
     await cab4.click('#backup-import');
-    await cab4.fill('#f-bpw', 'Kopiya-77');
+    await cab4.fill('#f-bpw', 'Kopiya-777x');
     await cab4.click('#form-ok');
     const again = await waitFor(() => cab4.textContent('#restored').catch(() => null), 8000);
     await flush();

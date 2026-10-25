@@ -42,3 +42,9 @@ test('strength: weak / fair / strong / very strong (as PasswordGen.strength)', (
   assert.equal(strength(generate(16)), 3);
   assert.equal(strength(generate(8)), 1);
 });
+
+test('backup password: at least 10 chars, not only digits, not a common one', async () => {
+  const { backupPasswordOk } = await import('../../src/shared/pwgen.ts');
+  for (const p of ['abcdef', 'abcdefghi', '1234567890123', 'aaaaaaaaaaaa', 'Password1', 'qwertyuiop', 'ababababab']) assert.equal(backupPasswordOk(p), false, p);
+  for (const p of ['Sunny-Harbor-42', 'correct horse battery', 'Мой пароль копии', 'tea4two-cups']) assert.equal(backupPasswordOk(p), true, p);
+});

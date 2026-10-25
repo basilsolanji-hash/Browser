@@ -1,7 +1,7 @@
 import { boot, h, icon, iconButton, os, t } from '../shared/ui';
 import { confirmDialog, contextMenu, modal, param, toast } from './common';
 import type { ProfileInfo } from '../shared/types';
-import { MAX_LEN, MIN_LEN, STRENGTH_KEYS, generate, strength } from '../shared/pwgen';
+import { MAX_LEN, MIN_LEN, STRENGTH_KEYS, backupPasswordOk, generate, strength } from '../shared/pwgen';
 
 /**
  * Личный кабинет профиля (AccountActivity.kt): пароли (зашифрованы ключом Windows), наборы вкладок,
@@ -102,6 +102,8 @@ async function render(): Promise<void> {
       h('button', { class: 'btn', id: 'backup-export', onclick: () => void exportBackup() }, icon('saved', 18), t('backup_export')),
       h('button', { class: 'btn', id: 'backup-import', onclick: () => void importBackup() }, icon('history', 18), t('backup_import'))),
     h('div', { class: 'hint' }, t('dt_backup_desc')),
+    h('div', { class: 'hint', id: 'backup-warning' }, t('dt_backup_warning')),
+    h('div', { class: 'hint', id: 'backup-warning' }, t('dt_backup_warning')),
   );
 }
 
@@ -195,9 +197,20 @@ const pwFields = (confirm: boolean): Field[] => [
 ];
 
 async function exportBackup(): Promise<void> {
+  // Индикатор надёжности под паролем копии — обновляется при вводе.
+  const meter = () => {
+    const i = document.getElementById('f-bpw') as HTMLInputElement | null;
+    if (!i || document.getElementById('bpw-meter')) return;
+    const m = h('div', { class: 'sub', id: 'bpw-meter', 'aria-live': 'polite' }, t('dt_backup_pw_rule'));
+    i.after(m);
+    i.addEventListener('input', () => {
+      m.textContent = i.value ? `${t(STRENGTH_KEYS[strength(i.value)])}${backupPasswordOk(i.value) ? '' : ' · ' + t('dt_backup_pw_rule')}` : t('dt_backup_pw_rule');
+    });
+  };
+  setTimeout(meter, 0);
   const r = await form(t('backup_pw'), pwFields(true), 'OK');
   if (!r) return;
-  if (r[0].length < 6) { toast(t('backup_pw_short')); return; }
+  if (!backupPasswordOk(r[0])) { toast(t('dt_backup_pw_rule')); return; }
   if (r[0] !== r[1]) { toast(t('backup_pw_mismatch')); return; }
   const res = await os.call<string>('backupExport', id, r[0], r[1]);
   if (res === 'ok') toast(t('backup_done'));

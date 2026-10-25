@@ -24,7 +24,7 @@ import * as Passwords from './passwords';
 import * as TabSets from './tabsets';
 import * as Backup from './backup';
 import { verify } from './hello';
-import { MIN_PASSWORD } from './backupcrypto';
+import { backupPasswordOk } from '../shared/pwgen';
 import { blocklistSize } from './privacy';
 import * as DefaultBrowser from './defaultbrowser';
 import * as Diag from './diag';
@@ -673,7 +673,7 @@ on(['page'], 'tabSetOpen', (w, profile, id) => {
 on(['page'], 'tabSetRemove', (_w, profile, id) => { TabSets.remove(profileArg(profile), str(id, 100)); broadcast(); });
 on(['page'], 'backupExport', (w, profile, pw, again) => {
   const a = str(pw, 500);
-  if (a.length < MIN_PASSWORD) return 'short';
+  if (!backupPasswordOk(a)) return 'short';
   if (a !== str(again, 500)) return 'mismatch';
   return Backup.exportTo(w.win, profile === 0 ? 0 : profileArg(profile), a);
 });

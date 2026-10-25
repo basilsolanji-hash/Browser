@@ -5,7 +5,8 @@ import * as TabSets from './tabsets';
 import * as Bookmarks from './bookmarks';
 import * as Notes from './notes';
 import * as Profiles from './profiles';
-import { type BackupAll, type BackupData, type BackupFile, MIN_PASSWORD, decrypt, encrypt, isAll, merge } from './backupcrypto';
+import { backupPasswordOk } from '../shared/pwgen';
+import { type BackupAll, type BackupData, type BackupFile, decrypt, encrypt, isAll, merge } from './backupcrypto';
 import { profileCount } from './settings';
 
 /**
@@ -71,7 +72,8 @@ const stamp = () => new Date().toISOString().slice(0, 10).replace(/-/g, '');
 
 /** profile 0 — все профили. 'ok' | 'cancel' | 'short' | 'error'. */
 export async function exportTo(win: BrowserWindow, profile: number, password: string): Promise<string> {
-  if (password.length < MIN_PASSWORD) return 'short';
+  // Новые копии — только с надёжным паролем; открыть старую (от 6 символов) по-прежнему можно.
+  if (!backupPasswordOk(password)) return 'short';
   const name = profile === 0 ? 'all-profiles' : Profiles.name(profile).replace(/[^\p{L}\p{N}]/gu, '') || 'profile';
   let path = testPath;
   if (!path) {
