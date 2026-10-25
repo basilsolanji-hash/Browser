@@ -619,9 +619,8 @@ function mainMenu(anchor: DOMRect): void {
     groups.push([
       { label: t('settings'), icon: 'settings', run: panel('os://settings/') },
       { label: t('help_feedback'), icon: 'help', run: panel('os://help/') },
-      ...(st.lockEnabled ? [{ label: t('dt_lock_now'), icon: 'lock', run: () => void os.call('lockNow') }] : []),
+      ...(st.isDefault ? [] : [{ label: t('default_make'), icon: 'globe', run: () => void os.call('makeDefault') }]),
     ]);
-    if (!st.isDefault) groups.push([{ label: t('default_make'), icon: 'globe', run: () => void os.call('makeDefault') }]);
   }
   const items: Item[] = [{ el: top }];
   for (const g of groups) items.push({ sep: true }, ...g);
@@ -647,6 +646,7 @@ function moreTools(anchor: DOMRect, web: boolean, id: number | undefined): void 
     { label: t('dt_print'), icon: 'file', kbd: 'Ctrl+P', disabled: !web, run: () => void os.call('print') },
     { sep: true },
     { k: 'diag', label: t('diagnostics'), icon: 'bug', run: () => void diagnostics(anchor) },
+    ...(st?.lockEnabled ? [{ label: t('dt_lock_now'), icon: 'lock', run: () => void os.call('lockNow') }] : []),
   ];
   const box = menu(items);
   box.classList.add('main-menu');
