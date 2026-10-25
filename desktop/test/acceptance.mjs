@@ -56,11 +56,17 @@ let bigDrop = true;
 const uploaded = [];
 const server = createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
-  seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '', range: req.headers.range });
+  seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '', range: req.headers.range, lang: req.headers['accept-language'] });
   res.setHeader('content-type', 'text/html; charset=utf-8');
   if (u.pathname === '/set') {
     res.setHeader('set-cookie', `os_test=${u.searchParams.get('p')}; Path=/; Max-Age=86400`);
     res.end(`<title>Set ${u.searchParams.get('p')}</title><h1>cookie set</h1>`);
+  } else if (u.pathname === '/sound') {
+    // Звук после нажатия (§15): плеер включается через секунду после щелчка.
+    res.end(`<title>Sound</title><button id="b" style="width:200px;height:80px">play</button><script>
+      window.before = new AudioContext().state;
+      document.getElementById('b').onclick = () => setTimeout(() => { const c = new AudioContext(); window.after = c.state; }, 1000);
+    </script>`);
   } else if (u.pathname === '/get') {
     res.end(`<title>Get</title><h1 id="c">${(req.headers.cookie ?? '').replace(/</g, '')}</h1><script>document.title='Get '+(document.cookie||'none')</script>`);
   } else if (u.pathname === '/big.bin') {
@@ -869,7 +875,7 @@ try {
     await main(() => globalThis.osTest.windows()[0].openPanel('os://help/'));
     const hp4 = await page('os://help/');
     await hp4.waitForSelector('.qa');
-    check('help has 6 answers and a feedback address', (await hp4.$$eval('.qa', (e) => e.length)) === 6 && (await hp4.textContent('body')).includes('@gmail.com'));
+    check('help has 6 answers and a feedback address', (await hp4.$$eval('.qa', (e) => e.length)) === 6 && (await hp4.textContent('body')).includes('hello@os-browser.com'));
     await keyScreen('25-help', 'page');
 
     // --- 26. Язык во всех окнах сразу ---
@@ -1049,6 +1055,150 @@ try {
     // --- 33. Свои страницы без ошибок скриптов ---
     step('33. Свои страницы (os://) отработали без ошибок скриптов');
     check('no script errors on own pages (os://)', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
+
+    // --- 34. Меню ⋮ как в Chrome (WINDOWS_SYNC §1) ---
+    step('34. Меню ⋮: ряд кнопок, группы, избранное, мобильная версия, диагностика');
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
+    await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/set?p=menu`);
+    const s34a = await waitFor(async () => { const x = await state(); return x.url.includes('p=menu') && !x.loading && x; });
+    check('menu: test page opened in a profile tab', s34a && !s34a.panel, JSON.stringify(s34a && { panel: s34a.panel, url: s34a.url }));
+    const menuReq = seen.filter((r) => r.path === '/set?p=menu').pop();
+    const appLang = readJson('settings')?.lang;
+    check('sites get Accept-Language = app language', appLang && menuReq?.lang?.startsWith(appLang), `${appLang} / ${menuReq?.lang}`);
+    const mui = await waitFor(() => app.windows().find((p) => !p.isClosed() && p.url().startsWith('os://ui') && !p.url().includes('incognito')));
+    if (!(await mui.waitForSelector('#more', { timeout: 5000 }).catch(() => null))) await windowShot('34-no-menu-button');
+    const openMenu = async () => {
+      if (await mui.$('.main-menu')) { await mui.keyboard.press('Escape'); await mui.waitForSelector('.main-menu', { state: 'detached' }); }
+      await mui.click('#more');
+      await mui.waitForSelector('.main-menu');
+    };
+    await openMenu();
+    const shape = await mui.evaluate(() => {
+      const m = document.querySelector('.main-menu');
+      const r = m.getBoundingClientRect();
+      return {
+        round: m.querySelectorAll('.toprow .round').length,
+        backDisabled: m.querySelector('.toprow .round').disabled,
+        groups: m.querySelectorAll('.sep').length,
+        icons: [...m.querySelectorAll(':scope > button')].every((b) => b.querySelector('.ic svg')),
+        fits: r.bottom <= window.innerHeight + 1 && r.right <= window.innerWidth + 1 && r.width < window.innerWidth,
+        height: m.scrollHeight,
+        cut: [...m.querySelectorAll('.grow')].filter((g) => g.scrollWidth > g.clientWidth + 1).map((g) => g.textContent),
+        labels: [...m.querySelectorAll('.toprow .round')].every((b) => b.getAttribute('aria-label')),
+      };
+    });
+    const s34 = await state();
+    check('menu: row of 5 round buttons with labels', shape.round === 5 && shape.labels, JSON.stringify(shape));
+    check('menu: Back disabled when there is nowhere to go', shape.backDisabled === !s34.canBack);
+    check('menu: groups divided by lines, every item has an icon', shape.groups >= 5 && shape.icons, JSON.stringify(shape));
+    check('menu: fits a 768 px laptop screen (rare items under «More tools»)', shape.height <= 660, `height=${shape.height}`);
+    check('menu: labels are not cut off', shape.cut.length === 0, shape.cut.join(' | '));
+    check('menu: card at the corner, not full screen, fits the window', shape.fits);
+    await keyScreen('34-menu', 'chrome');
+    await mui.click('.main-menu .toprow .round:nth-child(3)');
+    check('menu: star adds the page to favorites', await waitFor(async () => (await state()).bookmarked));
+    await openMenu();
+    check('menu: star shows as pressed', (await mui.getAttribute('.main-menu .toprow .round:nth-child(3)', 'aria-pressed')) === 'true');
+    const openMore = async () => { await openMenu(); await mui.click('.main-menu [data-k="more-tools"]'); await mui.waitForSelector('.main-menu [data-k="back-menu"]'); };
+    await openMore();
+    await keyScreen('34-more-tools', 'chrome');
+    await mui.click('.main-menu [data-k="mobile"]');
+    const tabPage = await page(`${SITE}/set?p=menu`);
+    check('menu: mobile site switches the User-Agent', await waitFor(async () => /Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => ''))));
+    await openMore();
+    check('menu: mobile site item is checked', (await mui.getAttribute('.main-menu [data-k="mobile"]', 'aria-checked')) === 'true');
+    await mui.click('.main-menu [data-k="mobile"]');
+    check('menu: mobile site off restores the desktop User-Agent', await waitFor(async () => !/Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => 'Mobile'))));
+    await openMore();
+    await mui.click('.main-menu [data-k="diag"]');
+    const diag = await mui.waitForSelector('#diag-text').then((e) => e.textContent()).catch(() => '');
+    check('menu: diagnostics shows version and page log', diag.includes('p=menu') && /Ось \d/.test(diag), diag.slice(0, 200));
+    await keyScreen('34-diagnostics', 'chrome');
+    await mui.keyboard.press('Escape');
+    await openMenu();
+    await mui.click('.main-menu [data-k="group"]');
+    const tp = await page('os://tabs/');
+    check('menu: New tab group asks for the group name', tp && await tp.waitForSelector('.modal input', { timeout: 5000 }).then(() => true).catch(() => false));
+    await tp?.keyboard.press('Escape');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+
+    // --- 35. Панель адресной строки как в Chrome (WINDOWS_SYNC §3) ---
+    step('35. Адресная строка: поисковик, «Очистить», карточка страницы, частые сайты, прошлые запросы, ↖');
+    await main(() => {
+      globalThis.osTest.addHistory(1, 'https://duckduckgo.com/?q=weather+moscow', 'weather moscow at DuckDuckGo');
+      globalThis.osTest.addHistory(1, 'https://yandex.ru/search/?text=weather+spb&lr=2', '');
+    });
+    await waitFor(async () => !(await state()).panel);
+    await mui.click('#address');
+    await mui.waitForSelector('.addr-panel', { timeout: 5000 }).catch(() => null);
+    const empty = await mui.evaluate(() => ({
+      engine: window.getComputedStyle(document.getElementById('engine')).display !== 'none' && document.getElementById('engine')?.dataset.engine,
+      lockHidden: [...document.querySelectorAll('#addr > .ic')].every((x) => window.getComputedStyle(x).display === 'none'),
+      card: !!document.querySelector('.addr-panel .pagecard'),
+      tiles: [...document.querySelectorAll('.addr-panel .tile')].map((x) => [x.title, x.querySelector('.lbl').textContent]),
+      clear: !document.getElementById('addr-clear')?.hidden,
+      net: [...document.querySelectorAll('.addr-panel img')].length,
+    }));
+    check('address: engine badge on the left while typing (instead of the lock)', !!empty.engine && empty.lockHidden, JSON.stringify(empty));
+    check('address: current page card on empty input', empty.card);
+    check('address: frequent sites tiles (letter + page title, not domain)', empty.tiles.length > 0 && empty.tiles.length <= 8 && empty.tiles.some(([h, l]) => l && l !== h), JSON.stringify(empty.tiles));
+    check('address: tiles do not load icons from the network', empty.net === 0);
+    check('address: clear button shown when there is text', empty.clear);
+    await keyScreen('35-address-empty', 'chrome');
+    await mui.fill('#address', '');
+    await mui.keyboard.type('weath', { delay: 10 });
+    await mui.waitForSelector('.addr-panel .hint-row[data-kind="query"]', { timeout: 5000 }).catch(() => null);
+    const rows = await mui.$$eval('.addr-panel .hint-row', (els) => els.map((e) => [e.dataset.kind, e.querySelector('.ttl').textContent, !!e.querySelector('.fill')]));
+    check('address: first row is the typed query itself', rows[0]?.[0] === 'search' && rows[0][1].includes('weath') && !rows[0][2], JSON.stringify(rows));
+    check('address: past search queries from history (q=, text=)', rows.filter((r) => r[0] === 'query').map((r) => r[1]).join('|') === 'weather spb|weather moscow', JSON.stringify(rows));
+    check('address: every row except the first has ↖ «fill in»', rows.slice(1).every((r) => r[2]));
+    await keyScreen('35-address-typing', 'chrome');
+    await mui.click('.addr-panel .hint-row[data-kind="query"] .fill');
+    check('address: ↖ puts the suggestion into the field', await waitFor(async () => (await mui.inputValue('#address')) === 'weather spb'), await mui.inputValue('#address'));
+    await mui.click('#addr-clear');
+    check('address: × clears the field and shows tiles again', await waitFor(async () => (await mui.inputValue('#address')) === '' && (await mui.$('.addr-panel .tile')) !== null));
+    await mui.keyboard.press('Escape');
+
+    // --- 36. Звук после нажатия (WINDOWS_SYNC §15) ---
+    step('36. Звук: сам сайт не включает, после нажатия плеер играет со звуком');
+    await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/sound`);
+    const snd = await page(`${SITE}/sound`);
+    await snd.waitForLoadState();
+    check('no sound without a user action (autoplay blocked)', (await snd.evaluate(() => window.before)) === 'suspended', await snd.evaluate(() => window.before));
+    await snd.click('#b');
+    const after = await waitFor(() => snd.evaluate(() => window.after), 5000);
+    check('sound allowed for a player started shortly after a click', after === 'running', String(after));
+
+    // --- 37. Микрофон, камера, геолокация: «Разрешить» и понятный запрет (WINDOWS_SYNC §18) ---
+    step('37. Разрешения: «Разрешить» по умолчанию для камеры и микрофона, запрет — с подсказкой');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://site/?profile=1'));
+    const sp = await page('os://site/');
+    await sp.waitForSelector('#d-camera');
+    const segs = await sp.$$eval('#d-location button, #d-camera button, #d-microphone button', (b) => b.length);
+    check('location, camera and microphone defaults: Ask · Allow · Block', segs === 9, `buttons=${segs}`);
+    await keyScreen('37-site-permissions', 'page');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'location', 'BLOCK'));
+    await snd.evaluate(() => { window.navigator.geolocation.getCurrentPosition(() => {}, () => {}); });
+    const ui37 = await page('os://ui');
+    const toast37 = await ui37.waitForSelector('.toast', { timeout: 5000 }).then((e) => e.textContent()).catch(() => '');
+    check('blocked permission is explained (site settings), not silent', /127\.0\.0\.1/.test(toast37), toast37);
+    await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'location', null));
+
+    // --- 38. Кнопка на панели на выбор (WINDOWS_SYNC §6) ---
+    step('38. Кнопка справа от адресной строки: по умолчанию «Скачанные файлы», меняется в настройках');
+    check('toolbar button defaults to Downloads', (await ui37.getAttribute('#tb-btn', 'data-k')) === 'downloads');
+    await ui37.click('#tb-btn');
+    check('toolbar button opens Downloads', await page('os://downloads/', 5000));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    const st38 = await page('os://settings/');
+    await st38.selectOption('#toolbar-button', 'find');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    check('toolbar button switched to «Find on page»', await waitFor(async () => (await ui37.getAttribute('#tb-btn', 'data-k')) === 'find'));
+    await ui37.click('#tb-btn');
+    check('find button opens the find bar', await waitFor(async () => !!(await state()).find));
+    await keyScreen('38-toolbar-find', 'chrome');
+    await key('Escape');
   }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));

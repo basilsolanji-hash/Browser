@@ -6,10 +6,10 @@ import { pinEditor } from './_pins';
 interface Opt { id: string; name: string }
 interface SettingsInfo {
   values: {
-    lang: string; theme: string; engine: string; profileCount: number; homeMode: string; homeUrl: string;
+    lang: string; theme: string; engine: string; toolbarButton: string; profileCount: number; homeMode: string; homeUrl: string;
     trackingProtection: boolean; httpsOnly: boolean; blockThirdPartyCookies: boolean; hideContent: boolean; lock: boolean; autoUpdate: boolean;
   };
-  langs: Opt[]; themes: Opt[]; engines: Opt[]; minProfiles: number; maxProfiles: number;
+  langs: Opt[]; themes: Opt[]; engines: Opt[]; toolbarButtons: Opt[]; minProfiles: number; maxProfiles: number;
 }
 
 const app = document.getElementById('app')!;
@@ -110,6 +110,7 @@ async function render(): Promise<void> {
       setting(t('language'), select('lang', s.langs, v.lang, (x) => void set('lang', x))),
       setting(t('theme'), select('theme', s.themes, v.theme, (x) => void set('theme', x))),
       setting(t('search_engine'), select('engine', s.engines, v.engine, (x) => void set('engine', x).then(render))),
+      setting(t('bottom_button'), select('toolbar-button', s.toolbarButtons, v.toolbarButton, (x) => void set('toolbarButton', x)), t('dt_toolbar_button_desc')),
     )),
     sec(t('privacy_security'), h('div', { class: 'card', id: 'privacy' },
       setting(t('sec_tracking'), toggle('tracking', v.trackingProtection, t('dt_on'), t('dt_off'), 'trackingProtection'), t('dt_tracking_desc')),

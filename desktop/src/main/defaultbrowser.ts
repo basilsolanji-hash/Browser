@@ -31,3 +31,42 @@ export function incomingUrl(argv: string[]): string | null {
   }
   return null;
 }
+
+let defaultCache = false;
+/** Последний известный ответ «Ось — браузер по умолчанию» (меню показывает пункт без ожидания). */
+export const isDefaultCached = () => defaultCache;
+export async function refreshDefault(): Promise<boolean> {
+  defaultCache = await isDefault();
+  return defaultCache;
+}
+
+export interface OtherBrowser { name: string; exe: string }
+
+/** Другие браузеры, установленные в Windows (StartMenuInternet), — для «Открыть в другом браузере». */
+export function otherBrowsers(): Promise<OtherBrowser[]> {
+  if (process.platform !== 'win32') return Promise.resolve([]);
+  const read = (root: string) => new Promise<string>((resolve) => {
+    execFile('reg', ['query', `${root}\\SOFTWARE\\Clients\\StartMenuInternet`, '/s'], { windowsHide: true, timeout: 5000, maxBuffer: 1 << 20 },
+      (err, out) => resolve(err ? '' : out));
+  });
+  return Promise.all([read('HKCU'), read('HKLM')]).then((outs) => {
+    const found = new Map<string, OtherBrowser>();
+    for (const out of outs) {
+      let key = '';
+      let name = '';
+      for (const line of out.split(/\r?\n/)) {
+        const k = /^HKEY_[^\\]+\\SOFTWARE\\Clients\\StartMenuInternet\\([^\\]+)(\\.*)?$/i.exec(line.trim());
+        if (k) {
+          if (!k[2]) { key = k[1]; name = key; }
+          continue;
+        }
+        const v = /^\s+\(.*\)\s+REG_\w+\s+(.+)$/.exec(line);
+        if (!v || !key || /^OsBrowser/i.test(key)) continue;
+        if (!found.has(key) && !/\.exe/i.test(v[1])) name = v[1].trim();
+        const exe = /^"([^"]+\.exe)"|^(\S+\.exe)/i.exec(v[1].trim());
+        if (exe && !found.has(key)) found.set(key, { name, exe: exe[1] ?? exe[2] });
+      }
+    }
+    return [...found.values()];
+  });
+}

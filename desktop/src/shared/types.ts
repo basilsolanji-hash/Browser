@@ -62,9 +62,21 @@ export interface WindowState {
   locked: boolean;
   lockEnabled: boolean;
   reader: boolean;
+  /** Вкладка открыта в мобильной версии сайта. */
+  mobile: boolean;
+  /** Ось — браузер по умолчанию (тогда пункт «Сделать браузером по умолчанию» не нужен). */
+  isDefault: boolean;
+  fullscreen: boolean;
+  /** Выбранный поисковик (значок слева в строке при вводе). */
+  engine: string;
+  /** Что стоит на кнопке справа от адресной строки. */
+  toolbarButton: string;
+  /** Есть хотя бы одна загрузка (кнопка «Загрузки» на панели появляется после первой). */
+  hasDownloads: boolean;
 }
 
-export interface Suggestion { kind: 'search' | 'history' | 'favorite' | 'url'; title: string; url: string }
+export interface Suggestion { kind: 'search' | 'query' | 'history' | 'favorite' | 'url'; title: string; url: string }
+export interface Tile { host: string; label: string; url: string }
 
 export interface UiInit {
   lang: string;
