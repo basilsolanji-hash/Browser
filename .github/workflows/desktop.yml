@@ -91,3 +91,37 @@ jobs:
             gh release delete-asset desktop-latest "$f" -y
           done
           gh release upload desktop-latest release/*.exe release/*.zip release/*.blockmap release/latest.yml --clobber
+
+      # Письмо со ссылками на новую сборку — только если заданы секреты Gmail (иначе шаг молча пропускается).
+      # DESKTOP_MAIL_USER — адрес Gmail отправителя, DESKTOP_MAIL_PASSWORD — «пароль приложения» Google.
+      - name: Mail release links
+        if: github.ref == 'refs/heads/main'
+        env:
+          MAIL_USER: ${{ secrets.DESKTOP_MAIL_USER }}
+          MAIL_PASSWORD: ${{ secrets.DESKTOP_MAIL_PASSWORD }}
+          MAIL_TO: BasilSolanji@Gmail.com
+          VERSION: 0.1.${{ github.run_number }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$MAIL_USER" ] || [ -z "$MAIL_PASSWORD" ]; then echo "Gmail secrets are not set — skipping"; exit 0; fi
+          python - <<'PY'
+          import os, smtplib
+          from email.message import EmailMessage
+          v, repo = os.environ["VERSION"], os.environ["REPO"]
+          base = f"https://github.com/{repo}/releases/download/desktop-latest"
+          msg = EmailMessage()
+          msg["Subject"] = f"Ось Browser для Windows {v} — новая сборка"
+          msg["From"] = os.environ["MAIL_USER"]
+          msg["To"] = os.environ["MAIL_TO"]
+          msg.set_content(
+              f"Новая сборка Ось Browser для Windows: {v}\n\n"
+              f"Портативная версия (без установки):\n{base}/Os-Browser-Portable-{v}.zip\n\n"
+              f"Установщик:\n{base}/Os-Browser-Setup-{v}.exe\n\n"
+              f"Все файлы: https://github.com/{repo}/releases/tag/desktop-latest\n\n"
+              "Программа пока без подписи кода: если Windows SmartScreen предупреждает — «Подробнее» → "
+              "«Выполнить в любом случае»; если пропал Os Browser.exe — восстановите его в журнале защиты антивируса.\n")
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+              s.login(os.environ["MAIL_USER"], os.environ["MAIL_PASSWORD"])
+              s.send_message(msg)
+          print("mail sent")
+          PY
