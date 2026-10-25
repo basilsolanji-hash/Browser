@@ -9,9 +9,9 @@ export type Mode = 'ASK' | 'ALLOW' | 'BLOCK';
 export interface Kind { key: string; titleKey: string; askKey: string; defaults: Mode[]; initial: Mode }
 
 export const KINDS: Kind[] = [
-  { key: 'location', titleKey: 'perm_location', askKey: 'perm_q_location', defaults: ['ASK', 'BLOCK'], initial: 'ASK' },
-  { key: 'camera', titleKey: 'perm_camera', askKey: 'perm_q_camera', defaults: ['ASK', 'BLOCK'], initial: 'ASK' },
-  { key: 'microphone', titleKey: 'perm_microphone', askKey: 'perm_q_microphone', defaults: ['ASK', 'BLOCK'], initial: 'ASK' },
+  { key: 'location', titleKey: 'perm_location', askKey: 'perm_q_location', defaults: ['ASK', 'ALLOW', 'BLOCK'], initial: 'ASK' },
+  { key: 'camera', titleKey: 'perm_camera', askKey: 'perm_q_camera', defaults: ['ASK', 'ALLOW', 'BLOCK'], initial: 'ASK' },
+  { key: 'microphone', titleKey: 'perm_microphone', askKey: 'perm_q_microphone', defaults: ['ASK', 'ALLOW', 'BLOCK'], initial: 'ASK' },
   { key: 'notifications', titleKey: 'perm_notifications', askKey: 'perm_q_notifications', defaults: ['ASK', 'BLOCK'], initial: 'ASK' },
   { key: 'clipboard', titleKey: 'dt_perm_clipboard', askKey: 'dt_perm_q_clipboard', defaults: ['ASK', 'BLOCK'], initial: 'ASK' },
   // Скачивание — спросить перед сохранением файла; выбор файла для отправки — само системное окно и есть

@@ -1,5 +1,6 @@
 import { app, session, shell, type Session, type WebContents } from 'electron';
 import { isWebUrl } from './urls';
+import { currentLang } from './i18n';
 
 /**
  * Правила безопасности Electron (§7 ТЗ): песочница, без Node и <webview>, свои страницы — только os://,
@@ -25,6 +26,9 @@ export const WEB_PREFS = {
   spellcheck: false, // проверка орфографии Chromium качает словари из сети
   navigateOnDragDrop: false,
   safeDialogs: true,
+  // Звук — после действия пользователя на странице, как в Chrome: видео, запущенное плеером сайта чуть
+  // позже нажатия, играет со звуком, а сам по себе сайт звук не включит.
+  autoplayPolicy: 'document-user-activation-required',
 } as const;
 
 /** Открыть во внешней программе — только веб-адреса и почту. */
@@ -33,12 +37,25 @@ export function openExternal(url: string): void {
 }
 
 const hardened = new WeakSet<Session>();
+const live: WeakRef<Session>[] = [];
+
+/** Язык сайтов (Accept-Language) = язык приложения, запасной — английский. */
+const acceptLanguages = () => {
+  const l = currentLang();
+  return l === 'en' ? 'en-US,en' : `${l},en-US;q=0.8,en;q=0.7`;
+};
+
+/** После смены языка приложения — новый Accept-Language во всех сессиях. */
+export function applyAcceptLanguage(): void {
+  for (const r of live) r.deref()?.setUserAgent(cleanUserAgent(), acceptLanguages());
+}
 
 /** Общие правила сессии профиля или инкогнито. Разрешения — «нет», пока нет экрана «спросить» (этап 3). */
 export function hardenSession(ses: Session): void {
   if (hardened.has(ses)) return;
   hardened.add(ses);
-  ses.setUserAgent(cleanUserAgent());
+  live.push(new WeakRef(ses));
+  ses.setUserAgent(cleanUserAgent(), acceptLanguages());
   // Проверка орфографии в Linux качает словари с серверов Google — выключаем полностью.
   ses.setSpellCheckerEnabled(false);
   try { ses.setSpellCheckerLanguages([]); } catch { /* в Windows и macOS — системная проверка */ }

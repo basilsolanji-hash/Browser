@@ -2,6 +2,9 @@ import { app, Menu, nativeTheme, powerMonitor } from 'electron';
 import { join } from 'node:path';
 import { registerScheme } from './protocol';
 import { installGlobalGuards, cleanUserAgent } from './security';
+import { refreshDefault } from './defaultbrowser';
+import * as History from './history';
+import * as Perms from './permissions';
 import { applyLanguage } from './i18n';
 import { flushAll } from './store';
 import { installIpc, applyTheme } from './ipc';
@@ -53,6 +56,7 @@ if (!app.requestSingleInstanceLock()) {
     applyLanguage();
     applyTheme();
     installIpc();
+    void refreshDefault();
     installNotifications();
     installUploads();
     nativeTheme.on('updated', () => { for (const w of windows) w.refreshLook(); });
@@ -98,5 +102,7 @@ if (process.env.OS_TEST === '1') {
     dist: () => join(__dirname, '..'),
     notifications: () => shownForTest(),
     clickNotification: () => clickLastForTest(),
+    setPerm: (profile: number, host: string, kind: string, mode: Perms.Mode | null) => Perms.set(profile, host, kind, mode),
+    addHistory: (profile: number, url: string, title: string) => { History.add(profile, url); History.setTitle(profile, url, title); },
   };
 }

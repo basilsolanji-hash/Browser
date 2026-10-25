@@ -3,6 +3,8 @@ import { WORDMARK } from '../shared/icons';
 import { section } from './common';
 
 /** О приложении (AboutActivity.kt): версия, движок, конфиденциальность. */
+/** Сайт Оси (AppInfo в Android): политика конфиденциальности — privacy.html (ru) и privacy-en.html. */
+const SITE = 'https://www.os-browser.com';
 const app = document.getElementById('app')!;
 app.className = 'wrap';
 
@@ -14,7 +16,10 @@ void boot(async () => {
     h('div', { class: 'ver' }, t('version', a.version)),
     h('div', { class: 'ver' }, t('dt_engine', a.chromium, a.electron)),
     h('p', { class: 'hint', style: 'text-align:center' }, t('about_desc')),
-    ...section(t('privacy_security'), h('p', { class: 'hint' }, t('about_privacy'))),
+    ...section(t('privacy_security'), h('p', { class: 'hint' }, t('about_privacy')),
+      h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap' },
+        h('button', { class: 'btn', id: 'privacy', onclick: () => void os.call('openUrl', `${SITE}/${document.documentElement.lang === 'ru' ? 'privacy.html' : 'privacy-en.html'}`) }, t('privacy_policy')),
+        h('button', { class: 'btn', id: 'site', onclick: () => void os.call('openUrl', SITE + '/') }, 'www.os-browser.com'))),
     ...section(t('licenses'), h('div', { class: 'hint' }, t('dt_licenses_desc')),
       h('div', { class: 'card' }, ...[
         ['Electron', 'MIT'], ['Chromium', 'BSD-3-Clause …'], ['Mozilla Readability', 'Apache-2.0'],
