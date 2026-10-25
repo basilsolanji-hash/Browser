@@ -94,6 +94,14 @@ internal object TrDesktop {
         "dt_resume" to listOf("Resume", "Продолжить", "Reanudar", "Retomar", "Reprendre", "Fortsetzen", "استئناف", "जारी रखें", "Devam et", "继续"),
         "dt_dl_paused" to listOf("Paused: %s", "На паузе: %s", "En pausa: %s", "Pausado: %s", "En pause : %s", "Pausiert: %s", "متوقف مؤقتاً: %s", "रुका हुआ: %s", "Duraklatıldı: %s", "已暂停：%s"),
         "dt_dl_interrupted" to listOf("Stopped: %s — continue from the same point", "Остановлено: %s — можно продолжить с того же места", "Detenida: %s — puedes continuar desde el mismo punto", "Interrompido: %s — dá para continuar do mesmo ponto", "Interrompu : %s — reprise possible au même endroit", "Unterbrochen: %s — kann an derselben Stelle fortgesetzt werden", "توقف: %s — يمكن المتابعة من النقطة نفسها", "रुका: %s — उसी जगह से जारी रख सकते हैं", "Durdu: %s — aynı yerden devam edilebilir", "已中断：%s，可从中断处继续"),
+        "dt_find" to listOf("Find on page", "Найти на странице", "Buscar en la página", "Localizar na página", "Rechercher dans la page", "Auf Seite suchen", "البحث في الصفحة", "पेज पर खोजें", "Sayfada bul", "在页面中查找"),
+        "dt_find_hint" to listOf("Find on page", "Найти на странице", "Buscar en la página", "Localizar na página", "Rechercher dans la page", "Auf Seite suchen", "البحث في الصفحة", "पेज पर खोजें", "Sayfada bul", "在页面中查找"),
+        "dt_find_count" to listOf("%1\$d of %2\$d", "%1\$d из %2\$d", "%1\$d de %2\$d", "%1\$d de %2\$d", "%1\$d sur %2\$d", "%1\$d von %2\$d", "%1\$d من %2\$d", "%2\$d में से %1\$d", "%2\$d içinde %1\$d", "第 %1\$d 项，共 %2\$d 项"),
+        "dt_find_none" to listOf("No matches", "Нет совпадений", "Sin resultados", "Nenhum resultado", "Aucun résultat", "Keine Treffer", "لا نتائج", "कोई मिलान नहीं", "Eşleşme yok", "无匹配项"),
+        "dt_find_prev" to listOf("Previous match", "Предыдущее совпадение", "Resultado anterior", "Resultado anterior", "Résultat précédent", "Vorheriger Treffer", "النتيجة السابقة", "पिछला मिलान", "Önceki eşleşme", "上一个匹配项"),
+        "dt_find_next" to listOf("Next match", "Следующее совпадение", "Resultado siguiente", "Próximo resultado", "Résultat suivant", "Nächster Treffer", "النتيجة التالية", "अगला मिलान", "Sonraki eşleşme", "下一个匹配项"),
+        "dt_print" to listOf("Print…", "Печать…", "Imprimir…", "Imprimir…", "Imprimer…", "Drucken …", "طباعة…", "प्रिंट करें…", "Yazdır…", "打印…"),
+        "dt_pin_current" to listOf("Current PIN", "Текущий PIN", "PIN actual", "PIN atual", "Code PIN actuel", "Aktuelle PIN", "رمز PIN الحالي", "मौजूदा PIN", "Mevcut PIN", "当前 PIN"),
         "dt_stop" to listOf("Stop", "Остановить", "Detener", "Parar", "Arrêter", "Stopp", "إيقاف", "रोकें", "Durdur", "停止"),
     )
 }

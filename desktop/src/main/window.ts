@@ -26,6 +26,8 @@ import type { Palette, ProfileInfo, StripTab, WindowState } from '../shared/type
 /** Высота шапки: верхний ряд (вкладки + кнопки окна) и панель адреса. */
 export const ROW1 = 40;
 export const ROW2 = 44;
+/** Строка «Найти на странице» (Ctrl+F) под адресной строкой. */
+export const ROW3 = 40;
 
 const windowFile = new JsonFile<{ x?: number; y?: number; width: number; height: number; maximized: boolean }>(
   'window', () => ({ width: 1280, height: 820, maximized: false }));
@@ -159,6 +161,8 @@ export class OsWindow implements TabHost {
   private memSeq = 0;
   /** Запросы разрешений сайтов, ждущие ответа пользователя. */
   private prompts: Prompt[] = [];
+  /** Поиск на странице: текст и найденное (null — строка поиска закрыта). */
+  private find: { text: string; active: number; matches: number } | null = null;
   /** Окно заблокировано PIN-ом: видно только os://lock. */
   locked = false;
 
@@ -266,7 +270,8 @@ export class OsWindow implements TabHost {
 
   chromeHeight(): number {
     if (this.win.isFullScreen() && !this.panel) return 0;
-    return this.profile == null && !this.incognito ? ROW1 : ROW1 + ROW2;
+    const base = this.profile == null && !this.incognito ? ROW1 : ROW1 + ROW2;
+    return base + (this.find && !this.panel ? ROW3 : 0);
   }
 
   layout(): void {
@@ -344,6 +349,7 @@ export class OsWindow implements TabHost {
       panelCanBack: this.panel ? pageWc.navigationHistory.canGoBack() && this.profile == null : false,
       maximized: this.win.isMaximized(),
       zoom: wc ? Math.round(wc.getZoomFactor() * 100) : 100,
+      find: this.find && !this.panel ? this.find : null,
       bookmarked: isWebUrl(url) && !!Bookmarks.findByUrl(url),
       prompt: this.currentPrompt(),
       blocked: wc ? Privacy.blockedOnTab(wc.id) : 0,
@@ -457,6 +463,10 @@ export class OsWindow implements TabHost {
       this.win.contentView.addChildView(v.view, 0);
       v.wc.setZoomFactor(settings.get().zoom / 100);
       void v.wc.loadURL(this.initialUrl(id));
+    }
+    if (this.shown !== v && this.find) {
+      this.shown?.wc.stopFindInPage('clearSelection');
+      this.find = null;
     }
     this.shown = v;
     if (this.incognito) this.memActive = id;
@@ -696,6 +706,53 @@ export class OsWindow implements TabHost {
     this.shown?.wc.focus();
   }
 
+  // --- Найти на странице (Ctrl+F) ---
+
+  openFind(): void {
+    if (this.panel || !this.shown) return;
+    this.find ??= { text: '', active: 0, matches: 0 };
+    this.layout();
+    this.push();
+    this.chrome.webContents.focus();
+    this.chrome.webContents.send('os:event', 'focusFind', null);
+  }
+
+  findText(text: string, forward = true, next = false): void {
+    const wc = this.shown?.wc;
+    if (!wc || !this.find) return;
+    this.find.text = text;
+    if (!text) {
+      wc.stopFindInPage('clearSelection');
+      this.find.active = 0;
+      this.find.matches = 0;
+      this.push();
+      return;
+    }
+    // В Electron findNext: true — начать новый поиск (новый текст), false — следующее совпадение.
+    wc.findInPage(text, { forward, findNext: !next, matchCase: false });
+  }
+
+  onFound(wc: WebContents, r: Electron.Result): void {
+    if (!this.find || wc !== this.shown?.wc) return;
+    this.find.active = r.activeMatchOrdinal;
+    this.find.matches = r.matches;
+    this.push();
+  }
+
+  closeFind(): void {
+    if (!this.find) return;
+    this.shown?.wc.stopFindInPage('keepSelection');
+    this.find = null;
+    this.layout();
+    this.push();
+    this.shown?.wc.focus();
+  }
+
+  print(): void {
+    if (this.panel) { this.page.webContents.print(); return; }
+    this.shown?.wc.print({ silent: false, printBackground: true });
+  }
+
   /** В избранное / убрать из избранного (Ctrl+D). Возвращает новое состояние или null, если страницу нельзя добавить. */
   toggleBookmark(): boolean | null {
     const v = this.shown;
@@ -888,6 +945,10 @@ export class OsWindow implements TabHost {
       if (r != null) this.toast(t(r ? 'added_favorite' : 'fav_removed'));
       return true;
     }
+    if (ctrl && !input.shift && code === 'KeyF') { this.openFind(); return true; }
+    if (ctrl && !input.shift && code === 'KeyP') { this.print(); return true; }
+    if (k === 'F3') { if (this.find?.text) this.findText(this.find.text, !input.shift, true); else this.openFind(); return true; }
+    if (k === 'Escape' && this.find && !this.panel) { this.closeFind(); return true; }
     if (ctrl && !input.shift && code === 'KeyS') { void saveWithToast(this); return true; }
     if (k === 'F11') { this.win.setFullScreen(!this.win.isFullScreen()); return true; }
     if (ctrl && input.shift && code === 'KeyA' && this.profile != null) { this.openPanel(`os://tabs/?profile=${this.profile}`); return true; }

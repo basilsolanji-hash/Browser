@@ -110,6 +110,10 @@ const server = createServer((req, res) => {
   } else if (u.pathname === '/upload') {
     res.end('<title>Upload</title><form method="post" enctype="multipart/form-data" action="/upload">' +
       '<input type="file" name="doc" id="file"><button id="send">Send</button></form>');
+  } else if (u.pathname === '/find') {
+    res.end('<title>Find</title><p>Ось ищет слово договор. Второй договор. Третий договор.</p>');
+  } else if (u.pathname === '/popup-opener') {
+    res.end('<title>Popup opener</title><p>popup test</p>');
   } else if (u.pathname === '/notify') {
     res.end('<title>Notify</title><p>permissions</p>');
   } else if (u.pathname === '/open') {
@@ -891,6 +895,51 @@ try {
     rmSync(file, { force: true });
   }
 
+  if (STAGE >= 4) {
+    // --- 30. Найти на странице ---
+    step('30. Найти на странице (Ctrl+F, Enter, Esc)');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await typeAddress(`${SITE}/find`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/find') && !x.loading; });
+    await key('Ctrl+F');
+    const uiF = await page('os://ui');
+    check('Ctrl+F opens the find bar', await waitFor(async () => (await state()).find !== null && await uiF.isVisible('#find')));
+    await uiF.fill('#find', 'договор');
+    const f1 = await waitFor(async () => { const f = (await state()).find; return f && f.matches === 3 && f; });
+    check('find counts matches on the page', f1, JSON.stringify((await state()).find));
+    await uiF.press('#find', 'Enter');
+    check('Enter goes to the next match', await waitFor(async () => (await state()).find?.active === 2));
+    await keyScreen('30-find-bar', 'chrome');
+    await uiF.fill('#find', 'нетакогослова');
+    check('no matches is shown', await waitFor(async () => { const f = (await state()).find; return f && f.matches === 0; }));
+    await uiF.press('#find', 'Escape');
+    check('Esc closes the find bar', await waitFor(async () => (await state()).find === null));
+
+    // --- 31. Окна входа (попапы) под защитой ---
+    step('31. Попапы: одно окно на вкладку, новые окна из попапа — вкладками, без os://');
+    await typeAddress(`${SITE}/popup-opener`);
+    await waitFor(async () => (await state()).url.endsWith('/popup-opener'));
+    const po = app.windows().filter((p) => p.url() === `${SITE}/popup-opener`).pop();
+    const winCount = () => main(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+    const w0 = await winCount();
+    await po.evaluate(() => { window.open('/page/login?display=popup', 'p1'); });
+    check('auth popup opens as a window', await waitFor(async () => (await winCount()) === w0 + 1));
+    const popupPage = await page(`${SITE}/page/login`);
+    const tabs0 = (await state()).tabs.length;
+    await popupPage.evaluate(() => { window.open('/page/third?display=popup'); });
+    await sleep(800);
+    check('window.open from the popup opens a tab, not a window', (await winCount()) === w0 + 1 && (await state()).tabs.length === tabs0 + 1);
+    await po.evaluate(() => { window.open('/page/second?display=popup', 'p2'); });
+    await sleep(800);
+    check('only one auth popup per tab (second → tab)', (await winCount()) === w0 + 1);
+    await popupPage.evaluate(() => { window.location.href = 'os://start/'; });
+    await sleep(600);
+    check('popup cannot navigate to os://', popupPage.url().startsWith(SITE));
+    const ptitle = await main(({ BrowserWindow }) => BrowserWindow.getAllWindows().map((w) => w.getTitle()).find((x) => x.startsWith('127.0.0.1')) ?? '');
+    check('popup title shows the site', ptitle.startsWith('127.0.0.1'), ptitle);
+    await main(({ BrowserWindow }) => BrowserWindow.getAllWindows().filter((w) => w.getTitle().startsWith('127.0.0.1')).forEach((w) => w.close()));
+  }
+
   if (STAGE >= 5) {
     // --- 27. Обновления ---
     step('27. Автообновление: настройка и состояние');
@@ -907,6 +956,11 @@ try {
     await flush();
     check('automatic updates on by default and saved', readJson('settings')?.autoUpdate === true);
     await keyScreen('27-settings-updates', 'page');
+    // PIN (задан в сценарии 19) нельзя сменить или снять без текущего.
+    const pinWrong = await st5.evaluate(() => window.os.call('setPin', '1357', '0000'));
+    const rmWrong = await st5.evaluate(() => window.os.call('removePin', '0000'));
+    await flush();
+    check('PIN cannot be changed or removed without the current PIN', pinWrong === 'wrong' && rmWrong === 'wrong' && !!readJson('settings')?.lock, `${pinWrong} ${rmWrong}`);
 
     // --- 28. Докачка ---
     step('28. Загрузки: обрыв связи, пауза и докачка после перезапуска с того же места');

@@ -1,5 +1,5 @@
 /* Шапка браузера: полоса вкладок и панель адреса. Фон страницы прозрачный — под ним вкладка сайта. */
-:root { --row1: 40px; --row2: 44px; --controls: 144px; font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; font-size: 13px; }
+:root { --row1: 40px; --row2: 44px; --row3: 40px; --controls: 144px; font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; font-size: 13px; }
 html[data-platform="darwin"] { --controls: 0px; }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: transparent; color: var(--text); overflow: hidden; user-select: none; }
@@ -31,6 +31,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .chip .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chip .ic { color: var(--muted); }
 
+#pins { display: flex; align-items: flex-end; height: 100%; flex: none; padding-top: 6px; }
 #strip { display: flex; align-items: flex-end; height: 100%; min-width: 0; flex: 0 1 auto; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; padding-top: 6px; }
 #strip::-webkit-scrollbar { display: none; }
 .tab { position: relative; height: 34px; min-width: 52px; flex: 1 1 200px; max-width: 220px; display: flex; align-items: center; gap: 7px; padding: 0 6px 0 10px;
@@ -101,3 +102,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .perm-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .perm-card .pbtn { width: auto; height: 32px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--border); display: inline-flex; align-items: center; }
 .perm-card .pbtn.accent { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+#row3 { height: var(--row3); display: flex; align-items: center; gap: 4px; padding: 0 8px; background: var(--bg); border-top: 1px solid var(--border); }
+#row3[hidden] { display: none; }
+#row3 .ic { color: var(--muted); }
+#find { width: 280px; max-width: 50vw; height: 28px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 0 12px; font: inherit; outline: 0; }
+#find:focus { border-color: var(--accent); }
+#find.none { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.find-count { color: var(--muted); font-size: 12px; min-width: 72px; padding: 0 6px; }
+/* RTL: «назад» и «вперёд» смотрят в сторону чтения; латинские заголовки вкладок не обрезаются с начала. */
+html[dir="rtl"] [data-k="back"] .ic, html[dir="rtl"] [data-k="fwd"] .ic { transform: scaleX(-1); }
