@@ -9,7 +9,7 @@ import { TabView, type TabHost } from './tabview';
 import { isDefaultCached } from './defaultbrowser';
 import { isSignInPage } from './signin';
 import { START, fromInput, isOwnUrl, isWebUrl } from './urls';
-import { t } from './i18n';
+import { isRtl, t } from './i18n';
 import * as Tabs from './tabs';
 import * as Pins from './pins';
 import * as Profiles from './profiles';
@@ -22,6 +22,7 @@ import * as Privacy from './privacy';
 import * as Lock from './lock';
 import * as Reader from './reader';
 import * as Notes from './notes';
+import * as Extensions from './extensions';
 import { searchUrl as searchFor } from './settings';
 import type { Palette, ProfileInfo, StripTab, WindowState } from '../shared/types';
 
@@ -56,6 +57,7 @@ export function profileSession(id: number): Session {
     Downloads.attach(ses, id);
     Privacy.protect(ses);
     installPermissions(ses, id);
+    void Extensions.attach(ses, id);
   }
   return ses;
 }
@@ -1105,6 +1107,76 @@ export async function saveWithToast(w: OsWindow): Promise<void> {
   } catch {
     w.toast(t('save_failed'));
   }
+}
+
+/**
+ * Окно страницы расширения в сессии профиля: всплывающее (action.default_popup) — маленькое, без рамки,
+ * у кнопки расширений и закрывается при потере фокуса; параметры — обычное окно. Мостов preload нет;
+ * уйти со страниц расширения нельзя, веб-ссылки открываются вкладками профиля.
+ */
+export function openExtensionWindow(w: OsWindow, profile: number, url: string, anchor: { left: number; right: number; bottom: number } | null): BrowserWindow {
+  const base = new URL(url).origin + '/';
+  const popup = anchor != null;
+  const cb = w.win.getContentBounds();
+  const win = new BrowserWindow({
+    width: popup ? 360 : 900,
+    height: popup ? 420 : 700,
+    show: false,
+    parent: w.win,
+    frame: !popup,
+    resizable: !popup,
+    minimizable: !popup,
+    maximizable: !popup,
+    skipTaskbar: popup,
+    autoHideMenuBar: true,
+    backgroundColor: '#FFFFFF',
+    icon: join(__dirname, '..', 'assets', 'icon.png'),
+    webPreferences: { ...WEB_PREFS, session: profileSession(profile) },
+  });
+  const place = () => {
+    if (!anchor || win.isDestroyed()) return;
+    const [width] = win.getSize();
+    const rtl = isRtl();
+    win.setPosition(Math.round(cb.x + (rtl ? anchor.left : anchor.right - width)), Math.round(cb.y + anchor.bottom + 2));
+  };
+  place();
+  const wc = win.webContents;
+  const toTab = (target: string) => {
+    if (!isWebUrl(target) || w.win.isDestroyed()) return;
+    w.openProfile(profile);
+    w.newTab(target);
+  };
+  wc.setWindowOpenHandler(({ url: target }) => { toTab(target); return { action: 'deny' }; });
+  const guard = (e: Electron.Event, target: string) => {
+    if (target.startsWith(base)) return;
+    e.preventDefault();
+    toTab(target);
+  };
+  wc.on('will-navigate', (e) => guard(e, e.url));
+  wc.on('will-redirect', (e) => guard(e, e.url));
+  wc.on('before-input-event', (e, input) => {
+    if (input.type === 'keyDown' && input.key === 'Escape' && popup) { e.preventDefault(); win.close(); }
+  });
+  if (popup) {
+    // Как в Chrome: размер — по содержимому страницы (в пределах 800×600).
+    const fit = async () => {
+      if (win.isDestroyed()) return;
+      try {
+        const s = await wc.executeJavaScript('(() => { const b = document.body, r = b ? b.getBoundingClientRect() : { right: 0, bottom: 0 }, st = b ? getComputedStyle(b) : null;' +
+          ' const m = st ? parseFloat(st.marginRight) + parseFloat(st.marginBottom) : 0; return [r.right + m, r.bottom + m]; })()') as [number, number];
+        if (win.isDestroyed() || !(s[0] > 40 && s[1] > 20)) return;
+        win.setContentSize(Math.min(800, Math.max(160, Math.ceil(s[0]))), Math.min(600, Math.max(60, Math.ceil(s[1]))));
+        place();
+      } catch {
+        // окно уже закрыли
+      }
+    };
+    wc.on('did-finish-load', () => { void fit(); setTimeout(() => void fit(), 400); });
+    win.on('blur', () => { if (!win.isDestroyed()) win.close(); });
+  }
+  win.once('ready-to-show', () => win.show());
+  void wc.loadURL(url);
+  return win;
 }
 
 export function profileInfo(id: number): ProfileInfo {

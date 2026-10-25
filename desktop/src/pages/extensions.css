@@ -1,0 +1,13 @@
+.warn { display: flex; gap: 12px; padding: 12px 16px; margin: 14px 0; border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); line-height: 1.45; }
+.warn .ic { color: var(--accent); flex: none; }
+.install { display: flex; gap: 8px; flex-wrap: wrap; }
+.install input { flex: 1; min-width: 240px; }
+.ext { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.ext:last-child { border-bottom: 0; }
+.ext .pic { width: 32px; height: 32px; flex: none; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+.ext .pic img { width: 32px; height: 32px; object-fit: contain; }
+.ext .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.ext .u { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+.ext .err { color: var(--accent); font-size: 12px; margin-top: 2px; }
+.ext.off .pic, .ext.off .t { opacity: .5; }
+.ext .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

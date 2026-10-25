@@ -406,6 +406,11 @@ function renderRow2(): void {
     addr.append(star);
   }
   if (st.zoom !== 100) nodes.push(h('button', { class: 'zoom', title: t('reset'), onclick: () => void os.call('zoom', 0) }, st.zoom + '%'));
+  if (st.profile && !st.incognito) {
+    const ext = iconButton('extension', t('dt_extensions'), () => void extMenu(ext.getBoundingClientRect()));
+    ext.id = 'ext-btn';
+    nodes.push(ext);
+  }
   const tb = toolbarItem(st);
   if (tb) nodes.push(tb);
   const more = iconButton('more', t('menu'), () => mainMenu(more.getBoundingClientRect()));
@@ -565,6 +570,30 @@ function paintSuggestions(): void {
   layer.classList.add('through');
 }
 
+/** Расширения профиля: всплывающие окна (action.default_popup) и «Управление расширениями». */
+async function extMenu(anchor: DOMRect): Promise<void> {
+  if (!st?.profile) return;
+  const id = st.profile.id;
+  const list = await os.call<{ id: string; name: string; icon: string | null; popup: boolean }[]>('extMenu');
+  const items: Item[] = [{ head: t('dt_extensions') }];
+  if (!list.length) items.push({ el: h('div', { class: 'empty-note' }, t('dt_ext_empty')) });
+  for (const e of list) {
+    const pic = e.icon ? h('span', { class: 'ic' }, h('img', { src: e.icon, alt: '', width: 18, height: 18 })) : icon('extension', 18);
+    items.push({
+      el: h('button', {
+        role: 'menuitem', 'data-ext': e.id, title: e.popup ? e.name : t('dt_ext_no_popup'),
+        onclick: () => {
+          hideDrop();
+          if (e.popup) void os.call('extPopup', e.id, anchor.left, anchor.right, anchor.bottom);
+          else void os.call('openPanel', `os://extensions/?profile=${id}`);
+        },
+      }, pic, h('span', { class: 'grow' }, e.name, e.popup ? null : h('span', { class: 'sub' }, '  ' + t('dt_ext_no_popup')))),
+    });
+  }
+  items.push({ sep: true }, { label: t('dt_ext_manage'), icon: 'settings', run: () => void os.call('openPanel', `os://extensions/?profile=${id}`) });
+  openDrop(menu(items), anchor, 'end', 300);
+}
+
 /** Меню ⋮ как в Chrome (BrowserMenu.kt): ряд круглых кнопок сверху, ниже группы пунктов через линию. */
 function mainMenu(anchor: DOMRect): void {
   if (!st) return;
@@ -642,6 +671,7 @@ function moreTools(anchor: DOMRect, web: boolean, id: number | undefined): void 
     ...(id != null ? [
       { label: t('saved_pages'), icon: 'saved', run: () => void os.call('openPanel', 'os://saved/') },
       { label: t('notes'), icon: 'note', run: () => void os.call('openPanel', 'os://notes/') },
+      { k: 'extensions', label: t('dt_extensions'), icon: 'extension', run: () => void os.call('openPanel', `os://extensions/?profile=${id}`) },
       { sep: true },
     ] : []),
     { k: 'share', label: t('share'), icon: 'share', disabled: !web, run: () => shareMenu(anchor) },
