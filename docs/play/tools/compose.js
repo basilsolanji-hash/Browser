@@ -14,7 +14,7 @@ const W = kind === 'tablet' ? 1800 : 1200, H = kind === 'tablet' ? 2400 : 1600;
     const [lang, key] = [m[1], m[2]]; const cap = C[key]?.[lang]; if (!cap) continue;
     const img = 'data:image/png;base64,' + fs.readFileSync(path.join(raw, f)).toString('base64');
     const shot = kind === 'tablet'
-      ? `<img src="${img}" style="height:${H - 420}px;border-radius:36px;border:10px solid #2b2c31;box-shadow:0 30px 80px rgba(0,0,0,.55)">`
+      ? `<img src="${img}" style="height:${H - 600}px;border-radius:36px;border:10px solid #2b2c31;box-shadow:0 30px 80px rgba(0,0,0,.55)">`
       : `<img src="${img}" style="height:${H - 330}px;border-radius:46px;border:14px solid #2b2c31;box-shadow:0 30px 80px rgba(0,0,0,.55)">`;
     await p.setContent(`<html dir="${lang === 'ar' ? 'rtl' : 'ltr'}"><body style="margin:0;width:${W}px;height:${H}px;overflow:hidden;
       background:radial-gradient(circle at 50% 0%, #3d1714 0%, #17181B 60%);font-family:Inter,Roboto,'Segoe UI',system-ui,sans-serif;
