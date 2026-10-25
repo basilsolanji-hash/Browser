@@ -53,6 +53,19 @@ const BIG = Buffer.alloc(6 * 1024 * 1024);
 for (let i = 0; i < BIG.length; i++) BIG[i] = (i * 31 + (i >> 11)) & 255;
 const BIG_SHA = createHash('sha256').update(BIG).digest('hex');
 let bigDrop = true;
+// Маленький PDF на одну страницу (с честной таблицей ссылок).
+const PDF = (() => {
+  const text = 'BT /F1 24 Tf 40 100 Td (Os PDF test) Tj ET';
+  const objs = ['<</Type/Catalog/Pages 2 0 R>>', '<</Type/Pages/Kids[3 0 R]/Count 1>>',
+    '<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 200]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>',
+    `<</Length ${text.length}>>\nstream\n${text}\nendstream`, '<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>'];
+  let out = '%PDF-1.4\n';
+  const offs = objs.map((o, i) => { const at = out.length; out += `${i + 1} 0 obj\n${o}\nendobj\n`; return at; });
+  const xref = out.length;
+  out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n${offs.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`;
+  out += `trailer\n<</Size ${objs.length + 1}/Root 1 0 R>>\nstartxref\n${xref}\n%%EOF\n`;
+  return Buffer.from(out, 'latin1');
+})();
 const uploaded = [];
 const server = createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
@@ -93,6 +106,20 @@ const server = createServer((req, res) => {
     res.setHeader('content-disposition', `attachment; filename="os-test-${process.pid}.txt"`);
     res.end('Ось download test');
     return;
+  } else if (u.pathname === '/photo.bin') {
+    // Картинка, которую сервер отдаёт как octet-stream: тип определяется по расширению имени.
+    res.setHeader('content-type', 'application/octet-stream');
+    res.setHeader('content-disposition', 'attachment; filename="os-photo.png"');
+    res.end(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'));
+    return;
+  } else if (u.pathname === '/pdf-attach') {
+    // PDF-вложение: сайт открывает его в новом окне (window.open) — браузер должен просто скачать файл.
+    res.setHeader('content-type', 'application/pdf');
+    res.setHeader('content-disposition', 'attachment; filename="os-doc.pdf"');
+    res.end(PDF);
+    return;
+  } else if (u.pathname === '/pdf-opener') {
+    res.end('<title>PDF opener</title><button id="b" onclick="window.open(\'/pdf-attach\')">pdf</button><a id="a" href="/pdf-attach" target="_blank">pdf</a>');
   } else if (u.pathname === '/tracked') {
     // Трекер — сторонний (localhost против 127.0.0.1) и есть в тестовом списке (OS_TEST_BLOCK).
     res.end(`<title>Tracked</title><img src="http://pixel-tracker.localhost:${PORT}/pixel"><img src="/first.png"><iframe src="http://localhost:${PORT}/set3p"></iframe>`);
@@ -282,7 +309,7 @@ try {
   await home.waitForSelector('.prow');
   const names = await home.$$eval('.prow .name', (els) => els.map((e) => e.textContent));
   check('home lists example profiles', names.slice(0, 4).join(',') === 'Personal,Work,Shopping,Social', names.join(','));
-  check('home shows first 5 profiles and «Show all»', names.length === 5 && (await home.$('.showall')) !== null, `rows=${names.length}`);
+  check('home shows first 10 profiles and «Show all»', names.length === 10 && (await home.$('.showall')) !== null, `rows=${names.length}`);
   await keyScreen('02-home', 'page');
   await windowShot('home');
 
@@ -486,11 +513,11 @@ try {
 
   // --- 8. Смена языка ---
   step('8. Смена языка применяется сразу везде');
-  await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+  await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=general'));
   const st = await page('os://settings/');
   await st.waitForSelector('#lang');
   await st.selectOption('#lang', 'ru');
-  const ruOk = await waitFor(async () => (await st.title()) === 'Настройки');
+  const ruOk = await waitFor(async () => (await st.title()) === 'Основные');
   check('settings screen switched to Russian', ruOk);
   await flush();
   check('settings.json lang = ru', readJson('settings')?.lang === 'ru');
@@ -507,14 +534,14 @@ try {
   check('start page re-rendered in Russian', /Деловой браузер|ДЕЛОВОЙ БРАУЗЕР/i.test(startRu), startRu.slice(0, 80));
   await keyScreen('08-start-ru', 'tab');
   await keyScreen('08-chrome-ru', 'chrome');
-  await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+  await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=general'));
   await st.selectOption('#lang', 'ar');
   const rtl = await waitFor(async () => (await ui.evaluate(() => document.documentElement.dir)) === 'rtl');
   check('Arabic switches the interface to RTL', rtl);
   await keyScreen('08-settings-ar', 'page');
   await windowShot('settings-ar');
   await st.selectOption('#lang', 'ru');
-  await waitFor(async () => (await st.title()) === 'Настройки');
+  await waitFor(async () => (await st.title()) === 'Основные');
   await main(() => globalThis.osTest.windows()[0].closePanel());
 
   // --- 9. Перезапуск восстанавливает вкладки ---
@@ -610,8 +637,14 @@ try {
 
     // --- 13. Загрузки ---
     step('13. Загрузки: файл сохраняется в «Загрузки/Ось» и виден в списке');
-    await typeAddress(`${SITE}/file.txt`);
-    const dl = await waitFor(async () => { await flush(); return (readJson('downloads')?.list ?? []).find((d) => d.state === 'completed'); }, 15000);
+    const ui13 = await typeAddress(`${SITE}/file.txt`);
+    // Скачивание по умолчанию «Спросить»: карточка вопроса в окне, файл тем временем качается.
+    const pr13 = await waitFor(async () => (await state()).prompt, 8000);
+    check('download asks the site permission (default «Ask»)', pr13 && pr13.text.includes('127.0.0.1') && pr13.text.includes('os-test-'), pr13?.text);
+    await keyScreen('13-download-prompt', 'chrome');
+    if (pr13) await ui13.click('#perm-allow');
+    const dl = await waitFor(async () => { await flush(); return (readJson('downloads')?.list ?? []).find((d) => d.state === 'completed' && !d.pending); }, 15000);
+    check('«Allow» with «Remember» saved for the site', readJson('site_permissions')?.sites?.['1']?.['127.0.0.1']?.downloads === 'ALLOW');
     check('download completed and logged', dl, JSON.stringify(dl));
     check('downloaded file saved in Downloads/Ось', dl && existsSync(dl.path) && readFileSync(dl.path, 'utf8') === 'Ось download test' && /[\\/]Ось[\\/]/.test(dl.path), dl?.path);
     await key('Ctrl+J');
@@ -660,14 +693,16 @@ try {
     step('16. Очистка данных и выход из аккаунтов профиля 2');
     await main(() => globalThis.osTest.windows()[0].openPanel('os://clear/?profile=2'));
     const cp = await page('os://clear/');
-    await cp.waitForSelector('#o-logout');
+    await cp.waitForSelector('#o-cookies');
     await keyScreen('16-clear', 'page');
-    await cp.check('#o-logout');
+    check('clear data: history, cookies, cache, tabs on; passwords, site settings off; all time',
+      await cp.isChecked('#o-history') && await cp.isChecked('#o-cookies') && await cp.isChecked('#o-cache') && await cp.isChecked('#o-tabs') &&
+      !(await cp.isChecked('#o-passwords')) && !(await cp.isChecked('#o-sites')) && (await cp.inputValue('#range')) === 'range_all');
     await cp.click('#do-clear');
     await cp.click('.modal .btn.accent');
     const c2 = await waitFor(async () => (await main(async ({ session }) => (await session.fromPartition('persist:profile_2').cookies.get({})).length)) === 0, 15000);
     check('profile 2 cookies removed', c2);
-    const gone = await waitFor(async () => { await flush(); return !readJson('tabs')?.profiles?.['2'] && !readJson('history')?.h?.['2']; }, 10000);
+    const gone = await waitFor(async () => { await flush(); return !(readJson('tabs')?.profiles?.['2']?.tabs?.length) && !(readJson('history')?.h?.['2']?.length); }, 10000);
     check('profile 2 tabs and history removed', gone);
     const c1 = await main(async ({ session }) => (await session.fromPartition('persist:profile_1').cookies.get({ name: 'os_test' }))[0]?.value);
     check('other profiles not affected', c1 === 'one', c1);
@@ -691,7 +726,7 @@ try {
     check('cross-site cookie from an embedded site is not stored',
       (await main(async ({ session }) => (await session.fromPartition('persist:profile_1').cookies.get({ name: 'os_3p' })).length)) === 0);
     await keyScreen('17-tracked-chrome', 'chrome');
-    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=privacy'));
     const st3 = await page('os://settings/');
     await st3.waitForSelector('#https');
     await st3.click('#https button >> nth=0');
@@ -755,7 +790,7 @@ try {
     check('security check shows a score', /^\d\/\d$/.test(score1), score1);
     check('security check counts granted permissions', (await sec3.getAttribute('.check[data-id="perms"]', 'class')).includes('bad'));
     await keyScreen('19-security', 'page');
-    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=privacy'));
     await st3.waitForSelector('#pin-set');
     await st3.click('#pin-set');
     const pins3 = await st3.$$('.modal input');
@@ -884,7 +919,7 @@ try {
     await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) === 2);
     const iui4 = await waitFor(() => app.windows().filter((p) => p.url().startsWith('os://ui/?incognito')).pop());
     await iui4.waitForSelector('#address');
-    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=general'));
     const st4 = await page('os://settings/');
     await st4.waitForSelector('#lang');
     await st4.selectOption('#lang', 'de');
@@ -958,7 +993,7 @@ try {
   if (STAGE >= 5) {
     // --- 27. Обновления ---
     step('27. Автообновление: настройка и состояние');
-    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=about'));
     const st5 = await page('os://settings/');
     await st5.waitForSelector('#auto-update');
     check('updates section present (installed-only notice in dev build)', (await st5.isDisabled('#update-check')) === true);
@@ -982,7 +1017,9 @@ try {
     await main(() => globalThis.osTest.windows()[0].closePanel());
     const bigReqs = () => seen.filter((r) => r.path === '/big.bin');
     const n0 = bigReqs().length;
-    await typeAddress(`${SITE}/big.bin`);
+    const ui28 = await typeAddress(`${SITE}/big.bin`);
+    // В этом профиле сайт ещё не разрешал скачивание — отвечаем «Разрешить» в карточке.
+    if (await waitFor(async () => (await state()).prompt, 6000)) await ui28.click('#perm-allow');
     const dlEntry = async () => { await flush(); return (readJson('downloads')?.list ?? []).find((d) => d.name.startsWith('os-big')); };
     check('download resumes by itself after a dropped connection (Range request)',
       await waitFor(async () => bigReqs().slice(n0).some((r) => /^bytes=\d+-/.test(r.range ?? '')), 20000), JSON.stringify(bigReqs().slice(n0)));
@@ -1179,7 +1216,7 @@ try {
     check('toolbar button defaults to Downloads', (await ui37.getAttribute('#tb-btn', 'data-k')) === 'downloads');
     await ui37.click('#tb-btn');
     check('toolbar button opens Downloads', await page('os://downloads/', 5000));
-    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=panels'));
     const st38 = await page('os://settings/');
     await st38.selectOption('#toolbar-button', 'find');
     await main(() => globalThis.osTest.windows()[0].closePanel());
@@ -1188,6 +1225,295 @@ try {
     check('find button opens the find bar', await waitFor(async () => !!(await state()).find));
     await keyScreen('38-toolbar-find', 'chrome');
     await key('Escape');
+  }
+  if (STAGE >= 6) {
+    const W = () => globalThis.osTest.windows()[0];
+    const osCall = async (cmd, ...args) => {
+      // Вызов моста от имени своего экрана (как это делает страница).
+      await main(() => globalThis.osTest.windows()[0].openPanel('os://downloads/'));
+      const p = await page('os://downloads/');
+      return p.evaluate(([c, a]) => window.os.call(c, ...a), [cmd, args]);
+    };
+    const dlList = async () => { await flush(); return readJson('downloads')?.list ?? []; };
+    await main((_e) => { const w = globalThis.osTest.windows()[0]; w.win.setBounds({ x: 20, y: 20, width: 1400, height: 900 }); w.openProfile(1); w.closePanel(); });
+    await sleep(600);
+
+    // --- 39. Экран «Скачанные файлы» как в Chrome ---
+    step('39. Скачанные файлы: место на диске, чипы типов, группы, поиск, меню строки, открытие во вкладке Оси');
+    await typeAddress(`${SITE}/photo.bin`);
+    const img = await waitFor(async () => (await dlList()).find((d) => d.name.startsWith('os-photo') && d.state === 'completed'), 15000);
+    check('remembered «Allow» downloads without asking', img && !img.pending && !(await state()).prompt, JSON.stringify(img));
+    await key('Ctrl+J');
+    const d39 = await page('os://downloads/');
+    await d39.waitForSelector('.item[data-kind="images"]');
+    check('octet-stream file typed by extension (image)', await d39.$('.item[data-kind="images"]') !== null);
+    check('free disk space line (fs.statfs)', /\d/.test(await d39.textContent('#dl-disk')), await d39.textContent('#dl-disk'));
+    check('six type chips', (await d39.$$eval('.chips .chip', (e) => e.length)) === 6);
+    check('«Just now» group on top', (await d39.textContent('.group-title')) === 'Только что', await d39.textContent('.group-title'));
+    await d39.click('.chip[data-kind="images"]');
+    const onlyImg = await d39.$$eval('.item', (e) => e.map((x) => x.dataset.kind));
+    check('chip «Images» filters the list', onlyImg.length >= 1 && onlyImg.every((k) => k === 'images'), onlyImg.join(','));
+    await keyScreen('39-downloads-images', 'page');
+    await d39.click('.chip[data-kind="all"]');
+    await d39.fill('#dl-search', 'zzzz-nothing');
+    check('search shows «nothing found»', (await d39.textContent('.empty')) === 'Ничего не найдено');
+    await d39.fill('#dl-search', 'os-photo');
+    await d39.click('.item[data-kind="images"] .dl-more');
+    const menu39 = await d39.$$eval('.ctx button', (b) => b.map((x) => x.textContent));
+    check('row menu: Open · Show in folder · Share · Delete (Open with — only on Windows)',
+      menu39.includes('Открыть') && menu39.includes('Показать в папке') && menu39.includes('Поделиться') && menu39.includes('Удалить') &&
+      menu39.includes('Открыть в другом приложении') === (process.platform === 'win32'), menu39.join(' | '));
+    await keyScreen('39-downloads-menu', 'page');
+    await d39.click('.ctx button:has-text("Поделиться")');
+    await d39.click('.ctx button:has-text("Копировать путь к файлу")');
+    check('share copies the file path', await waitFor(async () => (await main(({ clipboard }) => clipboard.readText())) === img?.path), await main(({ clipboard }) => clipboard.readText()));
+    await d39.click('.item[data-kind="images"]');
+    const s39 = await waitFor(async () => { const x = await state(); return x.url.startsWith('os://file/') && !x.loading && x; }, 8000);
+    check('image opens in an Ось tab (protected os://file)', s39 && !s39.panel, s39?.url);
+    // Страница файла — в песочнице без скриптов; что картинка показана, видно по заголовку Chromium («имя (1×1)»).
+    const imgOk = await waitFor(() => main(() => globalThis.osTest.windows()[0].activeWebContents().getTitle()).then((x) => /1\s*[×x]\s*1/.test(x) && x), 5000);
+    check('image is shown in the tab (scripts off)', imgOk, String(imgOk || await main(() => globalThis.osTest.windows()[0].activeWebContents().getTitle())));
+    const js = await main(() => globalThis.osTest.windows()[0].activeWebContents().executeJavaScript('1').then(() => 'ran', () => 'blocked'));
+    check('no scripts run on the file page (CSP sandbox)', js === 'blocked', js);
+    const leak = await main(async ({ session }, url) => {
+      // Сайт того же профиля не может вставить файл по чужому адресу (ключ случайный, другой профиль — 404).
+      const w = globalThis.osTest.windows()[0];
+      const r1 = await w.activeWebContents().session.fetch(url.replace(/file\/[0-9a-f]+\//, 'file/0000/')).then((r) => r.status).catch(() => 0);
+      const r2 = await session.fromPartition('persist:profile_2').fetch(url).then((r) => r.status).catch(() => 0);
+      return [r1, r2];
+    }, s39?.url ?? '');
+    check('os://file is not guessable and not served to another profile', leak[0] !== 200 && leak[1] !== 200, JSON.stringify(leak));
+
+    // --- 40. PDF-вложение в новом пустом окне ---
+    step('40. PDF-вложение (Content-Disposition: attachment) в новом окне скачивается, исходная вкладка не перезагружается');
+    await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/pdf-opener`);
+    const op = await page(`${SITE}/pdf-opener`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/pdf-opener') && !x.loading; });
+    const loads = () => seen.filter((r) => r.path === '/pdf-opener').length;
+    const loads0 = loads();
+    const tabs40 = (await state()).tabs.length;
+    await op.click('#b');
+    const pdf = await waitFor(async () => (await dlList()).find((d) => d.name.startsWith('os-doc') && d.state === 'completed' && !d.pending), 15000);
+    check('PDF attachment downloaded as a file', pdf && existsSync(pdf.path) && readFileSync(pdf.path).subarray(0, 4).toString() === '%PDF', JSON.stringify(pdf));
+    await sleep(800);
+    const s40 = await state();
+    check('blank tab for the attachment is closed', s40.tabs.length === tabs40, `${tabs40} → ${s40.tabs.length}`);
+    check('opener tab is back and not reloaded', s40.url.endsWith('/pdf-opener') && loads() === loads0, `${s40.url} loads ${loads0}→${loads()}`);
+    check('no extra windows', (await main(({ BrowserWindow }) => BrowserWindow.getAllWindows().length)) === 1);
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://downloads/'));
+    const d40 = await page('os://downloads/');
+    await d40.fill('#dl-search', 'os-doc');
+    await d40.click('.item[data-kind="docs"]');
+    const s40b = await waitFor(async () => { const x = await state(); return x.url.startsWith('os://file/') && x.url.includes('os-doc') && !x.loading && x; }, 8000);
+    check('PDF opens in an Ось tab', s40b, s40b?.url);
+    await sleep(1500);
+    await keyScreen('40-pdf-in-tab', 'tab');
+    await windowShot('pdf-in-tab');
+    if (pdf) rmSync(pdf.path, { force: true });
+    if (img) rmSync(img.path, { force: true });
+
+    // --- 41. Запрет скачивания и «Запретить» в карточке ---
+    step('41. Скачивание: сайт с «Запретить» не начинает загрузку, «Запретить» в вопросе удаляет файл');
+    const n41 = (await dlList()).length;
+    await osCall('sitePermSet', 1, 'localhost', 'downloads', 'BLOCK');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await typeAddress(`http://localhost:${PORT}/file.txt`);
+    await sleep(2000);
+    check('blocked site does not start a download', (await dlList()).length === n41 && !(await state()).prompt, `${n41} → ${(await dlList()).length}`);
+    await osCall('sitePermSet', 1, 'localhost', 'downloads', 'ASK');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    const ui41 = await typeAddress(`http://localhost:${PORT}/file.txt`);
+    const pr41 = await waitFor(async () => (await state()).prompt, 8000);
+    check('«Ask» shows the question again', pr41 && pr41.text.includes('localhost'), pr41?.text);
+    const during = (await dlList()).find((d) => d.url.includes('localhost:'));
+    check('while the question is open, the file is downloading (pending)', during?.pending === true, JSON.stringify(during && { p: during.pending, s: during.state }));
+    await keyScreen('41-download-ask', 'chrome');
+    await ui41.click('#perm-remember');
+    await ui41.click('#perm-block');
+    const gone41 = await waitFor(async () => !(await dlList()).some((d) => d.url.includes('localhost:')), 8000);
+    check('«Block» cancels and deletes the file', gone41 && (!during || !existsSync(during.path)), during?.path);
+    check('one-time «Block» is not remembered', readJson('site_permissions')?.sites?.['1']?.localhost?.downloads === undefined);
+
+    // --- 42. Отправка файлов: разрешено по умолчанию, запрет в разрешениях сайта ---
+    step('42. Отправка файлов: «Разрешено» по умолчанию, «Запретить» не открывает выбор файла');
+    const kinds = await osCall('sitePerms', 1);
+    const upK = kinds.kinds.find((k) => k.key === 'uploads');
+    const dnK = kinds.kinds.find((k) => k.key === 'downloads');
+    check('site permissions list downloads (Ask) and uploads (Allow) by default', upK?.current === 'ALLOW' && dnK?.current === 'ASK', JSON.stringify([upK, dnK]));
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await typeAddress(`${SITE}/upload`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/upload') && !x.loading; });
+    const up42 = app.windows().filter((p) => p.url() === `${SITE}/upload`).pop();
+    const fc1 = up42.waitForEvent('filechooser', { timeout: 4000 }).catch(() => null);
+    await up42.click('#file');
+    const chooser = await fc1;
+    check('file chooser opens by default', !!chooser);
+    await osCall('sitePermSet', 1, '127.0.0.1', 'uploads', 'BLOCK');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await sleep(300);
+    const fc2 = up42.waitForEvent('filechooser', { timeout: 2500 }).catch(() => null);
+    await up42.click('#file');
+    check('blocked site cannot open the file chooser', !(await fc2));
+    await osCall('sitePermSet', 1, '127.0.0.1', 'uploads', 'ALLOW');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://site/?profile=1&host=127.0.0.1'));
+    const sp42 = await page('os://site/');
+    await sp42.waitForSelector('#p-uploads');
+    await keyScreen('42-site-permissions-files', 'page');
+
+    // --- 43. Профили: 10, закрепление, текущий, шестерёнка, плитка, папки ---
+    step('43. Главный экран: 10 профилей, закрепить, текущий, шестерёнка, плитка, папки');
+    await main(() => globalThis.osTest.windows()[0].showHome());
+    const h43 = await page('os://home/');
+    await h43.waitForSelector('.prow');
+    check('home shows 10 profiles and «Show all profiles (N)»', (await h43.$$eval('.prow', (e) => e.length)) === 10 && /\(15\)/.test(await h43.textContent('.showall')));
+    check('current profile has an accent frame and a check mark', (await h43.$$eval('.prow.current', (e) => e.map((x) => x.dataset.id))).join() === '1' && (await h43.$('.prow.current .mark.cur')) !== null);
+    await h43.click('.prow[data-id="7"] .more');
+    await h43.click('.ctx button:has-text("Закрепить")');
+    await waitFor(async () => (await h43.$$eval('.prow', (e) => e.map((x) => x.dataset.id)))[0] === '7');
+    await flush();
+    check('pinned profile goes on top with a pin, stored apart from the order',
+      (await h43.$$eval('.prow', (e) => e[0].dataset.id)) === '7' && (await h43.$('.prow[data-id="7"] .mark.pin')) !== null &&
+      JSON.stringify(readJson('profiles')?.pinned) === '[7]' && (readJson('profiles')?.order ?? []).indexOf(7) !== 0, JSON.stringify(readJson('profiles')?.pinned));
+    await h43.click('.prow[data-id="7"] .more');
+    const m43 = await h43.$$eval('.ctx button', (b) => b.map((x) => x.textContent));
+    check('profile menu: settings, rename, unpin, folder, up/down, sign out', ['Настройки профиля', 'Переименовать', 'Открепить', 'В папку', 'Ниже', 'Выйти из аккаунтов (очистить профиль)'].every((x) => m43.includes(x)), m43.join(' | '));
+    await h43.keyboard.press('Escape');
+    await keyScreen('43-home-pinned', 'page');
+    // Папки: профиль 2 и 3 — в «Работа», 7 — в «Банки».
+    for (const [id, f] of [[2, 'Работа'], [3, 'Работа'], [7, 'Банки']]) await h43.evaluate(([i, n]) => window.os.call('setFolder', i, n), [id, f]);
+    await h43.reload();
+    await h43.waitForSelector('.folder-head');
+    const heads = await h43.$$eval('.folder-head .grow', (e) => e.map((x) => x.textContent));
+    check('folders sorted, «No folder» last', heads.join('|') === 'Банки|Работа|Без папки', heads.join('|'));
+    await h43.click('.folder-head[data-folder="Работа"]');
+    await waitFor(async () => (await h43.getAttribute('.folder-head[data-folder="Работа"]', 'aria-expanded')) === 'false');
+    check('folder collapses', !(await h43.$('.prow[data-id="2"]')));
+    await h43.click('.folder-head[data-folder="Работа"]', { button: 'right' });
+    await h43.click('.ctx button:has-text("Переименовать папку")');
+    await h43.fill('.modal input', 'Клиенты');
+    await h43.click('.modal .btn.accent');
+    await waitFor(async () => (await h43.$('.folder-head[data-folder="Клиенты"]')) !== null);
+    await flush();
+    check('folder renamed (profiles stay in it)', readJson('profiles')?.folders?.['2'] === 'Клиенты' && readJson('profiles')?.folders?.['3'] === 'Клиенты');
+    await h43.click('#view-toggle');
+    await h43.waitForSelector('.ptile');
+    await flush();
+    check('tiles view: avatar, name, marks, gear; saved', (await h43.$('.ptile[data-id="1"] .avatar')) !== null && (await h43.$('.ptile .gear')) !== null && readJson('profiles')?.view === 'grid');
+    await keyScreen('43-home-tiles-folders', 'page');
+    await windowShot('home-tiles');
+    const cols = await h43.$eval('.grid', (g) => window.getComputedStyle(g).gridTemplateColumns.split(' ').length);
+    check('wide window: 4 tile columns', cols === 4, String(cols));
+    await h43.click('.folder-head[data-folder="Клиенты"]', { button: 'right' });
+    await h43.click('.ctx button:has-text("Убрать папку")');
+    await h43.evaluate(() => window.os.call('setFolder', 7, ''));
+    await h43.click('#view-toggle');
+    await h43.waitForSelector('.prow');
+    await flush();
+    check('folder removed, profiles stay', !readJson('profiles')?.folders?.['2'] && (await h43.$$eval('.folder-head', (e) => e.length)) === 0);
+    check('cabinet button links to the common cabinet', (await h43.getAttribute('#cabinet', 'href')) === 'os://cabinet/?all=1');
+    await h43.click('.prow[data-id="3"] .gear');
+    const pp43 = await page('os://profile/');
+    await pp43.waitForSelector('#profile-pin');
+    check('gear opens profile settings: pin, own tabs, files, clear data', (await pp43.$('#profile-clear')) !== null && (await pp43.$('#add-files')) !== null);
+    await pp43.click('#profile-pin');
+    await waitFor(async () => { await flush(); return (readJson('profiles')?.pinned ?? []).includes(3); });
+    check('pin from the profile screen', (readJson('profiles')?.pinned ?? []).includes(3));
+    await keyScreen('43-profile-settings', 'page');
+    await pp43.evaluate(() => Promise.all([window.os.call('setPinned', 3, false), window.os.call('setPinned', 7, false)]));
+
+    // --- 44. Список профилей у чипа в окне ---
+    step('44. Чип профиля: список с отметкой текущего, переключение, «Все профили»');
+    await main(() => globalThis.osTest.windows()[0].openProfile(1));
+    const ui44 = await page('os://ui');
+    await ui44.click('.chip');
+    await ui44.waitForSelector('.pmenu');
+    check('chip list marks the current profile', (await ui44.$$eval('.pmenu .pitem.cur', (e) => e.map((x) => x.dataset.profile))).join() === '1');
+    await keyScreen('44-profile-chip-list', 'chrome');
+    await ui44.click('.pmenu .pitem[data-profile="4"]');
+    check('choosing switches the profile', await waitFor(async () => (await state()).profile?.id === 4));
+    await ui44.click('.chip');
+    await ui44.click('.pmenu button[data-k="all-profiles"]');
+    check('«All profiles» opens the home screen', await waitFor(async () => { const x = await state(); return x.profile === null && x.panel?.startsWith('os://home'); }));
+
+    // --- 45. Настройки: группы и поиск ---
+    step('45. Настройки: 7 групп с кратким содержимым, поиск по всем пунктам, «Запретить скриншоты»');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
+    const st45 = await page('os://settings/');
+    await st45.waitForSelector('.gcard');
+    const g45 = await st45.$$eval('.gcard', (e) => e.map((x) => [x.querySelector('.gtitle').textContent, x.querySelector('.gsum').textContent]));
+    check('7 groups with icons and summaries', g45.length === 7 && g45.every(([a, b]) => a && b) && (await st45.$$eval('.gcard .gicon .ic', (e) => e.length)) === 7, JSON.stringify(g45));
+    check('no single setting is shown on the main page', (await st45.$$eval('.setting', (e) => e.filter((x) => x.offsetParent !== null).length)) === 0);
+    await keyScreen('45-settings-groups', 'page');
+    await st45.fill('#settings-search', 'скриншот');
+    await sleep(200);
+    const hit45 = await st45.$$eval('.setting', (e) => e.filter((x) => x.offsetParent !== null).map((x) => x.textContent));
+    check('search finds «Block screenshots» in Privacy', hit45.length === 1 && hit45[0].includes('Запретить скриншоты'), hit45.join(' | '));
+    await keyScreen('45-settings-search', 'page');
+    await st45.fill('#settings-search', '');
+    await st45.click('.gcard[data-g="privacy"]');
+    await st45.waitForSelector('#hide');
+    check('privacy group: block screenshots, lock, HTTPS, site permissions', await st45.isVisible('#hide') && await st45.isVisible('#pin-set') && await st45.isVisible('#https'));
+    await keyScreen('45-settings-privacy', 'page');
+
+    // --- 46. История ---
+    step('46. История: по дням, буква сайта, поиск, крестик, открыть новой вкладкой, ссылка на удаление данных');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://history/?profile=1'));
+    const h46 = await page('os://history/');
+    await h46.waitForSelector('.item');
+    const day46 = await h46.textContent('.day');
+    const today = new Intl.DateTimeFormat('ru', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date());
+    check('days titled «Сегодня — <date>»', day46 === `Сегодня — ${today}`, day46);
+    check('profile hint and «Clear browsing data…» link', (await h46.textContent('.ph')).includes('История профиля') && (await h46.textContent('#open-clear')).startsWith('Удалить данные о работе в браузере'));
+    check('site letter in a circle', /^[A-Z0-9•]$/.test(await h46.textContent('.item .letter')));
+    await keyScreen('46-history', 'page');
+    const n46 = await h46.$$eval('.item', (e) => e.length);
+    await h46.click('.item .del');
+    await waitFor(async () => (await h46.$$eval('.item', (e) => e.length)) === n46 - 1);
+    check('cross removes one entry', (await h46.$$eval('.item', (e) => e.length)) === n46 - 1);
+    await flush();
+    const tabs46 = (readJson('tabs')?.profiles?.['1']?.tabs ?? []).length;
+    await h46.click('.item >> nth=0');
+    check('click opens a new tab of this profile', await waitFor(async () => { const x = await state(); await flush(); return x.profile?.id === 1 && !x.panel && (readJson('tabs')?.profiles?.['1']?.tabs ?? []).length === tabs46 + 1; }));
+
+    // --- 47. Удалить данные: диапазон и счётчики ---
+    step('47. Удалить данные о работе в браузере: диапазон, счётчики, удаление истории за 15 минут');
+    await typeAddress(`${SITE}/set?p=keep`);
+    await waitFor(async () => (await main(async ({ session }) => (await session.fromPartition('persist:profile_1').cookies.get({ name: 'os_test' }))[0]?.value)) === 'keep');
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://clear/?profile=1'));
+    const c47 = await page('os://clear/');
+    await c47.waitForSelector('#range');
+    const ranges = await c47.$$eval('#range option', (o) => o.map((x) => x.textContent));
+    check('six ranges: 15 min … all time', ranges.join('|') === 'Последние 15 минут|Последний час|Последние 24 часа|Последние 7 дней|Последние 4 недели|Всё время', ranges.join('|'));
+    check('note: favorites, notes, saved pages and files are kept', (await c47.textContent('body')).includes('Избранное, заметки, сохранённые страницы и файлы профиля не удаляются'));
+    await c47.selectOption('#range', 'range_15m');
+    await c47.waitForSelector('#o-history');
+    for (const id of ['cookies', 'cache', 'tabs']) await c47.uncheck(`#o-${id}`);
+    await keyScreen('47-clear-range', 'page');
+    const tabsBefore47 = (readJson('tabs')?.profiles?.['1']?.tabs ?? []).length;
+    const since47 = Date.now() - 15 * 60_000;
+    await c47.click('#do-clear');
+    const h47 = await waitFor(async () => { await flush(); const h = readJson('history')?.h?.['1'] ?? []; return h.every((v) => v.d < since47) && h; }, 8000);
+    check('history of the last 15 minutes deleted, older kept, tabs untouched', h47 && (readJson('tabs')?.profiles?.['1']?.tabs ?? []).length === tabsBefore47, `${h47?.length} left`);
+    check('cookies of the profile kept when unchecked', (await main(async ({ session }) => (await session.fromPartition('persist:profile_1').cookies.get({ name: 'os_test' }))[0]?.value)) === 'keep');
+
+    // --- 48. Ширина экранов-списков ---
+    step('48. Экраны-списки не шире 720 px и по центру');
+    const widths = [];
+    for (const u of ['os://home/', 'os://settings/', 'os://downloads/', 'os://favorites/', 'os://site/?profile=1']) {
+      await main((_e, url) => globalThis.osTest.windows()[0].openPanel(url), u);
+      const p = await page(u.split('?')[0]);
+      await p.waitForSelector('#app > *');
+      widths.push(await p.evaluate(() => {
+        const a = document.getElementById('app');
+        const r = a.getBoundingClientRect();
+        const cs = window.getComputedStyle(a);
+        return [Math.round(r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)), Math.round(r.left + r.right - document.documentElement.clientWidth)];
+      }));
+    }
+    check('content ≤ 720 px, centered', widths.every(([w, off]) => w <= 720 && Math.abs(off) <= 2), JSON.stringify(widths));
+    await main(() => globalThis.osTest.windows()[0].openProfile(1));
+    check('no script errors on own pages (os://) after the new screens', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
+    void W;
   }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));

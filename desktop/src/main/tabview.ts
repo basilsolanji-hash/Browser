@@ -41,6 +41,9 @@ export function isAuthPopup(url: string): boolean {
   }
 }
 
+/** Расширение встроенного просмотрщика PDF Chromium (постоянный id). */
+const PDF_VIEWER = 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/';
+
 /** Схемы, которые сайт может открыть сам: только веб. Почта — во внешней программе. */
 function allowedFromSite(url: string): boolean {
   return isWebUrl(url) || url === 'about:blank';
@@ -79,7 +82,8 @@ export class TabView {
     };
     wc.on('will-navigate', (e) => guard(e, e.url));
     wc.on('will-redirect', (e) => guard(e, e.url));
-    wc.on('will-frame-navigate', (e) => { if (!e.isMainFrame && !allowedFromSite(e.url) && !e.url.startsWith('data:')) e.preventDefault(); });
+    // Встроенный просмотрщик PDF Chromium рисует документ во вложенной рамке своего расширения — её пропускаем.
+    wc.on('will-frame-navigate', (e) => { if (!e.isMainFrame && !allowedFromSite(e.url) && !e.url.startsWith('data:') && !e.url.startsWith(PDF_VIEWER)) e.preventDefault(); });
     wc.on('did-start-loading', () => this.host.onTabUpdated(this));
     wc.on('did-stop-loading', () => this.host.onTabUpdated(this));
     // Счётчик трекеров — с начала перехода: запросы страницы могут блокироваться раньше did-navigate.

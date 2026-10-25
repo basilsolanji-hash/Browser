@@ -204,19 +204,24 @@ function tabMenu(tab: StripTab, r: DOMRect): void {
 
 async function profileMenu(anchor: DOMRect): Promise<void> {
   const list = await os.call<ProfileInfo[]>('profileList');
-  const items: Item[] = [{ head: t('profiles') }];
+  // Список профилей (как в Chrome): цвет, имя, почта; текущий отмечен; выбор сразу переключает.
+  const items: Item[] = [{ head: t('switch_profile') }];
   for (const p of list) {
     const cur = st?.profile?.id === p.id;
     items.push({
-      el: h('button', { onclick: () => { hideDrop(); void os.call('openProfile', p.id); } },
-        h('span', { class: 'dot', style: `background:${p.color}` }),
-        h('span', { class: 'grow' }, p.name, h('span', { class: 'sub' }, p.email ? '  ' + p.email : '')),
-        cur ? h('span', { class: 'mark-cur' }, icon('check', 16)) : null),
+      el: h('button', { class: 'pitem' + (cur ? ' cur' : ''), 'data-profile': String(p.id), role: 'menuitemradio', 'aria-checked': String(cur),
+        onclick: () => { hideDrop(); if (!cur) void os.call('openProfile', p.id); } },
+      h('span', { class: 'pav', style: `background:${p.color}` }, (p.name.trim()[0] ?? '•').toUpperCase()),
+      h('span', { class: 'grow' }, h('span', { class: 'pname' }, p.name), p.email ? h('span', { class: 'pmail' }, p.email) : null),
+      p.pinned ? h('span', { class: 'mark-pin', title: t('profile_pinned') }, icon('pin', 14)) : null,
+      cur ? h('span', { class: 'mark-cur', title: t('profile_current') }, icon('check', 16)) : null),
     });
   }
-  items.push({ sep: true }, { label: t('dt_all_profiles'), icon: 'person', run: () => void os.call('showHome') });
-  if (st?.profile) items.push({ label: t('profile_info'), icon: 'edit', run: () => void os.call('openPanel', `os://profile/?id=${st!.profile!.id}`) });
-  openDrop(menu(items), anchor, 'start', 300);
+  items.push({ sep: true }, { k: 'all-profiles', label: t('all_profiles'), icon: 'person', run: () => void os.call('showHome') });
+  if (st?.profile) items.push({ label: t('profile_settings'), icon: 'settings', run: () => void os.call('openPanel', `os://profile/?id=${st!.profile!.id}`) });
+  const box = menu(items);
+  box.classList.add('pmenu');
+  openDrop(box, anchor, 'start', 320);
 }
 
 function renderRow1(): void {

@@ -34,7 +34,7 @@ async function render(): Promise<void> {
       class: 'folder-head', 'aria-expanded': String(!closed), 'data-folder': s.folder,
       onclick: () => { if (s.folder) void os.call('setCollapsed', s.folder, !closed).then(render); },
       oncontextmenu: (e: MouseEvent) => { e.preventDefault(); if (s.folder) folderMenu(s.folder, e.clientX, e.clientY); },
-    }, icon(s.folder ? (closed ? 'forward' : 'chevron') : 'folder', 18), icon('folder', 18), h('span', { class: 'grow' }, name), h('span', { class: 'n' }, String(s.items.length)));
+    }, s.folder ? icon(closed ? 'forward' : 'chevron', 18) : h('span', { class: 'ic', style: 'width:18px' }), icon('folder', 18), h('span', { class: 'grow' }, name), h('span', { class: 'n' }, String(s.items.length)));
     return h('section', { class: 'folder' + (closed ? ' closed' : '') }, head, closed ? null : items);
   }));
   const toggle = h('button', {
@@ -60,7 +60,7 @@ async function render(): Promise<void> {
       h('a', { class: 'pill', href: 'os://about/', style: 'text-decoration:none;color:inherit' }, icon('info2', 16), t('about'))),
     h('div', { class: 'row' }, h('h1', { class: 'grow' }, t('profiles')), toggle),
     h('div', { class: 'hint' }, t('dt_profiles_desc', list.length)),
-    h('div', { class: 'hint' }, view === 'grid' ? t('profiles_grid_hint') : t('dt_reorder_hint')),
+    h('div', { class: 'hint' }, t('dt_reorder_hint')),
     body,
     list.length > shown.length || expanded
       ? h('button', { class: 'btn showall', onclick: () => { expanded = !expanded; void render(); } },
