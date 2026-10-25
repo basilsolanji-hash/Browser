@@ -1,11 +1,13 @@
-import { BrowserWindow, WebContentsView, clipboard, screen, session, type Session, type WebContents } from 'electron';
+import { BrowserWindow, WebContentsView, clipboard, dialog, ipcMain, screen, session, shell, systemPreferences, type Session, type WebContents } from 'electron';
 import { join } from 'node:path';
 import { JsonFile } from './store';
 import { WEB_PREFS, hardenSession, openExternal } from './security';
 import { handleUiSession, handleWebSession, isPanelUrl } from './protocol';
 import { INCOGNITO_PALETTE, palette } from './themes';
-import { settings, searchUrl } from './settings';
+import { settings, searchUrl, toolbarButton } from './settings';
 import { TabView, type TabHost } from './tabview';
+import { isDefaultCached } from './defaultbrowser';
+import { isSignInPage } from './signin';
 import { START, fromInput, isOwnUrl, isWebUrl } from './urls';
 import { isRtl, t } from './i18n';
 import * as Tabs from './tabs';
@@ -76,7 +78,14 @@ const preload = () => join(__dirname, '..', 'preload', 'preload.js');
 
 interface MemTab { id: string; title: string; url: string }
 
-interface Prompt { id: number; wcId: number; host: string; kinds: string[]; resolve: (allow: boolean, remember: boolean) => void }
+interface Prompt {
+  id: number; wcId: number; host: string; kinds: string[]; resolve: (allow: boolean, remember: boolean) => void;
+  /** Свой текст вопроса (скачивание: сайт и имя файла). */
+  text?: string;
+}
+export interface AskOptions { text?: string; keepOnNavigate?: boolean }
+/** Вопрос о пароле: сохранить после входа или выбрать аккаунт для подстановки. */
+export interface PwPrompt { id: number; wcId: number; kind: 'save' | 'pick'; host: string; users: { g: string; u: string }[]; resolve: (action: string) => void }
 let promptSeq = 0;
 
 const SIMPLE_ALLOW = new Set(['fullscreen', 'clipboard-sanitized-write', 'pointerLock']);
@@ -109,20 +118,52 @@ export function permissionMode(ses: Session, host: string, kind: string): Perms.
   return sessionModes.get(ses)?.(host, kind) ?? 'BLOCK';
 }
 
+/** Запомнить решение для сайта в этой сессии: профиль — на диск, инкогнито — в памяти окна. */
+const sessionRemember = new WeakMap<Session, (host: string, kind: string, allow: boolean) => void>();
+/** Доступ приложения к камере или микрофону выключен в настройках Windows. */
+function osMediaDenied(kind: 'camera' | 'microphone'): boolean {
+  if (process.platform !== 'win32' && process.platform !== 'darwin') return false;
+  return systemPreferences.getMediaAccessStatus(kind) === 'denied';
+}
+
+async function explainOsDenied(w: OsWindow, kind: 'camera' | 'microphone'): Promise<void> {
+  const what = t(Perms.kind(kind)?.titleKey ?? kind);
+  const r = await dialog.showMessageBox(w.win, {
+    type: 'info', message: t('dt_perm_os_off', what), buttons: [t('open_settings'), t('close')], defaultId: 0, cancelId: 1, noLink: true,
+  });
+  if (r.response === 0 && process.platform === 'win32') void shell.openExternal(kind === 'camera' ? 'ms-settings:privacy-webcam' : 'ms-settings:privacy-microphone');
+}
+
 function installPermissions(ses: Session, profile: number | null): void {
   const memory = new Map<string, Perms.Mode>();
   const mode = (host: string, kind: string): Perms.Mode =>
     profile == null ? (memory.get(`${host}|${kind}`) ?? Perms.defaultMode(kind)) : Perms.effective(profile, host, kind);
   sessionModes.set(ses, mode);
+  sessionRemember.set(ses, (host, k, allow) => {
+    if (profile == null) memory.set(`${host}|${k}`, allow ? 'ALLOW' : 'BLOCK');
+    else Perms.set(profile, host, k, allow ? 'ALLOW' : 'BLOCK');
+  });
   ses.setPermissionRequestHandler((wc, permission, cb, details) => {
     if (SIMPLE_ALLOW.has(permission)) return cb(true);
     const kinds = kindsFor(permission, details as { mediaTypes?: string[] });
     const host = hostOf(details.requestingUrl || wc?.getURL() || '');
     if (!kinds || !wc || !host) return cb(false);
     const modes = kinds.map((k) => mode(host, k));
-    if (modes.includes('BLOCK')) return cb(false);
-    if (modes.every((m) => m === 'ALLOW')) return cb(true);
     const w = [...windows].find((x) => x.owns(wc));
+    // Запрещено для сайта — не молча: подсказка, где это поменять.
+    const blocked = kinds[modes.indexOf('BLOCK')];
+    if (blocked) {
+      w?.toast(t('perm_blocked_for', t(Perms.kind(blocked)?.titleKey ?? blocked), host));
+      return cb(false);
+    }
+    // Доступ выключен в самой Windows («Конфиденциальность» → микрофон или камера) — объясняем и ведём туда.
+    const off = kinds.find((k): k is 'camera' | 'microphone' => (k === 'camera' || k === 'microphone') && osMediaDenied(k));
+    if (off) {
+      cb(false);
+      if (w) void explainOsDenied(w, off);
+      return;
+    }
+    if (modes.every((m) => m === 'ALLOW')) return cb(true);
     if (!w) return cb(false);
     w.askPermission(wc, host, kinds, (allow, remember) => {
       if (remember) {
@@ -154,6 +195,8 @@ export class OsWindow implements TabHost {
   panel: string | null = null;
   private views = new Map<string, TabView>();
   private shown: TabView | null = null;
+  /** Вкладка на экране (для пунктов меню, которые меняют саму вкладку). */
+  get current(): TabView | null { return this.panel ? null : this.shown; }
   private overlay = false;
   private pushTimer: NodeJS.Timeout | null = null;
   // Вкладки инкогнито живут только в памяти.
@@ -163,6 +206,7 @@ export class OsWindow implements TabHost {
   private memSeq = 0;
   /** Запросы разрешений сайтов, ждущие ответа пользователя. */
   private prompts: Prompt[] = [];
+  private pwPrompts: PwPrompt[] = [];
   /** Поиск на странице: текст и найденное (null — строка поиска закрыта). */
   private find: { text: string; active: number; matches: number } | null = null;
   /** Окно заблокировано PIN-ом: видно только os://lock. */
@@ -203,8 +247,8 @@ export class OsWindow implements TabHost {
     this.win.on('move', () => this.saveBounds());
     this.win.on('maximize', () => { this.push(); this.saveBounds(); });
     this.win.on('unmaximize', () => { this.push(); this.saveBounds(); });
-    this.win.on('enter-full-screen', () => this.layout());
-    this.win.on('leave-full-screen', () => this.layout());
+    this.win.on('enter-full-screen', () => { this.layout(); this.push(); });
+    this.win.on('leave-full-screen', () => { this.layout(); this.push(); });
     // Кнопки «назад/вперёд» мыши в Windows.
     this.win.on('app-command', (_e, cmd) => {
       if (cmd === 'browser-backward') this.back();
@@ -354,10 +398,17 @@ export class OsWindow implements TabHost {
       find: this.find && !this.panel ? this.find : null,
       bookmarked: isWebUrl(url) && !!Bookmarks.findByUrl(url),
       prompt: this.currentPrompt(),
+      pw: this.currentPw(),
       blocked: wc ? Privacy.blockedOnTab(wc.id) : 0,
       locked: this.locked,
       lockEnabled: Lock.enabled(),
       reader: !!v?.reader,
+      mobile: !!v?.mobile,
+      isDefault: isDefaultCached(),
+      fullscreen: this.win.isFullScreen(),
+      engine: settings.get().engine,
+      toolbarButton: toolbarButton(),
+      hasDownloads: Downloads.list().length > 0,
     };
   }
 
@@ -437,6 +488,8 @@ export class OsWindow implements TabHost {
     this.panel = url;
     const wc = this.page.webContents;
     if (wc.getURL() !== url) void wc.loadURL(url);
+    // Тот же экран открыт снова — данные могли поменяться (вкладки, пароли): пусть перечитает.
+    else wc.send('os:event', 'changed', null);
     this.layout();
     this.push();
     wc.focus();
@@ -478,7 +531,7 @@ export class OsWindow implements TabHost {
     if (!this.overlay) v.wc.focus();
   }
 
-  newTab(url?: string, opts: { after?: string | null; foreground?: boolean } = {}): void {
+  newTab(url?: string, opts: { after?: string | null; foreground?: boolean } = {}): string {
     const target = url ?? START;
     if (this.incognito) {
       const m: MemTab = { id: `tab${Date.now()}${++this.memSeq}`, title: '', url: target === START ? homeUrl(true) : target };
@@ -487,7 +540,7 @@ export class OsWindow implements TabHost {
       else this.memTabs.push(m);
       if (opts.foreground !== false || !this.memActive) this.activate(m.id);
       else this.push();
-      return;
+      return m.id;
     }
     if (this.profile == null) {
       this.openProfile(Tabs.tabsFile.get().lastProfile ?? Profiles.order()[0]);
@@ -495,6 +548,27 @@ export class OsWindow implements TabHost {
     const tab = Tabs.add(this.profile!, target, { after: opts.after ?? null });
     if (opts.foreground !== false) this.activate(tab.id);
     else this.push();
+    return tab.id;
+  }
+
+  /** Какая вкладка открыла эту (target=_blank, window.open): вкладка → открывшая. */
+  private openers = new Map<string, string>();
+
+  /** Вкладка, открывшая [tab], если она ещё жива. */
+  openerOf(tab: TabView): TabView | undefined {
+    const id = this.openers.get(tab.id);
+    return id ? this.views.get(this.key(id)) : undefined;
+  }
+
+  /**
+   * Вкладку открыли только ради файла (PDF-вложение в новом пустом окне): закрываем её и возвращаемся
+   * к вкладке, которая её открыла. Исходную вкладку не перезагружаем (на Android это давало цикл).
+   */
+  closeBlankTab(tab: TabView): void {
+    const opener = this.openerOf(tab);
+    if (this.tabOf(tab.wc) !== tab) return;
+    this.closeTab(tab.id);
+    if (opener && this.tabOf(opener.wc) === opener) this.activate(opener.id);
   }
 
   /** Ссылка из своих экранов или извне: в текущем профиле (или последнем), в новой вкладке. */
@@ -659,16 +733,16 @@ export class OsWindow implements TabHost {
     return [...this.views.values()].some((v) => v.wc === wc);
   }
 
-  askPermission(wc: WebContents, host: string, kinds: string[], resolve: (allow: boolean, remember: boolean) => void): void {
-    const p: Prompt = { id: ++promptSeq, wcId: wc.id, host, kinds, resolve };
+  askPermission(wc: WebContents, host: string, kinds: string[], resolve: (allow: boolean, remember: boolean) => void, opts: AskOptions = {}): void {
+    const p: Prompt = { id: ++promptSeq, wcId: wc.id, host, kinds, resolve, text: opts.text };
     this.prompts.push(p);
-    // Вкладку закрыли или увели на другой сайт — запрос отклоняется.
+    // Вкладку закрыли или увели на другой сайт — запрос отклоняется (вопрос о скачивании переживает переход).
     const cancel = () => this.answerPrompt(p.id, false, false);
     const nav = (e: Electron.Event<Electron.WebContentsDidStartNavigationEventParams>) => {
       if (e.isMainFrame && !e.isSameDocument) { wc.off('did-start-navigation', nav); cancel(); }
     };
     wc.once('destroyed', cancel);
-    wc.on('did-start-navigation', nav);
+    if (!opts.keepOnNavigate) wc.on('did-start-navigation', nav);
     this.push();
   }
 
@@ -680,11 +754,45 @@ export class OsWindow implements TabHost {
     this.push();
   }
 
+  /** Вопрос о пароле для вкладки; новый вопрос той же вкладки заменяет старый. */
+  askPassword(wc: WebContents, q: Omit<PwPrompt, 'id' | 'wcId'>): void {
+    if (this.incognito) return;
+    for (const old of this.pwPrompts.filter((x) => x.wcId === wc.id)) this.answerPassword(old.id, 'later');
+    const p: PwPrompt = { ...q, id: ++promptSeq, wcId: wc.id };
+    this.pwPrompts.push(p);
+    const cancel = () => this.answerPassword(p.id, 'later');
+    // Выбор аккаунта — только для этой страницы; «Сохранить?» живёт, пока вкладка на том же сайте (после входа сайт обычно переходит на другую страницу).
+    const nav = (e: Electron.Event<Electron.WebContentsDidStartNavigationEventParams>) => {
+      if (!e.isMainFrame || e.isSameDocument) return;
+      let host = '';
+      try { host = new URL(e.url).hostname.toLowerCase(); } catch { /* не адрес */ }
+      if (p.kind === 'pick' || host !== p.host) { wc.off('did-start-navigation', nav); cancel(); }
+    };
+    wc.once('destroyed', cancel);
+    wc.on('did-start-navigation', nav);
+    this.push();
+  }
+
+  answerPassword(id: number, action: string): void {
+    const i = this.pwPrompts.findIndex((p) => p.id === id);
+    if (i < 0) return;
+    const [p] = this.pwPrompts.splice(i, 1);
+    p.resolve(action);
+    this.push();
+  }
+
+  private currentPw(): WindowState['pw'] {
+    const wc = this.shown?.wc;
+    const p = wc && !this.panel ? this.pwPrompts.find((x) => x.wcId === wc.id) : undefined;
+    if (!p) return null;
+    return { id: p.id, kind: p.kind, text: p.kind === 'save' ? t('password_save_q', p.host) : t('login_pick'), host: p.host, users: p.users };
+  }
+
   private currentPrompt(): WindowState['prompt'] {
     const wc = this.shown?.wc;
     const p = wc && !this.panel ? this.prompts.find((x) => x.wcId === wc.id) : undefined;
     if (!p) return null;
-    const text = p.kinds.length === 2 ? t('perm_q_camera_mic', p.host) : t(Perms.kind(p.kinds[0])!.askKey, p.host);
+    const text = p.text ? p.text : p.kinds.length === 2 ? t('perm_q_camera_mic', p.host) : t(Perms.kind(p.kinds[0])!.askKey, p.host);
     return { id: p.id, text, canRemember: !this.incognito };
   }
 
@@ -827,7 +935,8 @@ export class OsWindow implements TabHost {
     if (!this.incognito) {
       const p = Number(tab.key.split(':')[0]);
       const real = tab.url();
-      if (Tabs.isTab(tab.id)) Tabs.update(p, tab.id, { url: real.startsWith('os://start') ? START : real });
+      // Страницу входа не запоминаем: после перезапуска вкладка не должна снова слать код подтверждения.
+      if (isSignInPage(real)) { /* последний адрес вкладки остаётся прежним */ } else if (Tabs.isTab(tab.id)) Tabs.update(p, tab.id, { url: real.startsWith('os://start') ? START : real });
       else Tabs.setPinState(p, tab.id, real, tab.wc.getTitle());
       if (isWebUrl(url)) History.add(p, url);
     } else {
@@ -856,7 +965,8 @@ export class OsWindow implements TabHost {
 
   openTab(url: string, opener: TabView, foreground: boolean): void {
     if (!this.incognito && opener.key.split(':')[0] !== String(this.profile)) return;
-    this.newTab(url, { after: Tabs.isTab(opener.id) || this.incognito ? opener.id : null, foreground });
+    const id = this.newTab(url, { after: Tabs.isTab(opener.id) || this.incognito ? opener.id : null, foreground });
+    this.openers.set(id, opener.id);
   }
 
   addNote(text: string, url: string): void {
@@ -924,6 +1034,8 @@ export class OsWindow implements TabHost {
     if (ctrl && input.shift && (code === 'KeyT')) { this.reopenClosed(); return true; }
     if (ctrl && input.shift && code === 'KeyN') { openIncognito(); return true; }
     if (ctrl && !input.shift && code === 'KeyT') { this.newTab(); this.focusAddress(); return true; }
+    // Ctrl+N — как привыкли в Chrome: новая вкладка (окно на профиль одно).
+    if (ctrl && !input.shift && code === 'KeyN' && (this.profile != null || this.incognito)) { this.newTab(); this.focusAddress(); return true; }
     if (ctrl && code === 'KeyW') { if (this.panel && this.profile != null) this.closePanel(); else this.closeTab(); return true; }
     if (ctrl && (k === 'Tab' || k === 'PageDown' || k === 'PageUp')) {
       this.cycle(k === 'PageUp' || (k === 'Tab' && input.shift) ? -1 : 1);
@@ -941,13 +1053,20 @@ export class OsWindow implements TabHost {
     if (ctrl && (code === 'Digit0' || code === 'Numpad0')) { this.zoom(0); return true; }
     if (ctrl && !input.shift && code === 'KeyH' && !this.incognito) { this.openPanel(`os://history/?profile=${this.profile ?? Profiles.order()[0]}`); return true; }
     if (ctrl && !input.shift && code === 'KeyJ') { this.openPanel('os://downloads/'); return true; }
+    // Как в Chrome: Ctrl+Shift+Del — «Удалить данные о работе в браузере».
+    if (ctrl && input.shift && k === 'Delete' && this.profile != null) { this.openPanel(`os://clear/?profile=${this.profile}`); return true; }
     if (ctrl && input.shift && code === 'KeyO' && !this.incognito) { this.openPanel('os://favorites/'); return true; }
     if (ctrl && !input.shift && code === 'KeyD') {
       const r = this.toggleBookmark();
       if (r != null) this.toast(t(r ? 'added_favorite' : 'fav_removed'));
       return true;
     }
-    if (ctrl && !input.shift && code === 'KeyF') { this.openFind(); return true; }
+    if (ctrl && !input.shift && code === 'KeyF') {
+      // На своих экранах (настройки, история…) — в их собственное поле поиска.
+      if (this.panel) void this.page.webContents.executeJavaScript("document.querySelector('input[type=search]')?.focus()").catch(() => {});
+      else this.openFind();
+      return true;
+    }
     if (ctrl && !input.shift && code === 'KeyP') { this.print(); return true; }
     if (k === 'F3') { if (this.find?.text) this.findText(this.find.text, !input.shift, true); else this.openFind(); return true; }
     if (k === 'Escape' && this.find && !this.panel) { this.closeFind(); return true; }
@@ -1072,6 +1191,9 @@ export function profileInfo(id: number): ProfileInfo {
     active: [...windows].some((w) => w.liveTabs().some((v) => v.key.startsWith(`${id}:`))),
     pins: Pins.all(id),
     ownPins: Pins.hasOwn(id),
+    pinned: Profiles.isPinned(id),
+    current: (Tabs.tabsFile.get().lastProfile ?? Profiles.sorted()[0]) === id,
+    folder: Profiles.folderOf(id),
   };
 }
 
@@ -1104,4 +1226,76 @@ export function byWebContents(wc: WebContents): { win: OsWindow; role: 'chrome' 
     if (w.page.webContents === wc) return { win: w, role: 'page' };
   }
   return null;
+}
+
+// --- Скачивание и отправка файлов: разрешения сайта (§4) ---
+
+/** Вкладка ещё ничего не показала — её открыли только ради файла. */
+const isBlank = (tab: TabView) => {
+  const u = tab.wc.mainFrame?.url ?? '';
+  return (!u || u === 'about:blank') && !tab.wc.navigationHistory.canGoBack() && (Tabs.isTab(tab.id) || tab.key.startsWith('i:'));
+};
+
+/**
+ * Можно ли сайту скачать файл: «Запретить» — загрузка не начинается, «Разрешить» — сразу, «Спросить»
+ * (по умолчанию) — файл качается, а в окне висит карточка вопроса; «Запретить» в ней удаляет файл.
+ */
+function downloadGate(r: Downloads.GateRequest): Downloads.GateAnswer {
+  const wc = r.wc && !r.wc.isDestroyed() ? r.wc : null;
+  const w = wc ? [...windows].find((x) => x.owns(wc)) : undefined;
+  const tab = w && wc ? w.tabOf(wc) : undefined;
+  const blank = !!tab && isBlank(tab);
+  const opener = blank && w ? w.openerOf(tab!) : undefined;
+  // Чей это файл: страница вкладки, а у пустой вкладки — страница, которая её открыла.
+  const page = blank ? opener?.url() ?? '' : tab?.url() ?? '';
+  const host = hostOf(isWebUrl(page) ? page : r.url);
+  const mode = host ? permissionMode(r.ses, host, 'downloads') : 'ALLOW';
+  if (blank) setTimeout(() => { if (!tab!.wc.isDestroyed()) w!.closeBlankTab(tab!); }, 0);
+  if (mode === 'BLOCK') {
+    w?.toast(t('perm_blocked_for', t('perm_downloads'), host));
+    return 'block';
+  }
+  if (mode === 'ALLOW' || !w) return 'allow';
+  return new Promise<boolean>((resolve) => {
+    const ask = () => {
+      const target = blank ? (opener && !opener.wc.isDestroyed() ? opener.wc : w.activeWebContents()) : wc;
+      if (!target || target.isDestroyed()) { resolve(true); return; }
+      w.askPermission(target, host, ['downloads'], (allow, remember) => {
+        if (remember) sessionRemember.get(r.ses)?.(host, 'downloads', allow);
+        resolve(allow);
+      }, { text: t('perm_q_downloads', host, r.name), keepOnNavigate: true });
+    };
+    if (blank) setTimeout(ask, 0);
+    else ask();
+  });
+}
+Downloads.setGate(downloadGate);
+
+/**
+ * Отправка файлов (<input type=file>): preload вкладки спрашивает перед окном выбора файла.
+ * По умолчанию «Разрешено»; «Запретить» — окно не открывается; «Спросить» — карточка, после «Разрешить»
+ * окно выбора открывается (жест пользователя даёт главный процесс).
+ */
+export function installUploads(): void {
+  ipcMain.on('tab:upload', (e) => {
+    let mode: Perms.Mode = 'ALLOW';
+    for (const w of windows) {
+      const tab = w.tabOf(e.sender);
+      if (!tab) continue;
+      const host = hostOf(tab.url());
+      if (!host) break;
+      mode = permissionMode(tab.wc.session, host, 'uploads');
+      if (mode === 'BLOCK') w.toast(t('perm_blocked_for', t('perm_uploads'), host));
+      if (mode === 'ASK') {
+        const wc = tab.wc;
+        w.askPermission(wc, host, ['uploads'], (allow, remember) => {
+          if (remember) sessionRemember.get(wc.session)?.(host, 'uploads', allow);
+          if (!allow || wc.isDestroyed()) return;
+          void wc.executeJavaScript('0', true).then(() => { if (!wc.isDestroyed()) wc.send('tab:upload-go'); }).catch(() => {});
+        }, { text: t('perm_q_uploads', host) });
+      }
+      break;
+    }
+    e.returnValue = mode;
+  });
 }

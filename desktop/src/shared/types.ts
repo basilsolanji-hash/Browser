@@ -32,6 +32,12 @@ export interface ProfileInfo {
   active: boolean;
   pins: Pin[];
   ownPins: boolean;
+  /** Закреплён (всегда сверху списка). */
+  pinned: boolean;
+  /** Последний открытый профиль — отмечен рамкой и галочкой. */
+  current: boolean;
+  /** Папка на главном экране ('' — без папки). */
+  folder: string;
 }
 
 /** Состояние окна для интерфейса браузера (полоса вкладок, адресная строка). */
@@ -57,14 +63,28 @@ export interface WindowState {
   bookmarked: boolean;
   /** Запрос разрешения сайта для текущей вкладки. */
   prompt: { id: number; text: string; canRemember: boolean } | null;
+  /** Вопрос о пароле: «Сохранить пароль?» после входа или выбор аккаунта для подстановки. */
+  pw: { id: number; kind: 'save' | 'pick'; text: string; host: string; users: { g: string; u: string }[] } | null;
   /** Сколько трекеров заблокировано на текущей вкладке. */
   blocked: number;
   locked: boolean;
   lockEnabled: boolean;
   reader: boolean;
+  /** Вкладка открыта в мобильной версии сайта. */
+  mobile: boolean;
+  /** Ось — браузер по умолчанию (тогда пункт «Сделать браузером по умолчанию» не нужен). */
+  isDefault: boolean;
+  fullscreen: boolean;
+  /** Выбранный поисковик (значок слева в строке при вводе). */
+  engine: string;
+  /** Что стоит на кнопке справа от адресной строки. */
+  toolbarButton: string;
+  /** Есть хотя бы одна загрузка (кнопка «Загрузки» на панели появляется после первой). */
+  hasDownloads: boolean;
 }
 
-export interface Suggestion { kind: 'search' | 'history' | 'favorite' | 'url'; title: string; url: string }
+export interface Suggestion { kind: 'search' | 'query' | 'history' | 'favorite' | 'url'; title: string; url: string }
+export interface Tile { host: string; label: string; url: string }
 
 export interface UiInit {
   lang: string;

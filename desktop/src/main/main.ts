@@ -2,12 +2,18 @@ import { app, Menu, nativeTheme, powerMonitor } from 'electron';
 import { join } from 'node:path';
 import { registerScheme } from './protocol';
 import { installGlobalGuards, cleanUserAgent } from './security';
+import { refreshDefault } from './defaultbrowser';
+import * as History from './history';
+import * as Perms from './permissions';
 import { applyLanguage } from './i18n';
 import { flushAll } from './store';
 import { installIpc, applyTheme } from './ipc';
 import { OsWindow, lockAll, mainWindow, profileSession, windows } from './window';
 import { setBlockedListener } from './privacy';
 import { installNotifications, shownForTest, clickLastForTest } from './notify';
+import { installUploads } from './window';
+import { installAutofill } from './autofill';
+import { setTestPath } from './backup';
 import { incomingUrl } from './defaultbrowser';
 import * as Updater from './updater';
 import { suspendAll } from './downloads';
@@ -53,7 +59,10 @@ if (!app.requestSingleInstanceLock()) {
     applyLanguage();
     applyTheme();
     installIpc();
+    void refreshDefault();
     installNotifications();
+    installUploads();
+    installAutofill();
     nativeTheme.on('updated', () => { for (const w of windows) w.refreshLook(); });
     // Счётчик заблокированных трекеров в адресной строке.
     setBlockedListener((wcId) => { for (const w of windows) if (w.liveTabs().some((v) => v.wc.id === wcId)) w.push(); });
@@ -103,5 +112,8 @@ if (process.env.OS_TEST === '1') {
     installCrx: (profile: number, base64: string) => Extensions.installCrx(profileSession(profile), profile, Buffer.from(base64, 'base64'), null),
     extensions: (profile: number) => Extensions.info(profileSession(profile), profile, 'en'),
     extensionFiles: (profile: number, id: string) => Extensions.hasFiles(profile, id),
+    backupPath: (p: string | null) => setTestPath(p),
+    setPerm: (profile: number, host: string, kind: string, mode: Perms.Mode | null) => Perms.set(profile, host, kind, mode),
+    addHistory: (profile: number, url: string, title: string) => { History.add(profile, url); History.setTitle(profile, url, title); },
   };
 }

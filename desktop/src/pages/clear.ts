@@ -1,35 +1,52 @@
-import { boot, h, os, t } from '../shared/ui';
+import { boot, h, icon, os, t } from '../shared/ui';
 import { confirmDialog, param, toast } from './common';
+import { DEFAULT_RANGE, RANGES } from '../shared/days';
 import type { ProfileInfo } from '../shared/types';
 
-/** Очистка данных профиля (BrowserActivity → «Очистка»): история, кэш, выход из аккаунтов. */
+/**
+ * «Удалить данные о работе в браузере» (ClearDataActivity.kt): диапазон времени и карточки с галочками
+ * и счётчиками. История, cookies, кеш, вкладки — по умолчанию да; пароли и настройки сайтов — нет.
+ */
+interface Info { profile: ProfileInfo; history: number; tabs: number; passwords: number; sites: number }
 const app = document.getElementById('app')!;
 app.className = 'wrap';
 const profile = Number(param('profile'));
+let range = DEFAULT_RANGE;
+const checked: Record<string, boolean> = { history: true, cookies: true, cache: true, tabs: true, passwords: false, sites: false };
 
 async function render(): Promise<void> {
-  const p = await os.call<ProfileInfo>('profile', profile);
-  document.title = t('clear_title');
-  const opt = (id: string, label: string, sub: string, checked: boolean) =>
-    h('label', { class: 'opt' }, h('input', { type: 'checkbox', id, checked }), h('div', null, h('div', null, label), sub ? h('div', { class: 'sub' }, sub) : ''));
+  const info = await os.call<Info>('clearInfo', profile, range);
+  document.title = t('clear_browsing_data');
+  const card = (id: string, ic: string, title: string, sub: string) => {
+    const box = h('input', { type: 'checkbox', id: `o-${id}`, checked: checked[id], 'aria-label': title,
+      onchange: () => { checked[id] = box.checked; } });
+    return h('label', { class: 'opt', for: `o-${id}` }, icon(ic, 22), h('div', { class: 'grow' }, h('div', null, title), h('div', { class: 'sub' }, sub)), box);
+  };
+  const sel = h('select', { id: 'range', 'aria-label': t('time_range'), onchange: () => { range = sel.value; void render(); } },
+    ...RANGES.map((r) => h('option', { value: r.key, selected: r.key === range }, t(r.key))));
   app.replaceChildren(
-    h('h1', null, t('clear_title')),
-    h('div', { class: 'card', style: 'margin-top:12px' },
-      opt('o-history', t('opt_history', p.name), '', true),
-      opt('o-cache', t('opt_cache'), '', true),
-      opt('o-logout', t('opt_logout', p.name), t('clear_profile_msg'), false)),
-    h('div', { style: 'margin-top:16px;display:flex;gap:8px' },
+    h('h1', null, t('clear_browsing_data')),
+    h('div', { class: 'hint ph' }, h('span', { class: 'dot', style: `background:${info.profile.color}` }), info.profile.name),
+    h('div', { class: 'setting rangerow' }, h('div', { class: 'label' }, t('time_range')), sel),
+    h('div', { class: 'card opts' },
+      card('history', 'history', t('history'), t('cd_history_n', info.history)),
+      card('cookies', 'shield', t('cd_cookies'), t('cd_cookies_desc')),
+      card('cache', 'image', t('cd_cache'), t('cd_cache_desc')),
+      card('tabs', 'tabs', t('tabs'), t('cd_tabs_n', info.tabs)),
+      card('passwords', 'lock', t('passwords'), t('cd_passwords_n', info.passwords)),
+      card('sites', 'settings', t('site_settings'), t('cd_sites_n', info.sites))),
+    h('div', { class: 'hint' }, t('cd_note')),
+    h('div', { class: 'actions' },
       h('button', { class: 'btn accent', id: 'do-clear', onclick: async () => {
-        const what = {
-          history: (document.getElementById('o-history') as HTMLInputElement).checked,
-          cache: (document.getElementById('o-cache') as HTMLInputElement).checked,
-          logout: (document.getElementById('o-logout') as HTMLInputElement).checked,
-        };
-        if (what.logout && !(await confirmDialog(t('clear_q', p.name), t('clear_profile_msg'), t('clear'), true))) return;
-        await os.call('clearData', profile, what);
+        if (!Object.values(checked).some(Boolean)) return;
+        // Cookies и вкладки — для всего профиля: спрашиваем ещё раз.
+        if ((checked.cookies || checked.tabs) && !(await confirmDialog(t('clear_browsing_data'), info.profile.name, t('cd_delete'), true))) return;
+        await os.call('clearData', profile, { range, ...checked });
         toast(t('done'));
-      } }, t('clear'))),
+        void render();
+      } }, t('cd_delete'))),
   );
 }
 
+os.on('changed', () => { if (!document.querySelector('.modal-bg')) void render(); });
 void boot(render);

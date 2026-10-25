@@ -3,7 +3,8 @@ import { copyFile, mkdir, readdir, rename, rm, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import { applyLanguage, currentLang, isRtl, strings, t } from './i18n';
-import { settings, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
+import { greeting, next } from './phrases';
+import { engine, settings, toolbarButton, TOOLBAR_BUTTONS, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
 import { THEME_IDS, themeNameKey } from './themes';
 import { OsWindow, byWebContents, mainWindow, openExtensionWindow, openIncognito, profileInfo, profileSession, saveWithToast, windows } from './window';
 import { fromInput, isWebUrl } from './urls';
@@ -19,15 +20,26 @@ import * as Saved from './saved';
 import * as Stats from './stats';
 import * as Perms from './permissions';
 import * as Lock from './lock';
+import * as Passwords from './passwords';
+import * as TabSets from './tabsets';
+import * as Backup from './backup';
+import { verify } from './hello';
+import { MIN_PASSWORD } from './backupcrypto';
 import { blocklistSize } from './privacy';
 import * as DefaultBrowser from './defaultbrowser';
+import * as Diag from './diag';
+import { frequentSites, hints } from './addrpanel';
+import { applyAcceptLanguage, openExternal } from './security';
+import { spawn } from 'node:child_process';
 import * as Updater from './updater';
 import * as Extensions from './extensions';
 import { LANGS, LANG_NAMES } from '../shared/format';
+import { countSince, sinceFor } from '../shared/days';
+import * as ClearHooks from './clearhooks';
 import type { Suggestion, UiInit } from '../shared/types';
 
 /** Адрес для отзывов — тот же, что в Android-версии (HelpActivity.FEEDBACK_EMAIL). */
-const FEEDBACK_EMAIL = 'moonstar20moon19@gmail.com';
+const FEEDBACK_EMAIL = 'hello@os-browser.com';
 
 /**
  * IPC своих страниц. Каждый вызов проверяет отправителя: это шапка или экран нашего окна,
@@ -67,6 +79,8 @@ on(both, 'openProfile', (w, id, tab) => w.openProfile(profileArg(id), typeof tab
 on(both, 'openUrl', (w, url) => { const u = fromInput(str(url)); if (u && isWebUrl(u)) w.openUrl(u); });
 on(both, 'incognito', () => { openIncognito(); });
 on(both, 'closePanel', (w) => w.closePanel());
+// Приветствие и фраза для главного экрана (в инкогнито фраз нет).
+on(['page'], 'phrase', (w) => (w.incognito ? null : { greeting: greeting(), phrase: next() }));
 
 // --- Шапка ---
 on(['chrome'], 'state', (w) => w.state());
@@ -89,8 +103,10 @@ on(['chrome'], 'overlay', (w, open) => w.setOverlay(open === true));
 on(['chrome'], 'zoom', (w, step) => w.zoom(Math.sign(int(step))));
 on(['chrome'], 'fullscreen', (w) => w.win.setFullScreen(!w.win.isFullScreen()));
 on(['chrome'], 'copy', (_w, text) => clipboard.writeText(str(text, 8000)));
-on(['chrome'], 'profileList', () => Profiles.order().map(profileInfo));
+on(['chrome'], 'profileList', () => Profiles.sorted().map(profileInfo));
 on(['chrome'], 'suggest', (w, text) => suggest(w, str(text, 500)));
+// Пустой ввод: плитки частых сайтов профиля (в инкогнито истории нет).
+on(['chrome'], 'frequent', (w) => (w.profile != null && !w.incognito ? frequentSites(History.list(w.profile)) : []));
 on(['chrome'], 'win', (w, action) => {
   if (action === 'min') w.win.minimize();
   else if (action === 'max') { if (w.win.isMaximized()) w.win.unmaximize(); else w.win.maximize(); }
@@ -113,9 +129,26 @@ on(['chrome'], 'toggleBookmark', (w) => {
   w.toast(t(r == null ? 'fav_unavailable' : r ? 'added_favorite' : 'fav_removed'));
 });
 on(['chrome'], 'savePage', (w) => saveWithToast(w));
+on(['chrome'], 'pwAnswer', (w, id, action) => w.answerPassword(int(id), str(action, 100)));
 on(['chrome'], 'permissionAnswer', (w, id, allow, remember) => w.answerPrompt(int(id), allow === true, remember === true));
 on(['chrome'], 'lockNow', () => { for (const w of windows) w.lock(); });
 on(['chrome'], 'reader', (w) => w.toggleReader());
+on(['chrome'], 'mobileSite', (w) => { const v = w.current; if (v && isWebUrl(v.url())) { v.setMobile(!v.mobile); w.push(); } });
+on(['chrome'], 'diagnostics', (w) => `Ось ${app.getVersion()} (${process.platform} ${process.arch}, Chromium ${process.versions.chrome})\n${w.state().url}\n\n${Diag.text() || t('no_events')}`);
+on(['chrome'], 'refreshDefault', async (w) => { const was = DefaultBrowser.isDefaultCached(); if ((await DefaultBrowser.refreshDefault()) !== was) w.push(); });
+on(['chrome'], 'otherBrowsers', () => DefaultBrowser.otherBrowsers());
+on(['chrome'], 'openInBrowser', async (w, exe) => {
+  const url = w.current?.url() ?? '';
+  if (!isWebUrl(url)) return;
+  // Только браузер из списка установленных — произвольную программу страница меню запустить не может.
+  const b = (await DefaultBrowser.otherBrowsers()).find((x) => x.exe === exe);
+  if (b) spawn(b.exe, [url], { detached: true, stdio: 'ignore' }).unref();
+  else if (exe == null) void shell.openExternal(url);
+});
+on(['chrome'], 'shareMail', (w) => {
+  const url = w.current?.url() ?? '';
+  if (isWebUrl(url)) openExternal(`mailto:?subject=${encodeURIComponent(w.current?.wc.getTitle() ?? '')}&body=${encodeURIComponent(url)}`);
+});
 on(['chrome'], 'findOpen', (w) => w.openFind());
 on(['chrome'], 'find', (w, text, forward, next) => w.findText(str(text, 500), forward !== false, next === true));
 on(['chrome'], 'findClose', (w) => w.closeFind());
@@ -123,7 +156,7 @@ on(['chrome'], 'print', (w) => w.print());
 
 // --- Браузер по умолчанию, справка ---
 on(['page'], 'defaultBrowser', async () => ({ isDefault: await DefaultBrowser.isDefault(), supported: process.platform === 'win32' }));
-on(['page'], 'makeDefault', () => DefaultBrowser.openSystemSettings());
+on(both, 'makeDefault', () => DefaultBrowser.openSystemSettings());
 on(['page'], 'feedback', (_w, kind) => {
   const v = app.getVersion();
   const subject = kind === 'problem' ? t('problem_subject', v) : t('feedback_subject', v);
@@ -221,8 +254,32 @@ on(['page'], 'favRemoveFolder', (_w, name, keep) => { Bookmarks.removeFolder(str
 on(['page'], 'lastProfile', () => Tabs.tabsFile.get().lastProfile ?? Profiles.order()[0]);
 
 // --- Загрузки ---
-on(['page'], 'downloads', () => ({ list: Downloads.list(), folder: Downloads.folder() }));
-on(['page'], 'dlOpen', (_w, id) => Downloads.open(str(id, 100)));
+on(['page'], 'downloads', async () => ({
+  list: Downloads.list().map((d) => ({ ...d, eta: Downloads.eta(d), urlChain: undefined })),
+  folder: Downloads.folder(),
+  disk: await Downloads.disk(),
+  openWith: process.platform === 'win32',
+}));
+// PDF, картинки и текст — во вкладке Оси (профиль загрузки), остальное — системным приложением.
+on(['page'], 'dlOpen', async (w, id) => {
+  const i = str(id, 100);
+  const view = Downloads.viewUrl(i);
+  const p = Downloads.profileOf(i);
+  if (view && p != null && Profiles.exists(p) && !w.incognito) {
+    w.openProfile(p);
+    w.newTab(view);
+    return true;
+  }
+  return Downloads.open(i);
+});
+on(['page'], 'dlOpenWith', (_w, id) => Downloads.openWith(str(id, 100)));
+on(['page'], 'dlDelete', (_w, id) => Downloads.deleteFile(str(id, 100)));
+on(['page'], 'dlCopy', (_w, id, what) => {
+  const d = Downloads.list().find((x) => x.id === str(id, 100));
+  if (!d) return false;
+  clipboard.writeText(what === 'url' ? d.url : d.path);
+  return true;
+});
 on(['page'], 'dlShow', (_w, id) => Downloads.show(str(id, 100)));
 on(['page'], 'dlCancel', (_w, id) => Downloads.cancel(str(id, 100)));
 on(['page'], 'dlPause', (_w, id) => Downloads.pause(str(id, 100)));
@@ -262,23 +319,61 @@ on(['page'], 'stats', () => {
 });
 on(['page'], 'statsReset', () => Stats.reset());
 
-// --- Очистка данных профиля ---
-on(['page'], 'clearData', async (w, profile, what) => {
+// --- «Удалить данные о работе в браузере» (ClearDataActivity.kt) ---
+on(['page'], 'clearInfo', (_w, profile, range) => {
+  const p = profileArg(profile);
+  const since = sinceFor(str(range, 40), Date.now());
+  return {
+    profile: profileInfo(p),
+    history: countSince(History.list(p), (v) => v.d, since),
+    tabs: Tabs.list(p).length,
+    passwords: ClearHooks.passwordCount(p, since),
+    sites: Object.keys(Perms.sites(p)).length,
+  };
+});
+on(['page'], 'clearData', async (_w, profile, what) => {
   const p = profileArg(profile);
   const o = (what ?? {}) as Record<string, unknown>;
-  if (o.history === true) History.clear(p);
-  if (o.cache === true) for (let id = 1; id <= profileCount(); id++) await profileSession(id).clearCache();
-  if (o.logout === true) await clearProfile(p);
+  const since = sinceFor(str(o.range, 40), Date.now());
+  const ses = profileSession(p);
+  if (o.history === true) History.clearSince(p, since);
+  // Cookies и данные сайтов — для всего профиля (движок не удаляет их за период).
+  if (o.cookies === true) {
+    await ses.clearStorageData();
+    await ses.clearAuthCache();
+    Profiles.forget(p);
+    for (const w of windows) for (const v of w.liveTabs()) if (v.key.startsWith(`${p}:`) && !v.wc.isDestroyed()) v.wc.reload();
+  }
+  if (o.cache === true) await ses.clearCache();
+  if (o.tabs === true) {
+    const ids = Tabs.list(p).map((x) => x.id);
+    for (const w of windows) {
+      if (w.incognito) continue;
+      if (w.profile === p) w.closeTabs(ids);
+      else w.dropProfileViews(p);
+    }
+    Tabs.closeAll(p);
+  }
+  if (o.passwords === true) await ClearHooks.removePasswords(p, since);
+  if (o.sites === true) Perms.clearProfile(p);
   broadcast();
-  void w;
   return true;
 });
 
 // --- Экран профилей ---
 on(['page'], 'profiles', () => ({
-  list: Profiles.order().map(profileInfo),
+  list: Profiles.sorted().map(profileInfo),
   count: profileCount(),
+  folders: Profiles.folders(),
+  collapsed: Profiles.collapsed(),
+  view: Profiles.view(),
 }));
+on(['page'], 'setPinned', (_w, id, on) => { Profiles.setPinned(profileArg(id), on === true); broadcast(); });
+on(['page'], 'setFolder', (_w, id, name) => { Profiles.setFolder(profileArg(id), str(name, 60)); broadcast(); });
+on(['page'], 'renameFolder', (_w, from, to) => { Profiles.renameFolder(str(from, 60), str(to, 60)); broadcast(); });
+on(['page'], 'removeFolder', (_w, name) => { Profiles.removeFolder(str(name, 60)); broadcast(); });
+on(['page'], 'setCollapsed', (_w, name, on) => { Profiles.setCollapsed(str(name, 60), on === true); });
+on(['page'], 'setView', (_w, v) => { Profiles.setView(str(v, 10)); });
 on(['page'], 'setOrder', (_w, ids) => {
   const n = Array.isArray(ids) ? ids.map(int).filter(Profiles.exists) : [];
   Profiles.setOrder([...n, ...Profiles.order().filter((x) => !n.includes(x))]);
@@ -342,10 +437,11 @@ on(['page'], 'fileDelete', async (_w, id, name) => { await rm(ownedFile(profileA
 
 // --- Настройки ---
 on(['page'], 'settings', () => ({
-  values: { ...settings.get(), lock: !!settings.get().lock, profileCount: profileCount() },
+  values: { ...settings.get(), lock: !!settings.get().lock, profileCount: profileCount(), toolbarButton: toolbarButton() },
   langs: [{ id: 'system', name: t('system') }, ...LANGS.map((l) => ({ id: l, name: LANG_NAMES[l] }))],
   themes: THEME_IDS.map((id) => ({ id, name: t(themeNameKey(id)) })),
   engines: ENGINES.map((e) => ({ id: e.id, name: e.title })),
+  toolbarButtons: Object.entries(TOOLBAR_BUTTONS).map(([id, key]) => ({ id, name: t(key) })),
   minProfiles: MIN_PROFILES,
   maxProfiles: MAX_PROFILES,
 }));
@@ -354,6 +450,7 @@ on(['page'], 'setSetting', (_w, key, value) => {
   if (k === 'lang' && (value === 'system' || (LANGS as readonly string[]).includes(str(value)))) {
     settings.update((d) => { d.lang = str(value); });
     applyLanguage();
+    applyAcceptLanguage();
     lookChanged();
   } else if (k === 'theme' && THEME_IDS.includes(str(value))) {
     settings.update((d) => { d.theme = str(value); });
@@ -377,6 +474,9 @@ on(['page'], 'setSetting', (_w, key, value) => {
   } else if (k === 'hideContent') {
     settings.update((d) => { d.hideContent = value === true; });
     for (const w of windows) w.win.setContentProtection(value === true);
+  } else if (k === 'toolbarButton' && str(value) in TOOLBAR_BUTTONS) {
+    settings.update((d) => { d.toolbarButton = str(value); });
+    for (const w of windows) w.push();
   } else if (k === 'zoom') {
     settings.update((d) => { d.zoom = Math.min(250, Math.max(50, int(value))); });
   } else {
@@ -506,6 +606,75 @@ on(['chrome'], 'extPopup', (w, id, left, right, bottom) => {
   if (url) openExtensionWindow(w, w.profile, url, { left: num(left), right: num(right), bottom: num(bottom) });
   return !!url;
 });
+// --- Личный кабинет: пароли, наборы вкладок, резервная копия ---
+on(['page'], 'cabinet', (_w, profile) => {
+  const p = profileArg(profile);
+  return {
+    profile: profileInfo(p),
+    logins: Passwords.infos(p),
+    offer: Passwords.offer(),
+    never: Passwords.never(p),
+    crypto: Passwords.available(),
+    sets: TabSets.list(p).map((s) => ({ id: s.id, name: s.n, time: s.t, count: s.tabs.length })),
+    open: TabSets.openWeb(p).length,
+  };
+});
+// Общий кабинет «Все профили»: сводка и логины всех профилей (без паролей).
+on(['page'], 'cabinetAll', () => ({
+  profiles: Profiles.order().map((id) => ({ ...profileInfo(id), passwords: Passwords.count(id), sets: TabSets.list(id).length })),
+  logins: Profiles.order().flatMap((id) => Passwords.infos(id).map((l) => ({ ...l, profile: id, profileName: Profiles.name(id) }))),
+  offer: Passwords.offer(),
+  crypto: Passwords.available(),
+  last: Tabs.tabsFile.get().lastProfile ?? Profiles.order()[0],
+}));
+on(['page'], 'copyText', (_w, text) => { clipboard.writeText(str(text, 200)); return true; });
+// Пароль уходит на экран кабинета (os://) только после Windows Hello.
+on(['page'], 'pwReveal', async (_w, profile, guid) => {
+  const p = profileArg(profile);
+  const g = str(guid, 100);
+  if (!Passwords.infos(p).some((l) => l.g === g) || !(await verify(t('dt_hello_reason')))) return null;
+  return Passwords.password(p, g);
+});
+on(['page'], 'pwCopy', async (_w, profile, guid, what) => {
+  const p = profileArg(profile);
+  const l = Passwords.infos(p).find((x) => x.g === str(guid, 100));
+  if (!l) return false;
+  if (what !== 'password') { clipboard.writeText(l.u); return true; }
+  if (!(await verify(t('dt_hello_reason')))) return false;
+  const pass = Passwords.password(p, l.g);
+  if (pass == null) return false;
+  clipboard.writeText(pass);
+  return true;
+});
+on(['page'], 'pwSave', (_w, profile, site, user, pass, guid) => {
+  const s = str(site, 500).trim();
+  const ok = !!s && Passwords.upsert(profileArg(profile), s.includes('://') ? s : 'https://' + s, str(user, 300).trim(), str(pass, 1000), typeof guid === 'string' ? guid : null);
+  if (ok) broadcast();
+  return ok;
+});
+on(['page'], 'pwRemove', (_w, profile, guid) => { Passwords.remove(profileArg(profile), str(guid, 100)); broadcast(); });
+on(['page'], 'pwOffer', (_w, on) => { Passwords.setOffer(on === true); broadcast(); });
+on(['page'], 'pwNever', (_w, profile, host, on) => { Passwords.setNever(profileArg(profile), str(host, 300), on === true); broadcast(); });
+on(['page'], 'tabSetSave', (_w, profile, name) => { const s = TabSets.saveOpen(profileArg(profile), str(name, 100)); broadcast(); return !!s; });
+on(['page'], 'tabSetOpen', (w, profile, id) => {
+  const p = profileArg(profile);
+  const first = TabSets.restore(p, str(id, 100));
+  if (first) w.openProfile(p, first);
+  return !!first;
+});
+on(['page'], 'tabSetRemove', (_w, profile, id) => { TabSets.remove(profileArg(profile), str(id, 100)); broadcast(); });
+on(['page'], 'backupExport', (w, profile, pw, again) => {
+  const a = str(pw, 500);
+  if (a.length < MIN_PASSWORD) return 'short';
+  if (a !== str(again, 500)) return 'mismatch';
+  return Backup.exportTo(w.win, profile === 0 ? 0 : profileArg(profile), a);
+});
+on(['page'], 'backupPick', (w) => Backup.pick(w.win));
+on(['page'], 'backupImport', async (_w, profile, pw) => {
+  const r = await Backup.importPicked(profileArg(profile), str(pw, 500));
+  if (typeof r === 'object') broadcast();
+  return r;
+});
 
 // --- О приложении ---
 on(['page'], 'about', () => ({
@@ -528,7 +697,13 @@ function sender(e: IpcMainInvokeEvent) {
 
 export function installIpc(): void {
   // Ход загрузок — экранам «Загрузки» (не чаще, чем шлёт downloads.ts).
-  Downloads.setListener(() => { for (const w of windows) w.page.webContents.send('os:event', 'downloads', null); });
+  let had = Downloads.list().length > 0;
+  Downloads.setListener(() => {
+    for (const w of windows) w.page.webContents.send('os:event', 'downloads', null);
+    // Первая загрузка (или очищенный список) — показать или спрятать кнопку «Загрузки» на панели.
+    const has = Downloads.list().length > 0;
+    if (has !== had) { had = has; for (const w of windows) w.push(); }
+  });
   Updater.setListener(() => { for (const w of windows) w.page.webContents.send('os:event', 'update', null); });
   ipcMain.handle('os', async (e, cmd: unknown, ...args: unknown[]) => {
     const who = sender(e);
@@ -576,26 +751,16 @@ async function clearProfile(id: number): Promise<void> {
 }
 
 /** Подсказки адресной строки: поиск, история профиля, избранное. */
+/** Подсказки адресной строки: первая строка — сам ввод (переход или поиск), дальше прошлые запросы, избранное, история. */
 function suggest(w: OsWindow, text: string): Suggestion[] {
-  const q = text.trim().toLowerCase();
+  const q = text.trim();
   if (!q) return [];
-  const out: Suggestion[] = [];
-  const asUrl = fromInput(text);
-  if (asUrl && isWebUrl(asUrl)) out.push({ kind: 'url', title: asUrl, url: asUrl });
-  out.push({ kind: 'search', title: text.trim(), url: '' });
-  const seen = new Set(out.map((s) => s.url));
-  const match = (title: string, url: string) => title.toLowerCase().includes(q) || url.toLowerCase().replace(/^https?:\/\/(www\.)?/, '').includes(q);
-  for (const b of Bookmarks.all()) {
-    if (out.length >= 9) break;
-    if (match(b.t, b.u) && !seen.has(b.u)) { out.push({ kind: 'favorite', title: b.t, url: b.u }); seen.add(b.u); }
-  }
-  if (w.profile != null && !w.incognito) {
-    for (const v of History.list(w.profile)) {
-      if (out.length >= 9) break;
-      if (match(v.t, v.u) && !seen.has(v.u)) { out.push({ kind: 'history', title: v.t || v.u, url: v.u }); seen.add(v.u); }
-    }
-  }
-  return out;
+  const asUrl = fromInput(q);
+  const first: Suggestion = asUrl && isWebUrl(asUrl) && !asUrl.startsWith(engine().query)
+    ? { kind: 'url', title: asUrl, url: asUrl }
+    : { kind: 'search', title: q, url: '' };
+  const visits = w.profile != null && !w.incognito ? History.list(w.profile) : [];
+  return [first, ...hints(q, visits, Bookmarks.all())];
 }
 
 // --- Файлы профиля ---

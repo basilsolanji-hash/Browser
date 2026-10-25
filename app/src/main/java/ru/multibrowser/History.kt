@@ -38,6 +38,17 @@ object History {
         save(ctx, id, listOf(first.copy(title = title)) + items.drop(1))
     }
 
+    /** Удалить одну запись (крестик в «Истории»). */
+    fun remove(ctx: Context, id: Int, url: String, time: Long) =
+        save(ctx, id, list(ctx, id).filterNot { it.url == url && it.time == time })
+
+    /** Удалить записи начиная с [since] (мс); 0 — всю историю профиля. */
+    fun clearSince(ctx: Context, id: Int, since: Long) {
+        if (since <= 0) clear(ctx, id) else save(ctx, id, list(ctx, id).filter { it.time < since })
+    }
+
+    fun countSince(ctx: Context, id: Int, since: Long) = list(ctx, id).count { it.time >= since }
+
     fun clear(ctx: Context, id: Int) {
         prefs(ctx).edit().remove("h_$id").apply()
     }

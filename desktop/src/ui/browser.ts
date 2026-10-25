@@ -1,6 +1,6 @@
 import { boot, h, icon, iconButton, os, svg, t } from '../shared/ui';
 import { MARK } from '../shared/icons';
-import type { ProfileInfo, StripTab, Suggestion, WindowState } from '../shared/types';
+import type { ProfileInfo, StripTab, Suggestion, Tile, WindowState } from '../shared/types';
 
 /**
  * Шапка браузера: верхний ряд (логотип, профиль, вкладки) и панель адреса. Выпадающие меню рисуются
@@ -53,8 +53,10 @@ function openDrop(el: HTMLElement, anchor: DOMRect, align: 'start' | 'end' = 'st
   place();
   requestAnimationFrame(place);
   onDismiss = dismiss;
+  layer.classList.remove('through');
   closeDrop = () => {
     layer.hidden = true;
+    layer.classList.remove('through');
     layer.replaceChildren();
     closeDrop = null;
     onDismiss = null;
@@ -87,7 +89,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-interface Item { label?: string; icon?: string; kbd?: string; disabled?: boolean; run?: () => void; sep?: boolean; head?: string; el?: HTMLElement }
+interface Item { k?: string; sub?: boolean; label?: string; icon?: string; kbd?: string; disabled?: boolean; checked?: boolean; run?: () => void; sep?: boolean; head?: string; el?: HTMLElement }
 
 function menu(items: Item[]): HTMLElement {
   const box = h('div', { class: 'menu', role: 'menu' });
@@ -97,10 +99,16 @@ function menu(items: Item[]): HTMLElement {
     else if (it.el) box.append(it.el);
     else {
       box.append(h('button', {
-        role: 'menuitem',
+        'data-k': it.k ?? null,
+        role: it.checked === undefined ? 'menuitem' : 'menuitemcheckbox',
+        'aria-checked': it.checked === undefined ? null : String(it.checked),
         disabled: !!it.disabled,
-        onclick: () => { hideDrop(); it.run?.(); },
-      }, it.icon ? icon(it.icon) : h('span', { class: 'ic', style: 'width:20px' }), h('span', { class: 'grow' }, it.label ?? ''), it.kbd ? h('span', { class: 'kbd' }, it.kbd) : null));
+        // Подменю открывается на месте меню (без мигания шапки).
+        onclick: () => { if (it.sub || it.k === 'back-menu') it.run?.(); else { hideDrop(); it.run?.(); } },
+      }, it.icon ? icon(it.icon) : h('span', { class: 'ic', style: 'width:20px' }), h('span', { class: 'grow' }, it.label ?? ''),
+      it.kbd ? h('span', { class: 'kbd' }, it.kbd) : null,
+      it.checked ? h('span', { class: 'mark-cur' }, icon('check', 18)) : null,
+      it.sub ? h('span', { class: 'kbd sub-arrow' }, icon('next', 18)) : null));
     }
   }
   return box;
@@ -198,19 +206,24 @@ function tabMenu(tab: StripTab, r: DOMRect): void {
 
 async function profileMenu(anchor: DOMRect): Promise<void> {
   const list = await os.call<ProfileInfo[]>('profileList');
-  const items: Item[] = [{ head: t('profiles') }];
+  // Список профилей (как в Chrome): цвет, имя, почта; текущий отмечен; выбор сразу переключает.
+  const items: Item[] = [{ head: t('switch_profile') }];
   for (const p of list) {
     const cur = st?.profile?.id === p.id;
     items.push({
-      el: h('button', { onclick: () => { hideDrop(); void os.call('openProfile', p.id); } },
-        h('span', { class: 'dot', style: `background:${p.color}` }),
-        h('span', { class: 'grow' }, p.name, h('span', { class: 'sub' }, p.email ? '  ' + p.email : '')),
-        cur ? h('span', { class: 'mark-cur' }, icon('check', 16)) : null),
+      el: h('button', { class: 'pitem' + (cur ? ' cur' : ''), 'data-profile': String(p.id), role: 'menuitemradio', 'aria-checked': String(cur),
+        onclick: () => { hideDrop(); if (!cur) void os.call('openProfile', p.id); } },
+      h('span', { class: 'pav', style: `background:${p.color}` }, (p.name.trim()[0] ?? '•').toUpperCase()),
+      h('span', { class: 'grow' }, h('span', { class: 'pname' }, p.name), p.email ? h('span', { class: 'pmail' }, p.email) : null),
+      p.pinned ? h('span', { class: 'mark-pin', title: t('profile_pinned') }, icon('pin', 14)) : null,
+      cur ? h('span', { class: 'mark-cur', title: t('profile_current') }, icon('check', 16)) : null),
     });
   }
-  items.push({ sep: true }, { label: t('dt_all_profiles'), icon: 'person', run: () => void os.call('showHome') });
-  if (st?.profile) items.push({ label: t('profile_info'), icon: 'edit', run: () => void os.call('openPanel', `os://profile/?id=${st!.profile!.id}`) });
-  openDrop(menu(items), anchor, 'start', 300);
+  items.push({ sep: true }, { k: 'all-profiles', label: t('all_profiles'), icon: 'person', run: () => void os.call('showHome') });
+  if (st?.profile) items.push({ label: t('profile_settings'), icon: 'settings', run: () => void os.call('openPanel', `os://profile/?id=${st!.profile!.id}`) });
+  const box = menu(items);
+  box.classList.add('pmenu');
+  openDrop(box, anchor, 'start', 320);
 }
 
 function renderRow1(): void {
@@ -301,6 +314,19 @@ function renderRow2(): void {
   const lock = icon(st.url ? (st.secure ? 'lock' : 'info') : 'search', 16);
   if (st.secure) lock.classList.add('secure');
   lock.title = st.url ? (st.secure ? t('dt_secure') : t('dt_not_secure')) : '';
+  // При вводе слева — кружок выбранного поисковика (как в Chrome), без фокуса — замок у HTTPS.
+  const badge = engineBadge(st.engine);
+  badge.hidden = true;
+  const clear = iconButton('close', t('clear_text'), () => {
+    input.value = '';
+    typed = '';
+    dirty = true;
+    clear.hidden = true;
+    void suggest('');
+  }, 'addr-clear');
+  clear.id = 'addr-clear';
+  clear.hidden = true;
+  clear.tabIndex = -1;
   address = h('input', {
     id: 'address',
     type: 'text',
@@ -310,6 +336,8 @@ function renderRow2(): void {
     placeholder: t('address_hint'),
     value: st.url ? host(st.url) : '',
     class: 'rest',
+    // Адрес всегда слева направо (как в Chrome на арабском), подсказка — по языку.
+    dir: 'auto',
   });
   const input = address;
   // Как в Chrome: по фокусу — полный адрес, выделенный целиком (и щелчок мышью выделение не снимает).
@@ -321,6 +349,11 @@ function renderRow2(): void {
     input.value = st?.url ?? '';
     input.classList.remove('rest');
     input.select();
+    lock.hidden = true;
+    badge.hidden = false;
+    clear.hidden = !input.value;
+    typed = '';
+    void suggest('');
   });
   input.addEventListener('mouseup', (e) => {
     if (justFocused && input.selectionStart === input.selectionEnd) e.preventDefault();
@@ -335,12 +368,13 @@ function renderRow2(): void {
   input.addEventListener('input', () => {
     dirty = true;
     typed = input.value;
+    clear.hidden = !input.value;
     void suggest(typed);
   });
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const s = suggestions[selected];
-      const text = s && s.kind !== 'search' ? s.url : input.value;
+      const text = s ? target(s) : input.value;
       hideDrop();
       editing = false;
       input.blur();
@@ -354,11 +388,12 @@ function renderRow2(): void {
       selected = (selected + (e.key === 'ArrowDown' ? 1 : -1) + suggestions.length + 1) % (suggestions.length + 1);
       if (selected === suggestions.length) selected = -1;
       const s = suggestions[selected];
-      input.value = s ? (s.kind === 'search' ? s.title : s.url) : typed;
+      input.value = s ? fillText(s) : typed;
       paintSuggestions();
     }
   });
-  const addr = h('div', { id: 'addr', onmousedown: (e: MouseEvent) => { if (e.target !== input) { e.preventDefault(); input.focus(); } } }, lock, input);
+  const addr = h('div', { id: 'addr', onmousedown: (e: MouseEvent) => { if (e.target !== input && !clear.contains(e.target as Node)) { e.preventDefault(); input.focus(); } } }, lock, badge, input, clear);
+  clear.addEventListener('mousedown', (e) => e.preventDefault());
   const nodes: HTMLElement[] = [back, fwd, reload];
   if (!st.incognito) nodes.push(home);
   nodes.push(addr);
@@ -376,10 +411,38 @@ function renderRow2(): void {
     ext.id = 'ext-btn';
     nodes.push(ext);
   }
+  const tb = toolbarItem(st);
+  if (tb) nodes.push(tb);
   const more = iconButton('more', t('menu'), () => mainMenu(more.getBoundingClientRect()));
+  more.id = 'more';
   nodes.push(more);
   row2.replaceChildren(...nodes);
   updateNavButtons();
+}
+
+/** Настраиваемая кнопка справа от адресной строки (по умолчанию — «Скачанные файлы»). */
+function toolbarItem(s: WindowState): HTMLElement | null {
+  const id = s.profile?.id;
+  const web = /^https?:/.test(s.url);
+  const items: Record<string, [string, string, (() => void) | null]> = {
+    downloads: ['download', t('dl_title'), () => void os.call('openPanel', 'os://downloads/')],
+    clear: ['delete', t('clear_short'), id != null ? () => void os.call('openPanel', `os://clear/?profile=${id}`) : null],
+    favorites: ['star', t('favorites'), () => void os.call('openPanel', 'os://favorites/')],
+    tabs: ['tabs', t('tabs'), id != null ? () => void os.call('openPanel', `os://tabs/?profile=${id}`) : null],
+    notes: ['note', t('notes'), () => void os.call('openPanel', 'os://notes/')],
+    saved: ['saved', t('saved_pages'), () => void os.call('openPanel', 'os://saved/')],
+    share: ['share', t('share'), web ? () => shareMenu(document.getElementById('tb-btn')!.getBoundingClientRect()) : null],
+    find: ['search', t('find_in_page'), web ? () => void os.call('findOpen') : null],
+  };
+  const [name, label, run] = items[s.toolbarButton] ?? items.downloads;
+  // Как в Chrome: кнопка загрузок появляется после первой загрузки.
+  if (s.toolbarButton === 'downloads' && !s.hasDownloads) return null;
+  if (s.incognito && !['downloads', 'share', 'find'].includes(s.toolbarButton)) return null;
+  const b = iconButton(name, label, () => run?.());
+  b.id = 'tb-btn';
+  b.dataset.k = s.toolbarButton;
+  b.disabled = !run;
+  return b;
 }
 
 function updateNavButtons(): void {
@@ -390,11 +453,34 @@ function updateNavButtons(): void {
   if (f) f.disabled = !st.canForward;
 }
 
+const ENGINE_BADGES: Record<string, [string, string]> = {
+  ddg: ['D', '#DE5833'], startpage: ['S', '#6573FF'], brave: ['B', '#FB542B'],
+  google: ['G', '#4285F4'], bing: ['B', '#008373'], yandex: ['Я', '#FC3F1D'],
+};
+
+function engineBadge(id: string): HTMLElement {
+  const [letter, color] = ENGINE_BADGES[id] ?? ENGINE_BADGES.ddg;
+  return h('span', { class: 'engine', id: 'engine', 'data-engine': id, style: `background:${color}`, 'aria-hidden': 'true' }, letter);
+}
+
+/** Буква сайта в кружке — значки сайтов в панели из сети не грузим. */
+const letterOf = (url: string) => h('span', { class: 'letter', 'aria-hidden': 'true' }, (host(url).charAt(0) || '•').toUpperCase());
+
+/** Что открыть по подсказке: запрос — поиском, остальное — адресом. */
+const target = (s: Suggestion) => (s.kind === 'search' || s.kind === 'query' ? s.title : s.url);
+/** Что подставить в строку по стрелке ↖. */
+const fillText = (s: Suggestion) => (s.kind === 'search' || s.kind === 'query' ? s.title : s.url);
+
+let tiles: Tile[] = [];
+
+/** Пустой ввод — карточка страницы и частые сайты, при вводе — подсказки (AddressPanel.kt). */
 async function suggest(text: string): Promise<void> {
-  if (!text.trim()) {
+  if (!text.trim() || text === st?.url) {
     suggestions = [];
     selected = -1;
-    if (closeDrop) hideDrop();
+    tiles = await os.call<Tile[]>('frequent');
+    if (!editing || (text !== typed && typed !== '')) return;
+    paintSuggestions();
     return;
   }
   const list = await os.call<Suggestion[]>('suggest', text);
@@ -404,35 +490,84 @@ async function suggest(text: string): Promise<void> {
   paintSuggestions();
 }
 
+function go(text: string): void {
+  hideDrop();
+  editing = false;
+  address?.blur();
+  if (text.trim()) void os.call('navigate', text);
+}
+
+/** Кнопка в панели: фокус остаётся в адресной строке. */
+const keep = (cls: string, name: string, label: string, run: () => void) =>
+  h('button', { class: 'icon-btn ' + cls, title: label, 'aria-label': label, tabindex: '-1',
+    onmousedown: (e: MouseEvent) => { e.preventDefault(); e.stopPropagation(); run(); } }, icon(name, 18));
+
+function pageCard(): HTMLElement | null {
+  if (!st || !/^https?:/.test(st.url)) return null;
+  const url = st.url;
+  return h('div', { class: 'pagecard' },
+    letterOf(url),
+    h('span', { class: 'grow' }, h('span', { class: 'ttl', dir: 'auto' }, st.title || host(url)), h('span', { class: 'url', dir: 'ltr' }, url)),
+    keep('pc-share', 'share', t('share'), () => { const r = document.getElementById('addr')!.getBoundingClientRect(); address?.blur(); shareMenu(r); }),
+    keep('pc-copy', 'link', t('copy_link'), () => { void os.call('copy', url); toast(t('link_copied')); }),
+    keep('pc-edit', 'edit', t('edit_address'), () => {
+      if (!address) return;
+      address.value = url;
+      address.setSelectionRange(url.length, url.length);
+    }));
+}
+
 function paintSuggestions(): void {
   const addr = document.getElementById('addr');
-  if (!addr || !suggestions.length) return;
-  const box = h('div', { class: 'menu sugg', role: 'listbox' });
-  suggestions.forEach((s, i) => {
-    const ic = s.kind === 'search' ? 'search' : s.kind === 'favorite' ? 'star' : s.kind === 'history' ? 'history' : 'globe';
-    const label = s.kind === 'search' ? t('dt_search_for', s.title) : s.title;
-    box.append(h('button', {
-      class: i === selected ? 'sel' : '',
-      role: 'option',
-      tabindex: '-1',
-      onmousedown: (e: MouseEvent) => {
-        e.preventDefault();
-        hideDrop();
-        editing = false;
-        address?.blur();
-        void os.call('navigate', s.kind === 'search' ? s.title : s.url);
-      },
-    }, icon(ic), h('span', { class: 'grow' }, label, s.kind !== 'search' && s.title !== s.url ? h('span', { class: 'url' }, s.url) : null)));
-  });
-  if (closeDrop && layer.querySelector('.sugg')) {
-    layer.querySelector('.sugg')!.replaceWith(box);
+  if (!addr || !editing) return;
+  const box = h('div', { class: 'menu sugg addr-panel', role: 'listbox', 'aria-label': t('address_hint') });
+  if (!suggestions.length) {
+    const card = pageCard();
+    if (card) box.append(card);
+    if (tiles.length) {
+      box.append(h('div', { class: 'tiles' }, ...tiles.map((x) => h('button', {
+        class: 'tile', title: x.host, tabindex: '-1',
+        onmousedown: (e: MouseEvent) => { e.preventDefault(); go(x.url); },
+      }, letterOf(x.url), h('span', { class: 'lbl' }, x.label)))));
+    }
+    if (!box.childElementCount) { if (layer.querySelector('.sugg')) hideDrop(); return; }
+  } else {
+    const list = h('div', { class: 'hints' });
+    suggestions.forEach((s, i) => {
+      const ic = s.kind === 'search' || s.kind === 'query' ? 'search' : s.kind === 'favorite' ? 'star' : s.kind === 'history' ? 'history' : 'globe';
+      const label = s.kind === 'search' ? t('dt_search_for', s.title) : s.title;
+      const row = h('div', {
+        class: 'hint-row' + (i === selected ? ' sel' : ''),
+        role: 'option',
+        'aria-selected': String(i === selected),
+        'data-kind': s.kind,
+        onmousedown: (e: MouseEvent) => { e.preventDefault(); go(target(s)); },
+      }, icon(ic), h('span', { class: 'grow' }, h('span', { class: 'ttl', dir: 'auto' }, label),
+        s.kind !== 'search' && s.kind !== 'query' && s.title !== s.url ? h('span', { class: 'url', dir: 'ltr' }, s.url) : null));
+      if (i > 0) {
+        row.append(keep('fill', 'fill', t('fill_in'), () => {
+          if (!address) return;
+          address.value = fillText(s);
+          typed = address.value;
+          dirty = true;
+          void suggest(typed);
+        }));
+      }
+      list.append(row);
+    });
+    box.append(list);
+  }
+  const r = addr.getBoundingClientRect();
+  const old = layer.querySelector('.sugg');
+  if (closeDrop && old) {
+    old.replaceWith(box);
     box.classList.add('drop');
-    const r = addr.getBoundingClientRect();
     Object.assign(box.style, { left: r.left + 'px', top: r.bottom + 4 + 'px', width: r.width + 'px' });
     return;
   }
-  const r = addr.getBoundingClientRect();
   openDrop(box, r, 'start', r.width, false);
+  // Подсказки не закрывают шапку: щелчок по строке адреса или кнопкам проходит сквозь слой.
+  layer.classList.add('through');
 }
 
 /** Расширения профиля: всплывающие окна (action.default_popup) и «Управление расширениями». */
@@ -459,74 +594,135 @@ async function extMenu(anchor: DOMRect): Promise<void> {
   openDrop(menu(items), anchor, 'end', 300);
 }
 
+/** Меню ⋮ как в Chrome (BrowserMenu.kt): ряд круглых кнопок сверху, ниже группы пунктов через линию. */
 function mainMenu(anchor: DOMRect): void {
   if (!st) return;
+  void os.call('refreshDefault');
+  const web = /^https?:/.test(st.url);
+  const id = st.profile?.id;
+  const panel = (url: string) => () => void os.call('openPanel', url);
+  const round = (name: string, label: string, run: () => void, enabled = true, on?: boolean) => {
+    const b = iconButton(name, label, () => { hideDrop(); run(); }, 'round' + (on ? ' on' : ''));
+    b.disabled = !enabled;
+    b.setAttribute('role', 'menuitem');
+    if (on !== undefined) b.setAttribute('aria-pressed', String(on));
+    return b;
+  };
+  const top = h('div', { class: 'toprow' },
+    round('back', t('back'), () => void os.call('back'), st.canBack),
+    round('forward', t('forward'), () => void os.call('forward'), st.canForward),
+    round('star', st.bookmarked ? t('fav_remove') : t('add_favorite'), () => void os.call('toggleBookmark'), web && !st.incognito, st.bookmarked),
+    round('savepage', t('save_page'), () => void os.call('savePage'), web),
+    round('refresh', t('refresh'), () => void os.call('reload'), !!st.url));
   const zoomRow = h('div', { class: 'zoomrow' },
+    icon('zoom'),
     h('span', { class: 'lbl' }, t('zoom')),
-    h('button', { title: '−', onclick: () => { void os.call('zoom', -1); } }, '−'),
+    h('button', { title: '−', 'aria-label': t('zoom') + ' −', onclick: () => { void os.call('zoom', -1); } }, '−'),
     h('span', { class: 'val' }, st.zoom + '%'),
-    h('button', { title: '+', onclick: () => { void os.call('zoom', 1); } }, '+'),
-    h('button', { title: t('full_screen'), onclick: () => { hideDrop(); void os.call('fullscreen'); } }, icon('fullscreen', 18)),
+    h('button', { title: '+', 'aria-label': t('zoom') + ' +', onclick: () => { void os.call('zoom', 1); } }, '+'),
   );
-  const items: Item[] = [
+  const groups: Item[][] = [];
+  groups.push([
     { label: t('new_tab'), icon: 'add', kbd: 'Ctrl+T', run: () => void os.call('newTab') },
     { label: t('dt_new_incognito_window'), icon: 'incognito', kbd: 'Ctrl+Shift+N', run: () => void os.call('incognito') },
-  ];
-  if (st.profile) {
-    items.push(
-      { label: t('tabs'), icon: 'tabs', kbd: 'Ctrl+Shift+A', run: () => void os.call('openPanel', `os://tabs/?profile=${st!.profile!.id}`) },
-    );
+    ...(id != null ? [{ k: 'group', label: t('new_tab_group'), icon: 'group', run: panel(`os://tabs/?profile=${id}&new=group`) }] : []),
+  ]);
+  if (id != null) {
+    groups.push([
+      { label: t('history'), icon: 'history', kbd: 'Ctrl+H', run: panel(`os://history/?profile=${id}`) },
+      { label: t('clear_title'), icon: 'delete', kbd: 'Ctrl+Shift+Del', run: panel(`os://clear/?profile=${id}`) },
+      { label: t('site_permissions'), icon: 'shield', disabled: !web, run: panel(`os://site/?profile=${id}&host=${encodeURIComponent(host(st.url))}`) },
+    ]);
+    groups.push([
+      { k: 'cabinet', label: t('cabinet'), icon: 'account', run: panel(`os://cabinet/?profile=${id}`) },
+      { label: t('dl_title'), icon: 'download', kbd: 'Ctrl+J', run: panel('os://downloads/') },
+      { label: t('favorites'), icon: 'star', kbd: 'Ctrl+Shift+O', run: panel('os://favorites/') },
+      { label: t('tabs'), icon: 'tabs', kbd: 'Ctrl+Shift+A', run: panel(`os://tabs/?profile=${id}`) },
+    ]);
+  } else {
+    groups.push([{ label: t('dl_title'), icon: 'download', kbd: 'Ctrl+J', run: panel('os://downloads/') }]);
   }
-  items.push(
-    { label: t('dt_reopen_closed'), icon: 'history', kbd: 'Ctrl+Shift+T', run: () => void os.call('reopen') },
-    { sep: true },
+  groups.push([
     { el: zoomRow },
-    { sep: true },
-    { label: t('copy_link'), icon: 'globe', disabled: !st.url, run: () => void os.call('copy', st!.url) },
-  );
-  items.push(
-    { label: t('dt_find'), icon: 'search', kbd: 'Ctrl+F', disabled: !!st.panel, run: () => void os.call('findOpen') },
-    { label: t('dt_print'), icon: 'file', kbd: 'Ctrl+P', run: () => void os.call('print') },
-    { label: st.reader ? t('reader_exit') : t('reader_mode'), icon: 'note', kbd: 'Ctrl+Alt+R', disabled: !st.url, run: () => void os.call('reader') },
-    { label: t('save_page'), icon: 'saved', kbd: 'Ctrl+S', disabled: !st.url, run: () => void os.call('savePage') },
-  );
-  if (!st.incognito && st.profile) {
-    const id = st.profile.id;
-    items.push(
-      { sep: true },
-      { label: t('history'), icon: 'history', kbd: 'Ctrl+H', run: () => void os.call('openPanel', `os://history/?profile=${id}`) },
-      { label: t('favorites'), icon: 'star', kbd: 'Ctrl+Shift+O', run: () => void os.call('openPanel', 'os://favorites/') },
-      { label: t('downloads'), icon: 'saved', kbd: 'Ctrl+J', run: () => void os.call('openPanel', 'os://downloads/') },
-      { label: t('saved_pages'), icon: 'file', run: () => void os.call('openPanel', 'os://saved/') },
-      { label: t('dt_extensions'), icon: 'extension', run: () => void os.call('openPanel', `os://extensions/?profile=${id}`) },
-      { label: t('clear_title'), icon: 'delete', run: () => void os.call('openPanel', `os://clear/?profile=${id}`) },
-    );
-  } else if (st.incognito) {
-    items.push({ label: t('downloads'), icon: 'saved', kbd: 'Ctrl+J', run: () => void os.call('openPanel', 'os://downloads/') });
-  }
+    { label: t('find_in_page'), icon: 'search', kbd: 'Ctrl+F', disabled: !web, run: () => void os.call('findOpen') },
+    { label: st.reader ? t('reader_exit') : t('reader_mode'), icon: 'book', kbd: 'Ctrl+Alt+R', disabled: !web, run: () => void os.call('reader') },
+    { label: st.fullscreen ? t('exit_full_screen') : t('full_screen'), icon: 'fullscreen', kbd: 'F11', run: () => void os.call('fullscreen') },
+    { k: 'more-tools', label: t('dt_more_tools'), icon: 'more', sub: true, run: () => moreTools(anchor, web, id) },
+  ]);
   if (!st.incognito) {
-    items.push(
-      { sep: true },
-      { label: t('profiles'), icon: 'person', run: () => void os.call('showHome') },
-      { label: t('notes'), icon: 'note', run: () => void os.call('openPanel', 'os://notes/') },
-      { label: t('stats'), icon: 'tabs', run: () => void os.call('openPanel', 'os://stats/') },
-      { label: t('site_settings'), icon: 'lock', disabled: !st.profile, run: () => void os.call('openPanel', `os://site/?profile=${st!.profile!.id}${st!.url ? '&host=' + encodeURIComponent(host(st!.url)) : ''}`) },
-      { label: t('security_check'), icon: 'check', run: () => void os.call('openPanel', 'os://security/') },
-      { label: t('dt_lock_now'), icon: 'lock', disabled: !st.lockEnabled, run: () => void os.call('lockNow') },
-      { label: t('help_feedback'), icon: 'info', run: () => void os.call('openPanel', 'os://help/') },
-      { label: t('about'), icon: 'info2', run: () => void os.call('openPanel', 'os://about/') },
-      { label: t('settings'), icon: 'settings', run: () => void os.call('openPanel', 'os://settings/') },
-    );
+    groups.push([
+      { label: t('settings'), icon: 'settings', run: panel('os://settings/') },
+      { label: t('help_feedback'), icon: 'help', run: panel('os://help/') },
+      ...(st.isDefault ? [] : [{ label: t('default_make'), icon: 'globe', run: () => void os.call('makeDefault') }]),
+    ]);
   }
-  openDrop(menu(items), anchor, 'end');
+  const items: Item[] = [{ el: top }];
+  for (const g of groups) items.push({ sep: true }, ...g);
+  const box = menu(items);
+  box.classList.add('main-menu');
+  openDrop(box, anchor, 'end');
+}
+
+/** «Другие инструменты ▸» (как в Chrome): редкие пункты, чтобы меню влезало на экран ноутбука. */
+function moreTools(anchor: DOMRect, web: boolean, id: number | undefined): void {
+  const items: Item[] = [
+    { k: 'back-menu', label: t('dt_more_tools'), icon: 'back', run: () => mainMenu(anchor) },
+    { sep: true },
+    ...(id != null ? [
+      { label: t('saved_pages'), icon: 'saved', run: () => void os.call('openPanel', 'os://saved/') },
+      { label: t('notes'), icon: 'note', run: () => void os.call('openPanel', 'os://notes/') },
+      { k: 'extensions', label: t('dt_extensions'), icon: 'extension', run: () => void os.call('openPanel', `os://extensions/?profile=${id}`) },
+      { sep: true },
+    ] : []),
+    { k: 'share', label: t('share'), icon: 'share', disabled: !web, run: () => shareMenu(anchor) },
+    { label: t('copy_link'), icon: 'link', disabled: !web, run: () => { void os.call('copy', st!.url); toast(t('link_copied')); } },
+    { label: t('open_external'), icon: 'external', disabled: !web, run: () => void browsersMenu(anchor) },
+    { k: 'mobile', label: t('dt_mobile_site'), icon: 'phone', disabled: !web, checked: !!st?.mobile, run: () => void os.call('mobileSite') },
+    { label: t('dt_print'), icon: 'file', kbd: 'Ctrl+P', disabled: !web, run: () => void os.call('print') },
+    { sep: true },
+    { k: 'diag', label: t('diagnostics'), icon: 'bug', run: () => void diagnostics(anchor) },
+    ...(st?.lockEnabled ? [{ label: t('dt_lock_now'), icon: 'lock', run: () => void os.call('lockNow') }] : []),
+  ];
+  const box = menu(items);
+  box.classList.add('main-menu');
+  openDrop(box, anchor, 'end');
+}
+
+function shareMenu(anchor: DOMRect): void {
+  openDrop(menu([
+    { head: t('share') },
+    { label: t('copy_link'), icon: 'link', run: () => { void os.call('copy', st!.url); toast(t('link_copied')); } },
+    { label: t('dt_share_mail'), icon: 'mail', run: () => void os.call('shareMail') },
+  ]), anchor, 'end', 280);
+}
+
+async function browsersMenu(anchor: DOMRect): Promise<void> {
+  const list = await os.call<{ name: string; exe: string }[]>('otherBrowsers');
+  const items: Item[] = [{ head: t('open_external') }];
+  if (list.length) items.push(...list.map((b) => ({ label: b.name, icon: 'globe', run: () => void os.call('openInBrowser', b.exe) })));
+  else if (document.documentElement.dataset.platform === 'win32') items.push({ label: t('dt_no_other_browsers'), disabled: true });
+  else items.push({ label: t('open_external'), icon: 'external', run: () => void os.call('openInBrowser', null) });
+  openDrop(menu(items), anchor, 'end', 300);
+}
+
+async function diagnostics(anchor: DOMRect): Promise<void> {
+  const text = await os.call<string>('diagnostics');
+  const card = h('div', { class: 'menu diag', role: 'dialog', 'aria-label': t('diagnostics') },
+    h('div', { class: 'head' }, t('diagnostics')),
+    h('pre', { id: 'diag-text', tabindex: '0' }, text),
+    h('div', { class: 'perm-actions' },
+      h('button', { class: 'pbtn', onclick: () => hideDrop() }, t('close')),
+      h('button', { class: 'pbtn accent', onclick: () => { void os.call('copy', text); hideDrop(); toast(t('copied')); } }, t('copy'))));
+  openDrop(card, anchor, 'end', 460, false);
 }
 
 let shownPrompt = 0;
 
-/** Запрос разрешения сайта: карточка под адресной строкой. */
+/** Запрос разрешения сайта (или вопрос о пароле): карточка под адресной строкой. */
 function renderPrompt(): void {
   const p = st?.prompt;
   if (!p) {
+    if (st?.pw) { renderPw(st.pw); return; }
     if (shownPrompt && layer.querySelector('.perm-card')) hideDrop();
     shownPrompt = 0;
     return;
@@ -545,6 +741,28 @@ function renderPrompt(): void {
       h('button', { class: 'pbtn accent', id: 'perm-allow', onclick: () => answer(true) }, t('perm_allow'))));
   const r = addr.getBoundingClientRect();
   openDrop(card, new DOMRect(r.left + 8, r.top, 360, r.height), 'start', 360, false, () => void os.call('permissionAnswer', p.id, false, false));
+}
+
+/** «Сохранить пароль для сайта?» после входа или выбор аккаунта для подстановки (как карточка разрешения). */
+function renderPw(q: NonNullable<WindowState['pw']>): void {
+  if (q.id === shownPrompt) return;
+  const addr = document.getElementById('addr');
+  if (!addr) return;
+  shownPrompt = q.id;
+  const answer = (action: string) => { hideDrop(); void os.call('pwAnswer', q.id, action); };
+  const card = q.kind === 'save'
+    ? h('div', { class: 'menu perm-card pw-card', role: 'dialog', 'aria-label': q.text },
+      h('div', { class: 'perm-text' }, q.text),
+      h('div', { class: 'perm-actions wrap' },
+        h('button', { class: 'pbtn', id: 'pw-later', onclick: () => answer('later') }, t('not_now')),
+        h('button', { class: 'pbtn', id: 'pw-never', onclick: () => answer('never') }, t('password_never')),
+        h('button', { class: 'pbtn accent', id: 'pw-save', onclick: () => answer('save') }, t('save'))))
+    : h('div', { class: 'menu perm-card pw-card', role: 'dialog', 'aria-label': q.text },
+      h('div', { class: 'perm-text' }, q.text),
+      h('div', { class: 'head' }, q.host),
+      ...q.users.map((u) => h('button', { role: 'menuitem', class: 'pw-user', onclick: () => answer(u.g) }, icon('person'), h('span', { class: 'grow' }, u.u))));
+  const r = addr.getBoundingClientRect();
+  openDrop(card, new DOMRect(r.left + 8, r.top, 380, r.height), 'start', 380, q.kind === 'pick', () => void os.call('pwAnswer', q.id, 'later'));
 }
 
 /** Строка «Найти на странице» (Ctrl+F): ввод ищет сразу, Enter — дальше, Shift+Enter — назад, Esc — закрыть. */
@@ -586,14 +804,16 @@ os.on('state', (s) => {
   if (booted) render();
 });
 let toastTimer = 0;
-os.on('toast', (text) => {
+os.on('toast', (text) => toast(String(text)));
+
+function toast(text: string): void {
   document.querySelector('.toast')?.remove();
-  const el = h('div', { class: 'toast', role: 'status' }, String(text));
+  const el = h('div', { class: 'toast', role: 'status' }, text);
   document.body.append(el);
   // Тост живёт внизу шапки: на время показа шапка не растягивается, поэтому он — под адресной строкой справа.
   clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => el.remove(), 2600);
-});
+}
 os.on('focusFind', () => {
   const el = document.getElementById('find') as HTMLInputElement | null;
   if (el) { el.focus(); el.select(); } else setTimeout(() => (document.getElementById('find') as HTMLInputElement | null)?.focus(), 50);

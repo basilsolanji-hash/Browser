@@ -42,7 +42,10 @@ async function render(): Promise<void> {
 
   app.replaceChildren(
     h('div', { class: 'head' }, h('span', { class: 'dot', style: `background:${p.color}` }), name,
+      h('button', { class: 'btn' + (p.pinned ? ' on' : ''), id: 'profile-pin', 'aria-pressed': String(p.pinned),
+        onclick: () => void os.call('setPinned', id, !p.pinned).then(render) }, icon('pin', 18), t(p.pinned ? 'profile_unpin' : 'profile_pin')),
       h('button', { class: 'btn', onclick: () => void os.call('openProfile', id) }, t('open'))),
+    p.current ? h('div', { class: 'hint cur' }, icon('check', 16), t('profile_current')) : '',
     h('div', { class: 'hint' }, p.email ?? t('not_signed_in')),
     ...section(t('profile_desc'), desc, note),
     ...section(t('pinned_tabs'),
@@ -55,6 +58,14 @@ async function render(): Promise<void> {
       files.length ? h('div', { class: 'card' }, ...fileRows) : h('div', { class: 'hint' }, t('profile_files_empty')),
       h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', id: 'add-files', onclick: () => void add() }, icon('add', 18), t('add_files'))),
       h('div', { class: 'hint' }, t('profile_files_local'))),
+    ...section(t('data'), h('div', { class: 'card' },
+      h('a', { class: 'setting plink', id: 'profile-clear', href: `os://clear/?profile=${id}` },
+        icon('history', 20), h('div', { class: 'label' }, h('div', null, t('clear_browsing_data')), h('div', { class: 'sub' }, t('cd_note')))),
+      h('a', { class: 'setting plink', href: `os://history/?profile=${id}` }, icon('history', 20), h('div', { class: 'label' }, t('history'))),
+      h('a', { class: 'setting plink', href: `os://site/?profile=${id}` }, icon('shield', 20), h('div', { class: 'label' }, t('site_permissions'))),
+      h('button', { class: 'setting plink danger', onclick: async () => {
+        if (await confirmDialog(t('clear_q', p.name), t('clear_profile_msg'), t('clear'), true)) { await os.call('clearProfile', id); toast(t('done')); }
+      } }, icon('delete', 20), h('div', { class: 'label' }, t('logout_clear'))))),
   );
 }
 

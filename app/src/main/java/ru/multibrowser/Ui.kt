@@ -108,3 +108,13 @@ fun Context.iconButton(res: Int, description: String, onClick: (View) -> Unit) =
     })
     setOnClickListener(onClick)
 }
+
+/**
+ * Ширина содержимого экранов-списков: на планшетах и в альбомной ориентации — не шире 720dp
+ * и по центру (строки не растягиваются во весь экран), на телефоне — во всю ширину.
+ */
+fun Context.readableWidth() = FrameLayout.LayoutParams(
+    if (resources.configuration.screenWidthDp > 760) dp(720) else FrameLayout.LayoutParams.MATCH_PARENT,
+    FrameLayout.LayoutParams.WRAP_CONTENT,
+    android.view.Gravity.CENTER_HORIZONTAL,
+)

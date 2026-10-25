@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
@@ -46,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         val root = ScrollView(this).apply {
             setBackgroundColor(Ui.BG)
             isFillViewport = true
-            addView(list)
+            addView(list, readableWidth())
         }
         setContentView(root)
         applyEdgeToEdge(root)
@@ -68,6 +69,10 @@ class MainActivity : AppCompatActivity() {
         list.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            // Общий личный кабинет: пароли всех профилей, генератор, резервная копия.
+            addView(iconButton(R.drawable.ic_lock, Tr.t("cabinet")) {
+                startActivity(Intent(this@MainActivity, AccountActivity::class.java))
+            }, LinearLayout.LayoutParams(dp(40), dp(40)).apply { marginEnd = dp(8) })
             addView(iconButton(R.drawable.ic_settings, Tr.t("settings")) {
                 startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
             }, LinearLayout.LayoutParams(dp(40), dp(40)))
@@ -121,12 +126,25 @@ class MainActivity : AppCompatActivity() {
                 })
             }
         })
-        list.addView(TextView(this).apply {
-            text = Tr.t("profiles")
-            textSize = 20f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Ui.TEXT)
+        // Заголовок «Профили» и переключатель вида: список или плитка.
+        val grid = Settings.profilesGrid(this)
+        list.addView(LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL
             setPadding(0, dp(20), 0, dp(6))
+            addView(TextView(context).apply {
+                text = Tr.t("profiles")
+                textSize = 20f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Ui.TEXT)
+            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            listOf(false to R.drawable.ic_view_list, true to R.drawable.ic_view_grid).forEach { (g, icon) ->
+                addView(iconButton(icon, Tr.t(if (g) "profiles_view_grid" else "profiles_view_list")) {
+                    Settings.setProfilesGrid(this@MainActivity, g); render()
+                }.apply {
+                    background = if (g == grid) Ui.rounded(Ui.SURFACE, dpf(8), dp(1), Ui.ACCENT) else null
+                    isSelected = g == grid
+                }, LinearLayout.LayoutParams(dp(40), dp(40)).apply { marginStart = dp(4) })
+            }
         })
         list.addView(TextView(this).apply {
             text = Tr.t("profiles_desc", Settings.profileCount(this@MainActivity))
@@ -134,16 +152,156 @@ class MainActivity : AppCompatActivity() {
             setTextColor(Ui.MUTED)
             setPadding(0, 0, 0, dp(12))
         })
-        list.addView(ExtrasUi.hint(this, Tr.t("profiles_reorder_hint")).apply { setPadding(0, 0, 0, dp(4)) })
+        list.addView(ExtrasUi.hint(this, Tr.t(if (grid) "profiles_grid_hint" else "profiles_reorder_hint")).apply { setPadding(0, 0, 0, dp(4)) })
         val all = Profiles.all(this)
         val current = Profiles.lastProfile(this)
-        all.take(if (expanded) all.size else VISIBLE).forEach { list.addView(row(it, it.id == current)) }
-        if (all.size > VISIBLE) {
-            list.addView(ExtrasUi.button(this, if (expanded) Tr.t("profiles_fewer") else Tr.t("profiles_all", all.size)) {
-                expanded = !expanded
-                render()
+        val folders = Profiles.folders(this)
+        if (folders.isEmpty()) {
+            val shown = all.take(if (expanded) all.size else VISIBLE)
+            if (grid) addGrid(shown, current) else shown.forEach { list.addView(row(it, it.id == current)) }
+            if (all.size > VISIBLE) {
+                list.addView(ExtrasUi.button(this, if (expanded) Tr.t("profiles_fewer") else Tr.t("profiles_all", all.size)) {
+                    expanded = !expanded
+                    render()
+                })
+            }
+        } else {
+            // Папки по алфавиту, затем профили без папки; папку можно свернуть.
+            (folders + "").forEach { folder ->
+                val inFolder = all.filter { Profiles.folder(this, it.id) == folder }
+                if (inFolder.isEmpty()) return@forEach
+                val collapsed = folder.isNotEmpty() && Profiles.folderCollapsed(this, folder)
+                list.addView(folderHeader(folder, inFolder.size, collapsed))
+                if (!collapsed) {
+                    if (grid) addGrid(inFolder, current) else inFolder.forEach { list.addView(row(it, it.id == current)) }
+                }
+            }
+        }
+    }
+
+    /** Заголовок папки: значок, название, число профилей, стрелка; нажатие — свернуть, долгое — меню. */
+    private fun folderHeader(folder: String, count: Int, collapsed: Boolean) = LinearLayout(this).apply {
+        gravity = Gravity.CENTER_VERTICAL
+        setPadding(dp(4), dp(16), dp(4), dp(4))
+        contentDescription = folder.ifEmpty { Tr.t("folder_none") }
+        addView(icon(R.drawable.ic_folder, if (folder.isEmpty()) Ui.MUTED else Ui.ACCENT, 20))
+        addView(TextView(context).apply {
+            text = "${folder.ifEmpty { Tr.t("folder_none") }} · $count"
+            textSize = 15f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Ui.TEXT)
+            setPadding(dp(10), 0, 0, 0)
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        if (folder.isNotEmpty()) {
+            addView(icon(if (collapsed) R.drawable.ic_down else R.drawable.ic_up, Ui.MUTED, 20))
+            setOnClickListener { Profiles.setFolderCollapsed(this@MainActivity, folder, !collapsed); render() }
+            setOnLongClickListener { folderMenu(folder); true }
+        }
+    }
+
+    private fun folderMenu(folder: String) {
+        val actions = listOf<Pair<String, () -> Unit>>(
+            Tr.t("folder_rename") to {
+                textDialog(Tr.t("folder_name"), folder) { name -> Profiles.renameFolder(this, folder, name); render() }
+            },
+            Tr.t("folder_delete") to { Profiles.deleteFolder(this, folder); render() },
+        )
+        AlertDialog.Builder(this)
+            .setTitle(folder)
+            .setItems(actions.map { it.first }.toTypedArray()) { _, i -> actions[i].second() }
+            .show()
+    }
+
+    /** Профиль — в папку: существующую, новую или «без папки». */
+    private fun folderPicker(p: Profile) {
+        val folders = Profiles.folders(this)
+        val labels = folders + Tr.t("folder_new") + Tr.t("folder_none")
+        AlertDialog.Builder(this)
+            .setTitle(Tr.t("folder_move"))
+            .setItems(labels.toTypedArray()) { _, i ->
+                when {
+                    i < folders.size -> { Profiles.setFolder(this, p.id, folders[i]); render() }
+                    i == folders.size -> textDialog(Tr.t("folder_name"), "") { name -> Profiles.setFolder(this, p.id, name); render() }
+                    else -> { Profiles.setFolder(this, p.id, ""); render() }
+                }
+            }
+            .show()
+    }
+
+    private fun textDialog(title: String, value: String, onSave: (String) -> Unit) {
+        val input = EditText(this).apply { setText(value); setSingleLine(); setTextColor(Ui.TEXT) }
+        val box = LinearLayout(this).apply {
+            setPadding(dp(20), dp(8), dp(20), 0)
+            addView(input, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        }
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(box)
+            .setPositiveButton(Tr.t("save")) { _, _ -> if (input.text.isNotBlank()) onSave(input.text.toString()) }
+            .setNegativeButton(Tr.t("cancel"), null)
+            .show()
+    }
+
+    /** Плитка: 2 колонки на телефоне, 4 — на широком экране. */
+    private fun addGrid(profiles: List<Profile>, current: Int) {
+        val cols = if (resources.configuration.screenWidthDp >= 600) 4 else 2
+        profiles.chunked(cols).forEach { chunk ->
+            list.addView(LinearLayout(this).apply {
+                chunk.forEachIndexed { i, p ->
+                    addView(tile(p, p.id == current), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                        if (i > 0) marginStart = dp(8)
+                        topMargin = dp(8)
+                    })
+                }
+                repeat(cols - chunk.size) { addView(View(context), LinearLayout.LayoutParams(0, 1, 1f).apply { marginStart = dp(8) }) }
             })
         }
+    }
+
+    private fun tile(p: Profile, current: Boolean) = FrameLayout(this).apply {
+        background = if (current) Ui.rounded(Ui.SURFACE, dpf(12), dp(2), Ui.ACCENT) else Ui.rounded(Ui.SURFACE, dpf(12), dp(1))
+        contentDescription = p.name
+        setOnClickListener { openPin(p, Pins.all(this@MainActivity, p.id).first()) }
+        setOnLongClickListener { profileMenu(p); true }
+        addView(LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(dp(10), dp(16), dp(10), dp(14))
+            addView(TextView(context).apply {
+                text = p.name.take(1).uppercase()
+                textSize = 20f
+                typeface = Typeface.DEFAULT_BOLD
+                gravity = Gravity.CENTER
+                setTextColor(android.graphics.Color.WHITE)
+                background = Ui.oval(p.color)
+            }, LinearLayout.LayoutParams(dp(52), dp(52)))
+            addView(TextView(context).apply {
+                text = p.name
+                textSize = 15f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Ui.TEXT)
+                gravity = Gravity.CENTER
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+                setPadding(0, dp(10), 0, 0)
+            })
+            addView(TextView(context).apply {
+                text = p.email ?: p.description.ifBlank { Tr.t("not_signed_in") }
+                textSize = 12f
+                setTextColor(Ui.MUTED)
+                gravity = Gravity.CENTER
+                maxLines = 2
+                ellipsize = TextUtils.TruncateAt.END
+                setPadding(0, dp(2), 0, 0)
+            })
+        })
+        // Значки по углам: закреплён — слева, текущий — справа, шестерёнка — снизу справа.
+        if (Profiles.isPinned(this@MainActivity, p.id)) addView(icon(R.drawable.ic_pin, Ui.ACCENT, 16),
+            FrameLayout.LayoutParams(dp(16), dp(16), Gravity.TOP or Gravity.START).apply { setMargins(dp(10), dp(10), 0, 0) })
+        if (current) addView(icon(R.drawable.ic_check, Ui.ACCENT, 18).apply { contentDescription = Tr.t("profile_current") },
+            FrameLayout.LayoutParams(dp(18), dp(18), Gravity.TOP or Gravity.END).apply { setMargins(0, dp(10), dp(10), 0) })
+        addView(iconButton(R.drawable.ic_settings, Tr.t("profile_settings")) { openInfo(p) }.apply { background = null },
+            FrameLayout.LayoutParams(dp(36), dp(36), Gravity.BOTTOM or Gravity.END))
     }
 
     // --- Перетаскивание профилей ---
@@ -371,6 +529,7 @@ class MainActivity : AppCompatActivity() {
             },
             Tr.t("profile_settings") to { openInfo(p) },
             Tr.t("rename") to { renameDialog(p) },
+            Tr.t("folder_move") to { folderPicker(p) },
             (if (Profiles.isPinned(this, p.id)) Tr.t("profile_unpin") else Tr.t("profile_pin")) to {
                 Profiles.setPinned(this, p.id, !Profiles.isPinned(this, p.id)); render()
             },

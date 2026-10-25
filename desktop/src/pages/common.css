@@ -7,7 +7,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: default; }
 a { color: var(--accent); }
 .ic { display: inline-flex; align-items: center; justify-content: center; }
-.wrap { max-width: 760px; margin: 0 auto; padding: 24px 24px 48px; }
+/* Широкое окно: содержимое не шире 720 px и по центру (720 + поля 2×24). */
+.wrap { max-width: 768px; margin: 0 auto; padding: 24px 24px 48px; }
 .wide { max-width: 1100px; }
 h1 { font-size: 22px; margin: 6px 0 6px; }
 h2 { font-size: 15px; margin: 28px 0 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
@@ -52,3 +53,4 @@ textarea { width: 100%; min-height: 90px; resize: vertical; line-height: 1.45; }
 .ctx .sep { height: 1px; background: var(--border); margin: 5px 4px; }
 .wordmark { display: block; }
 .wordmark svg { width: 100%; height: 100%; display: block; }
+[hidden] { display: none !important; }

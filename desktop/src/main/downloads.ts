@@ -1,8 +1,12 @@
-import { app, shell, type DownloadItem, type Session } from 'electron';
+import { app, shell, type DownloadItem, type Session, type WebContents } from 'electron';
+import { execFile } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { existsSync, linkSync, mkdirSync, renameSync, rmSync, statSync } from 'node:fs';
+import { readFile, statfs } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { basename, extname, join } from 'node:path';
 import { JsonFile } from './store';
+import { effectiveMime, viewableInOs } from '../shared/filetype';
 
 /**
  * Загрузки (Downloads.kt / DownloadsActivity.kt): файлы — в «Загрузки/Ось», список — для экрана «Загрузки».
@@ -18,7 +22,18 @@ export interface Download {
   urlChain?: string[]; mime?: string; etag?: string; lastModified?: string; start?: number;
   /** Сайт разрешает продолжить загрузку с места остановки. */
   resumable?: boolean;
+  /** Ждёт ответа на «Разрешить скачивание?»: файл уже качается, при «Запретить» — удаляется. */
+  pending?: boolean;
 }
+
+/**
+ * Решение о загрузке (разрешения сайта, окно браузера): 'allow' — сразу, 'block' — не начинать,
+ * Promise — качать и ждать ответа пользователя (false — отменить и удалить).
+ */
+export interface GateRequest { ses: Session; profile: number | null; wc: WebContents | null; url: string; name: string }
+export type GateAnswer = 'allow' | 'block' | Promise<boolean>;
+let gate: (r: GateRequest) => GateAnswer = () => 'allow';
+export const setGate = (fn: (r: GateRequest) => GateAnswer) => { gate = fn; };
 
 const MAX = 200;
 const RETRIES = 5;
@@ -27,6 +42,8 @@ const live = new Map<string, DownloadItem>();
 const sessions = new Map<string, Session>();
 /** Загрузки, которые мы сами возобновляем через createInterruptedDownload: путь → id записи. */
 const restoring = new Map<string, string>();
+/** Скорость идущих загрузок (байт/с, сглаженная) — для «осталось N с». Только в памяти. */
+const rates = new Map<string, { at: number; bytes: number; rate: number }>();
 let onChange: () => void = () => {};
 /** Браузер закрывается: Chromium отменит загрузки, но мы уже запомнили их как прерванные. */
 let quitting = false;
@@ -34,6 +51,13 @@ let quitting = false;
 export const list = () => file.get().list;
 export const setListener = (fn: () => void) => { onChange = fn; };
 export const folder = () => join(app.getPath('downloads'), 'Ось');
+
+/** Сколько секунд осталось (null — неизвестно). */
+export function eta(d: Download): number | null {
+  const r = rates.get(d.id);
+  if (d.state !== 'progress' || !r || r.rate <= 0 || d.size <= 0) return null;
+  return Math.max(0, (d.size - d.received) / r.rate);
+}
 
 function unique(dir: string, name: string): string {
   const ext = extname(name);
@@ -55,11 +79,12 @@ const partOf = (path: string) => join(dirname(path), `.${basename(path)}.osdownl
 const key = (profile: number | null) => (profile == null ? 'incognito' : String(profile));
 let seq = 0;
 
-/** Подключить сессию: каждая загрузка сохраняется без вопросов в папку «Ось». */
+/** Подключить сессию: загрузки сохраняются в папку «Ось», если сайт может скачивать (разрешения сайта). */
 export function attach(ses: Session, profile: number | null): void {
   // Инкогнито после закрытия окна не докачать: его сессии больше нет.
   if (profile != null) sessions.set(key(profile), ses);
-  ses.on('will-download', (_e, item) => {
+  cleanupPending();
+  ses.on('will-download', (_e, item, wc) => {
     const url = item.getURL();
     if (!/^(https?|blob|data):/i.test(url)) { item.cancel(); return; }
     const restored = restoring.get(item.getSavePath());
@@ -70,6 +95,15 @@ export function attach(ses: Session, profile: number | null): void {
       item.resume();
       return;
     }
+    let answer: GateAnswer;
+    try {
+      answer = gate({ ses, profile, wc: wc ?? null, url, name: item.getFilename() });
+    } catch (e) {
+      console.error('[downloads] gate', e);
+      answer = 'allow';
+    }
+    // Сайт с «Запретить» не начинает загрузку.
+    if (answer === 'block') { item.cancel(); return; }
     const dir = folder();
     mkdirSync(dir, { recursive: true });
     const path = unique(dir, safe(item.getFilename()));
@@ -77,12 +111,48 @@ export function attach(ses: Session, profile: number | null): void {
     const id = `d${Date.now()}${seq++}`;
     const entry: Download = {
       id, name: basename(path), path, url: url.startsWith('http') ? url : '', time: Date.now(), size: item.getTotalBytes(),
-      state: 'progress', received: 0, profile,
+      state: 'progress', received: 0, profile, mime: item.getMimeType(), ...(answer === 'allow' ? {} : { pending: true }),
     };
     file.update((d) => { d.list = [entry, ...d.list].slice(0, MAX); });
     track(id, item);
     onChange();
+    // Пока вопрос висит, файл качается; «Запретить» — отмена и удаление.
+    if (answer !== 'allow') {
+      void answer.then((ok) => {
+        if (ok) patch(id, { pending: false });
+        else discard(id);
+      }, () => discard(id));
+    }
   });
+}
+
+let cleaned = false;
+/** Ответа так и не было (браузер закрыли с вопросом) — это «Запретить»: файл не оставляем. */
+function cleanupPending(): void {
+  if (cleaned) return;
+  cleaned = true;
+  const stale = list().filter((d) => d.pending);
+  if (!stale.length) return;
+  for (const d of stale) {
+    rmSync(d.path, { force: true });
+    rmSync(partOf(d.path), { force: true });
+  }
+  file.update((d) => { d.list = d.list.filter((x) => !x.pending); });
+}
+
+/** Отказ в загрузке: остановить, удалить файл и запись. */
+function discard(id: string): void {
+  const item = live.get(id);
+  const d = list().find((x) => x.id === id);
+  live.delete(id);
+  rates.delete(id);
+  file.update((x) => { x.list = x.list.filter((y) => y.id !== id); });
+  if (item && item.getState() !== 'completed' && item.getState() !== 'cancelled') item.cancel();
+  if (d) {
+    rmSync(d.path, { force: true });
+    rmSync(partOf(d.path), { force: true });
+  }
+  onChange();
 }
 
 /** Следить за загрузкой и запоминать всё, что нужно для докачки. */
@@ -104,9 +174,10 @@ function track(id: string, item: DownloadItem): void {
     };
   };
   item.on('updated', (_ev, state) => {
-    if (quitting) return;
+    if (quitting || live.get(id) !== item) return;
     if (state === 'interrupted') {
       // Обрыв сети: пробуем продолжить сами, с того же места.
+      rates.delete(id);
       patch(id, { ...meta(), state: 'interrupted' });
       if (item.canResume() && retries < RETRIES) {
         retries++;
@@ -116,13 +187,24 @@ function track(id: string, item: DownloadItem): void {
     }
     const now = Date.now();
     const paused = item.isPaused();
+    // Скорость — по приросту байт, сглаженно (чтобы «осталось» не прыгало).
+    const got = item.getReceivedBytes();
+    const r = rates.get(id);
+    if (paused || !r) rates.set(id, { at: now, bytes: got, rate: r && !paused ? r.rate : 0 });
+    else if (now - r.at >= 400) {
+      const cur = ((got - r.bytes) * 1000) / (now - r.at);
+      rates.set(id, { at: now, bytes: got, rate: r.rate ? r.rate * 0.6 + cur * 0.4 : cur });
+    }
     if (!paused && now - last < 500) return;
     last = now;
     patch(id, { ...meta(), state: paused ? 'paused' : 'progress' });
   });
   item.once('done', (_ev, state) => {
-    if (live.get(id) === item) live.delete(id);
-    if (quitting) return;
+    const mine = live.get(id) === item;
+    if (mine) live.delete(id);
+    rates.delete(id);
+    // Отказ в разрешении уже удалил запись и файл.
+    if (quitting || !mine && !list().some((x) => x.id === id)) return;
     if (state !== 'interrupted') rmSync(partOf(item.getSavePath()), { force: true });
     if (state === 'completed') patch(id, { received: item.getReceivedBytes(), size: item.getTotalBytes() || item.getReceivedBytes(), state, resumable: false });
     else patch(id, { ...meta(), state });
@@ -196,15 +278,79 @@ export function cancel(id: string): void {
   }
 }
 
-export async function open(id: string): Promise<boolean> {
+const ready = (id: string) => {
   const d = list().find((x) => x.id === id);
-  if (!d || d.state !== 'completed' || !existsSync(d.path)) return false;
+  return d && d.state === 'completed' && !d.pending && existsSync(d.path) ? d : null;
+};
+
+export const mimeOf = (d: Download) => effectiveMime(d.mime, d.name);
+
+/** Адрес защищённой раздачи для вкладки Оси (PDF, картинки, текст) или null — тогда системным приложением. */
+export function viewUrl(id: string): string | null {
+  const d = ready(id);
+  if (!d || d.profile == null || !viewableInOs(mimeOf(d))) return null;
+  // Случайный ключ вместо id: сайт не угадает адрес и не вставит чужой файл картинкой.
+  const token = randomBytes(16).toString('hex');
+  tokens.set(token, d.id);
+  return `os://file/${token}/${encodeURIComponent(d.name)}`;
+}
+
+/** Ключи раздачи файлов во вкладки (только до выхода из браузера). */
+const tokens = new Map<string, string>();
+
+export const profileOf = (id: string) => list().find((x) => x.id === id)?.profile ?? null;
+
+/** Системным приложением по типу файла. */
+export async function open(id: string): Promise<boolean> {
+  const d = ready(id);
+  if (!d) return false;
   return (await shell.openPath(d.path)) === '';
+}
+
+/** «Открыть с помощью» — системный выбор программы (только Windows). */
+export function openWith(id: string): boolean {
+  const d = ready(id);
+  if (!d || process.platform !== 'win32') return false;
+  execFile('rundll32', ['shell32.dll,OpenAs_RunDLL', d.path], { windowsHide: true }, () => {});
+  return true;
+}
+
+/**
+ * Раздача скачанного файла во вкладку (os://file/<ключ>/<имя>): только своему профилю, только готовый файл.
+ * Не PDF — со строгим CSP в песочнице: ни скриптов, ни запросов наружу (SVG и текст безопасны).
+ */
+export async function serve(token: string, ses: Session): Promise<Response> {
+  const d = ready(tokens.get(token) ?? '');
+  if (!d || d.profile == null || sessions.get(key(d.profile)) !== ses) return new Response('', { status: 404 });
+  const mime = mimeOf(d);
+  if (!viewableInOs(mime)) return new Response('', { status: 404 });
+  const text = mime.startsWith('text/') || mime === 'application/json';
+  const headers: Record<string, string> = {
+    'content-type': text ? 'text/plain; charset=utf-8' : mime, 'x-content-type-options': 'nosniff', 'cache-control': 'no-store',
+  };
+  // PDF показывает встроенный просмотрщик Chromium — ему CSP мешает.
+  if (mime !== 'application/pdf') headers['content-security-policy'] = "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox";
+  try {
+    return new Response(new Uint8Array(await readFile(d.path)), { headers });
+  } catch {
+    return new Response('', { status: 404 });
+  }
+}
+
+/** Место на диске с папкой загрузок (fs.statfs). */
+export async function disk(): Promise<{ free: number; total: number } | null> {
+  try {
+    const dir = existsSync(folder()) ? folder() : app.getPath('downloads');
+    const s = await statfs(dir);
+    return { free: s.bavail * s.bsize, total: s.blocks * s.bsize };
+  } catch {
+    return null;
+  }
 }
 
 export function show(id: string): void {
   const d = list().find((x) => x.id === id);
-  if (d && existsSync(d.path)) shell.showItemInFolder(d.path);
+  if (d && !d.pending && existsSync(d.path)) shell.showItemInFolder(d.path);
 }
 
 /** Убрать из списка (файл на диске остаётся). */
@@ -216,7 +362,21 @@ export function remove(id: string): void {
   onChange();
 }
 
+/** Удалить файл с диска и из списка (меню строки «Удалить»). */
+export function deleteFile(id: string): void {
+  const d = list().find((x) => x.id === id);
+  const item = live.get(id);
+  live.delete(id);
+  file.update((x) => { x.list = x.list.filter((y) => y.id !== id); });
+  item?.cancel();
+  if (d) {
+    rmSync(d.path, { force: true });
+    rmSync(partOf(d.path), { force: true });
+  }
+  onChange();
+}
+
 export function clear(): void {
-  file.update((d) => { d.list = d.list.filter((x) => x.state === 'progress' || x.state === 'paused'); });
+  file.update((d) => { d.list = d.list.filter((x) => x.state === 'progress' || x.state === 'paused' || x.pending); });
   onChange();
 }

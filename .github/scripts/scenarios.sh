@@ -10,6 +10,14 @@ mkdir -p "$OUT"
 exec > >(tee -a "$OUT/steps.txt") 2>&1
 
 adb install -r app/build/outputs/apk/debug/app-debug.apk
+# Ни одна команда adb не висит дольше 60 с (зависший uiautomator или запуск на тяжёлом сайте
+# раньше останавливал всю часть до общего лимита времени); зависание помечается в steps.txt.
+ADB_BIN=$(command -v adb)
+adb() {
+  timeout 60 "$ADB_BIN" "$@"; local rc=$?
+  [ $rc = 124 ] && echo "TIMEOUT: adb $*" >&2
+  return $rc
+}
 for a in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global "$a" 0; done
 adb logcat -c; adb logcat -b crash -c
 
@@ -28,6 +36,7 @@ stop() { adb shell am force-stop "$PKG"; }
 sc() {
   local name="$1"; shift
   N=$((N + 1))
+  echo "== $name $(date +%T)"
   local before; before=$(crashes)
   eval "$@"
   shot "$name"
@@ -148,7 +157,6 @@ en.m.wikipedia.org/wiki/Moon|https://en.m.wikipedia.org/wiki/Moon
 hello|https://duckduckgo.com/?q=hello
 hello world|https://duckduckgo.com/?q=hello+world
 weather|https://duckduckgo.com/?q=weather
-github.com|https://github.com/
 duckduckgo.com|https://duckduckgo.com/
 news|https://duckduckgo.com/?q=news
 1+1|https://duckduckgo.com/?q=1%2B1
@@ -159,12 +167,14 @@ kotlin|https://duckduckgo.com/?q=kotlin
 android 15|https://duckduckgo.com/?q=android+15
 wikipedia.org|https://wikipedia.org/
 localhost:8770/page|https://duckduckgo.com/?q=localhost%3A8770%2Fpage
+# github.com — последним: его 3D-графика (WebGL) вешает программный GPU эмулятора целиком.
+github.com|https://github.com/
 CASES
   ;;
 3)  # --- Популярные сайты: загрузка без падения и не пустой экран ---
   prefs en scarlet_dark
   for u in https://example.com https://www.wikipedia.org https://en.m.wikipedia.org/wiki/Moon https://ru.wikipedia.org \
-    https://duckduckgo.com https://www.mozilla.org https://github.com https://gitlab.com https://stackoverflow.com \
+    https://duckduckgo.com https://www.mozilla.org https://gitlab.com https://stackoverflow.com \
     https://news.ycombinator.com https://www.reddit.com https://www.bbc.com https://www.reuters.com https://www.theguardian.com \
     https://www.nytimes.com https://www.cnn.com https://www.aljazeera.com https://www.dw.com https://www.lemonde.fr \
     https://www.elpais.com https://www.spiegel.de https://www.youtube.com https://vimeo.com https://www.twitch.tv \
@@ -175,7 +185,7 @@ CASES
     https://www.notion.so https://trello.com https://slack.com https://zoom.us https://www.linkedin.com \
     https://www.x.com https://www.instagram.com https://www.facebook.com https://www.tiktok.com https://telegram.org \
     https://web.whatsapp.com https://www.apple.com https://www.microsoft.com https://www.samsung.com https://developer.android.com \
-    https://kotlinlang.org https://www.python.org https://claude.ai; do
+    https://kotlinlang.org https://www.python.org https://claude.ai https://github.com; do
     name="S-$(echo "$u" | sed 's#https\?://##; s#[^a-zA-Z0-9.]#_#g')"
     adb logcat -c
     sc "$name" "start BrowserActivity --ei profile 4 --es url $u; sleep 14"
