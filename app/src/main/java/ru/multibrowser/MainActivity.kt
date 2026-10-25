@@ -87,6 +87,17 @@ class MainActivity : AppCompatActivity() {
                 setPadding(0, dp(8), 0, 0)
             })
             addView(ExtrasUi.paragraph(context, Tr.t("about_desc"), 13f, Ui.MUTED).apply { gravity = Gravity.CENTER })
+            // Приветствие по времени суток и позитивная фраза — каждый раз новая, без повторов.
+            addView(ExtrasUi.paragraph(context, Phrases.greeting(), 17f, Ui.TEXT, bold = true).apply {
+                gravity = Gravity.CENTER
+                setPadding(0, dp(12), 0, 0)
+            })
+            Phrases.next(this@MainActivity)?.let { phrase ->
+                addView(ExtrasUi.paragraph(context, phrase, 14f, Ui.MUTED).apply {
+                    gravity = Gravity.CENTER
+                    setTypeface(typeface, Typeface.ITALIC)
+                })
+            }
         })
         list.addView(quickSearch())
         // Быстрый доступ к библиотеке и сведениям о приложении.

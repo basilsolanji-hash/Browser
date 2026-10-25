@@ -266,3 +266,30 @@ class StoresTest {
         assertEquals("Mine", Profiles.get(ctx, 1).name)
     }
 }
+
+/** Фразы показываются случайно и не повторяются, пока не пройдут все; на стыке колод — тоже. */
+@RunWith(RobolectricTestRunner::class)
+class PhraseDeckTest {
+    private val ctx: Context = ApplicationProvider.getApplicationContext()
+
+    @Test
+    fun noRepeatsWithinDeckAndAtTheJoin() {
+        ctx.getSharedPreferences("phrases", Context.MODE_PRIVATE).edit().clear().commit()
+        repeat(5) { round ->
+            val deck = (1..300).map { Phrases.nextIndex(ctx, 300) }
+            assertEquals("колода $round без повторов", 300, deck.toSet().size)
+            val nextFirst = Phrases.nextIndex(ctx, 300)
+            assertTrue("стык колод $round", nextFirst != deck.last())
+            // Вернуть позицию: следующая колода начнётся со следующего вызова.
+            ctx.getSharedPreferences("phrases", Context.MODE_PRIVATE).edit().putInt("pos", -1).commit()
+        }
+    }
+
+    @Test
+    fun oldThirtyPhraseDeckIsReplaced() {
+        ctx.getSharedPreferences("phrases", Context.MODE_PRIVATE).edit()
+            .putString("deck", (0 until 30).joinToString(",")).putInt("pos", 5).commit()
+        val seen = (1..300).map { Phrases.nextIndex(ctx, 300) }
+        assertEquals(300, seen.toSet().size)
+    }
+}

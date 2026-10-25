@@ -9,6 +9,7 @@ object StartPage {
         val tagline = esc(Tr.t("start_tagline"))
         val hint = esc(Tr.t("start_hint"))
         val phrase = Home.phrase()?.let { "<p class=\"q\">${esc(it)}</p>" } ?: ""
+        val greeting = esc(Phrases.greeting())
         val s = """<!doctype html><html dir="$dir"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><style>
 html,body{height:100%;margin:0}body{display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -19,10 +20,12 @@ font-family:system-ui,sans-serif;background:$bg;color:$text;text-align:center;pa
 h1{font-size:22px;margin:14px 0 4px}.t{color:$accent}
 .b{color:$muted;font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 10px}
 p{color:$muted;font-size:14px;max-width:320px;line-height:1.5}
+.g{color:$text;font-size:18px;font-weight:600;margin:6px 0 2px}
 .q{color:$text;font-size:16px;font-style:italic;margin:22px 0 0;padding-top:16px;border-top:1px solid $accent}</style></head>
 <body><div class="ring"><div class="axis"></div><div class="dot"></div></div>
 <h1>Ось</h1>
 <p class="b">$tagline</p>
+<p class="g">$greeting</p>
 <p>$hint</p>$phrase</body></html>"""
         return s.toByteArray(Charsets.UTF_8)
     }

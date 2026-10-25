@@ -194,6 +194,7 @@ class SettingsActivity : AppCompatActivity() {
         content.addView(this)
         sections += this
         sectionGroup[this] = currentGroup
+        setTag(R.id.profile_row, title) // исходное название (заголовок раздела показывается заглавными)
     }
 
     /** Главная настроек: карточки групп с иконкой и перечнем разделов. */
@@ -202,7 +203,8 @@ class SettingsActivity : AppCompatActivity() {
         if (group != null) return
         GROUPS.forEach { (id, key, iconRes) ->
             val titles = sections.filter { sectionGroup[it] == id }
-                .mapNotNull { ((it.getChildAt(0) as? TextView)?.text ?: (it.getChildAt(0) as? ViewGroup)?.let { g -> texts(g).firstOrNull() })?.toString() }
+                .mapNotNull { (it.getTag(R.id.profile_row) as? String) }
+                .filter { !it.equals(Tr.t(key), true) }
             groupList.addView(LinearLayout(this).apply {
                 gravity = Gravity.CENTER_VERTICAL
                 background = Ui.rounded(Ui.SURFACE, dpf(12), dp(1))
@@ -226,6 +228,7 @@ class SettingsActivity : AppCompatActivity() {
                     })
                     addView(TextView(context).apply {
                         text = titles.joinToString(" · ")
+                        visibility = if (titles.isEmpty()) View.GONE else View.VISIBLE
                         textSize = 12f
                         setTextColor(Ui.MUTED)
                         maxLines = 2

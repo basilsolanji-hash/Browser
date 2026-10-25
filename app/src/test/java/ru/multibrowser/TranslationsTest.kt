@@ -69,8 +69,27 @@ class TranslationKeysUsedTest {
         assertTrue("нет перевода: $missing", missing.isEmpty())
     }
 
+    /** 300 позитивных фраз на каждом из 10 языков: без пустых, без повторов, одинаковое число. */
     @Test
-    fun allDailyPhrasesExist() = (1..30).forEach { assertTrue("phrase_$it", "phrase_$it" in Tr.M) }
+    fun phraseFilesComplete() {
+        listOf("en", "ru", "es", "pt", "fr", "de", "ar", "hi", "tr", "zh").forEach { lang ->
+            val lines = File("src/main/assets/phrases/$lang.txt").readLines(Charsets.UTF_8).filter { it.isNotBlank() }
+            assertEquals("$lang: число фраз", 300, lines.size)
+            assertEquals("$lang: повторы", lines.size, lines.map { it.trim().lowercase() }.toSet().size)
+            lines.forEach { assertTrue("$lang: слишком длинная или с табуляцией: $it", it.length <= 160 && '\t' !in it) }
+        }
+    }
+
+    @Test
+    fun greetingsByHour() {
+        Tr.lang = "ru"
+        assertEquals("Доброе утро!", Phrases.greeting(8))
+        assertEquals("Добрый день!", Phrases.greeting(13))
+        assertEquals("Добрый вечер!", Phrases.greeting(19))
+        assertEquals("Доброй ночи!", Phrases.greeting(2))
+        assertEquals("Доброй ночи!", Phrases.greeting(23))
+        Tr.lang = "en"
+    }
 
     @Test
     fun localizedExamplesResolve() {
