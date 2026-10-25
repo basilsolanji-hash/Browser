@@ -42,3 +42,15 @@ export function strength(p: string): number {
 }
 
 export const STRENGTH_KEYS = ['pw_weak', 'pw_ok', 'pw_strong', 'pw_very_strong'];
+
+/** Пароль новой резервной копии: в ней все пароли, а файл можно перебирать офлайн. */
+export const MIN_BACKUP_PASSWORD = 10;
+const COMMON = new Set(['password', 'password1', 'qwertyuiop', '1234567890', 'qwerty1234', 'iloveyou12', 'abcdefghij', 'йцукенгшщз', 'пароль1234', '1q2w3e4r5t']);
+
+/** Можно ли защитить копию таким паролем: не короче 10, не только цифры, не один символ и не из частых. */
+export function backupPasswordOk(p: string): boolean {
+  const chars = [...p];
+  if (chars.length < MIN_BACKUP_PASSWORD) return false;
+  if (/^\p{Nd}+$/u.test(p) || new Set(chars).size < 4) return false;
+  return !COMMON.has(p.toLowerCase());
+}
