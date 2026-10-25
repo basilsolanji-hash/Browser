@@ -1249,8 +1249,8 @@ try {
     await main((_e) => { const w = globalThis.osTest.windows()[0]; w.win.setBounds({ x: 20, y: 20, width: 1400, height: 900 }); w.openProfile(1); w.closePanel(); });
     await sleep(600);
 
-    // --- 39. Экран «Скачанные файлы» как в Chrome ---
-    step('39. Скачанные файлы: место на диске, чипы типов, группы, поиск, меню строки, открытие во вкладке Оси');
+    // --- 43. Экран «Скачанные файлы» как в Chrome ---
+    step('43. Скачанные файлы: место на диске, чипы типов, группы, поиск, меню строки, открытие во вкладке Оси');
     await typeAddress(`${SITE}/photo.bin`);
     const img = await waitFor(async () => (await dlList()).find((d) => d.name.startsWith('os-photo') && d.state === 'completed'), 15000);
     check('remembered «Allow» downloads without asking', img && !img.pending && !(await state()).prompt, JSON.stringify(img));
@@ -1264,7 +1264,7 @@ try {
     await d39.click('.chip[data-kind="images"]');
     const onlyImg = await d39.$$eval('.item', (e) => e.map((x) => x.dataset.kind));
     check('chip «Images» filters the list', onlyImg.length >= 1 && onlyImg.every((k) => k === 'images'), onlyImg.join(','));
-    await keyScreen('39-downloads-images', 'page');
+    await keyScreen('43-downloads-images', 'page');
     await d39.click('.chip[data-kind="all"]');
     await d39.fill('#dl-search', 'zzzz-nothing');
     check('search shows «nothing found»', (await d39.textContent('.empty')) === 'Ничего не найдено');
@@ -1274,7 +1274,7 @@ try {
     check('row menu: Open · Show in folder · Share · Delete (Open with — only on Windows)',
       menu39.includes('Открыть') && menu39.includes('Показать в папке') && menu39.includes('Поделиться') && menu39.includes('Удалить') &&
       menu39.includes('Открыть в другом приложении') === (process.platform === 'win32'), menu39.join(' | '));
-    await keyScreen('39-downloads-menu', 'page');
+    await keyScreen('43-downloads-menu', 'page');
     await d39.click('.ctx button:has-text("Поделиться")');
     await d39.click('.ctx button:has-text("Копировать путь к файлу")');
     check('share copies the file path', await waitFor(async () => (await main(({ clipboard }) => clipboard.readText())) === img?.path), await main(({ clipboard }) => clipboard.readText()));
@@ -1295,8 +1295,8 @@ try {
     }, s39?.url ?? '');
     check('os://file is not guessable and not served to another profile', leak[0] !== 200 && leak[1] !== 200, JSON.stringify(leak));
 
-    // --- 40. PDF-вложение в новом пустом окне ---
-    step('40. PDF-вложение (Content-Disposition: attachment) в новом окне скачивается, исходная вкладка не перезагружается');
+    // --- 44. PDF-вложение в новом пустом окне ---
+    step('44. PDF-вложение (Content-Disposition: attachment) в новом окне скачивается, исходная вкладка не перезагружается');
     await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/pdf-opener`);
     const op = await page(`${SITE}/pdf-opener`);
     await waitFor(async () => { const x = await state(); return x.url.endsWith('/pdf-opener') && !x.loading; });
@@ -1318,13 +1318,13 @@ try {
     const s40b = await waitFor(async () => { const x = await state(); return x.url.startsWith('os://file/') && x.url.includes('os-doc') && !x.loading && x; }, 8000);
     check('PDF opens in an Ось tab', s40b, s40b?.url);
     await sleep(1500);
-    await keyScreen('40-pdf-in-tab', 'tab');
+    await keyScreen('44-pdf-in-tab', 'tab');
     await windowShot('pdf-in-tab');
     if (pdf) rmSync(pdf.path, { force: true });
     if (img) rmSync(img.path, { force: true });
 
-    // --- 41. Запрет скачивания и «Запретить» в карточке ---
-    step('41. Скачивание: сайт с «Запретить» не начинает загрузку, «Запретить» в вопросе удаляет файл');
+    // --- 45. Запрет скачивания и «Запретить» в карточке ---
+    step('45. Скачивание: сайт с «Запретить» не начинает загрузку, «Запретить» в вопросе удаляет файл');
     const n41 = (await dlList()).length;
     await osCall('sitePermSet', 1, 'localhost', 'downloads', 'BLOCK');
     await main(() => globalThis.osTest.windows()[0].closePanel());
@@ -1338,15 +1338,15 @@ try {
     check('«Ask» shows the question again', pr41 && pr41.text.includes('localhost'), pr41?.text);
     const during = (await dlList()).find((d) => d.url.includes('localhost:'));
     check('while the question is open, the file is downloading (pending)', during?.pending === true, JSON.stringify(during && { p: during.pending, s: during.state }));
-    await keyScreen('41-download-ask', 'chrome');
+    await keyScreen('45-download-ask', 'chrome');
     await ui41.click('#perm-remember');
     await ui41.click('#perm-block');
     const gone41 = await waitFor(async () => !(await dlList()).some((d) => d.url.includes('localhost:')), 8000);
     check('«Block» cancels and deletes the file', gone41 && (!during || !existsSync(during.path)), during?.path);
     check('one-time «Block» is not remembered', readJson('site_permissions')?.sites?.['1']?.localhost?.downloads === undefined);
 
-    // --- 42. Отправка файлов: разрешено по умолчанию, запрет в разрешениях сайта ---
-    step('42. Отправка файлов: «Разрешено» по умолчанию, «Запретить» не открывает выбор файла');
+    // --- 46. Отправка файлов: разрешено по умолчанию, запрет в разрешениях сайта ---
+    step('46. Отправка файлов: «Разрешено» по умолчанию, «Запретить» не открывает выбор файла');
     const kinds = await osCall('sitePerms', 1);
     const upK = kinds.kinds.find((k) => k.key === 'uploads');
     const dnK = kinds.kinds.find((k) => k.key === 'downloads');
@@ -1369,10 +1369,10 @@ try {
     await main(() => globalThis.osTest.windows()[0].openPanel('os://site/?profile=1&host=127.0.0.1'));
     const sp42 = await page('os://site/');
     await sp42.waitForSelector('#p-uploads');
-    await keyScreen('42-site-permissions-files', 'page');
+    await keyScreen('46-site-permissions-files', 'page');
 
-    // --- 43. Профили: 10, закрепление, текущий, шестерёнка, плитка, папки ---
-    step('43. Главный экран: 10 профилей, закрепить, текущий, шестерёнка, плитка, папки');
+    // --- 47. Профили: 10, закрепление, текущий, шестерёнка, плитка, папки ---
+    step('47. Главный экран: 10 профилей, закрепить, текущий, шестерёнка, плитка, папки');
     await main(() => globalThis.osTest.windows()[0].showHome());
     const h43 = await page('os://home/');
     await h43.waitForSelector('.prow');
@@ -1389,7 +1389,7 @@ try {
     const m43 = await h43.$$eval('.ctx button', (b) => b.map((x) => x.textContent));
     check('profile menu: settings, rename, unpin, folder, up/down, sign out', ['Настройки профиля', 'Переименовать', 'Открепить', 'В папку', 'Ниже', 'Выйти из аккаунтов (очистить профиль)'].every((x) => m43.includes(x)), m43.join(' | '));
     await h43.keyboard.press('Escape');
-    await keyScreen('43-home-pinned', 'page');
+    await keyScreen('47-home-pinned', 'page');
     // Папки: профиль 2 и 3 — в «Работа», 7 — в «Банки».
     for (const [id, f] of [[2, 'Работа'], [3, 'Работа'], [7, 'Банки']]) await h43.evaluate(([i, n]) => window.os.call('setFolder', i, n), [id, f]);
     await h43.reload();
@@ -1410,7 +1410,7 @@ try {
     await h43.waitForSelector('.ptile');
     await flush();
     check('tiles view: avatar, name, marks, gear; saved', (await h43.$('.ptile[data-id="1"] .avatar')) !== null && (await h43.$('.ptile .gear')) !== null && readJson('profiles')?.view === 'grid');
-    await keyScreen('43-home-tiles-folders', 'page');
+    await keyScreen('47-home-tiles-folders', 'page');
     await windowShot('home-tiles');
     const cols = await h43.$eval('.grid', (g) => window.getComputedStyle(g).gridTemplateColumns.split(' ').length);
     check('wide window: 4 tile columns', cols === 4, String(cols));
@@ -1429,45 +1429,45 @@ try {
     await pp43.click('#profile-pin');
     await waitFor(async () => { await flush(); return (readJson('profiles')?.pinned ?? []).includes(3); });
     check('pin from the profile screen', (readJson('profiles')?.pinned ?? []).includes(3));
-    await keyScreen('43-profile-settings', 'page');
+    await keyScreen('47-profile-settings', 'page');
     await pp43.evaluate(() => Promise.all([window.os.call('setPinned', 3, false), window.os.call('setPinned', 7, false)]));
 
-    // --- 44. Список профилей у чипа в окне ---
-    step('44. Чип профиля: список с отметкой текущего, переключение, «Все профили»');
+    // --- 48. Список профилей у чипа в окне ---
+    step('48. Чип профиля: список с отметкой текущего, переключение, «Все профили»');
     await main(() => globalThis.osTest.windows()[0].openProfile(1));
     const ui44 = await page('os://ui');
     await ui44.click('.chip');
     await ui44.waitForSelector('.pmenu');
     check('chip list marks the current profile', (await ui44.$$eval('.pmenu .pitem.cur', (e) => e.map((x) => x.dataset.profile))).join() === '1');
-    await keyScreen('44-profile-chip-list', 'chrome');
+    await keyScreen('48-profile-chip-list', 'chrome');
     await ui44.click('.pmenu .pitem[data-profile="4"]');
     check('choosing switches the profile', await waitFor(async () => (await state()).profile?.id === 4));
     await ui44.click('.chip');
     await ui44.click('.pmenu button[data-k="all-profiles"]');
     check('«All profiles» opens the home screen', await waitFor(async () => { const x = await state(); return x.profile === null && x.panel?.startsWith('os://home'); }));
 
-    // --- 45. Настройки: группы и поиск ---
-    step('45. Настройки: 7 групп с кратким содержимым, поиск по всем пунктам, «Запретить скриншоты»');
+    // --- 49. Настройки: группы и поиск ---
+    step('49. Настройки: 7 групп с кратким содержимым, поиск по всем пунктам, «Запретить скриншоты»');
     await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/'));
     const st45 = await page('os://settings/');
     await st45.waitForSelector('.gcard');
     const g45 = await st45.$$eval('.gcard', (e) => e.map((x) => [x.querySelector('.gtitle').textContent, x.querySelector('.gsum').textContent]));
     check('7 groups with icons and summaries', g45.length === 7 && g45.every(([a, b]) => a && b) && (await st45.$$eval('.gcard .gicon .ic', (e) => e.length)) === 7, JSON.stringify(g45));
     check('no single setting is shown on the main page', (await st45.$$eval('.setting', (e) => e.filter((x) => x.offsetParent !== null).length)) === 0);
-    await keyScreen('45-settings-groups', 'page');
+    await keyScreen('49-settings-groups', 'page');
     await st45.fill('#settings-search', 'скриншот');
     await sleep(200);
     const hit45 = await st45.$$eval('.setting', (e) => e.filter((x) => x.offsetParent !== null).map((x) => x.textContent));
     check('search finds «Block screenshots» in Privacy', hit45.length === 1 && hit45[0].includes('Запретить скриншоты'), hit45.join(' | '));
-    await keyScreen('45-settings-search', 'page');
+    await keyScreen('49-settings-search', 'page');
     await st45.fill('#settings-search', '');
     await st45.click('.gcard[data-g="privacy"]');
     await st45.waitForSelector('#hide');
     check('privacy group: block screenshots, lock, HTTPS, site permissions', await st45.isVisible('#hide') && await st45.isVisible('#pin-set') && await st45.isVisible('#https'));
-    await keyScreen('45-settings-privacy', 'page');
+    await keyScreen('49-settings-privacy', 'page');
 
-    // --- 46. История ---
-    step('46. История: по дням, буква сайта, поиск, крестик, открыть новой вкладкой, ссылка на удаление данных');
+    // --- 50. История ---
+    step('50. История: по дням, буква сайта, поиск, крестик, открыть новой вкладкой, ссылка на удаление данных');
     await main(() => globalThis.osTest.windows()[0].openPanel('os://history/?profile=1'));
     const h46 = await page('os://history/');
     await h46.waitForSelector('.item');
@@ -1476,7 +1476,7 @@ try {
     check('days titled «Сегодня — <date>»', day46 === `Сегодня — ${today}`, day46);
     check('profile hint and «Clear browsing data…» link', (await h46.textContent('.ph')).includes('История профиля') && (await h46.textContent('#open-clear')).startsWith('Удалить данные о работе в браузере'));
     check('site letter in a circle', /^[A-Z0-9•]$/.test(await h46.textContent('.item .letter')));
-    await keyScreen('46-history', 'page');
+    await keyScreen('50-history', 'page');
     const n46 = await h46.$$eval('.item', (e) => e.length);
     await h46.click('.item .del');
     await waitFor(async () => (await h46.$$eval('.item', (e) => e.length)) === n46 - 1);
@@ -1486,8 +1486,8 @@ try {
     await h46.click('.item >> nth=0');
     check('click opens a new tab of this profile', await waitFor(async () => { const x = await state(); await flush(); return x.profile?.id === 1 && !x.panel && (readJson('tabs')?.profiles?.['1']?.tabs ?? []).length === tabs46 + 1; }));
 
-    // --- 47. Удалить данные: диапазон и счётчики ---
-    step('47. Удалить данные о работе в браузере: диапазон, счётчики, удаление истории за 15 минут');
+    // --- 51. Удалить данные: диапазон и счётчики ---
+    step('51. Удалить данные о работе в браузере: диапазон, счётчики, удаление истории за 15 минут');
     await typeAddress(`${SITE}/set?p=keep`);
     await waitFor(async () => (await main(async ({ session }) => (await session.fromPartition('persist:profile_1').cookies.get({ name: 'os_test' }))[0]?.value)) === 'keep');
     await main(() => globalThis.osTest.windows()[0].openPanel('os://clear/?profile=1'));
@@ -1499,7 +1499,7 @@ try {
     await c47.selectOption('#range', 'range_15m');
     await c47.waitForSelector('#o-history');
     for (const id of ['cookies', 'cache', 'tabs']) await c47.uncheck(`#o-${id}`);
-    await keyScreen('47-clear-range', 'page');
+    await keyScreen('51-clear-range', 'page');
     const tabsBefore47 = (readJson('tabs')?.profiles?.['1']?.tabs ?? []).length;
     const since47 = Date.now() - 15 * 60_000;
     await c47.click('#do-clear');
@@ -1507,8 +1507,8 @@ try {
     check('history of the last 15 minutes deleted, older kept, tabs untouched', h47 && (readJson('tabs')?.profiles?.['1']?.tabs ?? []).length === tabsBefore47, `${h47?.length} left`);
     check('cookies of the profile kept when unchecked', (await main(async ({ session }) => (await session.fromPartition('persist:profile_1').cookies.get({ name: 'os_test' }))[0]?.value)) === 'keep');
 
-    // --- 48. Ширина экранов-списков ---
-    step('48. Экраны-списки не шире 720 px и по центру');
+    // --- 52. Ширина экранов-списков ---
+    step('52. Экраны-списки не шире 720 px и по центру');
     const widths = [];
     for (const u of ['os://home/', 'os://settings/', 'os://downloads/', 'os://favorites/', 'os://site/?profile=1']) {
       await main((_e, url) => globalThis.osTest.windows()[0].openPanel(url), u);
