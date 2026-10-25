@@ -105,9 +105,9 @@ function shown(el: HTMLInputElement): boolean {
 }
 
 /** Поле пароля и поле логина перед ним (текст, почта, телефон) в той же форме или на странице. */
-function loginFields(root: ParentNode): { user: HTMLInputElement | null; pass: HTMLInputElement } | null {
+function loginFields(root: ParentNode, withNew = false): { user: HTMLInputElement | null; pass: HTMLInputElement } | null {
   const inputs = [...root.querySelectorAll('input')];
-  const pass = inputs.find((i) => i.type === 'password' && !i.autocomplete.includes('new-password') && shown(i));
+  const pass = inputs.find((i) => i.type === 'password' && (withNew || !i.autocomplete.includes('new-password')) && shown(i));
   if (!pass) return null;
   const before = inputs.slice(0, inputs.indexOf(pass)).filter((i) => /^(text|email|tel)$/.test(i.type) && shown(i));
   const named = inputs.find((i) => i.autocomplete === 'username' && shown(i));
@@ -115,7 +115,8 @@ function loginFields(root: ParentNode): { user: HTMLInputElement | null; pass: H
 }
 
 document.addEventListener('submit', (e) => {
-  const f = e.target instanceof HTMLFormElement ? loginFields(e.target) : null;
+  // При отправке учитываем и регистрацию (новый пароль): Ось предложит его сохранить.
+  const f = e.target instanceof HTMLFormElement ? loginFields(e.target, true) : null;
   if (!f || !f.pass.value) return;
   ipcRenderer.send('tab:pw-submit', JSON.stringify({ u: f.user?.value ?? '', p: f.pass.value }));
 }, true);

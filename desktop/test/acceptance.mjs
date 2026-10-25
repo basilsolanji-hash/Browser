@@ -1598,6 +1598,8 @@ try {
     await cab4.keyboard.press('Escape');
     // Восстановленный пароль подставляется в профиле 3.
     lp = await inProfile(3, `${SITE}/login`);
+    await lp.waitForSelector('#pass');
+    await lp.click('#pass');
     check('Личный кабинет: restored passwords work in profile 3 (account choice)', await waitFor(async () => (await state()).pw?.kind === 'pick'));
     rmSync(bfile, { force: true });
 
