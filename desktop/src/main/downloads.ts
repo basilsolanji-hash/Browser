@@ -7,6 +7,8 @@ import { dirname } from 'node:path';
 import { basename, extname, join } from 'node:path';
 import { JsonFile } from './store';
 import { effectiveMime, viewableInOs } from '../shared/filetype';
+import * as DocView from './docview';
+import { t } from './i18n';
 
 /**
  * Загрузки (Downloads.kt / DownloadsActivity.kt): файлы — в «Загрузки/Ось», список — для экрана «Загрузки».
@@ -285,18 +287,27 @@ const ready = (id: string) => {
 
 export const mimeOf = (d: Download) => effectiveMime(d.mime, d.name);
 
-/** Адрес защищённой раздачи для вкладки Оси (PDF, картинки, текст) или null — тогда системным приложением. */
+/** Открывается во вкладке Оси: PDF, картинки, текст и документы (DOCX, XLSX, PPTX, ODF, CSV — через DocView). */
+const viewable = (d: Download) => DocView.supports(d.name) || viewableInOs(mimeOf(d));
+
+/** Адрес защищённой раздачи для вкладки Оси или null — тогда системным приложением. */
 export function viewUrl(id: string): string | null {
   const d = ready(id);
-  if (!d || d.profile == null || !viewableInOs(mimeOf(d))) return null;
-  // Случайный ключ вместо id: сайт не угадает адрес и не вставит чужой файл картинкой.
+  if (!d || d.profile == null || !viewable(d)) return null;
+  return viewPath(d.path, d.name, d.profile, mimeOf(d));
+}
+
+/** Файл профиля или загрузка — во вкладку Оси; null — формат открывается системным приложением. */
+export function viewPath(path: string, name: string, profile: number, mime = effectiveMime(undefined, name)): string | null {
+  if (!DocView.supports(name) && !viewableInOs(mime)) return null;
+  // Случайный ключ вместо пути: сайт не угадает адрес и не вставит чужой файл картинкой.
   const token = randomBytes(16).toString('hex');
-  tokens.set(token, d.id);
-  return `os://file/${token}/${encodeURIComponent(d.name)}`;
+  tokens.set(token, { path, name, profile, mime });
+  return `os://file/${token}/${encodeURIComponent(name)}`;
 }
 
 /** Ключи раздачи файлов во вкладки (только до выхода из браузера). */
-const tokens = new Map<string, string>();
+const tokens = new Map<string, { path: string; name: string; profile: number; mime: string }>();
 
 export const profileOf = (id: string) => list().find((x) => x.id === id)?.profile ?? null;
 
@@ -320,9 +331,21 @@ export function openWith(id: string): boolean {
  * Не PDF — со строгим CSP в песочнице: ни скриптов, ни запросов наружу (SVG и текст безопасны).
  */
 export async function serve(token: string, ses: Session): Promise<Response> {
-  const d = ready(tokens.get(token) ?? '');
-  if (!d || d.profile == null || sessions.get(key(d.profile)) !== ses) return new Response('', { status: 404 });
-  const mime = mimeOf(d);
+  const d = tokens.get(token);
+  if (!d || sessions.get(key(d.profile)) !== ses || !existsSync(d.path)) return new Response('', { status: 404 });
+  // Документ — страница HTML, собранная на компьютере (без сети), со строгим CSP: картинки только встроенные.
+  if (DocView.supports(d.name)) {
+    try {
+      const html = DocView.toHtml(await readFile(d.path), d.name) ?? `<!doctype html><meta charset="utf-8"><title>${DocView.esc(d.name)}</title><p>${DocView.esc(t('dt_doc_broken'))}</p>`;
+      return new Response(html, { headers: {
+        'content-type': 'text/html; charset=utf-8', 'x-content-type-options': 'nosniff', 'cache-control': 'no-store',
+        'content-security-policy': "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox",
+      } });
+    } catch {
+      return new Response('', { status: 404 });
+    }
+  }
+  const mime = d.mime;
   if (!viewableInOs(mime)) return new Response('', { status: 404 });
   const text = mime.startsWith('text/') || mime === 'application/json';
   const headers: Record<string, string> = {
