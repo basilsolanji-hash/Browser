@@ -12,7 +12,8 @@
     "build": "node scripts/gen-i18n.mjs && node scripts/build.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "eslint src test scripts",
-    "check": "npm run i18n && npm run typecheck && npm run lint",
+    "check": "npm run i18n && npm run typecheck && npm run lint && npm run unit",
+    "unit": "node --test test/unit/*.test.mjs",
     "start": "npm run build && electron .",
     "dist:win": "electron-builder --win nsis --publish never",
     "acceptance": "node test/acceptance.mjs"
