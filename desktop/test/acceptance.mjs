@@ -53,6 +53,7 @@ const BIG = Buffer.alloc(6 * 1024 * 1024);
 for (let i = 0; i < BIG.length; i++) BIG[i] = (i * 31 + (i >> 11)) & 255;
 const BIG_SHA = createHash('sha256').update(BIG).digest('hex');
 let bigDrop = true;
+const uploaded = [];
 const server = createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
   seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '', range: req.headers.range });
@@ -97,6 +98,18 @@ const server = createServer((req, res) => {
       'Профили изолированы друг от друга, у каждого свои входы, cookies и история посещений, а трекеры блокируются.</p>';
     res.end(`<title>Article page</title><body><nav>menu menu menu</nav><article><h1>Ось reader test</h1>${[1, 2, 3, 4, 5, 6, 7, 8].map(para).join('')}</article>` +
       '<aside>ads</aside><script>document.title = "JS ran"</script></body>');
+  } else if (u.pathname === '/upload' && req.method === 'POST') {
+    // Сайт принимает файл (как вложение в почте): запоминаем, что пришло.
+    const chunks = [];
+    req.on('data', (c) => chunks.push(c));
+    req.on('end', () => {
+      uploaded.push(Buffer.concat(chunks).toString('utf8'));
+      res.end('<title>Uploaded</title><h1>ok</h1>');
+    });
+    return;
+  } else if (u.pathname === '/upload') {
+    res.end('<title>Upload</title><form method="post" enctype="multipart/form-data" action="/upload">' +
+      '<input type="file" name="doc" id="file"><button id="send">Send</button></form>');
   } else if (u.pathname === '/notify') {
     res.end('<title>Notify</title><p>permissions</p>');
   } else if (u.pathname === '/open') {
@@ -860,6 +873,24 @@ try {
     await st4.selectOption('#lang', 'ru');
     await main(() => globalThis.osTest.windows()[1].win.close());
   }
+  if (STAGE >= 2) {
+    // --- 29. Отправка файла на сайт ---
+    step('29. Отправка файла на сайт (выбор файла и форма)');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    await key('Ctrl+T');
+    await typeAddress(`${SITE}/upload`);
+    await waitFor(async () => { const x = await state(); return x.url.endsWith('/upload') && !x.loading; });
+    const up = app.windows().filter((p) => p.url() === `${SITE}/upload`).pop();
+    const file = join(tmpdir(), `os-upload-${process.pid}.txt`);
+    writeFileSync(file, 'Договор №7 — Ось upload test');
+    await up.setInputFiles('#file', file);
+    await up.click('#send');
+    const got = await waitFor(() => uploaded.find((b) => b.includes('Ось upload test')), 10000);
+    check('site receives the chosen file (form upload)', got && got.includes('filename="os-upload-'), got?.slice(0, 120));
+    check('page after upload loads', await waitFor(async () => (await state()).title === 'Uploaded'));
+    rmSync(file, { force: true });
+  }
+
   if (STAGE >= 5) {
     // --- 27. Обновления ---
     step('27. Автообновление: настройка и состояние');
