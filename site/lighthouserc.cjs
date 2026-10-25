@@ -1,16 +1,21 @@
 // Lighthouse CI (§7 ТЗ): главная и «Скачать» на en/ru, мобильный профиль (по умолчанию).
-// Собранный dist/ раздаёт тот же мини-сервер, что и приёмка, — с базовым путём /Browser, как на Pages.
+// Собранный dist/ раздаёт тот же мини-сервер, что и приёмка, — с тем же базовым путём, что у сайта.
 // Три прогона и медиана — чтобы случайный скачок нагрузки на раннере не валил проверку.
+// Базовый путь — как в scripts/site-config.mjs: свой домен — корень, иначе /Browser (Pages).
+const links = require('./src/data/links.json');
+const base = process.env.SITE_BASE ?? (links.siteUrl ? '' : '/Browser');
+const at = (p) => `http://127.0.0.1:4321${base}${p}`;
+
 module.exports = {
   ci: {
     collect: {
       startServerCommand: 'node test/serve.mjs 4321',
       startServerReadyPattern: '127.0.0.1:4321',
       url: [
-        'http://127.0.0.1:4321/Browser/en/',
-        'http://127.0.0.1:4321/Browser/ru/',
-        'http://127.0.0.1:4321/Browser/en/download/',
-        'http://127.0.0.1:4321/Browser/ru/download/',
+        at('/en/'),
+        at('/ru/'),
+        at('/en/download/'),
+        at('/ru/download/'),
       ],
       numberOfRuns: 3,
       // Chromium из Playwright: отдельный Chrome на раннер не ставим.

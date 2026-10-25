@@ -15,7 +15,7 @@ import { LANGS } from '../scripts/langs.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(root, 'dist');
 const OUT = join(root, 'test-results');
-const BASE = '/Browser';
+import { BASE } from '../scripts/site-config.mjs';
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(join(OUT, 'screenshots'), { recursive: true });
 
@@ -174,7 +174,7 @@ for (const [want, ua] of Object.entries(UAS)) {
   const n = await pg.locator('[data-card]').count();
   check('download works without JavaScript', n === 4 && await pg.isVisible('[data-panel="android"]') && !(await pg.isVisible('[data-tabs]')));
   await pg.goto(url('/'));
-  check('root without JavaScript opens English', (await pg.getAttribute('html', 'lang')) === 'en' && pg.url().endsWith('/Browser/'));
+  check('root without JavaScript opens English', (await pg.getAttribute('html', 'lang')) === 'en' && pg.url() === url('/'));
   await c.close();
 }
 

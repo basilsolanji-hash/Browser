@@ -1,15 +1,16 @@
-// Мини-сервер dist/ под базовым путём, как на GitHub Pages: /Browser/… и 404.html на всё неизвестное.
+// Мини-сервер dist/ под базовым путём сайта (корень своего домена или /Browser на Pages) и 404.html на всё неизвестное.
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import { gzipSync } from 'node:zlib';
+import { BASE } from '../scripts/site-config.mjs';
 
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.json': 'application/json', '.xml': 'application/xml', '.txt': 'text/plain' };
 
-export function serve(dist, base = '/Browser', port = 0) {
+export function serve(dist, base = BASE, port = 0) {
   const server = createServer(async (req, res) => {
     const url = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-    if (!url.startsWith(base + '/') && url !== base) { res.writeHead(404); return res.end(); }
+    if (base && !url.startsWith(base + '/') && url !== base) { res.writeHead(404); return res.end(); }
     let p = join(dist, url.slice(base.length));
     try {
       if ((await stat(p)).isDirectory()) {
@@ -34,6 +35,6 @@ export function serve(dist, base = '/Browser', port = 0) {
 }
 
 if (process.argv[1]?.endsWith('serve.mjs')) {
-  const { origin } = await serve(new URL('../dist', import.meta.url).pathname, '/Browser', Number(process.argv[2] ?? 4321));
-  console.log(origin + '/Browser/');
+  const { origin } = await serve(new URL('../dist', import.meta.url).pathname, BASE, Number(process.argv[2] ?? 4321));
+  console.log(origin + BASE + '/');
 }

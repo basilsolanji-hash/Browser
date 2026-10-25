@@ -124,8 +124,15 @@ GitHub Actions: site.yml
 - Сайт в `main` (`site/`), этапы 1–3 §10 сделаны, приёмка §7 в CI зелёная: workflow `Site`
   (`.github/workflows/site.yml`) — 461 проверка Playwright/axe, Lighthouse 100/100/100/100
   (LCP 0,9–1,2 с), lychee без ошибок; результаты — ветки `site-results` и `site-results-<ветка>`.
-- **Публикация ждёт владельца:** Settings → Pages → Source: GitHub Actions (сейчас Pages выключены,
-  шаг `configure-pages` падает). После этого каждый push в `main` и каждый релиз публикует сайт сам.
+- **Адрес: https://www.os-browser.com** (домен куплен владельцем, хостинг Beget, 25.10.2026). Сборка
+  идёт в корень домена (`siteUrl` в `site/src/data/links.json`, общий расчёт — `site/scripts/site-config.mjs`).
+  GitHub Pages больше не используются.
+- Выкладка — шаг «Deploy to Beget» в `site.yml` (lftp mirror по FTP с TLS) из `main` после зелёной
+  приёмки, затем проверка живого сайта (версия на «Скачать», CSP, privacy.html, переадресация на www).
+  Нужны секреты репозитория `BEGET_FTP_HOST`, `BEGET_FTP_USER`, `BEGET_FTP_PASSWORD` и при
+  необходимости `BEGET_FTP_DIR` (по умолчанию `os-browser.com/public_html`); без них — предупреждение.
+- `site/public/.htaccess`: только HTTPS и только www, настоящие заголовки CSP / Referrer-Policy /
+  Permissions-Policy / HSTS, своя 404, сжатие и кэш, `/Browser/…` → корень.
 - Решения владельца по ходу работы: сайт светлый (Scarlet Light, тёмная тема только в макетах);
   на «Скачать» и в журнале — только версия (без размера, даты, движка, SHA-256); посетители с
   языками kk, be, uz, ky, tg, uk, hy, az, tt, ba, mn попадают на русскую версию.
