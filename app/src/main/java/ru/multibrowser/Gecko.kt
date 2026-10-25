@@ -78,6 +78,9 @@ object Gecko {
         }, { err -> Diag.log("reader", "extension: ${err?.message}") })
     }
 
+    /** Идёт выделение текста (показана панель «Копировать…») — панели браузера не двигаем. */
+    @Volatile var selecting = false
+
     /** Когда пользователь последний раз касался страницы (elapsedRealtime) — для звука после нажатия. */
     @Volatile var lastUserTouch = 0L
 

@@ -1068,7 +1068,7 @@ class BrowserActivity : AppCompatActivity() {
         refresher = OsRefreshLayout(this).apply {
             setColorSchemeColors(Ui.ACCENT)
             setProgressBackgroundColorSchemeColor(Ui.SURFACE)
-            canScrollContentUp = { !geckoView.canPullToRefresh }
+            canScrollContentUp = { !geckoView.canPullToRefresh || Gecko.selecting }
             setOnRefreshListener {
                 setBarsHidden(false)
                 session?.reload()

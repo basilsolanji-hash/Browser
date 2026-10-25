@@ -108,6 +108,17 @@ private class TextActions(private val activity: Activity, private val pageUrl: (
 
     private val selected get() = mSelection?.text?.trim().orEmpty()
 
+    // Пока текст выделен, панели браузера не прячутся и не выезжают — иначе страница прыгает под пальцем.
+    override fun onShowActionRequest(session: GeckoSession, selection: GeckoSession.SelectionActionDelegate.Selection) {
+        Gecko.selecting = true
+        super.onShowActionRequest(session, selection)
+    }
+
+    override fun onHideAction(session: GeckoSession, reason: Int) {
+        Gecko.selecting = false
+        super.onHideAction(session, reason)
+    }
+
     override fun getAllActions(): Array<String> {
         val base = super.getAllActions().toMutableList()
         val at = base.indexOf(GeckoSession.SelectionActionDelegate.ACTION_COPY).let { if (it < 0) 0 else it + 1 }
