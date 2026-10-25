@@ -182,4 +182,5 @@ function groupMenu(g: TabGroup, x: number, y: number): void {
 }
 
 os.on('changed', () => void load());
-void boot(load);
+// Меню ⋮ → «Новая группа вкладок»: экран вкладок сразу с вопросом об имени группы.
+void boot(async () => { await load(); if (param('new') === 'group') void newGroup([]); });

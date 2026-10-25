@@ -1049,6 +1049,94 @@ try {
     // --- 33. Свои страницы без ошибок скриптов ---
     step('33. Свои страницы (os://) отработали без ошибок скриптов');
     check('no script errors on own pages (os://)', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
+
+    // --- 34. Меню ⋮ как в Chrome (WINDOWS_SYNC §1) ---
+    step('34. Меню ⋮: ряд кнопок, группы, избранное, мобильная версия, диагностика');
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
+    await main((_e, u) => globalThis.osTest.windows()[0].newTab(u), `${SITE}/set?p=menu`);
+    const s34a = await waitFor(async () => { const x = await state(); return x.url.includes('p=menu') && !x.loading && x; });
+    check('menu: test page opened in a profile tab', s34a && !s34a.panel, JSON.stringify(s34a && { panel: s34a.panel, url: s34a.url }));
+    const mui = await waitFor(() => app.windows().find((p) => !p.isClosed() && p.url().startsWith('os://ui') && !p.url().includes('incognito')));
+    if (!(await mui.waitForSelector('#more', { timeout: 5000 }).catch(() => null))) await windowShot('34-no-menu-button');
+    const openMenu = async () => { await mui.click('#more'); await mui.waitForSelector('.main-menu'); };
+    await openMenu();
+    const shape = await mui.evaluate(() => {
+      const m = document.querySelector('.main-menu');
+      const r = m.getBoundingClientRect();
+      return {
+        round: m.querySelectorAll('.toprow .round').length,
+        backDisabled: m.querySelector('.toprow .round').disabled,
+        groups: m.querySelectorAll('.sep').length,
+        icons: [...m.querySelectorAll(':scope > button')].every((b) => b.querySelector('.ic svg')),
+        fits: r.bottom <= window.innerHeight + 1 && r.right <= window.innerWidth + 1 && r.width < window.innerWidth,
+        labels: [...m.querySelectorAll('.toprow .round')].every((b) => b.getAttribute('aria-label')),
+      };
+    });
+    const s34 = await state();
+    check('menu: row of 5 round buttons with labels', shape.round === 5 && shape.labels, JSON.stringify(shape));
+    check('menu: Back disabled when there is nowhere to go', shape.backDisabled === !s34.canBack);
+    check('menu: at least 6 groups divided by lines, every item has an icon', shape.groups >= 6 && shape.icons, JSON.stringify(shape));
+    check('menu: card at the corner, not full screen, fits the window', shape.fits);
+    await keyScreen('34-menu', 'chrome');
+    await mui.click('.main-menu .toprow .round:nth-child(3)');
+    check('menu: star adds the page to favorites', await waitFor(async () => (await state()).bookmarked));
+    await openMenu();
+    check('menu: star shows as pressed', (await mui.getAttribute('.main-menu .toprow .round:nth-child(3)', 'aria-pressed')) === 'true');
+    await mui.click('.main-menu [data-k="mobile"]');
+    const tabPage = await page(`${SITE}/set?p=menu`);
+    check('menu: mobile site switches the User-Agent', await waitFor(async () => /Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => ''))));
+    await openMenu();
+    check('menu: mobile site item is checked', (await mui.getAttribute('.main-menu [data-k="mobile"]', 'aria-checked')) === 'true');
+    await mui.click('.main-menu [data-k="mobile"]');
+    check('menu: mobile site off restores the desktop User-Agent', await waitFor(async () => !/Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => 'Mobile'))));
+    await openMenu();
+    await mui.click('.main-menu [data-k="diag"]');
+    const diag = await mui.waitForSelector('#diag-text').then((e) => e.textContent()).catch(() => '');
+    check('menu: diagnostics shows version and page log', diag.includes('p=menu') && /Ось \d/.test(diag), diag.slice(0, 200));
+    await keyScreen('34-diagnostics', 'chrome');
+    await mui.keyboard.press('Escape');
+    await openMenu();
+    await mui.click('.main-menu [data-k="group"]');
+    const tp = await page('os://tabs/');
+    check('menu: New tab group asks for the group name', tp && await tp.waitForSelector('.modal input', { timeout: 5000 }).then(() => true).catch(() => false));
+    await tp?.keyboard.press('Escape');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+
+    // --- 35. Панель адресной строки как в Chrome (WINDOWS_SYNC §3) ---
+    step('35. Адресная строка: поисковик, «Очистить», карточка страницы, частые сайты, прошлые запросы, ↖');
+    await main(() => {
+      globalThis.osTest.addHistory(1, 'https://duckduckgo.com/?q=weather+moscow', 'weather moscow at DuckDuckGo');
+      globalThis.osTest.addHistory(1, 'https://yandex.ru/search/?text=weather+spb&lr=2', '');
+    });
+    await waitFor(async () => !(await state()).panel);
+    await mui.click('#address');
+    await mui.waitForSelector('.addr-panel', { timeout: 5000 }).catch(() => null);
+    const empty = await mui.evaluate(() => ({
+      engine: !document.getElementById('engine')?.hidden && document.getElementById('engine')?.dataset.engine,
+      card: !!document.querySelector('.addr-panel .pagecard'),
+      tiles: [...document.querySelectorAll('.addr-panel .tile')].map((x) => [x.title, x.querySelector('.lbl').textContent]),
+      clear: !document.getElementById('addr-clear')?.hidden,
+      net: [...document.querySelectorAll('.addr-panel img')].length,
+    }));
+    check('address: engine badge on the left while typing', !!empty.engine, JSON.stringify(empty));
+    check('address: current page card on empty input', empty.card);
+    check('address: frequent sites tiles (letter + page title, not domain)', empty.tiles.length > 0 && empty.tiles.length <= 8 && empty.tiles.some(([h, l]) => l && l !== h), JSON.stringify(empty.tiles));
+    check('address: tiles do not load icons from the network', empty.net === 0);
+    check('address: clear button shown when there is text', empty.clear);
+    await keyScreen('35-address-empty', 'chrome');
+    await mui.fill('#address', '');
+    await mui.keyboard.type('weath', { delay: 10 });
+    await mui.waitForSelector('.addr-panel .hint-row[data-kind="query"]', { timeout: 5000 }).catch(() => null);
+    const rows = await mui.$$eval('.addr-panel .hint-row', (els) => els.map((e) => [e.dataset.kind, e.querySelector('.ttl').textContent, !!e.querySelector('.fill')]));
+    check('address: first row is the typed query itself', rows[0]?.[0] === 'search' && rows[0][1].includes('weath') && !rows[0][2], JSON.stringify(rows));
+    check('address: past search queries from history (q=, text=)', rows.filter((r) => r[0] === 'query').map((r) => r[1]).join('|') === 'weather spb|weather moscow', JSON.stringify(rows));
+    check('address: every row except the first has ↖ «fill in»', rows.slice(1).every((r) => r[2]));
+    await keyScreen('35-address-typing', 'chrome');
+    await mui.click('.addr-panel .hint-row[data-kind="query"] .fill');
+    check('address: ↖ puts the suggestion into the field', await waitFor(async () => (await mui.inputValue('#address')) === 'weather spb'), await mui.inputValue('#address'));
+    await mui.click('#addr-clear');
+    check('address: × clears the field and shows tiles again', await waitFor(async () => (await mui.inputValue('#address')) === '' && (await mui.$('.addr-panel .tile')) !== null));
+    await mui.keyboard.press('Escape');
   }
 } catch (e) {
   check('scenario finished without errors', false, e.stack ?? String(e));

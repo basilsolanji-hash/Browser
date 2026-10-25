@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "eslint src test scripts",
     "check": "npm run i18n && npm run typecheck && npm run lint && npm run unit",
-    "unit": "node --test test/unit/*.test.mjs",
+    "unit": "node --import ./test/unit/ts-resolve.mjs --test test/unit/*.test.mjs",
     "start": "npm run build && electron .",
     "dist:win": "electron-builder --win nsis --publish never",
     "acceptance": "node test/acceptance.mjs"

@@ -111,3 +111,36 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .find-count { color: var(--muted); font-size: 12px; min-width: 72px; padding: 0 6px; }
 /* RTL: «назад» и «вперёд» смотрят в сторону чтения; латинские заголовки вкладок не обрезаются с начала. */
 html[dir="rtl"] [data-k="back"] .ic, html[dir="rtl"] [data-k="fwd"] .ic { transform: scaleX(-1); }
+
+/* Меню ⋮ как в Chrome: карточка у правого угла, прокручивается, если выше окна. */
+.menu.main-menu { max-height: calc(100vh - 96px); overflow-y: auto; padding-top: 4px; }
+.menu .toprow { display: flex; justify-content: space-around; padding: 4px 4px 2px; }
+.menu .toprow .icon-btn.round { width: 40px; height: 40px; border-radius: 50%; padding: 0; justify-content: center; }
+.menu .toprow .icon-btn.round.on .ic { color: var(--accent); }
+.menu .toprow .icon-btn.round:disabled { opacity: .35; }
+.menu .zoomrow .ic { color: var(--muted); width: 20px; margin-inline-end: 8px; }
+.menu.diag pre { max-height: 300px; overflow: auto; margin: 4px 8px 8px; padding: 8px; font: 12px/1.45 Consolas, ui-monospace, monospace; background: color-mix(in srgb, var(--text) 6%, transparent); border-radius: 8px; white-space: pre-wrap; word-break: break-all; }
+
+/* Панель адресной строки (AddressPanel.kt): поисковик слева, «Очистить» справа, карточка страницы, плитки, подсказки. */
+#addr .engine { width: 20px; height: 20px; border-radius: 50%; color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; flex: none; }
+#addr .addr-clear { width: 26px; height: 26px; padding: 0; justify-content: center; flex: none; }
+.addr-panel { padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+.addr-panel .letter { width: 32px; height: 32px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--text); display: grid; place-items: center; font-weight: 600; flex: none; }
+.addr-panel .pagecard { display: flex; align-items: center; gap: 12px; padding: 8px 6px 8px 12px; border-radius: 14px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+.addr-panel .grow { display: flex; flex-direction: column; min-width: 0; }
+.addr-panel .ttl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.addr-panel .url { color: var(--accent); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; }
+.addr-panel .pagecard .icon-btn, .addr-panel .fill { width: 34px; height: 34px; padding: 0; justify-content: center; border-radius: 50%; flex: none; }
+.addr-panel .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.addr-panel .tile { height: auto; flex-direction: column; gap: 6px; padding: 10px 4px; border-radius: 12px; align-items: center; }
+.addr-panel .tile:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.addr-panel .tile .letter { width: 44px; height: 44px; font-size: 17px; }
+.addr-panel .tile .lbl { color: var(--muted); font-size: 12px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.addr-panel .hints { border-radius: 16px; overflow: hidden; background: color-mix(in srgb, var(--text) 4%, transparent); }
+.addr-panel .hint-row { display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 4px 6px 4px 14px; cursor: default; }
+.addr-panel .hint-row + .hint-row { border-top: 2px solid var(--bg); }
+.addr-panel .hint-row:hover, .addr-panel .hint-row.sel { background: color-mix(in srgb, var(--text) 9%, transparent); }
+.addr-panel .hint-row .ic { color: var(--muted); }
+.addr-panel .hint-row .grow { flex: 1; }
+.addr-panel .hint-row .url { color: var(--muted); }
+[dir="rtl"] .addr-panel .fill .ic { transform: scaleX(-1); }

@@ -6,6 +6,7 @@ import { handleUiSession, handleWebSession, isPanelUrl } from './protocol';
 import { INCOGNITO_PALETTE, palette } from './themes';
 import { settings, searchUrl } from './settings';
 import { TabView, type TabHost } from './tabview';
+import { isDefaultCached } from './defaultbrowser';
 import { START, fromInput, isOwnUrl, isWebUrl } from './urls';
 import { t } from './i18n';
 import * as Tabs from './tabs';
@@ -152,6 +153,8 @@ export class OsWindow implements TabHost {
   panel: string | null = null;
   private views = new Map<string, TabView>();
   private shown: TabView | null = null;
+  /** Вкладка на экране (для пунктов меню, которые меняют саму вкладку). */
+  get current(): TabView | null { return this.panel ? null : this.shown; }
   private overlay = false;
   private pushTimer: NodeJS.Timeout | null = null;
   // Вкладки инкогнито живут только в памяти.
@@ -201,8 +204,8 @@ export class OsWindow implements TabHost {
     this.win.on('move', () => this.saveBounds());
     this.win.on('maximize', () => { this.push(); this.saveBounds(); });
     this.win.on('unmaximize', () => { this.push(); this.saveBounds(); });
-    this.win.on('enter-full-screen', () => this.layout());
-    this.win.on('leave-full-screen', () => this.layout());
+    this.win.on('enter-full-screen', () => { this.layout(); this.push(); });
+    this.win.on('leave-full-screen', () => { this.layout(); this.push(); });
     // Кнопки «назад/вперёд» мыши в Windows.
     this.win.on('app-command', (_e, cmd) => {
       if (cmd === 'browser-backward') this.back();
@@ -356,6 +359,10 @@ export class OsWindow implements TabHost {
       locked: this.locked,
       lockEnabled: Lock.enabled(),
       reader: !!v?.reader,
+      mobile: !!v?.mobile,
+      isDefault: isDefaultCached(),
+      fullscreen: this.win.isFullScreen(),
+      engine: settings.get().engine,
     };
   }
 
@@ -939,6 +946,8 @@ export class OsWindow implements TabHost {
     if (ctrl && (code === 'Digit0' || code === 'Numpad0')) { this.zoom(0); return true; }
     if (ctrl && !input.shift && code === 'KeyH' && !this.incognito) { this.openPanel(`os://history/?profile=${this.profile ?? Profiles.order()[0]}`); return true; }
     if (ctrl && !input.shift && code === 'KeyJ') { this.openPanel('os://downloads/'); return true; }
+    // Как в Chrome: Ctrl+Shift+Del — «Удалить данные о работе в браузере».
+    if (ctrl && input.shift && k === 'Delete' && this.profile != null) { this.openPanel(`os://clear/?profile=${this.profile}`); return true; }
     if (ctrl && input.shift && code === 'KeyO' && !this.incognito) { this.openPanel('os://favorites/'); return true; }
     if (ctrl && !input.shift && code === 'KeyD') {
       const r = this.toggleBookmark();
