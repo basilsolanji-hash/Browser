@@ -6,9 +6,8 @@
 | Ответы для анкет Play Console (безопасность данных, рейтинг, аудитория, разрешения, подпись, тестирование) | `console-forms.md` |
 | Значок 512×512 | `graphics/icon-512.png` |
 | Баннер 1024×500 — 10 языков | `graphics/feature-graphic-<язык>.png` |
-| Скриншоты телефона 1080×1920 — 10 языков | `screenshots/phone/<язык>-NN-экран.jpg` |
-| Скриншоты планшета 2560×1440 — 10 языков | `screenshots/tablet/` |
-| Снимки для сайта 1200×1600 (3:4) — 10 языков | `screenshots/site-3x4/` |
+| Скриншоты телефона **3:4**, 1200×1600 — 10 языков (для магазина и сайта) | `screenshots/phone/<язык>-NN-экран.jpg` |
+| Скриншоты планшета **3:4**, 1800×2400 — 10 языков (для магазина и сайта) | `screenshots/tablet/` |
 | Политика конфиденциальности | `site/public/privacy.html` (ru), `site/public/privacy-en.html` (en) → https://www.os-browser.com/privacy.html |
 | Сборка для загрузки (AAB) | GitHub Releases, последний `build-N` → `Os-Browser-build-N.aab` |
 
@@ -37,5 +36,5 @@
 ## Как обновить скриншоты
 1. `git push -f origin HEAD:test/store-shots` — CI снимает телефон и планшет на 10 языках
    (ветки `store-shots-results-<устройство>-<языки>`).
-2. Локально: `node docs/play/tools/compose.js <сырые> <выход> phone|tablet|site` — подписи из
+2. Локально: `node docs/play/tools/compose.js <сырые> <выход> phone|tablet` (все кадры 3:4) — подписи из
    `docs/play/tools/captions.json`; баннеры — `node docs/play/tools/graphics.js`.
