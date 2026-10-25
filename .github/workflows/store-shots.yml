@@ -17,6 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         device: [pixel_6, pixel_tablet]
+        langs: ["ru en es", "pt fr de", "ar hi tr zh"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -40,14 +41,14 @@ jobs:
           profile: ${{ matrix.device }}
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
-          script: bash .github/scripts/store_shots.sh
+          script: LANGS="${{ matrix.langs }}" bash .github/scripts/store_shots.sh
       - name: Publish results
         if: always()
         run: |
-          BR=store-shots-results-${{ matrix.device }}
+          BR="store-shots-results-${{ matrix.device }}-$(echo '${{ matrix.langs }}' | tr ' ' '-')"
           mkdir -p results
           cd results
           git init -q -b "$BR"
           git add -A
-          git -c user.name=ci -c user.email=ci@localhost commit -q -m "Store shots ${{ github.run_number }} ${{ matrix.device }} (${{ github.sha }})"
+          git -c user.name=ci -c user.email=ci@localhost commit -q -m "Store shots ${{ github.run_number }} ${{ matrix.device }} ${{ matrix.langs }} (${{ github.sha }})"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/$BR"

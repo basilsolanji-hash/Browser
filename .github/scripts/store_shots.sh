@@ -77,22 +77,43 @@ seed() {
     '<string name="name_4">@ex_social_name</string>' '<string name="desc_4">@ex_social_desc</string>' \
     '<string name="email_1">anna.petrova@example.com</string>' '<string name="email_2">a.petrova@company.example</string>' \
     '<int name="unread_1" value="3" />' '<int name="last_profile" value="1" />' '<string name="pinned">2</string>'
-  local wiki="https://en.m.wikipedia.org/wiki/Moon" news="https://www.bbc.com/news"
-  [ "$L" = ru ] && wiki="https://ru.m.wikipedia.org/wiki/Луна" && news="https://lenta.ru/"
+  local wiki news="https://www.bbc.com/news"
+  case "$L" in
+    ru) wiki="https://ru.m.wikipedia.org/wiki/Луна"; news="https://lenta.ru/" ;;
+    es) wiki="https://es.m.wikipedia.org/wiki/Luna"; news="https://elpais.com/" ;;
+    pt) wiki="https://pt.m.wikipedia.org/wiki/Lua"; news="https://g1.globo.com/" ;;
+    fr) wiki="https://fr.m.wikipedia.org/wiki/Lune"; news="https://www.lemonde.fr/" ;;
+    de) wiki="https://de.m.wikipedia.org/wiki/Mond"; news="https://www.spiegel.de/" ;;
+    ar) wiki="https://ar.m.wikipedia.org/wiki/قمر"; news="https://www.aljazeera.net/" ;;
+    hi) wiki="https://hi.m.wikipedia.org/wiki/चन्द्रमा" ;;
+    tr) wiki="https://tr.m.wikipedia.org/wiki/Ay"; news="https://www.trthaber.com/" ;;
+    zh) wiki="https://zh.m.wikipedia.org/wiki/月球" ;;
+    *) wiki="https://en.m.wikipedia.org/wiki/Moon" ;;
+  esac
   local tabs; tabs=$(esc "[{\"id\":\"tab1\",\"title\":\"Wikipedia\",\"url\":\"$wiki\",\"group\":\"\"},{\"id\":\"tab2\",\"title\":\"GitHub\",\"url\":\"https://github.com/\",\"group\":\"\"},{\"id\":\"tab3\",\"title\":\"News\",\"url\":\"$news\",\"group\":\"\"}]")
   put_prefs tabs "<string name=\"list_1\">$tabs</string>"
   local hist; hist=$(esc "[{\"u\":\"$wiki\",\"t\":\"Wikipedia\",\"d\":$now},{\"u\":\"https://github.com/\",\"t\":\"GitHub\",\"d\":$now},{\"u\":\"https://claude.ai/\",\"t\":\"Claude\",\"d\":$now},{\"u\":\"https://mail.google.com/\",\"t\":\"Gmail\",\"d\":$now},{\"u\":\"https://www.notion.so/\",\"t\":\"Notion\",\"d\":$now},{\"u\":\"https://trello.com/\",\"t\":\"Trello\",\"d\":$now},{\"u\":\"https://duckduckgo.com/?q=weather\",\"t\":\"DuckDuckGo\",\"d\":$now},{\"u\":\"https://www.booking.com/\",\"t\":\"Booking\",\"d\":$now}]")
   put_prefs history "<string name=\"h_1\">$hist</string>"
   local n1 n2 n3
-  if [ "$L" = ru ]; then n1="Позвонить поставщику до 15:00"; n2="Идеи для презентации: цифры за квартал, отзывы клиентов"; n3="Луна удаляется от Земли примерно на 3,8 см в год"
-  else n1="Call the supplier before 3 pm"; n2="Ideas for the deck: quarterly numbers, customer quotes"; n3="The Moon drifts away from Earth by about 3.8 cm a year"; fi
+  case "$L" in
+    ru) n1="Позвонить поставщику до 15:00"; n2="Идеи для презентации: цифры за квартал, отзывы клиентов"; n3="Луна удаляется от Земли примерно на 3,8 см в год" ;;
+    es) n1="Llamar al proveedor antes de las 15:00"; n2="Ideas para la presentación: cifras del trimestre, opiniones de clientes"; n3="La Luna se aleja de la Tierra unos 3,8 cm al año" ;;
+    pt) n1="Ligar para o fornecedor antes das 15h"; n2="Ideias para a apresentação: números do trimestre, depoimentos de clientes"; n3="A Lua se afasta da Terra cerca de 3,8 cm por ano" ;;
+    fr) n1="Appeler le fournisseur avant 15 h"; n2="Idées pour la présentation : chiffres du trimestre, avis clients"; n3="La Lune s'éloigne de la Terre d'environ 3,8 cm par an" ;;
+    de) n1="Lieferanten vor 15 Uhr anrufen"; n2="Ideen für die Präsentation: Quartalszahlen, Kundenstimmen"; n3="Der Mond entfernt sich jährlich etwa 3,8 cm von der Erde" ;;
+    ar) n1="الاتصال بالمورّد قبل الساعة 3 مساءً"; n2="أفكار للعرض: أرقام الربع، آراء العملاء"; n3="يبتعد القمر عن الأرض نحو 3.8 سم كل عام" ;;
+    hi) n1="दोपहर 3 बजे से पहले सप्लायर को कॉल करें"; n2="प्रेज़ेंटेशन के लिए आइडिया: तिमाही के आंकड़े, ग्राहकों की राय"; n3="चंद्रमा हर साल पृथ्वी से लगभग 3.8 सेमी दूर जाता है" ;;
+    tr) n1="Tedarikçiyi saat 15:00'ten önce ara"; n2="Sunum fikirleri: çeyrek rakamları, müşteri yorumları"; n3="Ay her yıl Dünya'dan yaklaşık 3,8 cm uzaklaşıyor" ;;
+    zh) n1="下午3点前给供应商打电话"; n2="演示文稿思路：季度数据、客户评价"; n3="月球每年远离地球约3.8厘米" ;;
+    *) n1="Call the supplier before 3 pm"; n2="Ideas for the deck: quarterly numbers, customer quotes"; n3="The Moon drifts away from Earth by about 3.8 cm a year" ;;
+  esac
   local notes; notes=$(esc "[{\"id\":1,\"text\":\"$n1\",\"url\":\"\",\"time\":$now},{\"id\":2,\"text\":\"$n2\",\"url\":\"https://www.notion.so/\",\"time\":$now},{\"id\":3,\"text\":\"$n3\",\"url\":\"$wiki\",\"time\":$now}]")
   put_prefs notes "<string name=\"list\">$notes</string>"
   local dl; dl=$(esc "[{\"n\":\"Report_Q3.pdf\",\"m\":\"application/pdf\",\"u\":\"\",\"t\":$now,\"s\":2457600},{\"n\":\"team-photo.jpg\",\"m\":\"image/jpeg\",\"u\":\"\",\"t\":$now,\"s\":1843200},{\"n\":\"budget.xlsx\",\"m\":\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\",\"u\":\"\",\"t\":$now,\"s\":98304},{\"n\":\"podcast.mp3\",\"m\":\"audio/mpeg\",\"u\":\"\",\"t\":$now,\"s\":31457280}]")
   put_prefs downloads "<string name=\"list\">$dl</string>"
 }
 
-for L in ru en; do
+for L in ${LANGS:-ru en}; do
   seed "$L"
   start MainActivity;                                                   shot "$L-01-main" 5
   start BrowserActivity --ei profile 1 --es site tab1;                  shot "$L-02-browser" 18
