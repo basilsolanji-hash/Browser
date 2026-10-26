@@ -10,6 +10,7 @@ import { execFileSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { load as loadTr } from '../scripts/gen-i18n.mjs';
 import { tmpdir } from 'node:os';
 import electronPath from 'electron';
 import { zip } from './zip.mjs';
@@ -87,6 +88,14 @@ const server = createServer((req, res) => {
     // §21: страница просит подтвердить уход (несохранённый черновик).
     res.end(`<title>Draft</title><textarea id="t" style="width:400px;height:120px"></textarea>
       <script>addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; });</script>`);
+  } else if (u.pathname === '/links') {
+    // §23: ссылка, картинка-ссылка, почта, javascript:.
+    res.end(`<title>Links</title><body style="font:20px system-ui;padding:30px"><p><a id="l" href="/get?from=menu">Weekly   report</a></p>
+      <p><a id="m" href="mailto:team@os.test">Write to us</a> · <a id="j" href="javascript:void(0)">Script link</a></p>
+      <img id="i" src="/pic.png" width="120" height="80" alt="Picture"></body>`);
+  } else if (u.pathname === '/pic.png') {
+    res.setHeader('content-type', 'image/png');
+    res.end(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==', 'base64'));
   } else if (u.pathname === '/order') {
     res.end(`<title>Order</title><form method="post" action="/paid"><input name="item" value="tea"><button id="pay">Pay</button></form>`);
   } else if (u.pathname === '/paid') {
@@ -2235,6 +2244,118 @@ try {
     await go(`${SITE}/get`);
     await main(() => globalThis.osTest.windows()[0].reload());
     check('plain reload asks nothing', (await asked()).length === 0);
+
+    // --- 59. Шесть новых языков интерфейса (WINDOWS_SYNC §22) ---
+    step('59. Шесть новых языков: белорусский, узбекский, кыргызский, таджикский, казахский, армянский');
+    const tr59 = loadTr();
+    const col = (l) => ['en', 'ru', 'es', 'pt', 'fr', 'de', 'ar', 'hi', 'tr', 'zh', 'be', 'uz', 'ky', 'tg', 'kk', 'hy'].indexOf(l);
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
+    const ui59 = await page('os://ui');
+    for (const l of ['be', 'uz', 'ky', 'tg', 'kk', 'hy']) {
+      await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=general'));
+      const st59 = await page('os://settings/');
+      await st59.waitForSelector('#lang');
+      if (l === 'be') {
+        const opts = await st59.$$eval('#lang option', (o) => o.map((x) => x.value));
+        check('language list: «system» and 16 languages', opts.length === 17 && ['be', 'uz', 'ky', 'tg', 'kk', 'hy'].every((x) => opts.includes(x)), opts.join(','));
+      }
+      await st59.selectOption('#lang', l);
+      await waitFor(async () => (await st59.evaluate(() => document.documentElement.lang)) === l, 8000);
+      await main(() => globalThis.osTest.windows()[0].closePanel());
+      const hint = tr59.address_hint[col(l)];
+      const placeholder = () => ui59.evaluate(() => document.querySelector('#address')?.getAttribute('placeholder') ?? '');
+      const switched = await waitFor(async () => (await placeholder()) === hint && (await ui59.evaluate(() => document.documentElement.lang)), 8000);
+      check(`${l}: browser chrome in the new language, left to right`, switched === l && (await ui59.evaluate(() => document.documentElement.dir)) !== 'rtl', `${switched} ${await placeholder()}`);
+      const phrase = await main(async () => {
+        const w = globalThis.osTest.windows()[0];
+        w.activate('start');
+        await new Promise((r) => setTimeout(r, 800));
+        return w.activeWebContents().executeJavaScript('document.querySelector(".q")?.textContent ?? ""');
+      });
+      const lines = readFileSync(join(root, 'assets', 'phrases', `${l}.txt`), 'utf8').split(/\r?\n/).map((x) => x.trim());
+      check(`${l}: start page phrase in the new language`, !!phrase && lines.includes(phrase.trim()), phrase);
+      await ui59.click('#more');
+      await ui59.waitForSelector('.main-menu');
+      const m59 = await ui59.evaluate(() => {
+        const m = document.querySelector('.main-menu');
+        return { height: m.scrollHeight, cut: [...m.querySelectorAll('.grow')].filter((g) => g.scrollWidth > g.clientWidth + 1).map((g) => g.textContent) };
+      });
+      check(`${l}: menu labels are not cut off and the menu fits`, m59.cut.length === 0 && m59.height <= 660, `${m59.height} ${m59.cut.join(' | ')}`);
+      if (l === 'kk' || l === 'hy') await keyScreen(`59-menu-${l}`, 'chrome');
+      await ui59.keyboard.press('Escape');
+    }
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=general'));
+    const st59b = await page('os://settings/');
+    await st59b.selectOption('#lang', 'ru');
+    await waitFor(async () => (await st59b.title()) === 'Основные');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+
+    // --- 60. Меню ссылки по правой кнопке как в Chrome (WINDOWS_SYNC §23) ---
+    step('60. Меню ссылки: в новой вкладке (в фоне, «Перейти»), в группе, в инкогнито, в другом профиле, копирование, картинка');
+    const L = (k) => tr59[k][col('ru')];
+    const menuAt = async (pg, sel) => {
+      await main(() => globalThis.osTest.resetContextMenu());
+      await pg.click(sel, { button: 'right' });
+      return waitFor(async () => { const m = await main(() => globalThis.osTest.contextMenu()); return m.length ? m : null; }, 5000);
+    };
+    const pick = (label) => main((_e, l) => globalThis.osTest.clickContextItem(l), label);
+    await main((_e, url) => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.newTab(url); }, `${SITE}/links`);
+    const lk = await page(`${SITE}/links`);
+    const m60 = await menuAt(lk, '#l');
+    check('link menu: Chrome items in order', JSON.stringify(m60.slice(0, 3)) === JSON.stringify([L('ctx_open_new_tab'), L('ctx_open_in_group'), L('ctx_open_incognito')]) &&
+      m60.some((x) => x.startsWith(L('ctx_open_in_profile') + '/')) && [L('ctx_copy_link'), L('ctx_copy_link_text'), L('ctx_download_link')].every((x) => m60.includes(x)), m60.join(' | '));
+    const tabs0 = (await state()).tabs.length;
+    await pick(L('ctx_open_new_tab'));
+    const bg60 = await waitFor(async () => { const x = await state(); return x.tabs.length === tabs0 + 1 && x.url.startsWith(`${SITE}/links`) ? x : null; }, 5000);
+    check('"Open in new tab": opens in the background, the page stays', !!bg60);
+    const toast60 = await waitFor(async () => (await ui59.$('#toast-go')) && (await ui59.textContent('.toast')), 3000);
+    check('"Open in new tab": hint «Opened in new tab · Go»', toast60 && toast60.includes(L('ctx_opened_in_tab')) && toast60.includes(L('qs_go')), toast60);
+    await keyScreen('60-opened-in-tab', 'chrome');
+    await ui59.click('#toast-go');
+    check('«Go» switches to the new tab', await waitFor(async () => (await state()).url.includes('/get?from=menu'), 5000));
+    await go(`${SITE}/links`);
+    const lk2 = await page(`${SITE}/links`);
+    const groups0 = readJson('tabs')?.profiles?.['1']?.groups?.length ?? 0;
+    await menuAt(lk2, '#l');
+    await pick(L('ctx_open_in_group'));
+    await flush();
+    const t60 = readJson('tabs')?.profiles?.['1'];
+    const grouped = (t60?.tabs ?? []).filter((x) => x.group && x.group === t60.tabs.find((y) => y.url?.startsWith(`${SITE}/links`))?.group);
+    check('"In new tab in group": a new group of the current tab and the new one', (t60?.groups?.length ?? 0) === groups0 + 1 && grouped.length === 2, JSON.stringify(grouped.map((x) => x.url)));
+    await menuAt(lk2, '#l');
+    const p2name = await main(() => globalThis.osTest.windows()[0].otherProfiles()[0].name);
+    await pick(`${L('ctx_open_in_profile')}/${p2name}`);
+    await flush();
+    const p2id = await main(() => globalThis.osTest.windows()[0].otherProfiles()[0].id);
+    check('"In another profile": the tab is added to that profile', (readJson('tabs')?.profiles?.[String(p2id)]?.tabs ?? []).some((x) => x.url === `${SITE}/get?from=menu`));
+    check('"In another profile": hint names the profile', (await ui59.textContent('.toast').catch(() => '')).includes(p2name));
+    await menuAt(lk2, '#l');
+    await pick(L('ctx_copy_link_text'));
+    check('"Copy link text": text without extra spaces', (await main(({ clipboard }) => clipboard.readText())) === 'Weekly report');
+    const wins0 = await main(() => globalThis.osTest.windows().length);
+    await menuAt(lk2, '#l');
+    await pick(L('ctx_open_incognito'));
+    const inc = await waitFor(() => main((_e, n) => { const ws = globalThis.osTest.windows(); return ws.length > n && ws[ws.length - 1].state().url.includes('/get?from=menu'); }, wins0), 8000);
+    check('"In incognito tab": a private window with the link', inc);
+    const im = await main(async () => { const ws = globalThis.osTest.windows(); const w = ws[ws.length - 1]; w.win.focus(); return w.incognito; });
+    if (im) {
+      const ipg = await waitFor(() => app.windows().find((x) => !x.isClosed() && x.url().includes('/get?from=menu')));
+      await ipg.evaluate(() => { document.body.innerHTML = '<a id="l2" href="/links">x</a>'; });
+      await ipg.click('#l2', { button: 'right' });
+      const mi = await waitFor(async () => { const m = await main(() => globalThis.osTest.contextMenu()); return m.length ? m : null; }, 5000);
+      check('incognito link menu: «Open», no profiles, groups or favorites', mi[0] === L('open') && !mi.some((x) => x.startsWith(L('ctx_open_in_profile')) || x === L('ctx_open_in_group') || x === L('add_favorite')), mi.join(' | '));
+      await main(() => { const ws = globalThis.osTest.windows(); ws[ws.length - 1].win.close(); });
+    }
+    const mm = await menuAt(lk2, '#m');
+    check('mailto: only copy and share (no open, download or favorites)', mm[0] === L('ctx_copy_link') && mm.some((x) => x.startsWith(L('ctx_share_link') + '/')) &&
+      ![L('ctx_open_new_tab'), L('ctx_download_link'), L('add_favorite')].some((x) => mm.includes(x)), mm.join(' | '));
+    await main(() => globalThis.osTest.resetContextMenu());
+    const mj = await menuAt(lk2, '#j');
+    check('javascript: link — no link items', !mj.includes(L('ctx_copy_link')) && !mj.includes(L('ctx_open_new_tab')), mj.join(' | '));
+    const mimg = await menuAt(lk2, '#i');
+    check('image: open, download, copy address, share', [L('ctx_open_image'), L('ctx_download_image'), L('ctx_copy_image')].every((x) => mimg.includes(x)) && mimg.some((x) => x.startsWith(L('ctx_share_image') + '/')), mimg.join(' | '));
+    await pick(L('ctx_copy_image'));
+    check('image: «Copy image address»', (await main(({ clipboard }) => clipboard.readText())) === `${SITE}/pic.png`);
 
     // --- 57. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки; снимки страниц — только для человека (страница /tracked почти пустая). ---
     step('57. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');

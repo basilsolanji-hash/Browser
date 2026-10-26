@@ -972,6 +972,74 @@ export class OsWindow implements TabHost {
     this.openers.set(id, opener.id);
   }
 
+  /** Ссылка новой вкладкой в фоне (как Chrome) и подсказка «Открыто в новой вкладке · Перейти»; в группе —
+   *  в группу текущей вкладки, а без неё — новая группа из текущей и новой (openInGroup в BrowserActivity.kt). */
+  openLink(url: string, opener: TabView, inGroup: boolean): void {
+    if (this.incognito || this.profile == null) { this.openTab(url, opener, false); return; }
+    const p = this.profile;
+    let group: string | null = null;
+    if (inGroup) {
+      const current = Tabs.isTab(opener.id) ? Tabs.byId(p, opener.id) : undefined;
+      group = current?.group && Tabs.groups(p).some((g) => g.id === current.group) ? current.group : null;
+      if (!group) {
+        const n = Tabs.groups(p).length;
+        group = Tabs.addGroup(p, t('group_n', n + 1), Tabs.GROUP_COLORS[n % Tabs.GROUP_COLORS.length]).id;
+        if (current) Tabs.setGroup(p, [current.id], group);
+      }
+    }
+    const id = this.newTab(url, { after: Tabs.isTab(opener.id) ? opener.id : null, foreground: false });
+    this.openers.set(id, opener.id);
+    if (group) Tabs.setGroup(p, [id], group);
+    this.push();
+    this.toastGo(t('ctx_opened_in_tab'), () => this.activate(id));
+  }
+
+  openIncognitoUrl(url: string): void {
+    openIncognito().navigate(url);
+  }
+
+  /** «Открыть в другом профиле»: вкладка добавляется в тот профиль, «Перейти» — открыть её там. */
+  openInProfile(url: string, profile: number): void {
+    if (!Profiles.exists(profile)) return;
+    const tab = Tabs.add(profile, url);
+    this.toastGo(t('ctx_opened_in_profile', Profiles.name(profile)), () => this.openProfile(profile, tab.id));
+  }
+
+  otherProfiles(): { id: number; name: string }[] {
+    if (this.incognito) return [];
+    return Profiles.sorted().filter((id) => id !== this.profile).map((id) => ({ id, name: Profiles.name(id) }));
+  }
+
+  isFavorite(url: string): boolean {
+    return !!Bookmarks.findByUrl(url);
+  }
+
+  toggleFavorite(url: string, title: string): void {
+    const has = this.isFavorite(url);
+    if (has) Bookmarks.removeByUrl(url);
+    else Bookmarks.add(title || url, url);
+    this.push();
+    this.toast(t(has ? 'fav_removed' : 'added_favorite'));
+  }
+
+  shareDone(): void {
+    this.toast(t('link_copied'));
+  }
+
+  /** Действие кнопки «Перейти» в последней подсказке. */
+  private toastAction: (() => void) | null = null;
+
+  toastGo(text: string, go: () => void): void {
+    this.toastAction = go;
+    this.chrome.webContents.send('os:event', 'toast', { text, action: t('qs_go') });
+  }
+
+  runToastAction(): void {
+    const go = this.toastAction;
+    this.toastAction = null;
+    go?.();
+  }
+
   addNote(text: string, url: string): void {
     Notes.save(null, text, this.incognito ? '' : url);
     this.toast(t('note_added'));

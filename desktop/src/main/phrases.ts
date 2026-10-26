@@ -5,7 +5,7 @@ import { currentLang, t } from './i18n';
 import { greetingKey, nextIndex, type Deck } from './phrasedeck';
 
 /**
- * Позитивные фразы (Home.kt → Phrases): 300 штук на 10 языках, локально (assets/phrases/<язык>.txt,
+ * Позитивные фразы (Home.kt → Phrases): 300 штук на 16 языках, локально (assets/phrases/<язык>.txt,
  * строка N — одна и та же фраза на всех языках). Новая фраза при каждом показе, без повторов.
  */
 const file = new JsonFile<Deck>('phrases', () => ({ deck: [], pos: -1 }));

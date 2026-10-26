@@ -1,4 +1,4 @@
-// Снимки Windows-версии для магазина и сайта (WINDOWS_SYNC §16): на 10 языках, 3:4 1800×2400, подпись сверху —
+// Снимки Windows-версии для магазина и сайта (WINDOWS_SYNC §16): на 16 языках, 3:4 1800×2400, подпись сверху —
 // тот же стиль, что docs/play/tools/compose.js у Android. Подписи — docs/play/tools/captions.json, отличия
 // Windows — store/captions-desktop.json. Данные подготовлены: профили-примеры, вкладки, история, заметки,
 // загрузки, пароль в кабинете. Сеть не нужна: демо-сайты *.demo отдаёт локальный сервер.
@@ -14,7 +14,7 @@ import electronPath from 'electron';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = process.argv[2] ?? join(root, '../docs/play/screenshots/windows');
-const LANGS = (process.argv[3] ?? 'ru,en,es,pt,fr,de,ar,hi,tr,zh').split(',');
+const LANGS = (process.argv[3] ?? 'ru,en,es,pt,fr,de,ar,hi,tr,zh,be,uz,ky,tg,kk,hy').split(',');
 const W = 1800, H = 2400;
 const captions = {
   ...JSON.parse(readFileSync(join(root, '../docs/play/tools/captions.json'), 'utf8')),

@@ -7,7 +7,7 @@ const dir = new URL('../../assets/phrases/', import.meta.url);
 
 test('300 phrases per language, non-empty, no repeats', () => {
   const files = readdirSync(dir).filter((f) => f.endsWith('.txt'));
-  assert.equal(files.length, 10);
+  assert.equal(files.length, 16);
   for (const f of files) {
     const lines = readFileSync(new URL(f, dir), 'utf8').split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
     assert.equal(lines.length, 300, f);

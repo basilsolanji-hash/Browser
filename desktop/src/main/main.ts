@@ -26,6 +26,7 @@ import * as Tabs from './tabs';
 import * as Profiles from './profiles';
 import * as Extensions from './extensions';
 import { testHooks as AskHooks } from './ask';
+import { lastContextMenu, resetContextMenu } from './tabview';
 
 /**
  * Ось Browser для Windows: главный процесс. Профили — изолированные партиции, вкладки — WebContentsView,
@@ -122,6 +123,17 @@ if (process.env.OS_TEST === '1') {
     backupPath: (p: string | null) => setTestPath(p),
     // Вопросы окном Windows («Покинуть страницу?»): заранее заданные ответы и список заданных вопросов.
     ask: AskHooks,
+    // Контекстное меню вкладки (§23): подписи пунктов и нажатие пункта по подписи (подменю — через «/»).
+    contextMenu: () => (lastContextMenu()?.items ?? []).filter((i) => i.type !== 'separator').map((i) => i.submenu ? `${i.label}/${i.submenu.items.map((x) => x.label).join('|')}` : i.label),
+    resetContextMenu: () => resetContextMenu(),
+    clickContextItem: (path: string) => {
+      const [a, b] = path.split('/');
+      const top = lastContextMenu()?.items.find((i) => i.label === a);
+      const item = b ? top?.submenu?.items.find((i) => i.label === b) : top;
+      if (!item) return false;
+      item.click();
+      return true;
+    },
     setPerm: (profile: number, host: string, kind: string, mode: Perms.Mode | null) => Perms.set(profile, host, kind, mode),
     addHistory: (profile: number, url: string, title: string) => { History.add(profile, url); History.setTitle(profile, url, title); },
     // Данные для снимков магазина: заметки, избранное, пароль.

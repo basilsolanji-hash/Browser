@@ -129,6 +129,7 @@ on(['chrome'], 'toggleBookmark', (w) => {
   w.toast(t(r == null ? 'fav_unavailable' : r ? 'added_favorite' : 'fav_removed'));
 });
 on(['chrome'], 'savePage', (w) => saveWithToast(w));
+on(['chrome'], 'toastGo', (w) => w.runToastAction());
 on(['chrome'], 'pwAnswer', (w, id, action) => w.answerPassword(int(id), str(action, 100)));
 on(['chrome'], 'permissionAnswer', (w, id, allow, remember) => w.answerPrompt(int(id), allow === true, remember === true));
 on(['chrome'], 'lockNow', () => { for (const w of windows) w.lock(); });

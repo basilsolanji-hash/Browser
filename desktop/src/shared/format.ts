@@ -9,9 +9,10 @@ export function format(s: string, args: unknown[]): string {
   });
 }
 
-export const LANGS = ['en', 'ru', 'es', 'pt', 'fr', 'de', 'ar', 'hi', 'tr', 'zh'] as const;
+export const LANGS = ['en', 'ru', 'es', 'pt', 'fr', 'de', 'ar', 'hi', 'tr', 'zh', 'be', 'uz', 'ky', 'tg', 'kk', 'hy'] as const;
 export const LANG_NAMES: Record<string, string> = {
   en: 'English', ru: 'Русский', es: 'Español', pt: 'Português', fr: 'Français', de: 'Deutsch',
   ar: 'العربية', hi: 'हिन्दी', tr: 'Türkçe', zh: '中文',
+  be: 'Беларуская', uz: 'Oʻzbekcha', ky: 'Кыргызча', tg: 'Тоҷикӣ', kk: 'Қазақша', hy: 'Հայերեն',
 };
 export const RTL = new Set(['ar']);
