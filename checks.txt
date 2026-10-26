@@ -1,0 +1,170 @@
+ok   S-example.com: без падения
+ok   S-example.com: загрузка началась
+ok   S-www.wikipedia.org: без падения
+ok   S-www.wikipedia.org: загрузка началась
+ok   S-en.m.wikipedia.org_wiki_Moon: без падения
+ok   S-en.m.wikipedia.org_wiki_Moon: загрузка началась
+ok   S-ru.wikipedia.org: без падения
+ok   S-ru.wikipedia.org: загрузка началась
+ok   S-duckduckgo.com: без падения
+ok   S-duckduckgo.com: загрузка началась
+ok   S-www.mozilla.org: без падения
+ok   S-www.mozilla.org: загрузка началась
+ok   S-gitlab.com: без падения
+ok   S-gitlab.com: загрузка началась
+ok   S-stackoverflow.com: без падения
+ok   S-stackoverflow.com: загрузка началась
+ok   S-news.ycombinator.com: без падения
+ok   S-news.ycombinator.com: загрузка началась
+ok   S-www.reddit.com: без падения
+ok   S-www.reddit.com: загрузка началась
+ok   S-www.bbc.com: без падения
+ok   S-www.bbc.com: загрузка началась
+ok   S-www.reuters.com: без падения
+ok   S-www.reuters.com: загрузка началась
+ok   S-www.theguardian.com: без падения
+ok   S-www.theguardian.com: загрузка началась
+ok   S-www.nytimes.com: без падения
+ok   S-www.nytimes.com: загрузка началась
+ok   S-www.cnn.com: без падения
+ok   S-www.cnn.com: загрузка началась
+ok   S-www.aljazeera.com: без падения
+ok   S-www.aljazeera.com: загрузка началась
+ok   S-www.dw.com: без падения
+ok   S-www.dw.com: загрузка началась
+ok   S-www.amazon.com: без падения
+ok   S-www.amazon.com: загрузка началась
+ok   S-www.ebay.com: без падения
+ok   S-www.ebay.com: загрузка началась
+ok   S-www.aliexpress.com: без падения
+ok   S-www.aliexpress.com: загрузка началась
+ok   S-www.etsy.com: без падения
+ok   S-www.etsy.com: загрузка началась
+ok   S-www.booking.com: без падения
+ok   S-www.booking.com: загрузка началась
+ok   S-www.airbnb.com: без падения
+ok   S-www.airbnb.com: загрузка началась
+ok   S-www.tripadvisor.com: без падения
+ok   S-www.tripadvisor.com: загрузка началась
+ok   S-maps.google.com: без падения
+ok   S-maps.google.com: загрузка началась
+ok   S-www.openstreetmap.org: без падения
+ok   S-www.openstreetmap.org: загрузка началась
+ok   S-translate.google.com: без падения
+ok   S-translate.google.com: загрузка началась
+ok   S-www.google.com: без падения
+ok   S-www.google.com: загрузка началась
+ok   S-www.bing.com: без падения
+ok   S-www.bing.com: загрузка началась
+ok   S-search.brave.com: без падения
+ok   S-search.brave.com: загрузка началась
+ok   S-yandex.ru: без падения
+ok   S-yandex.ru: загрузка началась
+ok   S-mail.google.com: без падения
+ok   S-mail.google.com: загрузка началась
+ok   S-outlook.live.com: без падения
+ok   S-outlook.live.com: загрузка началась
+ok   S-proton.me: без падения
+ok   S-proton.me: загрузка началась
+ok   S-www.dropbox.com: без падения
+ok   S-www.dropbox.com: загрузка началась
+ok   S-drive.google.com: без падения
+ok   S-drive.google.com: загрузка началась
+ok   S-www.notion.so: без падения
+ok   S-www.notion.so: загрузка началась
+ok   S-trello.com: без падения
+ok   S-trello.com: загрузка началась
+ok   S-slack.com: без падения
+ok   S-slack.com: загрузка началась
+ok   S-zoom.us: без падения
+ok   S-zoom.us: загрузка началась
+ok   S-www.linkedin.com: без падения
+ok   S-www.linkedin.com: загрузка началась
+ok   S-www.x.com: без падения
+ok   S-www.x.com: загрузка началась
+ok   S-www.instagram.com: без падения
+ok   S-www.instagram.com: загрузка началась
+ok   S-www.facebook.com: без падения
+ok   S-www.facebook.com: загрузка началась
+ok   S-www.tiktok.com: без падения
+ok   S-www.tiktok.com: загрузка началась
+ok   S-telegram.org: без падения
+ok   S-telegram.org: загрузка началась
+ok   S-web.whatsapp.com: без падения
+ok   S-web.whatsapp.com: загрузка началась
+ok   S-www.apple.com: без падения
+ok   S-www.apple.com: загрузка началась
+ok   S-www.microsoft.com: без падения
+ok   S-www.microsoft.com: загрузка началась
+ok   S-www.samsung.com: без падения
+ok   S-www.samsung.com: загрузка началась
+ok   S-developer.android.com: без падения
+ok   S-developer.android.com: загрузка началась
+ok   S-kotlinlang.org: без падения
+ok   S-kotlinlang.org: загрузка началась
+ok   S-www.python.org: без падения
+ok   S-www.python.org: загрузка началась
+ok   S-claude.ai: без падения
+ok   S-claude.ai: загрузка началась
+ok   S-www.lemonde.fr: без падения
+ok   S-www.lemonde.fr: пропущен — эмулятор завис на графике сайта
+ok   S-www.elpais.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.spiegel.de: пропущен — графика эмулятора зависла раньше
+ok   S-www.youtube.com: пропущен — графика эмулятора зависла раньше
+ok   S-vimeo.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.twitch.tv: пропущен — графика эмулятора зависла раньше
+ok   S-github.com: пропущен — графика эмулятора зависла раньше
+ok   S-claude.ai: экран не пустой
+ok   S-developer.android.com: экран не пустой
+ok   S-drive.google.com: экран не пустой
+ok   S-duckduckgo.com: экран не пустой
+ok   S-en.m.wikipedia.org_wiki_Moon: экран не пустой
+ok   S-example.com: экран не пустой
+ok   S-gitlab.com: экран не пустой
+ok   S-kotlinlang.org: экран не пустой
+ok   S-mail.google.com: экран не пустой
+ok   S-maps.google.com: экран не пустой
+ok   S-news.ycombinator.com: экран не пустой
+ok   S-outlook.live.com: экран не пустой
+ok   S-proton.me: экран не пустой
+ok   S-ru.wikipedia.org: экран не пустой
+ok   S-search.brave.com: экран не пустой
+ok   S-slack.com: экран не пустой
+ok   S-stackoverflow.com: экран не пустой
+ok   S-telegram.org: экран не пустой
+ok   S-translate.google.com: экран не пустой
+ok   S-trello.com: экран не пустой
+ok   S-web.whatsapp.com: экран не пустой
+ok   S-www.airbnb.com: экран не пустой
+ok   S-www.aliexpress.com: экран не пустой
+ok   S-www.aljazeera.com: экран не пустой
+ok   S-www.amazon.com: экран не пустой
+ok   S-www.apple.com: экран не пустой
+ok   S-www.bbc.com: экран не пустой
+ok   S-www.bing.com: экран не пустой
+ok   S-www.booking.com: экран не пустой
+ok   S-www.cnn.com: экран не пустой
+ok   S-www.dropbox.com: экран не пустой
+ok   S-www.dw.com: экран не пустой
+ok   S-www.ebay.com: экран не пустой
+ok   S-www.etsy.com: экран не пустой
+ok   S-www.facebook.com: экран не пустой
+ok   S-www.google.com: экран не пустой
+ok   S-www.instagram.com: экран не пустой
+ok   S-www.linkedin.com: экран не пустой
+ok   S-www.microsoft.com: экран не пустой
+ok   S-www.mozilla.org: экран не пустой
+ok   S-www.notion.so: экран не пустой
+ok   S-www.nytimes.com: экран не пустой
+ok   S-www.openstreetmap.org: экран не пустой
+ok   S-www.python.org: экран не пустой
+ok   S-www.reddit.com: экран не пустой
+ok   S-www.reuters.com: экран не пустой
+ok   S-www.samsung.com: экран не пустой
+ok   S-www.theguardian.com: экран не пустой
+ok   S-www.tiktok.com: экран не пустой
+ok   S-www.tripadvisor.com: экран не пустой
+ok   S-www.wikipedia.org: экран не пустой
+ok   S-www.x.com: экран не пустой
+ok   S-yandex.ru: экран не пустой
+ok   S-zoom.us: экран не пустой

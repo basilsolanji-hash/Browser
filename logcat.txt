@@ -1,0 +1,440 @@
+--------- beginning of kernel
+10-26 13:28:53.606 I/logd    (    0): logdr: UID=2000 GID=2000 PID=28921 n tail=0 logMask=10 pid=0 start=0ns deadline=0ns
+--------- beginning of system
+10-26 13:28:53.450 D/CompatibilityChangeReporter(  520): Compat change id reported: 161252188; UID 10192; state: DISABLED
+10-26 13:28:53.451 W/ActivityTaskManager(  520): callingPackage for (uid=2000, pid=28926) has no WPC
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 265464455; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 265452344; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 266124927; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 265451093; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 265456536; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 255940284; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 236283604; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 263959004; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 264304459; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 264301586; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 254631730; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 273509367; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 263259275; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 174042980; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 174042936; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 181136395; UID 10192; state: DISABLED
+10-26 13:28:53.452 D/CompatibilityChangeReporter(  520): Compat change id reported: 194480991; UID 10192; state: ENABLED
+10-26 13:28:53.453 D/CompatibilityChangeReporter(  520): Compat change id reported: 197654537; UID 10192; state: ENABLED
+10-26 13:28:53.455 I/ActivityTaskManager(  520): START u0 {flg=0x10000000 cmp=ru.multibrowser.test/ru.multibrowser.BrowserActivity (has extras)} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=3
+--------- beginning of main
+10-26 13:28:53.455 D/KeyguardService(  839): setOccluded(false)
+10-26 13:28:53.455 D/KeyguardViewMediator(  839): setOccluded(false)
+10-26 13:28:53.455 D/KeyguardViewMediator(  839): handleSetOccluded(false)
+10-26 13:28:53.456 D/WindowManagerShell(  839): onActivityRestartAttempt: ComponentInfo{ru.multibrowser.test/ru.multibrowser.BrowserActivity}
+10-26 13:28:53.460 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:53.461 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:53.461 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:53.465 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:53.465 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:53.473 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:53.482 D/EGL_emulation(28439): app_time_stats: avg=3170.32ms min=2.49ms max=8903.54ms count=3
+10-26 13:28:53.496 I/resolv  (  335): res_nsend: used send_dg 129 terrno: 0
+10-26 13:28:53.496 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=129
+10-26 13:28:53.498 D/GeckoSession(28439): handleMessage GeckoView:ProgressChanged uri=null
+10-26 13:28:53.499 D/GeckoSession(28439): handleMessage GeckoView:PageStart uri=https://www.lemonde.fr/
+10-26 13:28:53.499 I/OsDiag  (28439): [4:start] начало: https://www.lemonde.fr/
+10-26 13:28:53.505 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:53.506 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:53.507 I/resolv  (  335): resolv_cache_lookup: Waiting for previous request
+10-26 13:28:53.509 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:53.509 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:53.509 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:53.511 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:53.512 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca3b2162310
+10-26 13:28:53.512 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=129
+10-26 13:28:53.545 I/resolv  (  335): res_nsend: used send_dg 84 terrno: 0
+10-26 13:28:53.545 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=84
+10-26 13:28:53.545 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca522163b90
+10-26 13:28:53.545 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=84
+10-26 13:28:53.665 I/resolv  (  335): res_nsend: used send_dg 129 terrno: 0
+10-26 13:28:53.665 I/resolv  (  335): res_nsend: used send_dg 129 terrno: 0
+10-26 13:28:53.772 D/CompatibilityChangeReporter(  520): Compat change id reported: 261072174; UID 10192; state: ENABLED
+10-26 13:28:53.773 D/ServiceAllocator(28439): org.mozilla.gecko.process.GeckoChildProcessServices$tab32 updateBindings: FOREGROUND priority, 2 importance, 28832 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-26 13:28:53.785 E/GeckoConsole(28439): [JavaScript Error: "TypeError: can't access property "sendRequest", this.eventDispatcher is undefined" {file: "resource:///actors/ContentDelegateParent.sys.mjs" line: 60}]
+10-26 13:28:53.789 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:53.789 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:53.789 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:53.797 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:53.805 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:53.805 W/Isolated Web Content(28832): [JavaScript Warning: "Content-Security-Policy: Ignoring ‘block-all-mixed-content’ because mixed content display upgrading makes block-all-mixed-content obsolete." {file: "https://www.lemonde.fr/en/" line: 0}]
+10-26 13:28:53.805 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca3c2165d90
+10-26 13:28:53.805 I/resolv  (  335): doQuery: rcode=0, ancount=8, return value=257
+10-26 13:28:53.811 D/GeckoSession(28439): handleMessage GeckoView:LocationChange uri=https://www.lemonde.fr/en/
+10-26 13:28:53.811 I/resolv  (  335): res_nsend: used send_dg 83 terrno: 0
+10-26 13:28:53.813 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:53.813 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca4521668d0
+10-26 13:28:53.813 I/resolv  (  335): doQuery: rcode=0, ancount=8, return value=161
+10-26 13:28:53.816 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/26/0/747/3667/3667/664/664/75/0/0ac134a_ftp-1-ei9txdbav6sz-2026-10-26t042120z-1911824965-rc2raoaxiu70-rtrmadp-3-brazil-election.JPG" {file: "https://img.lemde.fr/2026/10/26/0/747/3667/3667/664/664/75/0/0ac134a_ftp-1-ei9txdbav6sz-2026-10-26t042120z-1911824965-rc2raoaxiu70-rtrmadp-3-brazil-election.JPG" line: 0}]
+10-26 13:28:53.817 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/25/0/695/2627/2627/664/664/75/0/be5478a_ftp-1-nfu9fw35jsab-d11fdb44c3454ef3bd2dcabac90697a9-0-70eac7d37c244d949b0c4021411c7686.jpg" {file: "https://img.lemde.fr/2026/10/25/0/695/2627/2627/664/664/75/0/be5478a_ftp-1-nfu9fw35jsab-d11fdb44c3454ef3bd2dcabac90697a9-0-70eac7d37c244d949b0c4021411c7686.jpg" line: 0}]
+10-26 13:28:53.818 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/26/0/1291/5166/5166/664/664/75/0/355bdbb_ftp-1-xwjzlzkb27jv-5442478-01-06.jpg" {file: "https://img.lemde.fr/2026/10/26/0/1291/5166/5166/664/664/75/0/355bdbb_ftp-1-xwjzlzkb27jv-5442478-01-06.jpg" line: 0}]
+10-26 13:28:53.818 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/08/0/825/3294/3294/664/664/75/0/08d56eb_ftp-1-jk1e4bcsacuf-0621438b684a4266836d76deee8ab2f4-0-992fb50bf81d431d9b5692311ec9b9be.jpg" {file: "https://img.lemde.fr/2026/10/08/0/825/3294/3294/664/664/75/0/08d56eb_ftp-1-jk1e4bcsacuf-0621438b684a4266836d76deee8ab2f4-0-992fb50bf81d431d9b5692311ec9b9be.jpg" line: 0}]
+10-26 13:28:53.818 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/24/0/927/3711/3711/664/664/75/0/818eff9_upload-1-bl2y5ym8jvzo-31-trappes-attentat-raciste-hleuqeux-dsc5822.jpg" {file: "https://img.lemde.fr/2026/10/24/0/927/3711/3711/664/664/75/0/818eff9_upload-1-bl2y5ym8jvzo-31-trappes-attentat-raciste-hleuqeux-dsc5822.jpg" line: 0}]
+10-26 13:28:53.842 D/GeckoSession(28439): handleMessage GeckoView:SecurityChanged uri=null
+10-26 13:28:53.849 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:53.849 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:53.849 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:53.849 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:53.850 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:53.850 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:53.850 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:53.851 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:53.853 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:53.853 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:53.854 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:53.854 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:53.854 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:53.855 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:53.855 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:53.855 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:53.858 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:53.858 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:53.865 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:53.865 I/resolv  (  335): res_nsend: used send_dg 100 terrno: 0
+10-26 13:28:53.865 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:53.865 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:53.867 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:53.868 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:53.869 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:53.878 I/resolv  (  335): res_nsend: used send_dg 59 terrno: 0
+10-26 13:28:53.879 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=59
+10-26 13:28:53.880 I/resolv  (  335): res_nsend: used send_dg 135 terrno: 0
+10-26 13:28:53.880 I/resolv  (  335): doQuery: rcode=0, ancount=3, return value=135
+10-26 13:28:53.884 W/Isolated Web Content(28832): [JavaScript Warning: "The value of the attribute “path” for the cookie “lmd_rand_id” has been overwritten." {file: "https://www.lemonde.fr/en/" line: 0}]
+10-26 13:28:53.886 I/resolv  (  335): res_nsend: used send_dg 177 terrno: 0
+10-26 13:28:53.887 I/ServiceChildProcess(28745): Destroying GeckoServiceChildProcess
+10-26 13:28:53.894 I/ble_art_image_9(28745): System.exit called, status: 0
+10-26 13:28:53.894 I/AndroidRuntime(28745): VM exiting with result code 0, cleanup skipped.
+10-26 13:28:53.896 I/resolv  (  335): res_nsend: used send_dg 71 terrno: 0
+10-26 13:28:53.896 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=71
+10-26 13:28:53.896 I/resolv  (  335): res_nsend: used send_dg 84 terrno: 0
+10-26 13:28:53.896 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=84
+10-26 13:28:53.899 I/ServiceChildProcess(28712): Destroying GeckoServiceChildProcess
+10-26 13:28:53.906 I/resolv  (  335): res_nsend: used send_dg 132 terrno: 0
+10-26 13:28:53.907 I/resolv  (  335): res_nsend: used send_dg 87 terrno: 0
+10-26 13:28:53.908 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=87
+10-26 13:28:53.930 I/ActivityManager(  520): Process ru.multibrowser.test:tab_disable_art_image_9 (pid 28745) has died: fg  SVC 
+10-26 13:28:53.931 I/libprocessgroup(  520): Successfully killed process cgroup uid 10192 pid 28745 in 0ms
+10-26 13:28:53.931 I/Zygote  (  336): Process 28745 exited cleanly (0)
+10-26 13:28:53.937 I/resolv  (  335): res_nsend: used send_dg 132 terrno: 0
+10-26 13:28:53.937 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=132
+10-26 13:28:53.940 I/resolv  (  335): res_nsend: used send_dg 177 terrno: 0
+10-26 13:28:53.940 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=177
+10-26 13:28:53.941 I/resolv  (  335): res_nsend: used send_dg 129 terrno: 0
+10-26 13:28:53.941 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=129
+10-26 13:28:53.957 I/ActivityManager(  520): Process ru.multibrowser.test:tab_disable_art_image_14 (pid 28712) has died: fg  SVC 
+10-26 13:28:53.959 I/libprocessgroup(  520): Successfully killed process cgroup uid 10192 pid 28712 in 0ms
+10-26 13:28:53.959 I/Zygote  (  336): Process 28712 exited cleanly (0)
+10-26 13:28:53.995 W/GeckoConsole(28439): [JavaScript Warning: "Cookie “NID” will soon be rejected because it is foreign and does not have the “Partitioned“ attribute." {file: "https://play.google.com/log?hasfast=true&authuser=0&format=json" line: 0}]
+10-26 13:28:53.993 W/ru.multibrowser.test(28439): type=1400 audit(0.0:1435): avc:  denied  { nlmsg_readpriv } for  comm=536F636B657420546872656164 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tclass=netlink_route_socket permissive=0 bug=b/155595000 app=ru.multibrowser.test
+10-26 13:28:54.179 W/binder_debug(    0): 17 callbacks suppressed
+10-26 13:28:54.179 I/binder  (    0): undelivered transaction 934020, process died.
+10-26 13:28:54.180 I/binder  (    0): undelivered transaction 934021, process died.
+10-26 13:28:54.006 I/ActivityManager(  520): Process ru.multibrowser.test:tab_disable_art_image_19 (pid 28650) has died: fg  SVC 
+10-26 13:28:54.006 I/libprocessgroup(  520): Successfully killed process cgroup uid 10192 pid 28650 in 0ms
+10-26 13:28:54.182 I/binder  (    0): undelivered transaction 934022, process died.
+10-26 13:28:54.184 I/binder  (    0): undelivered transaction 934015, process died.
+10-26 13:28:54.009 I/Zygote  (  336): Process 28650 exited cleanly (0)
+10-26 13:28:54.024 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/26/0/747/3667/3667/320/320/75/0/0ac134a_ftp-1-ei9txdbav6sz-2026-10-26t042120z-1911824965-rc2raoaxiu70-rtrmadp-3-brazil-election.JPG" {file: "https://img.lemde.fr/2026/10/26/0/747/3667/3667/320/320/75/0/0ac134a_ftp-1-ei9txdbav6sz-2026-10-26t042120z-1911824965-rc2raoaxiu70-rtrmadp-3-brazil-election.JPG" line: 0}]
+10-26 13:28:54.029 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/25/0/695/2627/2627/320/320/75/0/be5478a_ftp-1-nfu9fw35jsab-d11fdb44c3454ef3bd2dcabac90697a9-0-70eac7d37c244d949b0c4021411c7686.jpg" {file: "https://img.lemde.fr/2026/10/25/0/695/2627/2627/320/320/75/0/be5478a_ftp-1-nfu9fw35jsab-d11fdb44c3454ef3bd2dcabac90697a9-0-70eac7d37c244d949b0c4021411c7686.jpg" line: 0}]
+10-26 13:28:54.030 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/26/0/1291/5166/5166/320/320/75/0/355bdbb_ftp-1-xwjzlzkb27jv-5442478-01-06.jpg" {file: "https://img.lemde.fr/2026/10/26/0/1291/5166/5166/320/320/75/0/355bdbb_ftp-1-xwjzlzkb27jv-5442478-01-06.jpg" line: 0}]
+10-26 13:28:54.030 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/08/0/825/3294/3294/320/320/75/0/08d56eb_ftp-1-jk1e4bcsacuf-0621438b684a4266836d76deee8ab2f4-0-992fb50bf81d431d9b5692311ec9b9be.jpg" {file: "https://img.lemde.fr/2026/10/08/0/825/3294/3294/320/320/75/0/08d56eb_ftp-1-jk1e4bcsacuf-0621438b684a4266836d76deee8ab2f4-0-992fb50bf81d431d9b5692311ec9b9be.jpg" line: 0}]
+10-26 13:28:54.030 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/24/0/927/3711/3711/320/320/75/0/818eff9_upload-1-bl2y5ym8jvzo-31-trappes-attentat-raciste-hleuqeux-dsc5822.jpg" {file: "https://img.lemde.fr/2026/10/24/0/927/3711/3711/320/320/75/0/818eff9_upload-1-bl2y5ym8jvzo-31-trappes-attentat-raciste-hleuqeux-dsc5822.jpg" line: 0}]
+10-26 13:28:54.070 I/resolv  (  335): res_nsend: used send_dg 129 terrno: 0
+10-26 13:28:54.077 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://img.lemde.fr/2026/10/26/0/500/2000/2000/320/320/75/0/e0c154f_upload-1-qt0b3nkqbv7w-meetingrn-orleans-asurp-204863.jpg" {file: "https://img.lemde.fr/2026/10/26/0/500/2000/2000/320/320/75/0/e0c154f_upload-1-qt0b3nkqbv7w-meetingrn-orleans-asurp-204863.jpg" line: 0}]
+10-26 13:28:54.085 D/GeckoSession(28439): handleMessage GeckoView:LocationChange uri=about:blank
+10-26 13:28:54.086 I/GeckoConsole(28439): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://eus.rubiconproject.com/account/19358.html" {file: "https://eus.rubiconproject.com/account/19358.html" line: 0}]
+10-26 13:28:54.089 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:54.089 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:54.089 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:54.091 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:54.091 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:54.091 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:54.098 D/GeckoSession(28439): handleMessage GeckoView:ProgressChanged uri=null
+10-26 13:28:54.101 I/resolv  (  335): res_nsend: used send_dg 179 terrno: 0
+10-26 13:28:54.102 I/resolv  (  335): res_nsend: used send_dg 179 terrno: 0
+10-26 13:28:54.102 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=179
+10-26 13:28:54.111 I/resolv  (  335): res_nsend: used send_dg 137 terrno: 0
+10-26 13:28:54.111 I/resolv  (  335): doQuery: rcode=0, ancount=3, return value=137
+10-26 13:28:54.156 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:54.156 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:54.156 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:54.156 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:54.158 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:54.164 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:54.183 D/CompatibilityChangeReporter(  520): Compat change id reported: 135634846; UID 10192; state: DISABLED
+10-26 13:28:54.183 D/CompatibilityChangeReporter(  520): Compat change id reported: 143937733; UID 10192; state: ENABLED
+10-26 13:28:54.192 D/ServiceAllocator(28439): org.mozilla.gecko.process.GeckoChildProcessServices$tab4 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-26 13:28:54.193 D/Zygote  (  336): Forked child process 28987
+10-26 13:28:54.193 I/ActivityManager(  520): Start proc 28987:ru.multibrowser.test:tab_disable_art_image_4/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab4}
+10-26 13:28:54.211 I/ble_art_image_4(28987): Late-enabling -Xcheck:jni
+10-26 13:28:54.228 I/ble_art_image_4(28987): Using CollectorTypeCC GC.
+10-26 13:28:54.231 W/ble_art_image_4(28987): Unexpected CPU variant for x86: x86_64.
+10-26 13:28:54.231 W/ble_art_image_4(28987): Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+10-26 13:28:54.236 I/resolv  (  335): res_nsend: used send_dg 134 terrno: 0
+10-26 13:28:54.245 I/resolv  (  335): res_nsend: used send_dg 134 terrno: 0
+10-26 13:28:54.245 E/Isolated Web Content(28832): [JavaScript Error: "Cookie “_cookie_test” has been rejected for invalid domain." {file: "https://www.lemonde.fr/en/" line: 0}]
+10-26 13:28:54.245 E/Isolated Web Content(28832): [JavaScript Error: "Cookie “_cookie_test” has been rejected for invalid domain." {file: "https://www.lemonde.fr/en/" line: 0}]
+10-26 13:28:54.245 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=134
+10-26 13:28:54.252 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://cdn.amplitude.com/libs/amplitude-4.2.1-min.gz.js" {file: "https://cdn.amplitude.com/libs/amplitude-4.2.1-min.gz.js" line: 0}]
+10-26 13:28:54.256 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:54.257 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:54.257 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:54.257 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:54.260 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:54.261 I/resolv  (  335): res_nsend: used send_dg 117 terrno: 0
+10-26 13:28:54.261 I/adbd    (  416): jdwp connection from 28987
+10-26 13:28:54.261 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:54.262 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca3b215d690
+10-26 13:28:54.262 I/resolv  (  335): doQuery: rcode=0, ancount=0, return value=117
+10-26 13:28:54.265 D/CompatibilityChangeReporter(  520): Compat change id reported: 168419799; UID 10192; state: DISABLED
+10-26 13:28:54.265 D/CompatibilityChangeReporter(  520): Compat change id reported: 273564678; UID 10192; state: DISABLED
+10-26 13:28:54.269 I/resolv  (  335): res_nsend: used send_dg 99 terrno: 0
+10-26 13:28:54.269 I/resolv  (  335): doQuery: rcode=0, ancount=4, return value=99
+10-26 13:28:54.271 I/resolv  (  335): res_nsend: used send_dg 89 terrno: 0
+10-26 13:28:54.271 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=89
+10-26 13:28:54.273 D/CompatibilityChangeReporter(28987): Compat change id reported: 171979766; UID 10192; state: ENABLED
+10-26 13:28:54.273 D/CompatibilityChangeReporter(28987): Compat change id reported: 242716250; UID 10192; state: ENABLED
+10-26 13:28:54.277 D/CompatibilityChangeReporter(  520): Compat change id reported: 170503758; UID 10192; state: ENABLED
+10-26 13:28:54.280 W/ziparchive(28987): Unable to open '/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.dm': No such file or directory
+10-26 13:28:54.280 W/ziparchive(28987): Unable to open '/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.dm': No such file or directory
+10-26 13:28:54.428 D/nativeloader(28987): Configuring clns-6 for other apk /data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/lib/x86_64:/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/ru.multibrowser.test
+10-26 13:28:54.433 V/GraphicsEnvironment(28987): Currently set values for:
+10-26 13:28:54.433 V/GraphicsEnvironment(28987):   angle_gl_driver_selection_pkgs=[]
+10-26 13:28:54.433 V/GraphicsEnvironment(28987):   angle_gl_driver_selection_values=[]
+10-26 13:28:54.434 V/GraphicsEnvironment(28987): ANGLE GameManagerService for ru.multibrowser.test: false
+10-26 13:28:54.434 V/GraphicsEnvironment(28987): ru.multibrowser.test is not listed in per-application setting
+10-26 13:28:54.434 V/GraphicsEnvironment(28987): Neither updatable production driver nor prerelease driver is supported.
+10-26 13:28:54.458 I/ActivityManager(  520): Flag disabled. Ignoring finishAttachApplication from uid: 10192. pid: 28987
+10-26 13:28:54.460 I/ServiceChildProcess(28987): onCreate, process name: ru.multibrowser.test:tab_disable_art_image_4
+10-26 13:28:54.462 D/GeckoThread(28987): State changed to LAUNCHED
+10-26 13:28:54.463 I/GeckoThread(28987): preparing to run Gecko
+10-26 13:28:54.466 D/ServiceAllocator(28439): org.mozilla.gecko.process.GeckoChildProcessServices$tab4 updateBindings: FOREGROUND priority, 2 importance, 28987 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-26 13:28:54.472 D/GeckoThread(28987): State changed to MOZGLUE_READY
+10-26 13:28:54.482 D/GeckoLoader(28987): Library base=/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk!/lib/x86_64
+10-26 13:28:54.482 D/GeckoLoader(28987): Library base=/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk!/lib/x86_64
+10-26 13:28:54.489 E/GeckoLibLoad(28987): Load sqlite start
+10-26 13:28:54.490 E/GeckoLibLoad(28987): Load sqlite done
+10-26 13:28:54.490 D/GeckoLoader(28987): Library base=/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk!/lib/x86_64
+10-26 13:28:54.491 E/GeckoLibLoad(28987): Load nss start
+10-26 13:28:54.491 E/GeckoLibLoad(28987): Load nss done
+10-26 13:28:54.492 D/GeckoLoader(28987): Library base=/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk!/lib/x86_64
+10-26 13:28:54.521 E/GeckoLibLoad(28987): Loaded libs in 29.121020ms total, 2ms(2ms) user, 11ms(11ms) system, 0(0) faults
+10-26 13:28:54.521 D/GeckoThread(28987): State changed to LIBS_READY
+10-26 13:28:54.521 W/GeckoThread(28987): zerdatime 854007 - runGecko
+10-26 13:28:54.556 D/TelephonyManager( 1051): requestModemActivityInfo: Sending result to app: ModemActivityInfo{ mTimestamp=854042 mSleepTimeMs=0 mIdleTimeMs=853859 mActivityStatsTechSpecificInfo=[{mRat=UNKNOWN,mFrequencyRange=UNKNOWN,mTxTimeMs[]=[0, 0, 0, 0, 0],mRxTimeMs=0}]}
+10-26 13:28:54.644 D/GeckoThread(28987): State changed to RUNNING
+10-26 13:28:54.661 W/ru.multibrowser.test:tab_disable_art_image_4(28987): type=1400 audit(0.0:1436): avc:  denied  { read } for  comm=49736F6C617465642057656220436F name="product_name" dev="sysfs" ino=973 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-26 13:28:54.661 W/ru.multibrowser.test:tab_disable_art_image_4(28987): type=1400 audit(0.0:1437): avc:  denied  { read } for  comm=49736F6C617465642057656220436F name="product_sku" dev="sysfs" ino=977 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-26 13:28:54.679 D/GeckoSession(28439): handleMessage GeckoView:LocationChange uri=https://eus.rubiconproject.com/account/19358.html
+10-26 13:28:54.679 W/Isolated Web Content(28987): [JavaScript Warning: "This page is in Almost Standards Mode. Page layout may be impacted. For Standards Mode use “<!DOCTYPE html>”." {file: "https://eus.rubiconproject.com/account/19358.html" line: 0}]
+10-26 13:28:54.773 D/CompatibilityChangeReporter(  520): Compat change id reported: 135634846; UID 10192; state: DISABLED
+10-26 13:28:54.773 D/CompatibilityChangeReporter(  520): Compat change id reported: 143937733; UID 10192; state: ENABLED
+10-26 13:28:54.778 D/Zygote  (  336): Forked child process 29026
+10-26 13:28:54.778 I/ActivityManager(  520): Start proc 29026:ru.multibrowser.test:tab_disable_art_image_22/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab22}
+10-26 13:28:54.780 D/ServiceAllocator(28439): org.mozilla.gecko.process.GeckoChildProcessServices$tab22 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-26 13:28:54.803 I/le_art_image_22(29026): Late-enabling -Xcheck:jni
+10-26 13:28:54.824 I/le_art_image_22(29026): Using CollectorTypeCC GC.
+10-26 13:28:54.825 W/le_art_image_22(29026): Unexpected CPU variant for x86: x86_64.
+10-26 13:28:54.825 W/le_art_image_22(29026): Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+10-26 13:28:54.851 I/adbd    (  416): jdwp connection from 29026
+10-26 13:28:54.871 D/CompatibilityChangeReporter(29026): Compat change id reported: 171979766; UID 10192; state: ENABLED
+10-26 13:28:54.872 D/CompatibilityChangeReporter(29026): Compat change id reported: 242716250; UID 10192; state: ENABLED
+10-26 13:28:54.883 W/ziparchive(29026): Unable to open '/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.dm': No such file or directory
+10-26 13:28:54.883 W/ziparchive(29026): Unable to open '/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.dm': No such file or directory
+10-26 13:28:55.083 D/nativeloader(29026): Configuring clns-6 for other apk /data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/lib/x86_64:/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/ru.multibrowser.test
+10-26 13:28:55.090 V/GraphicsEnvironment(29026): Currently set values for:
+10-26 13:28:55.090 V/GraphicsEnvironment(29026):   angle_gl_driver_selection_pkgs=[]
+10-26 13:28:55.090 V/GraphicsEnvironment(29026):   angle_gl_driver_selection_values=[]
+10-26 13:28:55.091 V/GraphicsEnvironment(29026): ANGLE GameManagerService for ru.multibrowser.test: false
+10-26 13:28:55.091 V/GraphicsEnvironment(29026): ru.multibrowser.test is not listed in per-application setting
+10-26 13:28:55.091 V/GraphicsEnvironment(29026): Neither updatable production driver nor prerelease driver is supported.
+10-26 13:28:55.118 I/ActivityManager(  520): Flag disabled. Ignoring finishAttachApplication from uid: 10192. pid: 29026
+10-26 13:28:55.120 I/ServiceChildProcess(29026): onCreate, process name: ru.multibrowser.test:tab_disable_art_image_22
+10-26 13:28:55.124 D/GeckoThread(29026): State changed to LAUNCHED
+10-26 13:28:55.128 D/ServiceAllocator(28439): org.mozilla.gecko.process.GeckoChildProcessServices$tab22 updateBindings: BACKGROUND priority, 3 importance, 29026 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-26 13:28:55.133 I/GeckoThread(29026): preparing to run Gecko
+10-26 13:28:55.136 D/GeckoThread(29026): State changed to MOZGLUE_READY
+10-26 13:28:55.140 D/GeckoLoader(29026): Library base=/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk!/lib/x86_64
+10-26 13:28:55.140 D/GeckoLoader(29026): Library base=/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk!/lib/x86_64
+10-26 13:28:55.157 E/GeckoLibLoad(29026): Load sqlite start
+10-26 13:28:55.158 E/GeckoLibLoad(29026): Load sqlite done
+10-26 13:28:55.158 D/GeckoLoader(29026): Library base=/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk!/lib/x86_64
+10-26 13:28:55.158 E/GeckoLibLoad(29026): Load nss start
+10-26 13:28:55.158 E/GeckoLibLoad(29026): Load nss done
+10-26 13:28:55.158 D/GeckoLoader(29026): Library base=/data/app/~~bBn3mTQCyUYF6E3t73aizg==/ru.multibrowser.test-Q3p-TE7D6Nq6hLk8bCVDeA==/base.apk!/lib/x86_64
+10-26 13:28:55.164 E/GeckoLibLoad(29026): Loaded libs in 6.245015ms total, 0ms(1ms) user, 3ms(4ms) system, 0(0) faults
+10-26 13:28:55.165 D/GeckoThread(29026): State changed to LIBS_READY
+10-26 13:28:55.173 W/GeckoThread(29026): zerdatime 854659 - runGecko
+10-26 13:28:55.276 D/GeckoThread(29026): State changed to RUNNING
+10-26 13:28:55.285 W/ru.multibrowser.test:tab_disable_art_image_22(29026): type=1400 audit(0.0:1438): avc:  denied  { read } for  comm=57656220436F6E74656E74 name="product_name" dev="sysfs" ino=973 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-26 13:28:55.289 W/ru.multibrowser.test:tab_disable_art_image_22(29026): type=1400 audit(0.0:1439): avc:  denied  { read } for  comm=57656220436F6E74656E74 name="product_sku" dev="sysfs" ino=977 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-26 13:28:55.330 I/netd    (  335): tetherGetStats() -> {[]} <0.67ms>
+10-26 13:28:55.334 I/netd    (  335): bandwidthSetGlobalAlert(2097152) <0.12ms>
+10-26 13:28:55.336 I/netd    (  335): bandwidthRemoveInterfaceQuota(eth0) <0.45ms>
+10-26 13:28:55.337 I/netd    (  335): bandwidthSetInterfaceQuota(eth0, 9223372036854775807) <0.46ms>
+10-26 13:28:56.085 I/WorkerManager( 1772): dispose()
+10-26 13:28:56.085 W/A       ( 1772): Queue length for executor EventBus is now 11. Perhaps some tasks are too long, or the pool is too small.
+10-26 13:28:56.572 E/libEGL  (28521): eglCreateContextImpl:926 error 3004 (EGL_BAD_ATTRIBUTE)
+10-26 13:28:56.572 E/libEGL  (28521): eglCreateContextImpl:926 error 3004 (EGL_BAD_ATTRIBUTE)
+10-26 13:28:56.576 D/EGL_emulation(28521): app_time_stats: avg=143.63ms min=1.95ms max=2681.16ms count=20
+10-26 13:28:56.578 I/Gecko   (28521): GetShaderInfoLog() ->
+10-26 13:28:56.578 I/Gecko   (28521): ERROR: 0:2: 'GL_EXT_frag_depth' : extension is not supported
+10-26 13:28:56.578 I/Gecko   (28521): 
+10-26 13:28:56.578 I/Gecko   (28521): source ->
+10-26 13:28:56.578 I/Gecko   (28521): 
+10-26 13:28:56.578 I/Gecko   (28521): #extension GL_EXT_frag_depth: require
+10-26 13:28:56.578 I/Gecko   (28521): void main() {}
+10-26 13:28:56.578 I/Gecko   (28521): 
+10-26 13:28:56.579 I/Gecko   (28521): GetShaderInfoLog() ->
+10-26 13:28:56.579 I/Gecko   (28521): ERROR: 0:2: 'GL_EXT_shader_texture_lod' : extension is not supported
+10-26 13:28:56.579 I/Gecko   (28521): 
+10-26 13:28:56.579 I/Gecko   (28521): source ->
+10-26 13:28:56.579 I/Gecko   (28521): 
+10-26 13:28:56.579 I/Gecko   (28521): #extension GL_EXT_shader_texture_lod: require
+10-26 13:28:56.579 I/Gecko   (28521): void main() {}
+10-26 13:28:56.579 I/Gecko   (28521): 
+10-26 13:28:56.582 D/eglCodecCommon(28521): checkFramebufferAttachmentCompleteness: tex not color renderable. format: 0x8c41 type 0x1401 maj min 3 0 floatext 1 hfloatext 1
+10-26 13:28:56.582 D/eglCodecCommon(28521): checkFramebufferCompleteness: color attachment 0 not complete: 0x8cd6
+10-26 13:28:56.584 I/Gecko   (28832): [GFX1-]: Couldn't sanitize GL_RENDERER "Android Emulator OpenGL ES Translator (Google SwiftShader)"
+10-26 13:28:56.601 D/GeckoSession(28439): handleMessage GeckoView:ProgressChanged uri=null
+10-26 13:28:56.613 D/EGL_emulation(28439): app_time_stats: avg=626.19ms min=9.50ms max=2503.90ms count=5
+10-26 13:28:56.691 W/Isolated Web Content(28832): [JavaScript Warning: "Content-Security-Policy: Ignoring ‘block-all-mixed-content’ because mixed content display upgrading makes block-all-mixed-content obsolete." {file: "https://forecast.lemonde.fr/ls.html?origin=www.lemonde.fr" line: 0}]
+10-26 13:28:56.693 W/Isolated Web Content(28832): [JavaScript Warning: "This page is in Quirks Mode. Page layout may be impacted. For Standards Mode use “<!DOCTYPE html>”." {file: "https://forecast.lemonde.fr/ls.html?origin=www.lemonde.fr" line: 0}]
+10-26 13:28:56.697 D/GeckoSession(28439): handleMessage GeckoView:LocationChange uri=https://forecast.lemonde.fr/ls.html?origin=www.lemonde.fr
+10-26 13:28:56.700 D/GeckoSession(28439): handleMessage GeckoView:PageStop uri=null
+10-26 13:28:56.700 I/OsDiag  (28439): [4:start] загружено
+10-26 13:28:56.712 E/Isolated Web Content(28832): [JavaScript Error: "TypeError: can't access property "__tcfapiCall", a is null" {file: "https://www.lemonde.fr/en/" line: 6}]
+10-26 13:28:56.712 E/Isolated Web Content(28832): e.exports/<@https://www.lemonde.fr/en/:6:930
+10-26 13:28:56.712 I/Isolated Web Content(28832): [JavaScript Error: "Referrer Policy: Ignoring the less restricted referrer policy “no-referrer-when-downgrade” for the cross-site request: https://campaign.services.forecast.sirius.press/forecast.campaigns.v1.EvaluateService/EvaluateCampaignBulk" {file: "https://campaign.services.forecast.sirius.press/forecast.campaigns.v1.EvaluateService/EvaluateCampaignBulk" line: 0}]
+10-26 13:28:56.716 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:28:56.716 I/resolv  (  335): ResNSendHandler::run: 0 / {101 101 101 983141 10192 0}
+10-26 13:28:56.717 I/resolv  (  335): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:28:56.717 I/resolv  (  335): resolv_cache_lookup: unsupported query
+10-26 13:28:56.717 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:28:56.721 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:28:56.823 I/resolv  (  335): res_nsend: used send_dg 109 terrno: 0
+10-26 13:28:56.825 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=109
+10-26 13:28:56.847 I/resolv  (  335): res_nsend: used send_dg 154 terrno: 0
+10-26 13:28:56.847 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=154
+10-26 13:28:56.875 I/resolv  (  335): res_nsend: used send_dg 154 terrno: 0
+10-26 13:28:57.251 I/Choreographer(28439): Skipped 31 frames!  The application may be doing too much work on its main thread.
+10-26 13:28:58.560 D/StatusBarIconController(  839): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:28:58.709 D/StatusBarIconController(  839): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:29:00.050 I/AiAiEcho( 1589): Predicting[0]: 
+10-26 13:29:00.050 I/AiAiEcho( 1589): EchoTargets: 
+10-26 13:29:00.050 I/AiAiEcho( 1589): Filtered by AiAi flag check: 
+10-26 13:29:00.051 I/AiAiEcho( 1589): Ranked targets strategy: SORT, count: 0, ranking metadata: 
+10-26 13:29:00.051 I/AiAiEcho( 1589): #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+10-26 13:29:00.052 W/PageIndicator(  839): Total number of pages invalid: 0. Assuming 1 page.
+10-26 13:29:01.213 D/ActivityManager(  520): freezing 25486 com.google.android.gms
+10-26 13:29:01.564 D/StatusBarIconController(  839): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:29:03.566 D/StatusBarIconController(  839): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:29:04.045 W/Isolated Web Content(28832): [JavaScript Warning: "The resource at “https://img.lemde.fr/2026/10/26/0/747/3667/3667/664/664/75/0/0ac134a_ftp-1-ei9txdbav6sz-2026-10-26t042120z-1911824965-rc2raoaxiu70-rtrmadp-3-brazil-election.JPG” preloaded with link preload was not used within a few seconds. Make sure all attributes of the preload tag are set correctly." {file: "https://www.lemonde.fr/en/" line: 0}]
+10-26 13:29:04.049 D/GeckoSession(28439): handleMessage GeckoView:StateUpdated uri=null
+10-26 13:29:04.705 E/GeckoConsole(28439): [JavaScript Error: "TypeError: can't access property "WindowEventDispatcher", win is null" {file: "resource://gre/modules/GeckoViewSessionStore.sys.mjs" line: 149}]
+10-26 13:29:04.705 E/GeckoConsole(28439): onTabStateUpdate@resource://gre/modules/GeckoViewSessionStore.sys.mjs:149:5
+10-26 13:29:04.705 E/GeckoConsole(28439): updateSessionStoreFromTabListener@resource://gre/modules/GeckoViewSessionStore.sys.mjs:241:10
+10-26 13:29:04.705 E/GeckoConsole(28439): SSF_updateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:45:27
+10-26 13:29:04.705 E/GeckoConsole(28439): UpdateSessionStore@resource://gre/modules/SessionStoreFunctions.sys.mjs:15:46
+10-26 13:29:07.581 W/BpBinder(29065): Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+10-26 13:29:07.581 W/ProcessState(29065): Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+10-26 13:29:12.788 I/system_server(  520): Background young concurrent copying GC freed 505183(19MB) AllocSpace objects, 49(980KB) LOS objects, 42% free, 28MB/50MB, paused 50us,42us total 206.157ms
+10-26 13:29:27.269 W/Isolated Web Content(28832): [JavaScript Warning: "The value of the attribute “path” for the cookie “lmd_rand_id” has been overwritten." {file: "https://www.lemonde.fr/ajax/fetchLives" line: 0}]
+10-26 13:29:37.855 V/NativeCrypto( 5445): Read error: ssl=0x718434881298: I/O error during system call, Connection reset by peer
+10-26 13:29:37.866 V/NativeCrypto( 5445): SSL shutdown failed: ssl=0x718434881298: I/O error during system call, Broken pipe
+10-26 13:29:37.878 E/WakeLock( 5445): GCM_HB_ALARM release without a matched acquire!
+10-26 13:29:37.881 W/WakeLock( 5445): GCM_HB_ALARM counter does not exist
+10-26 13:29:37.888 D/ConnectivityService(  520): reportNetworkConnectivity(101, false) by 10131
+10-26 13:29:37.888 D/NetworkMonitor/101( 1004): Forcing reevaluation for UID 10131. Dns signal count: 0
+10-26 13:29:37.888 I/AlarmManager( 5445): setExactAndAllowWhileIdle [name: GCM_CONN_ALARM type: 2 triggerAtMillis: 903222]
+10-26 13:29:37.897 D/CompatibilityChangeReporter(  520): Compat change id reported: 171306433; UID 10131; state: ENABLED
+10-26 13:29:37.905 D/CompatibilityChangeReporter(  520): Compat change id reported: 218533173; UID 10131; state: ENABLED
+10-26 13:29:37.905 E/WakeLock( 5445): GCM_CONN_ALARM release without a matched acquire!
+10-26 13:29:37.905 W/WakeLock( 5445): GCM_CONN_ALARM counter does not exist
+10-26 13:29:37.908 D/TrafficStats( 1004): tagSocket(6) with statsTag=0xffffff81, statsUid=-1
+10-26 13:29:37.909 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffff81, statsUid=-1
+10-26 13:29:37.910 D/TrafficStats( 1004): tagSocket(6) with statsTag=0xffffff81, statsUid=-1
+10-26 13:29:37.910 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffff81, statsUid=-1
+10-26 13:29:37.925 I/resolv  (  335): ResNSendHandler::run: 0 / {101 983141 101 983141 1073 1}
+10-26 13:29:37.925 I/resolv  (  335): ResNSendHandler::run: 0 / {101 983141 101 983141 1073 1}
+10-26 13:29:37.925 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca3c215cfd0
+10-26 13:29:37.929 I/resolv  (  335): ResNSendHandler::run: 0 / {101 983141 101 983141 1073 1}
+10-26 13:29:37.932 I/resolv  (  335): res_nsend: used send_dg 160 terrno: 0
+10-26 13:29:37.932 I/resolv  (  335): ResNSendHandler::run: 0 / {101 983141 101 983141 1073 1}
+10-26 13:29:37.933 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.933 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.934 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.934 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.934 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.934 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.935 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.935 I/resolv  (  335): res_nsend: used send_dg 63 terrno: 0
+10-26 13:29:37.935 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.935 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.936 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.936 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.936 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.936 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.936 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.937 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.937 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.938 D/NetworkMonitor/101( 1004): PROBE_DNS www.google.com 28ms OK 142.251.151.119,142.251.153.119,142.251.154.119,142.251.152.119,142.251.157.119,142.251.156.119,142.251.150.119,142.251.155.119,2001:4860:4829:7700::,2001:4860:482d:7700::,2001:4860:4827:7700::,2001:4860:4826:7700::,2001:4860:482b:7700::,2001:4860:482c:7700::,2001:4860:4828:7700::,2001:4860:482a:7700::
+10-26 13:29:37.942 I/resolv  (  335): res_nsend: used send_dg 75 terrno: 0
+10-26 13:29:37.942 D/TrafficStats( 1004): tagSocket(6) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.945 I/resolv  (  335): GetAddrInfoHandler::run: {101 983141 101 983141 1073 1}
+10-26 13:29:37.945 D/TrafficStats( 1004): tagSocket(6) with statsTag=0xffffffff, statsUid=-1
+10-26 13:29:37.946 D/NetworkMonitor/101( 1004): PROBE_DNS connectivitycheck.gstatic.com 37ms OK 142.251.150.120,2001:4860:4826:7800::
+10-26 13:29:37.953 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:29:37.953 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca3c215cfd0
+10-26 13:29:37.953 I/resolv  (  335): doQuery: rcode=0, ancount=8, return value=256
+10-26 13:29:37.953 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:29:37.953 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca3b216eb50
+10-26 13:29:37.953 I/resolv  (  335): doQuery: rcode=0, ancount=8, return value=160
+10-26 13:29:37.957 I/resolv  (  335): GetAddrInfoHandler::run: {101 983141 101 983141 1073 1}
+10-26 13:29:37.957 D/TrafficStats( 1004): tagSocket(68) with statsTag=0xffffff81, statsUid=-1
+10-26 13:29:37.958 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:29:37.958 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca5221656b0
+10-26 13:29:37.958 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=63
+10-26 13:29:37.965 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:29:37.965 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca522169850
+10-26 13:29:37.965 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=75
+10-26 13:29:37.966 D/TrafficStats( 1004): tagSocket(6) with statsTag=0xffffff81, statsUid=-1
+10-26 13:29:37.973 D/NetworkMonitor/101( 1004): PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 time=26ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Safari/537.36]} headers={null=[HTTP/1.1 204 No Content], Connection=[close], Content-Length=[0], Cross-Origin-Resource-Policy=[cross-origin], Date=[Mon, 26 Oct 2026 13:29:38 GMT], X-Android-Received-Millis=[1793021377973], X-Android-Response-Source=[NETWORK 204], X-Android-Selected-Protocol=[http/1.1], X-Android-Sent-Millis=[1793021377969]}
+10-26 13:29:37.981 D/NetworkMonitor/101( 1004): PROBE_HTTPS https://www.google.com/generate_204 time=40ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Safari/537.36]} headers={null=[HTTP/1.1 204 No Content], Alt-Svc=[h3=":443"; ma=2592000,h3-29=":443"; ma=2592000], Connection=[close], Content-Length=[0], Cross-Origin-Resource-Policy=[cross-origin], Date=[Mon, 26 Oct 2026 13:29:38 GMT], X-Android-Received-Millis=[1793021377981], X-Android-Response-Source=[NETWORK 204], X-Android-Selected-Protocol=[http/1.1], X-Android-Sent-Millis=[1793021377975]}
+10-26 13:29:37.985 D/NetworkMonitor/101( 1004): isCaptivePortal: isSuccessful()=true isPortal()=false RedirectUrl=null isPartialConnectivity()=false Time=84ms
+10-26 13:29:37.987 D/ConnectivityService(  520): [101 CELLULAR] validation passed
+10-26 13:29:43.747 I/resolv  (  335): GetAddrInfoHandler::run: {101 786533 101 983141 10131 0}
+10-26 13:29:43.756 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:29:43.761 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:29:43.764 I/resolv  (  335): res_nsend: used send_dg 79 terrno: 0
+10-26 13:29:43.764 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=79
+10-26 13:29:43.765 I/resolv  (  335): res_nsend: used send_dg 91 terrno: 0
+10-26 13:29:43.765 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=91
+10-26 13:29:43.767 D/TrafficStats( 5445): tagSocket(-1) with statsTag=0x30000407, statsUid=-1
+10-26 13:29:43.773 I/TrafficStats( 5445): tagSocketFd(-1, 805307399, -1) failed with errno-9
+10-26 13:29:43.773 D/TrafficStats( 5445): tagSocket(120) with statsTag=0x30000407, statsUid=-1
+10-26 13:29:43.833 D/TrafficStats( 5445): tagSocket(122) with statsTag=0x30000407, statsUid=-1
+10-26 13:29:43.893 I/AlarmManager( 5445): setExactAndAllowWhileIdle [name: GCM_HB_ALARM type: 2 triggerAtMillis: 2613379]
+10-26 13:29:43.909 D/BoundBrokerSvc( 5445): onBind: Intent { act=com.google.android.gms.scheduler.ACTION_PROXY_SCHEDULE dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+10-26 13:29:43.909 D/BoundBrokerSvc( 5445): Loading bound service for intent: Intent { act=com.google.android.gms.scheduler.ACTION_PROXY_SCHEDULE dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+10-26 13:29:43.973 I/AlarmManager( 5445): setExactAndAllowWhileIdle [name: GCM_HB_ALARM type: 2 triggerAtMillis: 2613459]
+10-26 13:29:43.981 E/WakeLock( 5445): GCM_CONN_ALARM release without a matched acquire!
+10-26 13:29:43.983 I/AlarmManager( 5445): setExactAndAllowWhileIdle [name: GCM_HB_ALARM type: 2 triggerAtMillis: 2613468]
+10-26 13:29:50.325 W/healthd (    0): battery l=100 v=5000 t=25.0 h=2 st=2 c=900000 fc=3000000 cc=10 chg=a
+10-26 13:29:57.348 W/Isolated Web Content(28832): [JavaScript Warning: "The value of the attribute “path” for the cookie “lmd_rand_id” has been overwritten." {file: "https://www.lemonde.fr/ajax/fetchLives" line: 0}]
+10-26 13:29:57.356 I/resolv  (  335): GetAddrInfoHandler::run: {101 101 101 983141 10192 0}
+10-26 13:29:57.365 I/resolv  (  335): res_nmkquery: (QUERY, IN, A)
+10-26 13:29:57.369 I/resolv  (  335): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:29:57.369 I/resolv  (  335): resolv_cache_lookup: FOUND IN CACHE entry=0x7ca3b2162310
+10-26 13:29:57.369 I/resolv  (  335): doQuery: rcode=0, ancount=1, return value=129
+10-26 13:29:57.373 I/resolv  (  335): res_nsend: used send_dg 84 terrno: 0
+10-26 13:29:57.373 I/resolv  (  335): doQuery: rcode=0, ancount=2, return value=84
+10-26 13:29:58.989 D/BoundBrokerSvc( 5445): onUnbind: Intent { act=com.google.android.gms.scheduler.ACTION_PROXY_SCHEDULE dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+10-26 13:30:07.674 I/logd    (    0): logdr: UID=2000 GID=2000 PID=29095 n tail=0 logMask=10 pid=0 start=0ns deadline=0ns
+10-26 13:30:07.723 I/logd    (    0): logdr: UID=2000 GID=2000 PID=29098 n tail=0 logMask=99 pid=0 start=0ns deadline=0ns
