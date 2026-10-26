@@ -1,0 +1,106 @@
+ok   S-example.com: без падения
+ok   S-example.com: загрузка началась
+ok   S-www.wikipedia.org: без падения
+ok   S-www.wikipedia.org: загрузка началась
+ok   S-en.m.wikipedia.org_wiki_Moon: без падения
+ok   S-en.m.wikipedia.org_wiki_Moon: загрузка началась
+ok   S-ru.wikipedia.org: без падения
+ok   S-ru.wikipedia.org: загрузка началась
+ok   S-duckduckgo.com: без падения
+ok   S-duckduckgo.com: загрузка началась
+ok   S-www.mozilla.org: без падения
+ok   S-www.mozilla.org: загрузка началась
+ok   S-gitlab.com: без падения
+ok   S-gitlab.com: загрузка началась
+ok   S-stackoverflow.com: без падения
+ok   S-stackoverflow.com: загрузка началась
+ok   S-news.ycombinator.com: без падения
+ok   S-news.ycombinator.com: загрузка началась
+ok   S-www.reddit.com: без падения
+ok   S-www.reddit.com: загрузка началась
+ok   S-www.bbc.com: без падения
+ok   S-www.bbc.com: загрузка началась
+ok   S-www.reuters.com: без падения
+ok   S-www.reuters.com: загрузка началась
+ok   S-www.theguardian.com: без падения
+ok   S-www.theguardian.com: загрузка началась
+ok   S-www.nytimes.com: без падения
+ok   S-www.nytimes.com: загрузка началась
+ok   S-www.cnn.com: без падения
+ok   S-www.cnn.com: загрузка началась
+ok   S-www.aljazeera.com: без падения
+ok   S-www.aljazeera.com: загрузка началась
+ok   S-www.dw.com: без падения
+ok   S-www.dw.com: загрузка началась
+ok   S-www.amazon.com: без падения
+ok   S-www.amazon.com: загрузка началась
+ok   S-www.ebay.com: без падения
+ok   S-www.ebay.com: загрузка началась
+ok   S-www.aliexpress.com: без падения
+ok   S-www.aliexpress.com: загрузка началась
+ok   S-www.etsy.com: без падения
+ok   S-www.etsy.com: загрузка началась
+ok   S-www.booking.com: без падения
+ok   S-www.booking.com: загрузка началась
+ok   S-www.airbnb.com: без падения
+ok   S-www.airbnb.com: пропущен — эмулятор завис на графике сайта
+ok   S-www.tripadvisor.com: пропущен — графика эмулятора зависла раньше
+ok   S-maps.google.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.openstreetmap.org: пропущен — графика эмулятора зависла раньше
+ok   S-translate.google.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.google.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.bing.com: пропущен — графика эмулятора зависла раньше
+ok   S-search.brave.com: пропущен — графика эмулятора зависла раньше
+ok   S-yandex.ru: пропущен — графика эмулятора зависла раньше
+ok   S-mail.google.com: пропущен — графика эмулятора зависла раньше
+ok   S-outlook.live.com: пропущен — графика эмулятора зависла раньше
+ok   S-proton.me: пропущен — графика эмулятора зависла раньше
+ok   S-www.dropbox.com: пропущен — графика эмулятора зависла раньше
+ok   S-drive.google.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.notion.so: пропущен — графика эмулятора зависла раньше
+ok   S-trello.com: пропущен — графика эмулятора зависла раньше
+ok   S-slack.com: пропущен — графика эмулятора зависла раньше
+ok   S-zoom.us: пропущен — графика эмулятора зависла раньше
+ok   S-www.linkedin.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.x.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.instagram.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.facebook.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.tiktok.com: пропущен — графика эмулятора зависла раньше
+ok   S-telegram.org: пропущен — графика эмулятора зависла раньше
+ok   S-web.whatsapp.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.apple.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.microsoft.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.samsung.com: пропущен — графика эмулятора зависла раньше
+ok   S-developer.android.com: пропущен — графика эмулятора зависла раньше
+ok   S-kotlinlang.org: пропущен — графика эмулятора зависла раньше
+ok   S-www.python.org: пропущен — графика эмулятора зависла раньше
+ok   S-claude.ai: пропущен — графика эмулятора зависла раньше
+ok   S-www.lemonde.fr: пропущен — графика эмулятора зависла раньше
+ok   S-www.elpais.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.spiegel.de: пропущен — графика эмулятора зависла раньше
+ok   S-www.youtube.com: пропущен — графика эмулятора зависла раньше
+ok   S-vimeo.com: пропущен — графика эмулятора зависла раньше
+ok   S-www.twitch.tv: пропущен — графика эмулятора зависла раньше
+ok   S-github.com: пропущен — графика эмулятора зависла раньше
+ok   S-duckduckgo.com: экран не пустой
+ok   S-en.m.wikipedia.org_wiki_Moon: экран не пустой
+ok   S-example.com: экран не пустой
+ok   S-gitlab.com: экран не пустой
+ok   S-news.ycombinator.com: экран не пустой
+ok   S-ru.wikipedia.org: экран не пустой
+ok   S-stackoverflow.com: экран не пустой
+ok   S-www.aliexpress.com: экран не пустой
+ok   S-www.aljazeera.com: экран не пустой
+ok   S-www.amazon.com: экран не пустой
+ok   S-www.bbc.com: экран не пустой
+ok   S-www.booking.com: экран не пустой
+ok   S-www.cnn.com: экран не пустой
+ok   S-www.dw.com: экран не пустой
+ok   S-www.ebay.com: экран не пустой
+ok   S-www.etsy.com: экран не пустой
+ok   S-www.mozilla.org: экран не пустой
+ok   S-www.nytimes.com: экран не пустой
+ok   S-www.reddit.com: экран не пустой
+ok   S-www.reuters.com: экран не пустой
+ok   S-www.theguardian.com: экран не пустой
+ok   S-www.wikipedia.org: экран не пустой

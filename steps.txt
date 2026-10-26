@@ -1,0 +1,32 @@
+Performing Streamed Install
+Success
+8770
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.7 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 3.0 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.058s)
+== S-example.com 08:08:23
+== S-www.wikipedia.org 08:08:41
+== S-en.m.wikipedia.org_wiki_Moon 08:08:55
+== S-ru.wikipedia.org 08:09:10
+== S-duckduckgo.com 08:09:25
+== S-www.mozilla.org 08:09:41
+== S-gitlab.com 08:09:57
+== S-stackoverflow.com 08:10:12
+== S-news.ycombinator.com 08:10:26
+== S-www.reddit.com 08:10:40
+== S-www.bbc.com 08:10:54
+== S-www.reuters.com 08:11:11
+== S-www.theguardian.com 08:11:26
+== S-www.nytimes.com 08:11:40
+== S-www.cnn.com 08:11:55
+== S-www.aljazeera.com 08:12:11
+== S-www.dw.com 08:12:26
+== S-www.amazon.com 08:12:43
+== S-www.ebay.com 08:12:59
+== S-www.aliexpress.com 08:13:13
+== S-www.etsy.com 08:13:28
+== S-www.booking.com 08:13:42
+== S-www.airbnb.com 08:13:56
+TIMEOUT: adb exec-out screencap -p
+GPU-HANG: S-www.airbnb.com — графика эмулятора зависла, дальнейшие сайты пропускаются
+Часть 3: сценариев 23, проверок 106, провалов 0
