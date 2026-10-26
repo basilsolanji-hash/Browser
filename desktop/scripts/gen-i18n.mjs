@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const ktDir = join(here, '../../app/src/main/java/ru/multibrowser');
 const outDir = join(here, '../src/i18n');
-export const LANGS = ['en', 'ru', 'es', 'pt', 'fr', 'de', 'ar', 'hi', 'tr', 'zh'];
+export const LANGS = ['en', 'ru', 'es', 'pt', 'fr', 'de', 'ar', 'hi', 'tr', 'zh', 'be', 'uz', 'ky', 'tg', 'kk', 'hy'];
 
 /** Строковый литерал Kotlin, начиная с открывающей кавычки в позиции i; возвращает [текст, позиция после]. */
 function literal(src, i) {

@@ -10,6 +10,7 @@ import { execFileSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { load as loadTr } from '../scripts/gen-i18n.mjs';
 import { tmpdir } from 'node:os';
 import electronPath from 'electron';
 import { zip } from './zip.mjs';
@@ -2235,6 +2236,49 @@ try {
     await go(`${SITE}/get`);
     await main(() => globalThis.osTest.windows()[0].reload());
     check('plain reload asks nothing', (await asked()).length === 0);
+
+    // --- 59. Шесть новых языков интерфейса (WINDOWS_SYNC §22) ---
+    step('59. Шесть новых языков: белорусский, узбекский, кыргызский, таджикский, казахский, армянский');
+    const tr59 = loadTr();
+    const col = (l) => ['en', 'ru', 'es', 'pt', 'fr', 'de', 'ar', 'hi', 'tr', 'zh', 'be', 'uz', 'ky', 'tg', 'kk', 'hy'].indexOf(l);
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
+    const ui59 = await page('os://ui');
+    for (const l of ['be', 'uz', 'ky', 'tg', 'kk', 'hy']) {
+      await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=general'));
+      const st59 = await page('os://settings/');
+      await st59.waitForSelector('#lang');
+      if (l === 'be') {
+        const opts = await st59.$$eval('#lang option', (o) => o.map((x) => x.value));
+        check('language list: «system» and 16 languages', opts.length === 17 && ['be', 'uz', 'ky', 'tg', 'kk', 'hy'].every((x) => opts.includes(x)), opts.join(','));
+      }
+      await st59.selectOption('#lang', l);
+      const hint = tr59.address_hint[col(l)];
+      const switched = await waitFor(async () => (await ui59.getAttribute('#address', 'placeholder')) === hint && (await ui59.evaluate(() => document.documentElement.lang)), 8000);
+      check(`${l}: browser chrome in the new language, left to right`, switched === l && (await ui59.evaluate(() => document.documentElement.dir)) !== 'rtl', `${switched} ${await ui59.getAttribute('#address', 'placeholder')}`);
+      await main(() => globalThis.osTest.windows()[0].closePanel());
+      const phrase = await main(async () => {
+        const w = globalThis.osTest.windows()[0];
+        w.activate('start');
+        await new Promise((r) => setTimeout(r, 800));
+        return w.activeWebContents().executeJavaScript('document.querySelector(".q")?.textContent ?? ""');
+      });
+      const lines = readFileSync(join(root, 'assets', 'phrases', `${l}.txt`), 'utf8').split(/\r?\n/).map((x) => x.trim());
+      check(`${l}: start page phrase in the new language`, !!phrase && lines.includes(phrase.trim()), phrase);
+      await ui59.click('#more');
+      await ui59.waitForSelector('.main-menu');
+      const m59 = await ui59.evaluate(() => {
+        const m = document.querySelector('.main-menu');
+        return { height: m.scrollHeight, cut: [...m.querySelectorAll('.grow')].filter((g) => g.scrollWidth > g.clientWidth + 1).map((g) => g.textContent) };
+      });
+      check(`${l}: menu labels are not cut off and the menu fits`, m59.cut.length === 0 && m59.height <= 660, `${m59.height} ${m59.cut.join(' | ')}`);
+      if (l === 'kk' || l === 'hy') await keyScreen(`59-menu-${l}`, 'chrome');
+      await ui59.keyboard.press('Escape');
+    }
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=general'));
+    const st59b = await page('os://settings/');
+    await st59b.selectOption('#lang', 'ru');
+    await waitFor(async () => (await st59b.title()) === 'Основные');
+    await main(() => globalThis.osTest.windows()[0].closePanel());
 
     // --- 57. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки; снимки страниц — только для человека (страница /tracked почти пустая). ---
     step('57. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');
