@@ -1,0 +1,80 @@
+Performing Streamed Install
+Success
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.4 MB/s (186 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 1.0 MB/s (107 bytes in 0.000s)
+/tmp/profiles.xml: 1 file pushed, 0 skipped. 10.2 MB/s (670 bytes in 0.000s)
+/tmp/tabs.xml: 1 file pushed, 0 skipped. 0.1 MB/s (572 bytes in 0.005s)
+/tmp/history.xml: 1 file pushed, 0 skipped. 14.5 MB/s (1021 bytes in 0.000s)
+/tmp/notes.xml: 1 file pushed, 0 skipped. 5.8 MB/s (646 bytes in 0.000s)
+/tmp/downloads.xml: 1 file pushed, 0 skipped. 10.4 MB/s (781 bytes in 0.000s)
+shot pt-01-main
+shot pt-02-browser
+tap 'Menu'
+shot pt-03-menu
+tap 'Trocar de perfil'
+shot pt-04-profiles
+shot pt-05-address
+shot pt-06-start
+tap 'Adicionar senha'
+tap 'Site'
+tap 'Usuário'
+tap 'Senha'
+tap 'Salvar'
+shot pt-07-cabinet
+shot pt-08-downloads
+shot pt-09-notes
+shot pt-10-settings
+shot pt-11-privacy
+shot pt-12-tabs
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.1 MB/s (186 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 1.2 MB/s (107 bytes in 0.000s)
+/tmp/profiles.xml: 1 file pushed, 0 skipped. 5.4 MB/s (670 bytes in 0.000s)
+/tmp/tabs.xml: 1 file pushed, 0 skipped. 10.7 MB/s (575 bytes in 0.000s)
+/tmp/history.xml: 1 file pushed, 0 skipped. 14.1 MB/s (1022 bytes in 0.000s)
+/tmp/notes.xml: 1 file pushed, 0 skipped. 6.8 MB/s (649 bytes in 0.000s)
+/tmp/downloads.xml: 1 file pushed, 0 skipped. 11.5 MB/s (781 bytes in 0.000s)
+shot fr-01-main
+shot fr-02-browser
+tap 'Menu'
+shot fr-03-menu
+tap 'Changer de profil'
+shot fr-04-profiles
+shot fr-05-address
+shot fr-06-start
+tap 'Ajouter un mot de passe'
+tap 'Site'
+tap 'Identifiant'
+tap 'Mot de passe'
+tap 'Enregistrer'
+shot fr-07-cabinet
+shot fr-08-downloads
+shot fr-09-notes
+shot fr-10-settings
+shot fr-11-privacy
+shot fr-12-tabs
+/tmp/settings.xml: 1 file pushed, 0 skipped. 2.6 MB/s (186 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 0.4 MB/s (107 bytes in 0.000s)
+/tmp/profiles.xml: 1 file pushed, 0 skipped. 7.6 MB/s (670 bytes in 0.000s)
+/tmp/tabs.xml: 1 file pushed, 0 skipped. 7.8 MB/s (575 bytes in 0.000s)
+/tmp/history.xml: 1 file pushed, 0 skipped. 12.2 MB/s (1022 bytes in 0.000s)
+/tmp/notes.xml: 1 file pushed, 0 skipped. 9.0 MB/s (632 bytes in 0.000s)
+/tmp/downloads.xml: 1 file pushed, 0 skipped. 12.0 MB/s (781 bytes in 0.000s)
+shot de-01-main
+shot de-02-browser
+tap 'Menü'
+shot de-03-menu
+tap 'Profil wechseln'
+shot de-04-profiles
+shot de-05-address
+shot de-06-start
+tap 'Passwort hinzufügen'
+tap 'Website'
+tap 'Benutzername'
+tap 'Passwort'
+tap 'Speichern'
+shot de-07-cabinet
+shot de-08-downloads
+shot de-09-notes
+shot de-10-settings
+shot de-11-privacy
+shot de-12-tabs
