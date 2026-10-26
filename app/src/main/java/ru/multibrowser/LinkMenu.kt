@@ -43,7 +43,7 @@ class LinkMenu(private val a: Activity) {
                 (isWeb(url) || url.startsWith("mailto:", true) || url.startsWith("tel:", true))
 
             /** Чистые данные из элемента; null — меню не нужно (например, ссылка javascript:). */
-            fun of(e: ContextElement): Target? = from(e.linkUri, e.textContent, e.srcUri, e.type, e.title ?: e.altText)
+            fun of(e: ContextElement): Target? = from(e.linkUri, e.linkText, e.srcUri, e.type, e.title ?: e.altText)
 
             fun from(linkUri: String?, text: String?, src: String?, type: Int, title: String?): Target? {
                 val link = linkUri?.trim()?.takeIf { linkOk(it) }
