@@ -93,7 +93,8 @@ const server = createServer((req, res) => {
     let body = '';
     req.on('data', (d) => { body += d; });
     req.on('end', () => { paid.push(`${req.method} ${body} ${req.headers['content-type'] ?? ''}`);
-      res.end(`<title>Paid</title><h1 id="n">Payment #${paid.length}</h1><p id="b">${body.replace(/</g, '')}</p>`); });
+      res.end(`<title>Paid</title><body style="margin:0;font:18px system-ui;background:#eef7ee"><header style="background:#188038;color:#fff;padding:24px 40px">
+        <h1 id="n" style="margin:0">Payment #${paid.length}</h1></header><p id="b" style="margin:24px 40px;padding:16px;background:#fff;border-radius:12px">${body.replace(/</g, '')}</p></body>`); });
   } else if (u.pathname === '/get') {
     res.end(`<title>Get</title><h1 id="c">${(req.headers.cookie ?? '').replace(/</g, '')}</h1><script>document.title='Get '+(document.cookie||'none')</script>`);
   } else if (u.pathname === '/big.bin') {

@@ -17,6 +17,7 @@ export function askSync(win: BrowserWindow, o: MessageBoxSyncOptions): number {
 }
 
 export const testHooks = {
-  answer: (...n: number[]) => { answers.push(...n); },
+  /** Ответы на следующие вопросы (заменяют прежние, не использованные). */
+  answer: (...n: number[]) => { answers.splice(0, answers.length, ...n); },
   asked: () => asked.splice(0),
 };
