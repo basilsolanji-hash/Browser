@@ -182,19 +182,21 @@ CASES
   ;;
 3)  # --- Популярные сайты: загрузка без падения и не пустой экран ---
   prefs en scarlet_dark
+  # Сайты с тяжёлым видео/WebGL (вешают программный GPU эмулятора) — в конце, чтобы остальные проверялись.
   for u in https://example.com https://www.wikipedia.org https://en.m.wikipedia.org/wiki/Moon https://ru.wikipedia.org \
     https://duckduckgo.com https://www.mozilla.org https://gitlab.com https://stackoverflow.com \
-    https://news.ycombinator.com https://www.reddit.com https://www.bbc.com https://www.reuters.com https://www.theguardian.com \
-    https://www.nytimes.com https://www.cnn.com https://www.aljazeera.com https://www.dw.com https://www.lemonde.fr \
-    https://www.elpais.com https://www.spiegel.de https://www.youtube.com https://vimeo.com https://www.twitch.tv \
-    https://www.amazon.com https://www.ebay.com https://www.aliexpress.com https://www.etsy.com https://www.booking.com \
-    https://www.airbnb.com https://www.tripadvisor.com https://maps.google.com https://www.openstreetmap.org \
-    https://translate.google.com https://www.google.com https://www.bing.com https://search.brave.com https://yandex.ru \
-    https://mail.google.com https://outlook.live.com https://proton.me https://www.dropbox.com https://drive.google.com \
-    https://www.notion.so https://trello.com https://slack.com https://zoom.us https://www.linkedin.com \
-    https://www.x.com https://www.instagram.com https://www.facebook.com https://www.tiktok.com https://telegram.org \
-    https://web.whatsapp.com https://www.apple.com https://www.microsoft.com https://www.samsung.com https://developer.android.com \
-    https://kotlinlang.org https://www.python.org https://claude.ai https://github.com; do
+    https://news.ycombinator.com https://www.reddit.com https://www.bbc.com https://www.reuters.com \
+    https://www.theguardian.com https://www.nytimes.com https://www.cnn.com https://www.aljazeera.com \
+    https://www.dw.com https://www.amazon.com https://www.ebay.com https://www.aliexpress.com https://www.etsy.com \
+    https://www.booking.com https://www.airbnb.com https://www.tripadvisor.com https://maps.google.com \
+    https://www.openstreetmap.org https://translate.google.com https://www.google.com https://www.bing.com \
+    https://search.brave.com https://yandex.ru https://mail.google.com https://outlook.live.com https://proton.me \
+    https://www.dropbox.com https://drive.google.com https://www.notion.so https://trello.com https://slack.com \
+    https://zoom.us https://www.linkedin.com https://www.x.com https://www.instagram.com https://www.facebook.com \
+    https://www.tiktok.com https://telegram.org https://web.whatsapp.com https://www.apple.com \
+    https://www.microsoft.com https://www.samsung.com https://developer.android.com https://kotlinlang.org \
+    https://www.python.org https://claude.ai https://www.lemonde.fr https://www.elpais.com https://www.spiegel.de \
+    https://www.youtube.com https://vimeo.com https://www.twitch.tv https://github.com; do
     name="S-$(echo "$u" | sed 's#https\?://##; s#[^a-zA-Z0-9.]#_#g')"
     if [ "${GPU_HUNG:-0}" = 1 ]; then ok "$name: пропущен — графика эмулятора зависла раньше"; continue; fi
     # Каждые 6 тяжёлых сайтов — перезапуск Оси: программный GPU эмулятора иначе исчерпывает память и виснет.
