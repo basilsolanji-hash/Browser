@@ -8,7 +8,7 @@ import org.junit.runners.Parameterized
 import java.io.File
 
 /**
- * Каждая строка интерфейса: все 10 языков есть, не пустые, и подстановки (%s, %d, %1$s…)
+ * Каждая строка интерфейса: все 16 языков есть, не пустые, и подстановки (%s, %d, %1$s…)
  * совпадают с английской — иначе String.format упадёт или покажет не то. По случаю на ключ.
  */
 @RunWith(Parameterized::class)
@@ -35,7 +35,7 @@ class TranslationsTest(private val key: String) {
     @Test
     fun allLanguagesPresentAndFilled() {
         val row = Tr.M.getValue(key)
-        assertEquals("$key: нужно 10 языков", 10, row.size)
+        assertEquals("$key: нужно ${Tr.SUPPORTED.size} языков", Tr.SUPPORTED.size, row.size)
         row.forEachIndexed { i, s -> assertTrue("$key[$i] пустая", s.isNotBlank()) }
     }
 
@@ -69,10 +69,10 @@ class TranslationKeysUsedTest {
         assertTrue("нет перевода: $missing", missing.isEmpty())
     }
 
-    /** 300 позитивных фраз на каждом из 10 языков: без пустых, без повторов, одинаковое число. */
+    /** 300 позитивных фраз на каждом из 16 языков: без пустых, без повторов, одинаковое число. */
     @Test
     fun phraseFilesComplete() {
-        listOf("en", "ru", "es", "pt", "fr", "de", "ar", "hi", "tr", "zh").forEach { lang ->
+        Tr.SUPPORTED.forEach { lang ->
             val lines = File("src/main/assets/phrases/$lang.txt").readLines(Charsets.UTF_8).filter { it.isNotBlank() }
             assertEquals("$lang: число фраз", 300, lines.size)
             assertEquals("$lang: повторы", lines.size, lines.map { it.trim().lowercase() }.toSet().size)

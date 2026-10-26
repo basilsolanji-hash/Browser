@@ -54,7 +54,7 @@ PRATICIDADE NO DIA A DIA
 • Pesquisa rápida na tela inicial
 • Uma saudação e um pensamento positivo sempre que você abre o Ось
 • Estatísticas de uso só para você, no seu celular
-• 10 idiomas de interface e 6 temas, incluindo o escuro e o OLED
+• 16 idiomas de interface e 6 temas, incluindo o escuro e o OLED
 • Funciona em celulares e tablets
 
 UM MOTOR CONFIÁVEL

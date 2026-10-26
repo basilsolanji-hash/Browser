@@ -54,7 +54,7 @@ COMODIDAD DEL DÍA A DÍA
 • Búsqueda rápida en la pantalla de inicio
 • Un saludo y un pensamiento positivo cada vez que abres Ось
 • Estadísticas de uso solo para ti, en tu teléfono
-• 10 idiomas de interfaz y 6 temas, incluidos el oscuro y el OLED
+• 16 idiomas de interfaz y 6 temas, incluidos el oscuro y el OLED
 • Funciona en teléfonos y tablets
 
 UN MOTOR DE CONFIANZA

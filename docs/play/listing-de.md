@@ -54,7 +54,7 @@ KOMFORT FÜR JEDEN TAG
 • Schnellsuche auf dem Startbildschirm
 • Eine Begrüßung und ein positiver Gedanke bei jedem Start von Ось
 • Nutzungsstatistiken nur für dich, auf deinem Handy
-• 10 Sprachen und 6 Designs, darunter Dunkel und OLED
+• 16 Sprachen und 6 Designs, darunter Dunkel und OLED
 • Läuft auf Smartphones und Tablets
 
 EINE BEWÄHRTE ENGINE

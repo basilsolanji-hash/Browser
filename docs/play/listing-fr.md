@@ -54,7 +54,7 @@ LE CONFORT AU QUOTIDIEN
 • Recherche rapide depuis l'écran d'accueil
 • Un mot d'accueil et une pensée positive à chaque ouverture de Ось
 • Statistiques d'utilisation rien que pour vous, sur votre téléphone
-• 10 langues d'interface et 6 thèmes, dont sombre et OLED
+• 16 langues d'interface et 6 thèmes, dont sombre et OLED
 • Fonctionne sur téléphones et tablettes
 
 UN MOTEUR DE CONFIANCE
