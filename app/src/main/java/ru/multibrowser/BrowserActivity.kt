@@ -525,6 +525,11 @@ class BrowserActivity : AppCompatActivity() {
             override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) {
                 if (visible()) setFullScreen(fullScreen)
             }
+
+            // Долгое нажатие на ссылку, картинку, видео или аудио — меню как в Chrome.
+            override fun onContextMenu(session: GeckoSession, screenX: Int, screenY: Int, element: GeckoSession.ContentDelegate.ContextElement) {
+                if (visible()) showContextMenu(element)
+            }
         }
         s.promptDelegate = PromptHandler()
         s.selectionActionDelegate = tools.textActions()
@@ -623,6 +628,9 @@ class BrowserActivity : AppCompatActivity() {
                 Downloads.request(this@BrowserActivity, currentUrl.takeIf { it.startsWith("http") } ?: response.uri, response, privateMode = true)
             }
             override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) { setFullScreen(fullScreen) }
+            override fun onContextMenu(session: GeckoSession, screenX: Int, screenY: Int, element: GeckoSession.ContentDelegate.ContextElement) {
+                if (incognito) showContextMenu(element)
+            }
         }
         s.promptDelegate = PromptHandler()
         s.selectionActionDelegate = tools.textActions()
@@ -753,16 +761,19 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
-    /** Чип профиля: список профилей, текущий отмечен; выбор сразу переключает. */
-    private fun showProfilePicker() {
-        val all = Profiles.all(this)
+    /**
+     * Чип профиля: список профилей, текущий отмечен; выбор сразу переключает.
+     * С [onPick] — выбор другого профиля для ссылки («Открыть в другом профиле»): без текущего и без «Все профили».
+     */
+    private fun showProfilePicker(onPick: ((Profile) -> Unit)? = null) {
+        val all = Profiles.all(this).filter { onPick == null || it.id != profileId }
         val dialog = android.app.Dialog(this)
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, dp(12), 0, dp(8))
             addView(TextView(context).apply {
-                text = Tr.t("switch_profile")
+                text = Tr.t(if (onPick == null) "switch_profile" else "qs_pick_profile")
                 textSize = 16f
                 typeface = Typeface.DEFAULT_BOLD
                 setTextColor(Ui.TEXT)
@@ -770,7 +781,7 @@ class BrowserActivity : AppCompatActivity() {
             })
         }
         all.forEach { p ->
-            val current = !incognito && p.id == profileId
+            val current = onPick == null && !incognito && p.id == profileId
             content.addView(LinearLayout(this).apply {
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(dp(20), dp(6), dp(16), dp(6))
@@ -779,6 +790,7 @@ class BrowserActivity : AppCompatActivity() {
                 contentDescription = p.name
                 setOnClickListener {
                     dialog.dismiss()
+                    if (onPick != null) return@setOnClickListener onPick(p)
                     if (current) return@setOnClickListener
                     exitIncognito()
                     openTab(p.id, if (Tabs.isTab(pin.id)) Pins.all(this@BrowserActivity, p.id).first()
@@ -819,9 +831,9 @@ class BrowserActivity : AppCompatActivity() {
                 })
             })
         }
-        content.addView(View(this).apply { setBackgroundColor(Ui.BORDER) },
+        if (onPick == null) content.addView(View(this).apply { setBackgroundColor(Ui.BORDER) },
             LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)).apply { topMargin = dp(6); bottomMargin = dp(6) })
-        content.addView(LinearLayout(this).apply {
+        if (onPick == null) content.addView(LinearLayout(this).apply {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(20), 0, dp(16), 0)
             minimumHeight = dp(52)
@@ -846,8 +858,13 @@ class BrowserActivity : AppCompatActivity() {
         dialog.window?.apply {
             setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
             setDimAmount(0.25f)
-            setGravity(Gravity.TOP or Gravity.START)
-            attributes = attributes.apply { x = dp(8); y = dp(8) }
+            if (onPick == null) {
+                setGravity(Gravity.TOP or Gravity.START)
+                attributes = attributes.apply { x = dp(8); y = dp(8) }
+            } else {
+                setGravity(Gravity.CENTER)
+                setDimAmount(0.45f)
+            }
             val dm = resources.displayMetrics
             setLayout(minOf(dp(320), dm.widthPixels - dp(16)), android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
         }
@@ -917,6 +934,99 @@ class BrowserActivity : AppCompatActivity() {
             Код: ${error.category}/${error.code}</p>
             <p style="color:#2BA89A">${Tr.t("err_retry")}</p></body>"""
         return "data:text/html;charset=utf-8," + Uri.encode(html)
+    }
+
+    /** Меню долгого нажатия: ссылка, картинка, видео, аудио. В инкогнито — без профилей, групп и избранного. */
+    private fun showContextMenu(element: GeckoSession.ContentDelegate.ContextElement) {
+        val t = LinkMenu.Target.of(element) ?: return
+        fun item(icon: Int, title: String, action: () -> Unit) = LinkMenu.Item(icon, title, action)
+        val link = t.link
+        val linkGroup = mutableListOf<LinkMenu.Item>()
+        val copyGroup = mutableListOf<LinkMenu.Item>()
+        if (link != null && t.webLink) {
+            if (incognito) {
+                linkGroup += item(R.drawable.ic_open_external, Tr.t("open")) { session?.let { Gecko.loadUrl(it, link) } }
+            } else {
+                linkGroup += item(R.drawable.ic_add, Tr.t("ctx_open_new_tab")) { openInBackground(link) }
+                linkGroup += item(R.drawable.ic_group, Tr.t("ctx_open_in_group")) { openInGroup(link) }
+                linkGroup += item(R.drawable.ic_incognito, Tr.t("ctx_open_incognito")) { openIncognito(link) }
+                if (Profiles.all(this).size > 1) linkGroup += item(R.drawable.ic_tabs, Tr.t("ctx_open_in_profile")) { openInProfile(link) }
+            }
+        }
+        if (link != null) {
+            copyGroup += item(R.drawable.ic_link, Tr.t("ctx_copy_link")) { copyText(link, Tr.t("link_copied")) }
+            t.linkText?.let { text -> copyGroup += item(R.drawable.ic_edit, Tr.t("ctx_copy_link_text")) { copyText(text, Tr.t("copied")) } }
+            if (t.webLink) {
+                copyGroup += item(R.drawable.ic_download, Tr.t("ctx_download_link")) { fetchDownload(link, currentUrl, incognito) }
+                if (!incognito) copyGroup += item(R.drawable.ic_star, BookmarksActivity.menuLabel(this, link)) {
+                    BookmarksActivity.toggle(this, link, t.linkText ?: t.title.orEmpty())
+                }
+            }
+            copyGroup += item(R.drawable.ic_share, Tr.t("ctx_share_link")) { shareText(link, t.linkText) }
+        }
+        val mediaGroup = mutableListOf<LinkMenu.Item>()
+        val media = t.media
+        if (media != null) {
+            val (open, download, copy) = when (t.type) {
+                GeckoSession.ContentDelegate.ContextElement.TYPE_VIDEO -> Triple("ctx_open_video", "ctx_download_video", "ctx_copy_video")
+                GeckoSession.ContentDelegate.ContextElement.TYPE_AUDIO -> Triple("ctx_open_audio", "ctx_download_audio", "ctx_copy_audio")
+                else -> Triple("ctx_open_image", "ctx_download_image", "ctx_copy_image")
+            }
+            val icon = when (t.type) {
+                GeckoSession.ContentDelegate.ContextElement.TYPE_VIDEO -> R.drawable.ic_video
+                GeckoSession.ContentDelegate.ContextElement.TYPE_AUDIO -> R.drawable.ic_audio
+                else -> R.drawable.ic_image
+            }
+            mediaGroup += item(icon, Tr.t(open)) { if (incognito) session?.let { Gecko.loadUrl(it, media) } else openInBackground(media) }
+            mediaGroup += item(R.drawable.ic_download, Tr.t(download)) { fetchDownload(media, currentUrl, incognito) }
+            mediaGroup += item(R.drawable.ic_link, Tr.t(copy)) { copyText(media, Tr.t("link_copied")) }
+            if (t.type == GeckoSession.ContentDelegate.ContextElement.TYPE_IMAGE) {
+                mediaGroup += item(R.drawable.ic_share, Tr.t("ctx_share_image")) { shareText(media, t.title) }
+            }
+        }
+        LinkMenu(this).show(t, listOf(linkGroup, copyGroup, mediaGroup))
+    }
+
+    /** Новая вкладка в фоне (как в Chrome) и подсказка «Открыто в новой вкладке · Перейти». */
+    private fun openInBackground(url: String, group: String? = null) {
+        val tab = Tabs.add(this, profileId, url, group)
+        renderTabs()
+        Snack.show(this, Tr.t("ctx_opened_in_tab"), Tr.t("qs_go")) { openTab(profileId, Tabs.pin(this, tab)) }
+    }
+
+    /** «В новой вкладке группы»: в группу текущей вкладки, а если её нет — новая группа из текущей и новой. */
+    private fun openInGroup(url: String) {
+        val current = Tabs.byId(this, profileId, pin.id)
+        val group = current?.group?.takeIf { Tabs.group(this, profileId, it) != null } ?: run {
+            val n = Tabs.groups(this, profileId).size
+            val g = Tabs.addGroup(this, profileId, Tr.t("group_n", n + 1), Tabs.GROUP_COLORS[n % Tabs.GROUP_COLORS.size])
+            if (current != null) Tabs.setGroup(this, profileId, listOf(current.id), g.id)
+            g.id
+        }
+        openInBackground(url, group)
+    }
+
+    /** «Открыть в другом профиле»: выбор профиля, ссылка — новой вкладкой в нём. */
+    private fun openInProfile(url: String) {
+        showProfilePicker { p ->
+            val tab = Tabs.add(this, p.id, url)
+            Snack.show(this, Tr.t("ctx_opened_in_profile", p.name), Tr.t("qs_go")) { openTab(p.id, Tabs.pin(this, tab)) }
+        }
+    }
+
+    private fun copyText(text: String, done: String) {
+        getSystemService(ClipboardManager::class.java)?.setPrimaryClip(ClipData.newPlainText("text", text))
+        Toast.makeText(this, done, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun shareText(text: String, subject: String?) {
+        runCatching {
+            startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, text)
+                subject?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
+            }, Tr.t("share")))
+        }
     }
 
     private fun copyUrl() {

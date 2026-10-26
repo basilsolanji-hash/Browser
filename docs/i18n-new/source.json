@@ -2618,5 +2618,85 @@
  "https_desc": {
   "en": "In «HTTPS only» mode insecure addresses are upgraded to HTTPS; a site without HTTPS will not open.",
   "ru": "В режиме «Только HTTPS» незащищённые адреса открываются по HTTPS; сайт без HTTPS не откроется."
+ },
+ "ctx_open_new_tab": {
+  "en": "Open in new tab",
+  "ru": "Открыть в новой вкладке"
+ },
+ "ctx_open_in_group": {
+  "en": "Open in new tab in group",
+  "ru": "Открыть в новой вкладке группы"
+ },
+ "ctx_open_incognito": {
+  "en": "Open in incognito tab",
+  "ru": "Открыть во вкладке инкогнито"
+ },
+ "ctx_open_in_profile": {
+  "en": "Open in another profile",
+  "ru": "Открыть в другом профиле"
+ },
+ "ctx_copy_link": {
+  "en": "Copy link address",
+  "ru": "Копировать адрес ссылки"
+ },
+ "ctx_copy_link_text": {
+  "en": "Copy link text",
+  "ru": "Копировать текст ссылки"
+ },
+ "ctx_download_link": {
+  "en": "Download link",
+  "ru": "Скачать по ссылке"
+ },
+ "ctx_share_link": {
+  "en": "Share link",
+  "ru": "Поделиться ссылкой"
+ },
+ "ctx_open_image": {
+  "en": "Open image in new tab",
+  "ru": "Открыть изображение в новой вкладке"
+ },
+ "ctx_download_image": {
+  "en": "Download image",
+  "ru": "Скачать изображение"
+ },
+ "ctx_copy_image": {
+  "en": "Copy image address",
+  "ru": "Копировать адрес изображения"
+ },
+ "ctx_share_image": {
+  "en": "Share image",
+  "ru": "Поделиться изображением"
+ },
+ "ctx_open_video": {
+  "en": "Open video in new tab",
+  "ru": "Открыть видео в новой вкладке"
+ },
+ "ctx_download_video": {
+  "en": "Download video",
+  "ru": "Скачать видео"
+ },
+ "ctx_copy_video": {
+  "en": "Copy video address",
+  "ru": "Копировать адрес видео"
+ },
+ "ctx_open_audio": {
+  "en": "Open audio in new tab",
+  "ru": "Открыть аудио в новой вкладке"
+ },
+ "ctx_download_audio": {
+  "en": "Download audio",
+  "ru": "Скачать аудио"
+ },
+ "ctx_copy_audio": {
+  "en": "Copy audio address",
+  "ru": "Копировать адрес аудио"
+ },
+ "ctx_opened_in_tab": {
+  "en": "Opened in new tab",
+  "ru": "Открыто в новой вкладке"
+ },
+ "ctx_opened_in_profile": {
+  "en": "Opened in profile «%s»",
+  "ru": "Открыто в профиле «%s»"
  }
 }
