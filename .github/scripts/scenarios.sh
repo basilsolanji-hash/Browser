@@ -291,6 +291,33 @@ CASES
     else fail "M: пункт «$item» не найден в меню"; fi
     adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 1
   done
+  # Долгое нажатие на ссылку и картинку: меню как в Chrome, «Открыть в новой вкладке» — в фоне.
+  for attempt in 1 2; do
+    sc "LP-link" "start BrowserActivity --ei profile 8 --es url http://localhost:8770/links; sleep 6"
+    xy=$(find_xy "Long press link"); [ -n "$xy" ] || xy="160 260"
+    adb shell input swipe $xy $xy 1500; sleep 2
+    screen_text > "$OUT/lp.xml"
+    grep -qF "$(tr_text ctx_open_new_tab en)" "$OUT/lp.xml" && break
+    adb shell input keyevent 4; sleep 1
+  done
+  shot "LP-link-menu"
+  for key in ctx_open_new_tab ctx_open_in_group ctx_open_incognito ctx_open_in_profile ctx_copy_link ctx_copy_link_text ctx_download_link ctx_share_link; do
+    want=$(tr_text "$key" en)
+    check "LP: в меню ссылки «$want»" 'grep -qF "text=\"$want\"" "$OUT/lp.xml"'
+  done
+  check "LP: в шапке адрес ссылки" 'grep -qF "localhost:8770/target?x=1" "$OUT/lp.xml"'
+  tap_text "$(tr_text ctx_open_new_tab en)"; sleep 1
+  check "LP: подсказка «$(tr_text ctx_opened_in_tab en)»" 'screen_text | grep -qF "$(tr_text ctx_opened_in_tab en)"'
+  shot "LP-link-opened"
+  check "LP: вкладка открыта в фоне" 'adb shell run-as $PKG cat shared_prefs/tabs.xml 2>/dev/null | grep -q "target?x=1"'
+  xy=$(find_xy "Test picture"); [ -n "$xy" ] || xy="160 520"
+  adb shell input swipe $xy $xy 1500; sleep 2
+  screen_text > "$OUT/lp-img.xml"; shot "LP-image-menu"
+  for key in ctx_open_image ctx_download_image ctx_copy_image ctx_share_image; do
+    want=$(tr_text "$key" en)
+    check "LP: в меню картинки «$want»" 'grep -qF "text=\"$want\"" "$OUT/lp-img.xml"'
+  done
+  adb shell input keyevent 4; sleep 1
   # Инкогнито не оставляет истории.
   stop; adb shell run-as "$PKG" rm -f shared_prefs/history.xml
   sc "P-incognito" "start BrowserActivity --ei profile 9 --es action incognito --es url https://example.org/; sleep 8"
