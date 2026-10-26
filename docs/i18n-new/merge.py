@@ -4,7 +4,7 @@ S = os.path.dirname(os.path.abspath(__file__))
 NEW = ["be", "uz", "ky", "tg", "kk", "hy"]
 tr = {l: json.load(open(f"{S}/tr_{l}.json", encoding="utf-8")) for l in NEW}
 def esc(v): return v.replace("\\", "\\\\").replace('"', '\\"').replace("$", "\\$")
-os.chdir("/home/user/browser")
+os.chdir(os.path.join(S, "..", ".."))
 for f in glob.glob("app/src/main/java/ru/multibrowser/Tr*.kt"):
     s = open(f, encoding="utf-8").read()
     def rep(m):

@@ -2402,5 +2402,201 @@
  "no_tabs_to_close": {
   "en": "No open tabs to close",
   "ru": "Нет открытых вкладок для закрытия"
+ },
+ "dt_copy_path": {
+  "en": "Copy file path",
+  "ru": "Копировать путь к файлу"
+ },
+ "dt_dl_waiting": {
+  "en": "Waiting for your permission",
+  "ru": "Ждёт вашего разрешения"
+ },
+ "dt_dl_delete_q": {
+  "en": "Delete «%s» from the computer?",
+  "ru": "Удалить «%s» с компьютера?"
+ },
+ "dt_find": {
+  "en": "Find on page",
+  "ru": "Найти на странице"
+ },
+ "dt_find_hint": {
+  "en": "Find on page",
+  "ru": "Найти на странице"
+ },
+ "dt_find_count": {
+  "en": "%1$d of %2$d",
+  "ru": "%1$d из %2$d"
+ },
+ "dt_find_none": {
+  "en": "No matches",
+  "ru": "Нет совпадений"
+ },
+ "dt_find_prev": {
+  "en": "Previous match",
+  "ru": "Предыдущее совпадение"
+ },
+ "dt_find_next": {
+  "en": "Next match",
+  "ru": "Следующее совпадение"
+ },
+ "dt_print": {
+  "en": "Print…",
+  "ru": "Печать…"
+ },
+ "dt_pin_current": {
+  "en": "Current PIN",
+  "ru": "Текущий PIN"
+ },
+ "dt_extensions": {
+  "en": "Extensions",
+  "ru": "Расширения"
+ },
+ "dt_ext_manage": {
+  "en": "Manage extensions",
+  "ru": "Управление расширениями"
+ },
+ "dt_ext_empty": {
+  "en": "No extensions in this profile yet",
+  "ru": "В этом профиле пока нет расширений"
+ },
+ "dt_ext_no_popup": {
+  "en": "no popup window",
+  "ru": "нет всплывающего окна"
+ },
+ "dt_ext_profile_note": {
+  "en": "Extensions of the profile «%s». Each profile has its own set; incognito windows run without extensions.",
+  "ru": "Расширения профиля «%s». У каждого профиля свой набор; окна инкогнито работают без расширений."
+ },
+ "dt_ext_warning": {
+  "en": "Only some Chrome extensions work in Ось: the Chromium engine here supports just part of the extension API. For example, there is no declarativeNetRequest, so ad blockers such as uBlock Origin Lite will not block anything, and extensions that need the toolbar button API or open their own tabs may not work fully.",
+  "ru": "В Оси работает только часть расширений Chrome: здесь движок Chromium поддерживает лишь часть API расширений. Например, нет declarativeNetRequest, поэтому блокировщики рекламы вроде uBlock Origin Lite ничего не заблокируют, а расширения, которым нужен API кнопки на панели или свои вкладки, могут работать не полностью."
+ },
+ "dt_ext_install_title": {
+  "en": "Install from the Chrome Web Store",
+  "ru": "Установить из Chrome Web Store"
+ },
+ "dt_ext_input_hint": {
+  "en": "Link or ID from the Chrome Web Store",
+  "ru": "Ссылка или ID из Chrome Web Store"
+ },
+ "dt_ext_install": {
+  "en": "Install",
+  "ru": "Установить"
+ },
+ "dt_ext_installing": {
+  "en": "Installing…",
+  "ru": "Устанавливается…"
+ },
+ "dt_ext_store": {
+  "en": "Open the store",
+  "ru": "Открыть магазин"
+ },
+ "dt_ext_net_note": {
+  "en": "Ось contacts the Chrome Web Store only when you press «Install». Extensions are not updated in the background: to update one, install it again.",
+  "ru": "Ось обращается к Chrome Web Store только по кнопке «Установить». В фоне расширения не обновляются: чтобы обновить, установите его ещё раз."
+ },
+ "dt_ext_list": {
+  "en": "Installed",
+  "ru": "Установленные"
+ },
+ "dt_ext_on": {
+  "en": "On",
+  "ru": "Включено"
+ },
+ "dt_ext_off": {
+  "en": "Off",
+  "ru": "Выключено"
+ },
+ "dt_ext_options": {
+  "en": "Options",
+  "ru": "Параметры"
+ },
+ "dt_ext_remove_q": {
+  "en": "Remove «%s» from this profile?",
+  "ru": "Удалить «%s» из этого профиля?"
+ },
+ "dt_ext_removed": {
+  "en": "Removed: %s",
+  "ru": "Удалено: %s"
+ },
+ "dt_ext_installed": {
+  "en": "Installed: %s",
+  "ru": "Установлено: %s"
+ },
+ "dt_ext_err_id": {
+  "en": "No extension ID found. Paste a Chrome Web Store link or a 32-letter ID.",
+  "ru": "ID расширения не найден. Вставьте ссылку из Chrome Web Store или ID из 32 латинских букв."
+ },
+ "dt_ext_err_network": {
+  "en": "Couldn't download the extension. Check the internet connection.",
+  "ru": "Не удалось скачать расширение. Проверьте подключение к интернету."
+ },
+ "dt_ext_err_notfound": {
+  "en": "The Chrome Web Store has no such extension (or it isn't available for this version of Chromium).",
+  "ru": "В Chrome Web Store нет такого расширения (или оно недоступно для этой версии Chromium)."
+ },
+ "dt_ext_err_bad": {
+  "en": "The package from the Chrome Web Store failed the signature check and was not installed.",
+  "ru": "Пакет из Chrome Web Store не прошёл проверку подписи и не установлен."
+ },
+ "dt_ext_err_load": {
+  "en": "Ось couldn't start this extension. %s",
+  "ru": "Ось не смогла запустить это расширение. %s"
+ },
+ "dt_cabinet_desc": {
+  "en": "Everything saved in this profile: passwords, tab sets, favorites, notes and files. Stored only on this computer.",
+  "ru": "Всё, что сохранено в этом профиле: пароли, наборы вкладок, избранное, заметки и файлы. Хранится только на этом компьютере."
+ },
+ "dt_passwords_local": {
+  "en": "Passwords are encrypted with your Windows account key and never leave this computer. Ось has no servers. Showing or copying a password asks for Windows Hello.",
+  "ru": "Пароли зашифрованы ключом вашей учётной записи Windows и не покидают этот компьютер. Серверов у Оси нет. Показ и копирование пароля — после Windows Hello."
+ },
+ "dt_backup_desc": {
+  "en": "The copy holds this profile's passwords, tab sets, favorites and notes. It is encrypted with the password you set; without it the file can't be opened. The file also opens in Ось on Android.",
+  "ru": "В копии — пароли, наборы вкладок, избранное и заметки этого профиля. Она зашифрована паролем, который вы зададите; без него файл не открыть. Файл открывается и в Оси на Android."
+ },
+ "dt_hello_reason": {
+  "en": "Ось: confirm it's you to see the password",
+  "ru": "Ось: подтвердите, что это вы, чтобы увидеть пароль"
+ },
+ "dt_pw_no_crypto": {
+  "en": "Windows can't encrypt passwords right now, so they aren't saved.",
+  "ru": "Windows сейчас не может зашифровать пароли, поэтому они не сохраняются."
+ },
+ "dt_pw_bad_site": {
+  "en": "Enter the site address and the password",
+  "ru": "Укажите адрес сайта и пароль"
+ },
+ "dt_mobile_site": {
+  "en": "Mobile site",
+  "ru": "Мобильная версия"
+ },
+ "dt_no_other_browsers": {
+  "en": "No other browsers found",
+  "ru": "Другие браузеры не найдены"
+ },
+ "dt_perm_os_off": {
+  "en": "Access to %s is turned off for apps in Windows settings (Privacy & security). Turn it on there, then try again.",
+  "ru": "Доступ к «%s» для приложений выключен в настройках Windows (Конфиденциальность и защита). Включите его там и попробуйте снова."
+ },
+ "dt_toolbar_button_desc": {
+  "en": "What the button to the right of the address bar does.",
+  "ru": "Что делает кнопка справа от адресной строки."
+ },
+ "dt_more_tools": {
+  "en": "More tools",
+  "ru": "Другие инструменты"
+ },
+ "dt_doc_broken": {
+  "en": "This document could not be opened: the file is damaged or the format is not supported. Use «Open with».",
+  "ru": "Документ не открылся: файл повреждён или формат не поддерживается. Используйте «Открыть с помощью»."
+ },
+ "dt_backup_pw_rule": {
+  "en": "At least 10 characters, not only digits and not a common password",
+  "ru": "Не короче 10 символов, не только цифры и не частый пароль"
+ },
+ "dt_backup_warning": {
+  "en": "The backup file is protected only by its password: if you forget it, the data cannot be recovered, and a weak password can be guessed.",
+  "ru": "Файл копии защищён только паролем: забудете его — данные не вернуть, а слабый пароль можно подобрать."
  }
 }

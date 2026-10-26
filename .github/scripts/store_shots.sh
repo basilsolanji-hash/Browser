@@ -37,7 +37,7 @@ tr_text() {
   python3 - "$1" "$2" <<'PY'
 import sys, re, glob
 key, lang = sys.argv[1], sys.argv[2]
-idx = ["en","ru","es","pt","fr","de","ar","hi","tr","zh"].index(lang)
+idx = ["en","ru","es","pt","fr","de","ar","hi","tr","zh","be","uz","ky","tg","kk","hy"].index(lang)
 for f in glob.glob("app/src/main/java/ru/multibrowser/Tr*.kt"):
     m = re.search(r'^\s+"' + re.escape(key) + r'" to listOf\((.*)\),?\s*$', open(f, encoding="utf-8").read(), re.M)
     if m:
