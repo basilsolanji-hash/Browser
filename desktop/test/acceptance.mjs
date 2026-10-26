@@ -2252,10 +2252,12 @@ try {
         check('language list: «system» and 16 languages', opts.length === 17 && ['be', 'uz', 'ky', 'tg', 'kk', 'hy'].every((x) => opts.includes(x)), opts.join(','));
       }
       await st59.selectOption('#lang', l);
-      const hint = tr59.address_hint[col(l)];
-      const switched = await waitFor(async () => (await ui59.getAttribute('#address', 'placeholder')) === hint && (await ui59.evaluate(() => document.documentElement.lang)), 8000);
-      check(`${l}: browser chrome in the new language, left to right`, switched === l && (await ui59.evaluate(() => document.documentElement.dir)) !== 'rtl', `${switched} ${await ui59.getAttribute('#address', 'placeholder')}`);
+      await waitFor(async () => (await st59.evaluate(() => document.documentElement.lang)) === l, 8000);
       await main(() => globalThis.osTest.windows()[0].closePanel());
+      const hint = tr59.address_hint[col(l)];
+      const placeholder = () => ui59.evaluate(() => document.querySelector('#address')?.getAttribute('placeholder') ?? '');
+      const switched = await waitFor(async () => (await placeholder()) === hint && (await ui59.evaluate(() => document.documentElement.lang)), 8000);
+      check(`${l}: browser chrome in the new language, left to right`, switched === l && (await ui59.evaluate(() => document.documentElement.dir)) !== 'rtl', `${switched} ${await placeholder()}`);
       const phrase = await main(async () => {
         const w = globalThis.osTest.windows()[0];
         w.activate('start');
