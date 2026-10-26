@@ -1,0 +1,194 @@
+Performing Streamed Install
+Success
+8770
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.9 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.7 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.064s)
+== L-en-MainActivity 08:08:18
+== L-en-AccountActivity 08:08:24
+== L-en-SettingsActivity 08:08:27
+== L-en-AboutActivity 08:08:30
+== L-en-HelpActivity 08:08:33
+== L-en-StatsActivity 08:08:35
+== L-en-NotesActivity 08:08:38
+== L-en-SavedPagesActivity 08:08:40
+== L-en-DownloadsActivity 08:08:43
+== L-en-BookmarksActivity 08:08:45
+== L-en-SiteSettingsActivity 08:08:47
+== L-en-SecurityCheckActivity 08:08:50
+== L-en-OnboardingActivity 08:08:52
+== L-en-Tabs 08:08:56
+== L-en-Profile 08:08:58
+== L-en-Browser 08:09:01
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.5 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.9 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.048s)
+== L-ru-MainActivity 08:09:26
+== L-ru-AccountActivity 08:09:31
+== L-ru-SettingsActivity 08:09:33
+== L-ru-AboutActivity 08:09:36
+== L-ru-HelpActivity 08:09:38
+== L-ru-StatsActivity 08:09:41
+== L-ru-NotesActivity 08:09:43
+== L-ru-SavedPagesActivity 08:09:45
+== L-ru-DownloadsActivity 08:09:47
+== L-ru-BookmarksActivity 08:09:50
+== L-ru-SiteSettingsActivity 08:09:52
+== L-ru-SecurityCheckActivity 08:09:54
+== L-ru-OnboardingActivity 08:09:57
+== L-ru-Tabs 08:09:59
+== L-ru-Profile 08:10:01
+== L-ru-Browser 08:10:04
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.8 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.6 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.047s)
+== L-es-MainActivity 08:10:28
+== L-es-AccountActivity 08:10:32
+== L-es-SettingsActivity 08:10:34
+== L-es-AboutActivity 08:10:36
+== L-es-HelpActivity 08:10:39
+== L-es-StatsActivity 08:10:41
+== L-es-NotesActivity 08:10:43
+== L-es-SavedPagesActivity 08:10:46
+== L-es-DownloadsActivity 08:10:48
+== L-es-BookmarksActivity 08:10:50
+== L-es-SiteSettingsActivity 08:10:52
+== L-es-SecurityCheckActivity 08:10:55
+== L-es-OnboardingActivity 08:10:57
+== L-es-Tabs 08:10:59
+== L-es-Profile 08:11:02
+== L-es-Browser 08:11:04
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.1 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 3.1 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.047s)
+== L-pt-MainActivity 08:11:28
+== L-pt-AccountActivity 08:11:31
+== L-pt-SettingsActivity 08:11:33
+== L-pt-AboutActivity 08:11:36
+== L-pt-HelpActivity 08:11:38
+== L-pt-StatsActivity 08:11:40
+== L-pt-NotesActivity 08:11:43
+== L-pt-SavedPagesActivity 08:11:45
+== L-pt-DownloadsActivity 08:11:47
+== L-pt-BookmarksActivity 08:11:50
+== L-pt-SiteSettingsActivity 08:11:52
+== L-pt-SecurityCheckActivity 08:11:54
+== L-pt-OnboardingActivity 08:11:56
+== L-pt-Tabs 08:11:59
+== L-pt-Profile 08:12:01
+== L-pt-Browser 08:12:03
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.8 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.9 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.033s)
+== L-fr-MainActivity 08:12:27
+== L-fr-AccountActivity 08:12:30
+== L-fr-SettingsActivity 08:12:33
+== L-fr-AboutActivity 08:12:35
+== L-fr-HelpActivity 08:12:37
+== L-fr-StatsActivity 08:12:40
+== L-fr-NotesActivity 08:12:42
+== L-fr-SavedPagesActivity 08:12:44
+== L-fr-DownloadsActivity 08:12:47
+== L-fr-BookmarksActivity 08:12:49
+== L-fr-SiteSettingsActivity 08:12:51
+== L-fr-SecurityCheckActivity 08:12:53
+== L-fr-OnboardingActivity 08:12:56
+== L-fr-Tabs 08:12:58
+== L-fr-Profile 08:13:00
+== L-fr-Browser 08:13:03
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.7 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.5 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.077s)
+== L-de-MainActivity 08:13:26
+== L-de-AccountActivity 08:13:30
+== L-de-SettingsActivity 08:13:32
+== L-de-AboutActivity 08:13:35
+== L-de-HelpActivity 08:13:37
+== L-de-StatsActivity 08:13:39
+== L-de-NotesActivity 08:13:42
+== L-de-SavedPagesActivity 08:13:44
+== L-de-DownloadsActivity 08:13:46
+== L-de-BookmarksActivity 08:13:48
+== L-de-SiteSettingsActivity 08:13:51
+== L-de-SecurityCheckActivity 08:13:53
+== L-de-OnboardingActivity 08:13:55
+== L-de-Tabs 08:13:57
+== L-de-Profile 08:14:00
+== L-de-Browser 08:14:02
+/tmp/settings.xml: 1 file pushed, 0 skipped. 2.3 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.9 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.048s)
+== L-ar-MainActivity 08:14:26
+== L-ar-AccountActivity 08:14:29
+== L-ar-SettingsActivity 08:14:32
+== L-ar-AboutActivity 08:14:34
+== L-ar-HelpActivity 08:14:36
+== L-ar-StatsActivity 08:14:39
+== L-ar-NotesActivity 08:14:41
+== L-ar-SavedPagesActivity 08:14:43
+== L-ar-DownloadsActivity 08:14:46
+== L-ar-BookmarksActivity 08:14:48
+== L-ar-SiteSettingsActivity 08:14:50
+== L-ar-SecurityCheckActivity 08:14:53
+== L-ar-OnboardingActivity 08:14:55
+== L-ar-Tabs 08:14:57
+== L-ar-Profile 08:14:59
+== L-ar-Browser 08:15:02
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.8 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.6 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.051s)
+== L-hi-MainActivity 08:15:26
+== L-hi-AccountActivity 08:15:29
+== L-hi-SettingsActivity 08:15:31
+== L-hi-AboutActivity 08:15:34
+== L-hi-HelpActivity 08:15:36
+== L-hi-StatsActivity 08:15:38
+== L-hi-NotesActivity 08:15:41
+== L-hi-SavedPagesActivity 08:15:43
+== L-hi-DownloadsActivity 08:15:45
+== L-hi-BookmarksActivity 08:15:48
+== L-hi-SiteSettingsActivity 08:15:50
+== L-hi-SecurityCheckActivity 08:15:52
+== L-hi-OnboardingActivity 08:15:54
+== L-hi-Tabs 08:15:57
+== L-hi-Profile 08:15:59
+== L-hi-Browser 08:16:01
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.8 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.9 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.072s)
+== L-tr-MainActivity 08:16:25
+== L-tr-AccountActivity 08:16:28
+== L-tr-SettingsActivity 08:16:31
+== L-tr-AboutActivity 08:16:33
+== L-tr-HelpActivity 08:16:36
+== L-tr-StatsActivity 08:16:38
+== L-tr-NotesActivity 08:16:40
+== L-tr-SavedPagesActivity 08:16:42
+== L-tr-DownloadsActivity 08:16:45
+== L-tr-BookmarksActivity 08:16:47
+== L-tr-SiteSettingsActivity 08:16:49
+== L-tr-SecurityCheckActivity 08:16:52
+== L-tr-OnboardingActivity 08:16:54
+== L-tr-Tabs 08:16:56
+== L-tr-Profile 08:16:58
+== L-tr-Browser 08:17:01
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.5 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.8 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.047s)
+== L-zh-MainActivity 08:17:25
+== L-zh-AccountActivity 08:17:28
+== L-zh-SettingsActivity 08:17:30
+== L-zh-AboutActivity 08:17:33
+== L-zh-HelpActivity 08:17:35
+== L-zh-StatsActivity 08:17:37
+== L-zh-NotesActivity 08:17:40
+== L-zh-SavedPagesActivity 08:17:42
+== L-zh-DownloadsActivity 08:17:44
+== L-zh-BookmarksActivity 08:17:47
+== L-zh-SiteSettingsActivity 08:17:49
+== L-zh-SecurityCheckActivity 08:17:51
+== L-zh-OnboardingActivity 08:17:53
+== L-zh-Tabs 08:17:56
+== L-zh-Profile 08:17:58
+== L-zh-Browser 08:18:00
+Часть 1: сценариев 160, проверок 360, провалов 0

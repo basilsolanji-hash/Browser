@@ -1,0 +1,360 @@
+ok   L-en-MainActivity: без падения
+ok   L-en-AccountActivity: без падения
+ok   L-en-SettingsActivity: без падения
+ok   L-en-AboutActivity: без падения
+ok   L-en-HelpActivity: без падения
+ok   L-en-StatsActivity: без падения
+ok   L-en-NotesActivity: без падения
+ok   L-en-SavedPagesActivity: без падения
+ok   L-en-DownloadsActivity: без падения
+ok   L-en-BookmarksActivity: без падения
+ok   L-en-SiteSettingsActivity: без падения
+ok   L-en-SecurityCheckActivity: без падения
+ok   L-en-OnboardingActivity: без падения
+ok   L-en-Tabs: без падения
+ok   L-en-Profile: без падения
+ok   L-en-Browser: без падения
+ok   L-en-SettingsActivity: заголовок «Settings»
+ok   L-en-AboutActivity: заголовок «About»
+ok   L-en-StatsActivity: заголовок «Statistics»
+ok   L-en-HelpActivity: заголовок «Help &amp; feedback»
+ok   L-ru-MainActivity: без падения
+ok   L-ru-AccountActivity: без падения
+ok   L-ru-SettingsActivity: без падения
+ok   L-ru-AboutActivity: без падения
+ok   L-ru-HelpActivity: без падения
+ok   L-ru-StatsActivity: без падения
+ok   L-ru-NotesActivity: без падения
+ok   L-ru-SavedPagesActivity: без падения
+ok   L-ru-DownloadsActivity: без падения
+ok   L-ru-BookmarksActivity: без падения
+ok   L-ru-SiteSettingsActivity: без падения
+ok   L-ru-SecurityCheckActivity: без падения
+ok   L-ru-OnboardingActivity: без падения
+ok   L-ru-Tabs: без падения
+ok   L-ru-Profile: без падения
+ok   L-ru-Browser: без падения
+ok   L-ru-SettingsActivity: заголовок «Настройки»
+ok   L-ru-AboutActivity: заголовок «О приложении»
+ok   L-ru-StatsActivity: заголовок «Статистика»
+ok   L-ru-HelpActivity: заголовок «Справка и отзывы»
+ok   L-es-MainActivity: без падения
+ok   L-es-AccountActivity: без падения
+ok   L-es-SettingsActivity: без падения
+ok   L-es-AboutActivity: без падения
+ok   L-es-HelpActivity: без падения
+ok   L-es-StatsActivity: без падения
+ok   L-es-NotesActivity: без падения
+ok   L-es-SavedPagesActivity: без падения
+ok   L-es-DownloadsActivity: без падения
+ok   L-es-BookmarksActivity: без падения
+ok   L-es-SiteSettingsActivity: без падения
+ok   L-es-SecurityCheckActivity: без падения
+ok   L-es-OnboardingActivity: без падения
+ok   L-es-Tabs: без падения
+ok   L-es-Profile: без падения
+ok   L-es-Browser: без падения
+ok   L-es-SettingsActivity: заголовок «Ajustes»
+ok   L-es-AboutActivity: заголовок «Acerca de»
+ok   L-es-StatsActivity: заголовок «Estadísticas»
+ok   L-es-HelpActivity: заголовок «Ayuda y comentarios»
+ok   L-pt-MainActivity: без падения
+ok   L-pt-AccountActivity: без падения
+ok   L-pt-SettingsActivity: без падения
+ok   L-pt-AboutActivity: без падения
+ok   L-pt-HelpActivity: без падения
+ok   L-pt-StatsActivity: без падения
+ok   L-pt-NotesActivity: без падения
+ok   L-pt-SavedPagesActivity: без падения
+ok   L-pt-DownloadsActivity: без падения
+ok   L-pt-BookmarksActivity: без падения
+ok   L-pt-SiteSettingsActivity: без падения
+ok   L-pt-SecurityCheckActivity: без падения
+ok   L-pt-OnboardingActivity: без падения
+ok   L-pt-Tabs: без падения
+ok   L-pt-Profile: без падения
+ok   L-pt-Browser: без падения
+ok   L-pt-SettingsActivity: заголовок «Configurações»
+ok   L-pt-AboutActivity: заголовок «Sobre»
+ok   L-pt-StatsActivity: заголовок «Estatísticas»
+ok   L-pt-HelpActivity: заголовок «Ajuda e feedback»
+ok   L-fr-MainActivity: без падения
+ok   L-fr-AccountActivity: без падения
+ok   L-fr-SettingsActivity: без падения
+ok   L-fr-AboutActivity: без падения
+ok   L-fr-HelpActivity: без падения
+ok   L-fr-StatsActivity: без падения
+ok   L-fr-NotesActivity: без падения
+ok   L-fr-SavedPagesActivity: без падения
+ok   L-fr-DownloadsActivity: без падения
+ok   L-fr-BookmarksActivity: без падения
+ok   L-fr-SiteSettingsActivity: без падения
+ok   L-fr-SecurityCheckActivity: без падения
+ok   L-fr-OnboardingActivity: без падения
+ok   L-fr-Tabs: без падения
+ok   L-fr-Profile: без падения
+ok   L-fr-Browser: без падения
+ok   L-fr-SettingsActivity: заголовок «Paramètres»
+ok   L-fr-AboutActivity: заголовок «À propos»
+ok   L-fr-StatsActivity: заголовок «Statistiques»
+ok   L-fr-HelpActivity: заголовок «Aide et avis»
+ok   L-de-MainActivity: без падения
+ok   L-de-AccountActivity: без падения
+ok   L-de-SettingsActivity: без падения
+ok   L-de-AboutActivity: без падения
+ok   L-de-HelpActivity: без падения
+ok   L-de-StatsActivity: без падения
+ok   L-de-NotesActivity: без падения
+ok   L-de-SavedPagesActivity: без падения
+ok   L-de-DownloadsActivity: без падения
+ok   L-de-BookmarksActivity: без падения
+ok   L-de-SiteSettingsActivity: без падения
+ok   L-de-SecurityCheckActivity: без падения
+ok   L-de-OnboardingActivity: без падения
+ok   L-de-Tabs: без падения
+ok   L-de-Profile: без падения
+ok   L-de-Browser: без падения
+ok   L-de-SettingsActivity: заголовок «Einstellungen»
+ok   L-de-AboutActivity: заголовок «Über die App»
+ok   L-de-StatsActivity: заголовок «Statistik»
+ok   L-de-HelpActivity: заголовок «Hilfe &amp; Feedback»
+ok   L-ar-MainActivity: без падения
+ok   L-ar-AccountActivity: без падения
+ok   L-ar-SettingsActivity: без падения
+ok   L-ar-AboutActivity: без падения
+ok   L-ar-HelpActivity: без падения
+ok   L-ar-StatsActivity: без падения
+ok   L-ar-NotesActivity: без падения
+ok   L-ar-SavedPagesActivity: без падения
+ok   L-ar-DownloadsActivity: без падения
+ok   L-ar-BookmarksActivity: без падения
+ok   L-ar-SiteSettingsActivity: без падения
+ok   L-ar-SecurityCheckActivity: без падения
+ok   L-ar-OnboardingActivity: без падения
+ok   L-ar-Tabs: без падения
+ok   L-ar-Profile: без падения
+ok   L-ar-Browser: без падения
+ok   L-ar-SettingsActivity: заголовок «الإعدادات»
+ok   L-ar-AboutActivity: заголовок «حول التطبيق»
+ok   L-ar-StatsActivity: заголовок «الإحصاءات»
+ok   L-ar-HelpActivity: заголовок «المساعدة والملاحظات»
+ok   L-hi-MainActivity: без падения
+ok   L-hi-AccountActivity: без падения
+ok   L-hi-SettingsActivity: без падения
+ok   L-hi-AboutActivity: без падения
+ok   L-hi-HelpActivity: без падения
+ok   L-hi-StatsActivity: без падения
+ok   L-hi-NotesActivity: без падения
+ok   L-hi-SavedPagesActivity: без падения
+ok   L-hi-DownloadsActivity: без падения
+ok   L-hi-BookmarksActivity: без падения
+ok   L-hi-SiteSettingsActivity: без падения
+ok   L-hi-SecurityCheckActivity: без падения
+ok   L-hi-OnboardingActivity: без падения
+ok   L-hi-Tabs: без падения
+ok   L-hi-Profile: без падения
+ok   L-hi-Browser: без падения
+ok   L-hi-SettingsActivity: заголовок «सेटिंग्स»
+ok   L-hi-AboutActivity: заголовок «ऐप के बारे में»
+ok   L-hi-StatsActivity: заголовок «आँकड़े»
+ok   L-hi-HelpActivity: заголовок «सहायता और फ़ीडबैक»
+ok   L-tr-MainActivity: без падения
+ok   L-tr-AccountActivity: без падения
+ok   L-tr-SettingsActivity: без падения
+ok   L-tr-AboutActivity: без падения
+ok   L-tr-HelpActivity: без падения
+ok   L-tr-StatsActivity: без падения
+ok   L-tr-NotesActivity: без падения
+ok   L-tr-SavedPagesActivity: без падения
+ok   L-tr-DownloadsActivity: без падения
+ok   L-tr-BookmarksActivity: без падения
+ok   L-tr-SiteSettingsActivity: без падения
+ok   L-tr-SecurityCheckActivity: без падения
+ok   L-tr-OnboardingActivity: без падения
+ok   L-tr-Tabs: без падения
+ok   L-tr-Profile: без падения
+ok   L-tr-Browser: без падения
+ok   L-tr-SettingsActivity: заголовок «Ayarlar»
+ok   L-tr-AboutActivity: заголовок «Hakkında»
+ok   L-tr-StatsActivity: заголовок «İstatistikler»
+ok   L-tr-HelpActivity: заголовок «Yardım ve geri bildirim»
+ok   L-zh-MainActivity: без падения
+ok   L-zh-AccountActivity: без падения
+ok   L-zh-SettingsActivity: без падения
+ok   L-zh-AboutActivity: без падения
+ok   L-zh-HelpActivity: без падения
+ok   L-zh-StatsActivity: без падения
+ok   L-zh-NotesActivity: без падения
+ok   L-zh-SavedPagesActivity: без падения
+ok   L-zh-DownloadsActivity: без падения
+ok   L-zh-BookmarksActivity: без падения
+ok   L-zh-SiteSettingsActivity: без падения
+ok   L-zh-SecurityCheckActivity: без падения
+ok   L-zh-OnboardingActivity: без падения
+ok   L-zh-Tabs: без падения
+ok   L-zh-Profile: без падения
+ok   L-zh-Browser: без падения
+ok   L-zh-SettingsActivity: заголовок «设置»
+ok   L-zh-AboutActivity: заголовок «关于»
+ok   L-zh-StatsActivity: заголовок «统计»
+ok   L-zh-HelpActivity: заголовок «帮助与反馈»
+ok   L-ar-AboutActivity: экран не пустой
+ok   L-ar-AccountActivity: экран не пустой
+ok   L-ar-BookmarksActivity: экран не пустой
+ok   L-ar-Browser: экран не пустой
+ok   L-ar-DownloadsActivity: экран не пустой
+ok   L-ar-HelpActivity: экран не пустой
+ok   L-ar-MainActivity: экран не пустой
+ok   L-ar-NotesActivity: экран не пустой
+ok   L-ar-OnboardingActivity: экран не пустой
+ok   L-ar-Profile: экран не пустой
+ok   L-ar-SavedPagesActivity: экран не пустой
+ok   L-ar-SecurityCheckActivity: экран не пустой
+ok   L-ar-SettingsActivity: экран не пустой
+ok   L-ar-SiteSettingsActivity: экран не пустой
+ok   L-ar-StatsActivity: экран не пустой
+ok   L-ar-Tabs: экран не пустой
+ok   L-de-AboutActivity: экран не пустой
+ok   L-de-AccountActivity: экран не пустой
+ok   L-de-BookmarksActivity: экран не пустой
+ok   L-de-Browser: экран не пустой
+ok   L-de-DownloadsActivity: экран не пустой
+ok   L-de-HelpActivity: экран не пустой
+ok   L-de-MainActivity: экран не пустой
+ok   L-de-NotesActivity: экран не пустой
+ok   L-de-OnboardingActivity: экран не пустой
+ok   L-de-Profile: экран не пустой
+ok   L-de-SavedPagesActivity: экран не пустой
+ok   L-de-SecurityCheckActivity: экран не пустой
+ok   L-de-SettingsActivity: экран не пустой
+ok   L-de-SiteSettingsActivity: экран не пустой
+ok   L-de-StatsActivity: экран не пустой
+ok   L-de-Tabs: экран не пустой
+ok   L-en-AboutActivity: экран не пустой
+ok   L-en-AccountActivity: экран не пустой
+ok   L-en-BookmarksActivity: экран не пустой
+ok   L-en-Browser: экран не пустой
+ok   L-en-DownloadsActivity: экран не пустой
+ok   L-en-HelpActivity: экран не пустой
+ok   L-en-MainActivity: экран не пустой
+ok   L-en-NotesActivity: экран не пустой
+ok   L-en-OnboardingActivity: экран не пустой
+ok   L-en-Profile: экран не пустой
+ok   L-en-SavedPagesActivity: экран не пустой
+ok   L-en-SecurityCheckActivity: экран не пустой
+ok   L-en-SettingsActivity: экран не пустой
+ok   L-en-SiteSettingsActivity: экран не пустой
+ok   L-en-StatsActivity: экран не пустой
+ok   L-en-Tabs: экран не пустой
+ok   L-es-AboutActivity: экран не пустой
+ok   L-es-AccountActivity: экран не пустой
+ok   L-es-BookmarksActivity: экран не пустой
+ok   L-es-Browser: экран не пустой
+ok   L-es-DownloadsActivity: экран не пустой
+ok   L-es-HelpActivity: экран не пустой
+ok   L-es-MainActivity: экран не пустой
+ok   L-es-NotesActivity: экран не пустой
+ok   L-es-OnboardingActivity: экран не пустой
+ok   L-es-Profile: экран не пустой
+ok   L-es-SavedPagesActivity: экран не пустой
+ok   L-es-SecurityCheckActivity: экран не пустой
+ok   L-es-SettingsActivity: экран не пустой
+ok   L-es-SiteSettingsActivity: экран не пустой
+ok   L-es-StatsActivity: экран не пустой
+ok   L-es-Tabs: экран не пустой
+ok   L-fr-AboutActivity: экран не пустой
+ok   L-fr-AccountActivity: экран не пустой
+ok   L-fr-BookmarksActivity: экран не пустой
+ok   L-fr-Browser: экран не пустой
+ok   L-fr-DownloadsActivity: экран не пустой
+ok   L-fr-HelpActivity: экран не пустой
+ok   L-fr-MainActivity: экран не пустой
+ok   L-fr-NotesActivity: экран не пустой
+ok   L-fr-OnboardingActivity: экран не пустой
+ok   L-fr-Profile: экран не пустой
+ok   L-fr-SavedPagesActivity: экран не пустой
+ok   L-fr-SecurityCheckActivity: экран не пустой
+ok   L-fr-SettingsActivity: экран не пустой
+ok   L-fr-SiteSettingsActivity: экран не пустой
+ok   L-fr-StatsActivity: экран не пустой
+ok   L-fr-Tabs: экран не пустой
+ok   L-hi-AboutActivity: экран не пустой
+ok   L-hi-AccountActivity: экран не пустой
+ok   L-hi-BookmarksActivity: экран не пустой
+ok   L-hi-Browser: экран не пустой
+ok   L-hi-DownloadsActivity: экран не пустой
+ok   L-hi-HelpActivity: экран не пустой
+ok   L-hi-MainActivity: экран не пустой
+ok   L-hi-NotesActivity: экран не пустой
+ok   L-hi-OnboardingActivity: экран не пустой
+ok   L-hi-Profile: экран не пустой
+ok   L-hi-SavedPagesActivity: экран не пустой
+ok   L-hi-SecurityCheckActivity: экран не пустой
+ok   L-hi-SettingsActivity: экран не пустой
+ok   L-hi-SiteSettingsActivity: экран не пустой
+ok   L-hi-StatsActivity: экран не пустой
+ok   L-hi-Tabs: экран не пустой
+ok   L-pt-AboutActivity: экран не пустой
+ok   L-pt-AccountActivity: экран не пустой
+ok   L-pt-BookmarksActivity: экран не пустой
+ok   L-pt-Browser: экран не пустой
+ok   L-pt-DownloadsActivity: экран не пустой
+ok   L-pt-HelpActivity: экран не пустой
+ok   L-pt-MainActivity: экран не пустой
+ok   L-pt-NotesActivity: экран не пустой
+ok   L-pt-OnboardingActivity: экран не пустой
+ok   L-pt-Profile: экран не пустой
+ok   L-pt-SavedPagesActivity: экран не пустой
+ok   L-pt-SecurityCheckActivity: экран не пустой
+ok   L-pt-SettingsActivity: экран не пустой
+ok   L-pt-SiteSettingsActivity: экран не пустой
+ok   L-pt-StatsActivity: экран не пустой
+ok   L-pt-Tabs: экран не пустой
+ok   L-ru-AboutActivity: экран не пустой
+ok   L-ru-AccountActivity: экран не пустой
+ok   L-ru-BookmarksActivity: экран не пустой
+ok   L-ru-Browser: экран не пустой
+ok   L-ru-DownloadsActivity: экран не пустой
+ok   L-ru-HelpActivity: экран не пустой
+ok   L-ru-MainActivity: экран не пустой
+ok   L-ru-NotesActivity: экран не пустой
+ok   L-ru-OnboardingActivity: экран не пустой
+ok   L-ru-Profile: экран не пустой
+ok   L-ru-SavedPagesActivity: экран не пустой
+ok   L-ru-SecurityCheckActivity: экран не пустой
+ok   L-ru-SettingsActivity: экран не пустой
+ok   L-ru-SiteSettingsActivity: экран не пустой
+ok   L-ru-StatsActivity: экран не пустой
+ok   L-ru-Tabs: экран не пустой
+ok   L-tr-AboutActivity: экран не пустой
+ok   L-tr-AccountActivity: экран не пустой
+ok   L-tr-BookmarksActivity: экран не пустой
+ok   L-tr-Browser: экран не пустой
+ok   L-tr-DownloadsActivity: экран не пустой
+ok   L-tr-HelpActivity: экран не пустой
+ok   L-tr-MainActivity: экран не пустой
+ok   L-tr-NotesActivity: экран не пустой
+ok   L-tr-OnboardingActivity: экран не пустой
+ok   L-tr-Profile: экран не пустой
+ok   L-tr-SavedPagesActivity: экран не пустой
+ok   L-tr-SecurityCheckActivity: экран не пустой
+ok   L-tr-SettingsActivity: экран не пустой
+ok   L-tr-SiteSettingsActivity: экран не пустой
+ok   L-tr-StatsActivity: экран не пустой
+ok   L-tr-Tabs: экран не пустой
+ok   L-zh-AboutActivity: экран не пустой
+ok   L-zh-AccountActivity: экран не пустой
+ok   L-zh-BookmarksActivity: экран не пустой
+ok   L-zh-Browser: экран не пустой
+ok   L-zh-DownloadsActivity: экран не пустой
+ok   L-zh-HelpActivity: экран не пустой
+ok   L-zh-MainActivity: экран не пустой
+ok   L-zh-NotesActivity: экран не пустой
+ok   L-zh-OnboardingActivity: экран не пустой
+ok   L-zh-Profile: экран не пустой
+ok   L-zh-SavedPagesActivity: экран не пустой
+ok   L-zh-SecurityCheckActivity: экран не пустой
+ok   L-zh-SettingsActivity: экран не пустой
+ok   L-zh-SiteSettingsActivity: экран не пустой
+ok   L-zh-StatsActivity: экран не пустой
+ok   L-zh-Tabs: экран не пустой
