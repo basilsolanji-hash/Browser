@@ -1,0 +1,189 @@
+ok   I-https___example_com__: без падения
+ok   I: https://example.com/ открыта
+ok   I-https___ru_wikipedia_org__: без падения
+ok   I: https://ru.wikipedia.org/ открыта
+ok   I-https___example_org__a_1_: без падения
+ok   I: https://example.org/?a=1 открыта
+ok   I-javascript_alert_1__: без падения
+ok   I: javascript:alert(1) отклонена
+ok   I-data_text_html_hello_: без падения
+ok   I: data:text/html,hello отклонена
+ok   I-file____etc_hosts_: без падения
+ok   I: file:///etc/hosts отклонена
+ok   I-file____sdcard_Download_x_pdf_: без падения
+ok   I: file:///sdcard/Download/x.pdf отклонена
+ok   I-content___com_android_contacts_contacts_: без падения
+ok   I: content://com.android.contacts/contacts отклонена
+ok   I-intent___scan__Intent_scheme_zxing_end_: без падения
+ok   I: intent://scan/#Intent;scheme=zxing;end отклонена
+ok   I-about_config_: без падения
+ok   I: about:config отклонена
+ok   I-chrome___settings_: без падения
+ok   I: chrome://settings отклонена
+ok   I-resource___android_assets_reader_reader_: без падения
+ok   I: resource://android/assets/reader/reader.js отклонена
+ok   C-set-1: без падения
+ok   C-read-2: без падения
+ok   C-read-1: без падения
+ok   C: профиль 2 не видит cookie профиля 1
+ok   C: профиль 1 видит свой cookie
+ok   C-set-3: без падения
+ok   C-read-4: без падения
+ok   C-read-3: без падения
+ok   C: профиль 4 не видит cookie профиля 3
+ok   C: профиль 3 видит свой cookie
+ok   C-set-5: без падения
+ok   C-read-6: без падения
+ok   C-read-5: без падения
+ok   C: профиль 6 не видит cookie профиля 5
+ok   C: профиль 5 видит свой cookie
+ok   C-set-7: без падения
+ok   C-read-8: без падения
+ok   C-read-7: без падения
+ok   C: профиль 8 не видит cookie профиля 7
+ok   C: профиль 7 видит свой cookie
+ok   C-set-9: без падения
+ok   C-read-10: без падения
+ok   C-read-9: без падения
+ok   C: профиль 10 не видит cookie профиля 9
+ok   C: профиль 9 видит свой cookie
+ok   D-report.pdf: без падения
+ok   D-data.csv: без падения
+ok   D-photo.png: без падения
+ok   D-notes.txt: без падения
+ok   D-archive.zip: без падения
+ok   D-music.mp3: без падения
+ok   D-table.xlsx: без падения
+ok   D-doc.docx: без падения
+ok   D-config.json: без падения
+ok   D-blob.bin: без падения
+ok   D: report.pdf скачан
+ok   D: data.csv скачан
+ok   D: photo.png скачан
+ok   D: notes.txt скачан
+ok   D: archive.zip скачан
+ok   D: music.mp3 скачан
+ok   D: table.xlsx скачан
+ok   D: doc.docx скачан
+ok   D: config.json скачан
+ok   D: blob.bin скачан
+ok   R-MainActivity: без падения
+ok   R-SettingsActivity: без падения
+ok   R-TabsActivity: без падения
+ok   R-StatsActivity: без падения
+ok   R-BrowserActivity: без падения
+ok   M-New_tab_: без падения
+ok   M-New_incognito_tab_: без падения
+ok   M-New_tab_group_: без падения
+ok   M-History_: без падения
+ok   M-Clear_data_: без падения
+ok   M-Site_permissions_: без падения
+ok   M-Personal_account_: без падения
+ok   M-Downloads_: без падения
+ok   M-Favorites_: без падения
+ok   M-Tabs_: без падения
+ok   M-Saved_pages_: без падения
+ok   M-Notes_: без падения
+ok   M-Zoom_: без падения
+ok   M-Share_: без падения
+ok   M-Find_in_page_: без падения
+ok   M-Reader_mode_: без падения
+ok   M-Copy_link_: без падения
+ok   M-Open_in_another_browser_: без падения
+ok   M-Desktop_site_: без падения
+ok   M-Full_screen_: без падения
+ok   M-Settings_: без падения
+ok   M-Help___feedback_: без падения
+ok   M-Diagnostics_: без падения
+ok   M-Save_page_offline_: без падения
+ok   M-Reload_: без падения
+ok   LP-link: без падения
+ok   LP: в меню ссылки «Open in new tab»
+ok   LP: в меню ссылки «Open in new tab in group»
+ok   LP: в меню ссылки «Open in incognito tab»
+ok   LP: в меню ссылки «Open in another profile»
+ok   LP: в меню ссылки «Copy link address»
+ok   LP: в меню ссылки «Copy link text»
+ok   LP: в меню ссылки «Download link»
+ok   LP: в меню ссылки «Share link»
+ok   LP: в шапке адрес ссылки
+ok   LP: подсказка «Opened in new tab»
+ok   LP: вкладка открыта в фоне
+ok   LP: в меню картинки «Open image in new tab»
+ok   LP: в меню картинки «Download image»
+ok   LP: в меню картинки «Copy image address»
+ok   LP: в меню картинки «Share image»
+ok   P-incognito: без падения
+ok   P: инкогнито не пишет историю
+ok   C-read-1: экран не пустой
+ok   C-read-10: экран не пустой
+ok   C-read-2: экран не пустой
+ok   C-read-3: экран не пустой
+ok   C-read-4: экран не пустой
+ok   C-read-5: экран не пустой
+ok   C-read-6: экран не пустой
+ok   C-read-7: экран не пустой
+ok   C-read-8: экран не пустой
+ok   C-read-9: экран не пустой
+ok   C-set-1: экран не пустой
+ok   C-set-3: экран не пустой
+ok   C-set-5: экран не пустой
+ok   C-set-7: экран не пустой
+ok   C-set-9: экран не пустой
+ok   D-archive.zip: экран не пустой
+ok   D-blob.bin: экран не пустой
+ok   D-config.json: экран не пустой
+ok   D-data.csv: экран не пустой
+ok   D-doc.docx: экран не пустой
+ok   D-music.mp3: экран не пустой
+ok   D-notes.txt: экран не пустой
+ok   D-photo.png: экран не пустой
+ok   D-report.pdf: экран не пустой
+ok   D-table.xlsx: экран не пустой
+ok   I-about_config_: экран не пустой
+ok   I-chrome___settings_: экран не пустой
+ok   I-content___com_android_contacts_contacts_: экран не пустой
+ok   I-data_text_html_hello_: экран не пустой
+ok   I-file____etc_hosts_: экран не пустой
+ok   I-file____sdcard_Download_x_pdf_: экран не пустой
+ok   I-https___example_com__: экран не пустой
+ok   I-https___example_org__a_1_: экран не пустой
+ok   I-https___ru_wikipedia_org__: экран не пустой
+ok   I-intent___scan__Intent_scheme_zxing_end_: экран не пустой
+ok   I-javascript_alert_1__: экран не пустой
+ok   I-resource___android_assets_reader_reader_: экран не пустой
+ok   LP-image-menu: экран не пустой
+ok   LP-link-menu: экран не пустой
+ok   LP-link-opened: экран не пустой
+ok   LP-link: экран не пустой
+ok   M-Clear_data_: экран не пустой
+ok   M-Copy_link_: экран не пустой
+ok   M-Desktop_site_: экран не пустой
+ok   M-Diagnostics_: экран не пустой
+ok   M-Downloads_: экран не пустой
+ok   M-Favorites_: экран не пустой
+ok   M-Find_in_page_: экран не пустой
+ok   M-Full_screen_: экран не пустой
+ok   M-Help___feedback_: экран не пустой
+ok   M-History_: экран не пустой
+ok   M-New_incognito_tab_: экран не пустой
+ok   M-New_tab_: экран не пустой
+ok   M-New_tab_group_: экран не пустой
+ok   M-Notes_: экран не пустой
+ok   M-Open_in_another_browser_: экран не пустой
+ok   M-Personal_account_: экран не пустой
+ok   M-Reader_mode_: экран не пустой
+ok   M-Reload_: экран не пустой
+ok   M-Save_page_offline_: экран не пустой
+ok   M-Saved_pages_: экран не пустой
+ok   M-Settings_: экран не пустой
+ok   M-Share_: экран не пустой
+ok   M-Site_permissions_: экран не пустой
+ok   M-Tabs_: экран не пустой
+ok   M-Zoom_: экран не пустой
+ok   P-incognito: экран не пустой
+ok   R-BrowserActivity: экран не пустой
+ok   R-MainActivity: экран не пустой
+ok   R-SettingsActivity: экран не пустой
+ok   R-StatsActivity: экран не пустой
+ok   R-TabsActivity: экран не пустой

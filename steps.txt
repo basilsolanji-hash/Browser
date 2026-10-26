@@ -1,0 +1,76 @@
+Performing Streamed Install
+Success
+8770
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.9 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.7 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.011s)
+== I-https___example_com__ 13:15:44
+== I-https___ru_wikipedia_org__ 13:15:51
+== I-https___example_org__a_1_ 13:15:58
+== I-javascript_alert_1__ 13:16:04
+== I-data_text_html_hello_ 13:16:11
+== I-file____etc_hosts_ 13:16:17
+== I-file____sdcard_Download_x_pdf_ 13:16:24
+== I-content___com_android_contacts_contacts_ 13:16:30
+== I-intent___scan__Intent_scheme_zxing_end_ 13:16:36
+== I-about_config_ 13:16:43
+== I-chrome___settings_ 13:16:49
+== I-resource___android_assets_reader_reader_ 13:16:55
+== C-set-1 13:17:01
+== C-read-2 13:17:07
+== C-read-1 13:17:14
+== C-set-3 13:17:20
+== C-read-4 13:17:26
+== C-read-3 13:17:32
+== C-set-5 13:17:39
+== C-read-6 13:17:45
+== C-read-5 13:17:51
+== C-set-7 13:17:57
+== C-read-8 13:18:03
+== C-read-7 13:18:10
+== C-set-9 13:18:16
+== C-read-10 13:18:22
+== C-read-9 13:18:28
+== D-report.pdf 13:18:34
+== D-data.csv 13:18:46
+== D-photo.png 13:18:54
+== D-notes.txt 13:19:01
+== D-archive.zip 13:19:09
+== D-music.mp3 13:19:16
+== D-table.xlsx 13:19:23
+== D-doc.docx 13:19:31
+== D-config.json 13:19:38
+== D-blob.bin 13:19:45
+== R-MainActivity 13:19:56
+== R-SettingsActivity 13:20:02
+== R-TabsActivity 13:20:07
+== R-StatsActivity 13:20:13
+== R-BrowserActivity 13:20:18
+== M-New_tab_ 13:20:36
+== M-New_incognito_tab_ 13:20:54
+== M-New_tab_group_ 13:21:12
+== M-History_ 13:21:29
+== M-Clear_data_ 13:21:47
+== M-Site_permissions_ 13:22:04
+== M-Personal_account_ 13:22:22
+== M-Downloads_ 13:22:39
+== M-Favorites_ 13:22:57
+== M-Tabs_ 13:23:15
+== M-Saved_pages_ 13:23:36
+== M-Notes_ 13:23:57
+== M-Zoom_ 13:24:18
+== M-Share_ 13:24:39
+== M-Find_in_page_ 13:25:00
+== M-Reader_mode_ 13:25:21
+== M-Copy_link_ 13:25:42
+== M-Open_in_another_browser_ 13:26:04
+== M-Desktop_site_ 13:26:29
+== M-Full_screen_ 13:26:54
+== M-Settings_ 13:27:19
+== M-Help___feedback_ 13:27:43
+== M-Diagnostics_ 13:28:08
+== M-Save_page_offline_ 13:28:25
+== M-Reload_ 13:28:44
+== LP-link 13:28:49
+== P-incognito 13:29:19
+Часть 4: сценариев 94, проверок 189, провалов 0
