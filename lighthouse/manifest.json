@@ -1,0 +1,146 @@
+[
+  {
+    "url": "http://127.0.0.1:4321/en/",
+    "isRepresentativeRun": false,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_-2026_10_26_09_04_02.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_-2026_10_26_09_04_02.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/en/",
+    "isRepresentativeRun": false,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_-2026_10_26_09_04_12.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_-2026_10_26_09_04_12.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/ru/",
+    "isRepresentativeRun": false,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_-2026_10_26_09_04_23.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_-2026_10_26_09_04_23.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/ru/",
+    "isRepresentativeRun": false,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_-2026_10_26_09_04_43.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_-2026_10_26_09_04_43.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/en/download/",
+    "isRepresentativeRun": false,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_download_-2026_10_26_09_04_54.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_download_-2026_10_26_09_04_54.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/en/download/",
+    "isRepresentativeRun": false,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_download_-2026_10_26_09_05_15.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_download_-2026_10_26_09_05_15.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/ru/download/",
+    "isRepresentativeRun": false,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_download_-2026_10_26_09_05_35.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_download_-2026_10_26_09_05_35.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/ru/download/",
+    "isRepresentativeRun": false,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_download_-2026_10_26_09_05_45.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_download_-2026_10_26_09_05_45.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/en/",
+    "isRepresentativeRun": true,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_-2026_10_26_09_03_51.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_-2026_10_26_09_03_51.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/ru/",
+    "isRepresentativeRun": true,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_-2026_10_26_09_04_33.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_-2026_10_26_09_04_33.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/en/download/",
+    "isRepresentativeRun": true,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_download_-2026_10_26_09_05_04.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-en_download_-2026_10_26_09_05_04.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4321/ru/download/",
+    "isRepresentativeRun": true,
+    "htmlPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_download_-2026_10_26_09_05_25.report.html",
+    "jsonPath": "/home/runner/work/Browser/Browser/site/lhci-reports/127_0_0_1-ru_download_-2026_10_26_09_05_25.report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  }
+]
