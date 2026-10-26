@@ -7,6 +7,8 @@ import { isWebUrl } from './urls';
 import { t } from './i18n';
 import { resetTab } from './privacy';
 import * as Diag from './diag';
+import * as Unload from './unload';
+import { askSync } from './ask';
 
 /** «Мобильная версия» сайта: User-Agent Chrome для Android (без версии устройства). */
 const mobileUa = () => cleanUserAgent().replace(/\([^)]*\)/, '(Linux; Android 10; K)').replace(/ Safari\//, ' Mobile Safari/');
@@ -25,6 +27,8 @@ export interface TabHost {
   searchText(text: string, opener: TabView): void;
   shareText(text: string, tab: TabView, how: 'copy' | 'mail'): void;
   shortcut(input: Electron.Input, wc: WebContents): boolean;
+  /** Окно для вопросов «Покинуть страницу?» и «Отправить форму ещё раз?». */
+  parentWindow(): BrowserWindow;
   onFound(wc: WebContents, r: Electron.Result): void;
 }
 
@@ -75,6 +79,8 @@ export class TabView {
   failedUrl: string | null = null;
   /** Сайт открыт в мобильной версии (пункт меню с галочкой). */
   mobile = false;
+  /** Когда пользователь последний раз щёлкал или печатал на странице (для «Покинуть страницу?»). */
+  lastInput = 0;
 
   constructor(readonly key: string, readonly id: string, ses: Session, private host: TabHost, bg: string) {
     // Preload вкладки — только для веб-уведомлений (см. preload/tab.ts), мостов в window нет.
@@ -123,6 +129,15 @@ export class TabView {
       void wc.loadURL(`os://error/?code=${code}&url=${encodeURIComponent(url)}`);
     });
     wc.on('before-input-event', (e, input) => { if (this.host.shortcut(input, wc)) e.preventDefault(); });
+    wc.on('input-event', (_e, i) => { if (/^(mouseDown|rawKeyDown|keyDown|touchStart)$/.test(i.type)) this.lastInput = Date.now(); });
+    // Сайт просит подтвердить уход (beforeunload). Без ответа Electron оставляет страницу и не открывает новый адрес.
+    wc.on('will-prevent-unload', (e) => {
+      if (!Unload.askBeforeLeave(this.lastInput, Date.now()) || askSync(this.host.parentWindow(), {
+        type: 'question', message: t('leave_page_q'), detail: t('leave_page_msg'), buttons: [t('leave_page'), t('stay_page')],
+        defaultId: 0, cancelId: 1, noLink: true,
+      }) === 0) e.preventDefault();
+    });
+    wc.on('destroyed', () => Unload.forget(wc.id));
     wc.on('context-menu', (_e, p) => this.contextMenu(p));
     wc.on('render-process-gone', (_e, d) => { Diag.log(this.id, `renderer ${d.reason}`); this.host.onTabUpdated(this); });
     wc.on('unresponsive', () => Diag.log(this.id, 'unresponsive'));
@@ -137,6 +152,25 @@ export class TabView {
     const u = this.wc.getURL();
     if (u.startsWith('os://reader')) return sourceOf(u) ?? u;
     return u.startsWith('os://error') && this.failedUrl ? this.failedUrl : u;
+  }
+
+  /**
+   * Обновить страницу. Ответ на отправку формы Electron молча не обновляет — спрашиваем, как Chrome,
+   * и отправляем данные формы ещё раз.
+   */
+  reload(ignoreCache = false): void {
+    const wc = this.wc;
+    const again = Unload.repostFor(wc.id, wc.getURL());
+    if (!again) {
+      if (ignoreCache) wc.reloadIgnoringCache();
+      else wc.reload();
+      return;
+    }
+    const send = askSync(this.host.parentWindow(), {
+      type: 'warning', message: t('repost_q'), detail: t('repost_msg'), buttons: [t('repost_send'), t('cancel')],
+      defaultId: 1, cancelId: 1, noLink: true,
+    });
+    if (send === 0) void wc.loadURL(wc.getURL(), again).catch(() => { /* ошибку покажет did-fail-load */ });
   }
 
   /** Мобильная версия сайта для этой вкладки: другой User-Agent, страница перезагружается. */
@@ -208,7 +242,7 @@ export class TabView {
     items.push(
       { label: t('back'), enabled: wc.navigationHistory.canGoBack(), click: () => wc.navigationHistory.goBack() },
       { label: t('forward'), enabled: wc.navigationHistory.canGoForward(), click: () => wc.navigationHistory.goForward() },
-      { label: t('refresh'), click: () => wc.reload() },
+      { label: t('refresh'), click: () => this.reload() },
     );
     Menu.buildFromTemplate(items).popup();
   }

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import type { Session } from 'electron';
 import { settings } from './settings';
 import * as Stats from './stats';
+import * as Unload from './unload';
 
 /**
  * Защита от слежки (§4 этап 3): блокировка трекеров и майнеров по списку EasyPrivacy (уровень
@@ -98,6 +99,7 @@ export function protect(ses: Session): void {
     const s = settings.get();
     const host = hostOf(d.url);
     if (d.resourceType === 'mainFrame') {
+      Unload.noteRequest(d.webContentsId, d.method, d.url, d.uploadData);
       // Только HTTPS: незащищённый адрес повышается; без HTTPS сайт не откроется.
       if (s.httpsOnly && d.url.startsWith('http://') && !isLocal(host)) {
         cb({ redirectURL: 'https://' + d.url.slice('http://'.length) });
@@ -115,6 +117,7 @@ export function protect(ses: Session): void {
   });
   // Сторонние cookies: сайт в рамке или скрипт чужого сайта не читает и не ставит cookies.
   ses.webRequest.onBeforeSendHeaders({ urls: ['http://*/*', 'https://*/*'] }, (d, cb) => {
+    if (d.resourceType === 'mainFrame') Unload.noteContentType(d.webContentsId, d.url, d.requestHeaders);
     if (settings.get().blockThirdPartyCookies && d.resourceType !== 'mainFrame' && thirdParty(hostOf(d.url), topHost(d))) {
       const headers = { ...d.requestHeaders };
       delete headers.Cookie;

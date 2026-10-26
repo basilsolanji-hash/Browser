@@ -705,8 +705,7 @@ export class OsWindow implements TabHost {
       const u = v.failedUrl;
       v.failedUrl = null;
       void v.wc.loadURL(u);
-    } else if (ignoreCache) v.wc.reloadIgnoringCache();
-    else v.wc.reload();
+    } else v.reload(ignoreCache);
   }
 
   stop(): void {
@@ -1014,6 +1013,10 @@ export class OsWindow implements TabHost {
 
   profileOfTab(tab: TabView): number | null {
     return this.incognito ? null : Number(tab.key.split(':')[0]);
+  }
+
+  parentWindow(): BrowserWindow {
+    return this.win;
   }
 
   popupOptions(): Electron.BrowserWindowConstructorOptions {
