@@ -138,6 +138,23 @@ jobs:
       # Выкладка на хостинг Beget по FTP — только из main и только когда заданы секреты
       # BEGET_FTP_HOST, BEGET_FTP_USER, BEGET_FTP_PASSWORD (BEGET_FTP_DIR — папка сайта на хостинге).
       # Служебные папки хостинга (cgi-bin, проверка сертификата .well-known/acme-challenge) не трогаем.
+      # Состояние домена до выкладки: DNS, ответы по HTTP/HTTPS, сертификат. Только сведения, прогон не роняет.
+      - name: Domain status
+        if: always()
+        continue-on-error: true
+        run: |
+          for h in os-browser.com www.os-browser.com; do
+            echo "== $h"
+            echo "NS: $(dig +short NS os-browser.com | tr '\n' ' ')"
+            echo "A:  $(dig +short A $h | tr '\n' ' ')"
+            for s in http https; do
+              echo "-- $s://$h/"
+              curl -sSI -m 20 "$s://$h/" 2>&1 | grep -iE '^(HTTP/|location:|server:|content-security-policy:)|curl:' || true
+            done
+            echo | timeout 20 openssl s_client -connect "$h:443" -servername "$h" 2>/dev/null \
+              | openssl x509 -noout -subject -issuer -enddate 2>/dev/null || echo "Сертификата для $h нет"
+          done
+
       - name: Deploy to Beget
         id: deploy
         if: github.ref == 'refs/heads/main'
