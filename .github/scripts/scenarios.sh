@@ -116,8 +116,8 @@ adb reverse tcp:8770 tcp:8770
 SCREENS="MainActivity AccountActivity SettingsActivity AboutActivity HelpActivity StatsActivity NotesActivity SavedPagesActivity DownloadsActivity BookmarksActivity SiteSettingsActivity SecurityCheckActivity OnboardingActivity"
 
 case "$SHARD" in
-1)  # --- Все экраны на 10 языках (и проверка перевода заголовков) ---
-  for lang in en ru es pt fr de ar hi tr zh; do
+1)  # --- Все экраны на 16 языках (и проверка перевода заголовков) ---
+  for lang in en ru es pt fr de ar hi tr zh be uz ky tg kk hy; do
     prefs "$lang" scarlet_dark
     for s in $SCREENS; do sc "L-$lang-$s" "start $s; sleep 2"; done
     sc "L-$lang-Tabs" "start TabsActivity --ei profile 1; sleep 2"
