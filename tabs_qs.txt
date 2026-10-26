@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="groups_7">[{&quot;id&quot;:&quot;g1793020909777&quot;,&quot;name&quot;:&quot;Work&quot;,&quot;color&quot;:-12345273}]</string>
+    <string name="list_7">[{&quot;id&quot;:&quot;tab1793021664243&quot;,&quot;title&quot;:&quot;Example Domain&quot;,&quot;url&quot;:&quot;https:\/\/example.org\/&quot;,&quot;group&quot;:&quot;&quot;}]</string>
+</map>

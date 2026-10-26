@@ -1,0 +1,270 @@
+Performing Streamed Install
+Success
+shot 00-onboarding-1
+shot 00-onboarding-2
+shot 00-onboarding-3
+shot 00-onboarding-4
+shot 00-onboarding-5
+shot 00-onboarding-6
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 01-main
+shot 01b-start
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 02-example
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 03-wikipedia
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 04-p1-gmail
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 05-p1-claude
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 06-p2-claude
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 07-p4-claude
+shot 08-claude-landscape
+shot 70-tabs-empty
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 71-newtab-example
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 72-newtab-start
+tap 'Menu' at 290 52
+shot 73-menu
+tap 'Tabs' at 242 52
+shot 74-tabs-grid
+shot 75-tabs-group
+shot 76-tabs-search
+shot 77-tabs-notfound
+shot 78-tabs-select
+tap 'Example Domain' at 86 263
+shot 79-tab-switched
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 80-new-group-dialog
+== tabs state: before-close
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="groups_7">[{&quot;id&quot;:&quot;g1793020909777&quot;,&quot;name&quot;:&quot;Work&quot;,&quot;color&quot;:-12345273}]</string>
+    <string name="list_7">[{&quot;id&quot;:&quot;tab1793020841821&quot;,&quot;title&quot;:&quot;Example Domain&quot;,&quot;url&quot;:&quot;https:\/\/example.com\/&quot;,&quot;group&quot;:&quot;g1793020909777&quot;},{&quot;id&quot;:&quot;tab1793020867514&quot;,&quot;title&quot;:&quot;Википедия — свободная энциклопедия&quot;,&quot;url&quot;:&quot;https:\/\/ru.wikipedia.org\/wiki\/%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F_%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0&quot;,&quot;group&quot;:&quot;g1793020909777&quot;},{&quot;id&quot;:&quot;tab1793020887548&quot;,&quot;title&quot;:&quot;&quot;,&quot;url&quot;:&quot;os:start&quot;,&quot;group&quot;:&quot;&quot;}]</string>
+</map>
+
+shot 81a-before-close
+tap 'Close tab' at 133 218
+shot 81-tab-closed
+== tabs state: after-close
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="groups_7">[{&quot;id&quot;:&quot;g1793020909777&quot;,&quot;name&quot;:&quot;Work&quot;,&quot;color&quot;:-12345273}]</string>
+    <string name="list_7">[{&quot;id&quot;:&quot;tab1793020867514&quot;,&quot;title&quot;:&quot;Википедия — свободная энциклопедия&quot;,&quot;url&quot;:&quot;https:\/\/ru.wikipedia.org\/wiki\/%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F_%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0&quot;,&quot;group&quot;:&quot;g1793020909777&quot;},{&quot;id&quot;:&quot;tab1793020887548&quot;,&quot;title&quot;:&quot;&quot;,&quot;url&quot;:&quot;os:start&quot;,&quot;group&quot;:&quot;&quot;}]</string>
+</map>
+
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 82-close-all-dialog
+tap 'Close' at 258 383
+shot 83-after-close-all
+== tabs state: after-close-all
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="groups_7">[{&quot;id&quot;:&quot;g1793020909777&quot;,&quot;name&quot;:&quot;Work&quot;,&quot;color&quot;:-12345273}]</string>
+    <string name="list_7">[]</string>
+</map>
+
+shot 84-tabs-after-close
+shot 09-settings
+shot 09b-settings-general
+shot 09c-settings-privacy
+shot 09d-settings-panels
+shot 10-settings-profiles
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 11-claude-light
+tap 'Switch profile' at 54 52
+shot 11b-profile-picker
+shot 11c-cabinet
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 12-main-light
+shot 13-relaunch
+shot 14-session-restored
+shot 15-fav-empty
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+ok   tap 'Menu' at 290 52
+shot 16-menu
+ok   tap 'Add to favorites' at 160 70
+shot 17-fav-added
+shot 18-fav-list
+ok   tap 'Work' at 158 194
+shot 19-fav-folder
+ok   tap 'Search favorites' at 172 110
+shot 20-fav-search
+ok   tap 'Wikipedia' at 158 161
+shot 21-fav-opened
+ok   tap 'Menu' at 290 52
+shot 22-menu-remove
+shot 30-site-settings
+shot 31-security-check
+tap_any Search settings -> 160 111
+shot 32-settings-search
+8765
+shot 33-geo-prompt
+tap_any Allow Разрешить -> 248 398
+shot 34-geo-android
+tap_any While using the app Only this time Allow -> 160 432
+shot 35-geo-result
+shot 36-site-settings-after
+shot 36b-site-settings-sites
+shot 37-site-localhost
+shot 38-security-after
+shot 38b-security-after-bottom
+shot 50-start-phrase
+shot 51-view-intent
+shot 52-selection
+shot 53-notes
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 54-article
+shot 55-reader
+shot 56-saved
+shot 57-saved-open
+tap_any Search settings -> 160 111
+shot 58-settings-extras
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 59-home-blank
+tap_any Search settings -> 160 111
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 62-fullscreen
+shot 63-fullscreen-exit
+shot 63a-find
+shot 63b-address-panel
+shot 64-profiles-reordered
+shot 65-profile-info
+shot 60-about
+shot 61-help
+shot 69e-quick-search
+shot 66-stats
+8766
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 69a-notify-site-prompt
+tap_any Allow Разрешить -> 248 398
+shot 69b-notify-android
+tap_any Allow -> 160 360
+shot 69-notification
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 69c-download-prompt
+tap_any Allow Разрешить -> 248 398
+shot 69d-downloads
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 69f-upload-picker
+tap_any: не найдено: report.bin
+tap_any Downloads -> 164 219
+tap_any Ось -> 83 255
+tap_any report.bin -> 105 381
+shot 69g-upload-done
+shot 67-lang-settings-ru
+shot 68-lang-main-ru
+ok   №34 режим чтения отрисовал статью
+ok   №35 PDF сохранён и открыт
+ok   Полный экран: кнопка выхода
+ok   Профили: порядок изменён
+ok   Профили: описание сохранено
+ok   Первый запуск: примеры профилей
+ok   Первый запуск: обучение пройдено
+ok   Статистика: страницы посчитаны
+ok   Язык: главный экран сразу на русском
+ok   Уведомление сайта показано системой
+ok   Скачивание: разрешение и файл в загрузках
+ok   №27 главная: пустая страница выбрана
+ok   Скачивание: уведомление «Скачано»
+ok   Быстрый поиск: вкладка открыта
+ok   Отправка файла сайту (кнопка «+»)
+ok   Найти на странице: счётчик совпадений
+ok   Адресная строка: карточка страницы
+ok   №37 заметка из выделения создана
+00-onboarding-1          white=0.00 uniform=0.88 ok
+00-onboarding-2          white=0.00 uniform=0.57 ok
+00-onboarding-3          white=0.00 uniform=0.86 ok
+00-onboarding-4          white=0.00 uniform=0.82 ok
+00-onboarding-5          white=0.00 uniform=0.83 ok
+00-onboarding-6          white=0.00 uniform=0.71 ok
+01-main                  white=0.00 uniform=0.74 ok
+01b-start                white=0.00 uniform=0.91 ok
+02-example               white=0.00 uniform=0.86 ok
+03-wikipedia             white=0.01 uniform=0.00 ok
+04-p1-gmail              white=0.93 uniform=0.91 ok
+05-p1-claude             white=0.69 uniform=0.59 ok
+06-p2-claude             white=0.70 uniform=0.59 ok
+07-p4-claude             white=0.76 uniform=0.66 ok
+08-claude-landscape      white=0.00 uniform=0.02 ok
+09-settings              white=0.00 uniform=0.70 ok
+09b-settings-general     white=0.00 uniform=0.36 ok
+09c-settings-privacy     white=0.00 uniform=0.50 ok
+09d-settings-panels      white=0.00 uniform=0.27 ok
+10-settings-profiles     white=0.00 uniform=0.01 ok
+11-claude-light          white=0.00 uniform=0.59 ok
+11b-profile-picker       white=0.00 uniform=0.00 ok
+11c-cabinet              white=0.00 uniform=0.43 ok
+12-main-light            white=0.00 uniform=0.43 ok
+13-relaunch              white=0.00 uniform=0.74 ok
+14-session-restored      white=0.82 uniform=0.77 ok
+15-fav-empty             white=0.00 uniform=0.97 ok
+16-menu                  white=0.00 uniform=0.93 ok
+17-fav-added             white=0.00 uniform=0.86 ok
+18-fav-list              white=0.00 uniform=0.68 ok
+19-fav-folder            white=0.00 uniform=0.10 ok
+20-fav-search            white=0.12 uniform=0.10 ok
+21-fav-opened            white=0.01 uniform=0.00 ok
+22-menu-remove           white=0.00 uniform=0.93 ok
+30-site-settings         white=0.00 uniform=0.42 ok
+31-security-check        white=0.00 uniform=0.63 ok
+32-settings-search       white=0.00 uniform=0.44 ok
+33-geo-prompt            white=0.00 uniform=0.30 ok
+34-geo-android           white=0.00 uniform=0.43 ok
+35-geo-result            white=0.96 uniform=0.96 ok
+36-site-settings-after   white=0.00 uniform=0.42 ok
+36b-site-settings-sites  white=0.00 uniform=0.10 ok
+37-site-localhost        white=0.01 uniform=0.42 ok
+38-security-after        white=0.00 uniform=0.63 ok
+38b-security-after-bottom white=0.00 uniform=0.04 ok
+50-start-phrase          white=0.94 uniform=0.94 ok
+51-view-intent           white=0.00 uniform=0.86 ok
+52-selection             white=0.00 uniform=0.70 ok
+53-notes                 white=0.00 uniform=0.00 ok
+54-article               white=0.76 uniform=0.01 ok
+55-reader                white=0.84 uniform=0.83 ok
+56-saved                 white=0.00 uniform=1.00 ok
+57-saved-open            white=0.73 uniform=0.00 ok
+58-settings-extras       white=0.00 uniform=0.84 ok
+59-home-blank            white=0.00 uniform=1.00 ok
+60-about                 white=0.00 uniform=0.65 ok
+61-help                  white=0.00 uniform=0.56 ok
+62-fullscreen            white=0.00 uniform=0.83 ok
+63-fullscreen-exit       white=0.00 uniform=0.86 ok
+63a-find                 white=0.12 uniform=0.05 ok
+63b-address-panel        white=0.18 uniform=0.01 ok
+64-profiles-reordered    white=0.00 uniform=0.18 ok
+65-profile-info          white=0.12 uniform=0.30 ok
+66-stats                 white=0.00 uniform=0.09 ok
+67-lang-settings-ru      white=0.00 uniform=0.68 ok
+68-lang-main-ru          white=0.00 uniform=0.70 ok
+69-notification          white=0.58 uniform=0.04 ok
+69a-notify-site-prompt   white=0.00 uniform=0.33 ok
+69b-notify-android       white=0.00 uniform=0.21 ok
+69c-download-prompt      white=0.00 uniform=0.33 ok
+69d-downloads            white=0.00 uniform=0.01 ok
+69e-quick-search         white=0.00 uniform=0.86 ok
+69f-upload-picker        white=0.97 uniform=0.97 ok
+69g-upload-done          white=0.00 uniform=0.99 ok
+70-tabs-empty            white=0.00 uniform=0.91 ok
+71-newtab-example        white=0.02 uniform=0.86 ok
+72-newtab-start          white=0.00 uniform=0.91 ok
+73-menu                  white=0.00 uniform=0.93 ok
+74-tabs-grid             white=0.00 uniform=0.00 ok
+75-tabs-group            white=0.00 uniform=0.55 ok
+76-tabs-search           white=0.00 uniform=0.84 ok
+77-tabs-notfound         white=0.00 uniform=0.97 ok
+78-tabs-select           white=0.00 uniform=0.55 ok
+79-tab-switched          white=0.02 uniform=0.86 ok
+80-new-group-dialog      white=0.00 uniform=0.09 ok
+81-tab-closed            white=0.00 uniform=0.70 ok
+81a-before-close         white=0.00 uniform=0.55 ok
+82-close-all-dialog      white=0.00 uniform=0.44 ok
+83-after-close-all       white=0.00 uniform=0.91 ok
+84-tabs-after-close      white=0.00 uniform=0.98 ok
+
+Все ключевые страницы отрисованы.
