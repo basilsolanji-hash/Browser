@@ -25,6 +25,7 @@ import * as Onboarding from './onboarding';
 import * as Tabs from './tabs';
 import * as Profiles from './profiles';
 import * as Extensions from './extensions';
+import { testHooks as AskHooks } from './ask';
 
 /**
  * Ось Browser для Windows: главный процесс. Профили — изолированные партиции, вкладки — WebContentsView,
@@ -119,6 +120,8 @@ if (process.env.OS_TEST === '1') {
     extensions: (profile: number) => Extensions.info(profileSession(profile), profile, 'en'),
     extensionFiles: (profile: number, id: string) => Extensions.hasFiles(profile, id),
     backupPath: (p: string | null) => setTestPath(p),
+    // Вопросы окном Windows («Покинуть страницу?»): заранее заданные ответы и список заданных вопросов.
+    ask: AskHooks,
     setPerm: (profile: number, host: string, kind: string, mode: Perms.Mode | null) => Perms.set(profile, host, kind, mode),
     addHistory: (profile: number, url: string, title: string) => { History.add(profile, url); History.setTitle(profile, url, title); },
     // Данные для снимков магазина: заметки, избранное, пароль.

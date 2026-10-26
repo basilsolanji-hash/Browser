@@ -69,6 +69,7 @@ const PDF = (() => {
   return Buffer.from(out, 'latin1');
 })();
 const uploaded = [];
+const paid = [];
 const server = createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
   seen.push({ path: u.pathname + u.search, cookie: req.headers.cookie ?? '', range: req.headers.range, lang: req.headers['accept-language'] });
@@ -82,6 +83,17 @@ const server = createServer((req, res) => {
       window.before = new AudioContext().state;
       document.getElementById('b').onclick = () => setTimeout(() => { const c = new AudioContext(); window.after = c.state; }, 1000);
     </script>`);
+  } else if (u.pathname === '/leave') {
+    // §21: страница просит подтвердить уход (несохранённый черновик).
+    res.end(`<title>Draft</title><textarea id="t" style="width:400px;height:120px"></textarea>
+      <script>addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; });</script>`);
+  } else if (u.pathname === '/order') {
+    res.end(`<title>Order</title><form method="post" action="/paid"><input name="item" value="tea"><button id="pay">Pay</button></form>`);
+  } else if (u.pathname === '/paid') {
+    let body = '';
+    req.on('data', (d) => { body += d; });
+    req.on('end', () => { paid.push(`${req.method} ${body} ${req.headers['content-type'] ?? ''}`);
+      res.end(`<title>Paid</title><h1 id="n">Payment #${paid.length}</h1><p id="b">${body.replace(/</g, '')}</p>`); });
   } else if (u.pathname === '/get') {
     res.end(`<title>Get</title><h1 id="c">${(req.headers.cookie ?? '').replace(/</g, '')}</h1><script>document.title='Get '+(document.cookie||'none')</script>`);
   } else if (u.pathname === '/big.bin') {
@@ -2180,6 +2192,48 @@ try {
       !(readJson('extensions')?.profiles?.['1'] ?? []).some((e) => e.id === extId) &&
       !(await main(({ session }, id) => !!session.fromPartition('persist:profile_1').extensions.getExtension(id), extId)) &&
       await waitFor(() => !existsSync(join(userData, 'extensions', '1', extId)), 5000));
+
+    // --- 58. «Покинуть страницу?» и повторная отправка формы (WINDOWS_SYNC §21) ---
+    step('58. «Покинуть страницу?» (beforeunload) и «Отправить форму ещё раз?»');
+    const ask = (...n) => main((_e, n) => { globalThis.osTest.ask.asked(); globalThis.osTest.ask.answer(...n); }, n);
+    const asked = () => main(() => globalThis.osTest.ask.asked());
+    const go = async (url) => { await main((_e, u) => globalThis.osTest.windows()[0].navigate(u), url); await sleep(800); return (await state()).url; };
+    await main((_e, url) => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.newTab(url); }, `${SITE}/leave`);
+    const lv = await page(`${SITE}/leave`);
+    await lv.click('#t');
+    await lv.keyboard.type('unsaved draft');
+    await ask(1);
+    check('beforeunload: "Stay" keeps the page', (await go(`${SITE}/get`)).startsWith(`${SITE}/leave`) && (await lv.inputValue('#t')) === 'unsaved draft');
+    const q58 = await asked();
+    check('beforeunload: the question is asked in the app language', q58.length === 1 && q58[0] && q58[0] !== 'leave_page_q', JSON.stringify(q58));
+    await lv.click('#t');
+    await ask(0);
+    check('beforeunload: "Leave" opens the new address', (await go(`${SITE}/get`)).startsWith(`${SITE}/get`) && (await asked()).length === 1);
+    await go(`${SITE}/leave`);
+    const lv2 = await page(`${SITE}/leave`);
+    await lv2.click('#t');
+    await main(() => { const w = globalThis.osTest.windows()[0]; const v = w.liveTabs().find((x) => x.wc === w.activeWebContents()); v.lastInput = Date.now() - 4 * 60_000; });
+    await ask(1);
+    check('beforeunload: after 3 idle minutes the page is left without a question', (await go(`${SITE}/get`)).startsWith(`${SITE}/get`) && (await asked()).length === 0);
+    await go(`${SITE}/order`);
+    const od = await page(`${SITE}/order`);
+    await od.click('#pay');
+    const pd = await page(`${SITE}/paid`);
+    await pd.waitForSelector('#n');
+    await ask(1);
+    await main(() => globalThis.osTest.windows()[0].reload());
+    await sleep(800);
+    check('form resend: "Cancel" does not send the payment again', paid.length === 1 && (await asked()).length === 1, paid.join(' | '));
+    await ask(0);
+    await main(() => globalThis.osTest.windows()[0].reload());
+    const again = await waitFor(() => paid.length === 2, 5000);
+    check('form resend: "Resend" posts the same data again', again && /^POST item=tea application\/x-www-form-urlencoded/.test(paid[1] ?? '') && (await asked()).length === 1, paid.join(' | '));
+    const pd2 = await page(`${SITE}/paid`);
+    await waitFor(async () => (await pd2.textContent('#n').catch(() => '')) === 'Payment #2', 5000);
+    await keyScreen('58-form-resent', 'tab');
+    await go(`${SITE}/get`);
+    await main(() => globalThis.osTest.windows()[0].reload());
+    check('plain reload asks nothing', (await asked()).length === 0);
 
     // --- 57. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки; снимки страниц — только для человека (страница /tracked почти пустая). ---
     step('57. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');
