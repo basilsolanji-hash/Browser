@@ -143,7 +143,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          for h in os-browser.com www.os-browser.com; do
+          for h in os-browser.com www.os-browser.com; do (
             echo "== $h"
             echo "NS: $(dig +short NS os-browser.com | tr '\n' ' ')"
             echo "A:  $(dig +short A $h | tr '\n' ' ')"
@@ -153,6 +153,9 @@ jobs:
             done
             echo | timeout 20 openssl s_client -connect "$h:443" -servername "$h" 2>/dev/null \
               | openssl x509 -noout -subject -issuer -enddate 2>/dev/null || echo "Сертификата для $h нет"
+          ) | tee /tmp/dom.txt
+          # Аннотацией — её видно через REST API без скачивания логов.
+          echo "::notice title=Domain $h::$(sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g' /tmp/dom.txt)"
           done
 
       - name: Deploy to Beget
