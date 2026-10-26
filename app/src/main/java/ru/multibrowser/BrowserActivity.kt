@@ -1319,6 +1319,44 @@ class BrowserActivity : AppCompatActivity() {
             return result
         }
 
+        // «Покинуть страницу?» — без ответа движок оставлял пользователя на сайте, и новый адрес не открывался.
+        // Если со страницей давно не работали, вводить там было нечего — уходим без вопроса.
+        override fun onBeforeUnloadPrompt(
+            session: GeckoSession,
+            prompt: GeckoSession.PromptDelegate.BeforeUnloadPrompt,
+        ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse> {
+            if (android.os.SystemClock.elapsedRealtime() - Gecko.lastUserTouch > 3 * 60_000) {
+                return GeckoResult.fromValue(prompt.confirm(AllowOrDeny.ALLOW))
+            }
+            val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
+            var answered = false
+            AlertDialog.Builder(this@BrowserActivity)
+                .setTitle(Tr.t("leave_page_q"))
+                .setMessage(Tr.t("leave_page_msg"))
+                .setPositiveButton(Tr.t("leave_page")) { _, _ -> answered = true; result.complete(prompt.confirm(AllowOrDeny.ALLOW)) }
+                .setNegativeButton(Tr.t("stay_page")) { _, _ -> answered = true; result.complete(prompt.confirm(AllowOrDeny.DENY)) }
+                .setOnDismissListener { if (!answered) result.complete(prompt.confirm(AllowOrDeny.DENY)) }
+                .show()
+            return result
+        }
+
+        // Повторная отправка формы при обновлении страницы — спрашиваем, а не отменяем молча.
+        override fun onRepostConfirmPrompt(
+            session: GeckoSession,
+            prompt: GeckoSession.PromptDelegate.RepostConfirmPrompt,
+        ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse> {
+            val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
+            var answered = false
+            AlertDialog.Builder(this@BrowserActivity)
+                .setTitle(Tr.t("repost_q"))
+                .setMessage(Tr.t("repost_msg"))
+                .setPositiveButton(Tr.t("repost_send")) { _, _ -> answered = true; result.complete(prompt.confirm(AllowOrDeny.ALLOW)) }
+                .setNegativeButton(Tr.t("cancel")) { _, _ -> answered = true; result.complete(prompt.confirm(AllowOrDeny.DENY)) }
+                .setOnDismissListener { if (!answered) result.complete(prompt.confirm(AllowOrDeny.DENY)) }
+                .show()
+            return result
+        }
+
         // Сохранить пароль после входа на сайт: в профиль открытой вкладки, не в инкогнито.
         override fun onLoginSave(
             session: GeckoSession,

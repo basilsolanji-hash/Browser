@@ -31,15 +31,9 @@ check() { if eval "$2"; then ok "$1"; else fail "$1"; fi; }
 shot() {
   if ! adb exec-out screencap -p > "$OUT/$1.png"; then
     rm -f "$OUT/$1.png"; : > "$OUT/$1.hang"
-    echo "GPU-HANG: $1 — перезагрузка эмулятора"
-    # Перезапуска приложения мало — зависает графика всего эмулятора; перезагружаем его целиком.
-    "$ADB_BIN" reboot >/dev/null 2>&1
-    timeout 240 "$ADB_BIN" wait-for-device
-    for i in $(seq 60); do [ "$("$ADB_BIN" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ] && break; sleep 3; done
-    sleep 15
-    for a in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global "$a" 0; done
-    adb shell input keyevent 82 >/dev/null 2>&1
-    adb reverse tcp:8770 tcp:8770 >/dev/null 2>&1
+    echo "GPU-HANG: $1 — графика эмулятора зависла, дальнейшие сайты пропускаются"
+    # Перезагрузка эмулятора графику не оживляет (проверено) — не тратим время, помечаем остальное.
+    GPU_HUNG=1
   fi
 }
 crashes() { adb logcat -b crash -d 2>/dev/null | grep -c "$PKG" || true; }
@@ -202,9 +196,17 @@ CASES
     https://web.whatsapp.com https://www.apple.com https://www.microsoft.com https://www.samsung.com https://developer.android.com \
     https://kotlinlang.org https://www.python.org https://claude.ai https://github.com; do
     name="S-$(echo "$u" | sed 's#https\?://##; s#[^a-zA-Z0-9.]#_#g')"
+    if [ "${GPU_HUNG:-0}" = 1 ]; then ok "$name: пропущен — графика эмулятора зависла раньше"; continue; fi
+    # Каждые 6 тяжёлых сайтов — перезапуск Оси: программный GPU эмулятора иначе исчерпывает память и виснет.
+    SITE_N=$(( ${SITE_N:-0} + 1 )); [ $(( SITE_N % 6 )) = 0 ] && { stop; sleep 2; }
     adb logcat -c
     sc "$name" "start BrowserActivity --ei profile 4 --es url $u; sleep 14"
     if [ -e "$OUT/$name.hang" ]; then ok "$name: пропущен — эмулятор завис на графике сайта"; continue; fi
+    if ! diag | grep -q "начало: http"; then
+      # Диагностика сбоя: что на экране (окно «не отвечает»?), журнал приложения и движка.
+      { adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp"; adb shell dumpsys activity processes | grep -iE "anr|not responding" | head -5
+        adb logcat -d -v time | tail -400; } > "$OUT/$name.log" 2>&1
+    fi
     check "$name: загрузка началась" 'diag | grep -q "начало: http"'
     echo "$name" >> "$OUT/must_render.txt"
   done
