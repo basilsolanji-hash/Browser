@@ -1,0 +1,80 @@
+Performing Streamed Install
+Success
+/tmp/settings.xml: 1 file pushed, 0 skipped. 2.1 MB/s (186 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 1.1 MB/s (107 bytes in 0.000s)
+/tmp/profiles.xml: 1 file pushed, 0 skipped. 7.4 MB/s (670 bytes in 0.000s)
+/tmp/tabs.xml: 1 file pushed, 0 skipped. 4.0 MB/s (576 bytes in 0.000s)
+/tmp/history.xml: 1 file pushed, 0 skipped. 12.3 MB/s (1022 bytes in 0.000s)
+/tmp/notes.xml: 1 file pushed, 0 skipped. 7.1 MB/s (623 bytes in 0.000s)
+/tmp/downloads.xml: 1 file pushed, 0 skipped. 7.0 MB/s (781 bytes in 0.000s)
+shot be-01-main
+shot be-02-browser
+tap 'Меню'
+shot be-03-menu
+tap 'Змяніць профіль'
+shot be-04-profiles
+shot be-05-address
+shot be-06-start
+tap 'Дадаць пароль'
+tap 'Сайт'
+tap 'Лагін'
+tap 'Пароль'
+tap 'Захаваць'
+shot be-07-cabinet
+shot be-08-downloads
+shot be-09-notes
+shot be-10-settings
+shot be-11-privacy
+shot be-12-tabs
+/tmp/settings.xml: 1 file pushed, 0 skipped. 2.1 MB/s (186 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 1.1 MB/s (107 bytes in 0.000s)
+/tmp/profiles.xml: 1 file pushed, 0 skipped. 8.1 MB/s (670 bytes in 0.000s)
+/tmp/tabs.xml: 1 file pushed, 0 skipped. 5.8 MB/s (576 bytes in 0.000s)
+/tmp/history.xml: 1 file pushed, 0 skipped. 15.5 MB/s (1022 bytes in 0.000s)
+/tmp/notes.xml: 1 file pushed, 0 skipped. 9.5 MB/s (623 bytes in 0.000s)
+/tmp/downloads.xml: 1 file pushed, 0 skipped. 11.5 MB/s (781 bytes in 0.000s)
+shot uz-01-main
+shot uz-02-browser
+tap 'Menyu'
+shot uz-03-menu
+tap 'Profilni almashtirish'
+shot uz-04-profiles
+shot uz-05-address
+shot uz-06-start
+tap 'Parol qoʻshish'
+tap 'Sayt'
+tap 'Login'
+tap 'Parol'
+tap 'Saqlash'
+shot uz-07-cabinet
+shot uz-08-downloads
+shot uz-09-notes
+shot uz-10-settings
+shot uz-11-privacy
+shot uz-12-tabs
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.4 MB/s (186 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 1.0 MB/s (107 bytes in 0.000s)
+/tmp/profiles.xml: 1 file pushed, 0 skipped. 5.8 MB/s (670 bytes in 0.000s)
+/tmp/tabs.xml: 1 file pushed, 0 skipped. 6.9 MB/s (576 bytes in 0.000s)
+/tmp/history.xml: 1 file pushed, 0 skipped. 14.8 MB/s (1022 bytes in 0.000s)
+/tmp/notes.xml: 1 file pushed, 0 skipped. 10.2 MB/s (623 bytes in 0.000s)
+/tmp/downloads.xml: 1 file pushed, 0 skipped. 13.2 MB/s (781 bytes in 0.000s)
+shot ky-01-main
+shot ky-02-browser
+tap 'Меню'
+shot ky-03-menu
+tap 'Профилди которуу'
+shot ky-04-profiles
+shot ky-05-address
+shot ky-06-start
+tap 'Сырсөз кошуу'
+tap 'Сайт'
+tap 'Логин'
+tap 'Сырсөз'
+tap 'Сактоо'
+shot ky-07-cabinet
+shot ky-08-downloads
+shot ky-09-notes
+shot ky-10-settings
+shot ky-11-privacy
+shot ky-12-tabs
