@@ -54,7 +54,7 @@ EVERYDAY COMFORT
 • Quick search on the home screen
 • A greeting and a positive thought every time you open Ось
 • Usage statistics just for you, on your phone
-• 10 interface languages and 6 themes, including dark and OLED
+• 16 interface languages and 6 themes, including dark and OLED
 • Works on phones and tablets
 
 A TRUSTED ENGINE

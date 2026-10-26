@@ -2,25 +2,25 @@
 
 | Что | Где |
 |---|---|
-| Название, краткое и полное описание, «Что нового» — 10 языков | `listing-ru.md`, `listing-en.md`, `listing-es.md`, `listing-pt-BR.md`, `listing-fr.md`, `listing-de.md`, `listing-ar.md`, `listing-hi.md`, `listing-tr.md`, `listing-zh-CN.md` |
+| Название, краткое и полное описание, «Что нового» — 16 языков | `listing-ru.md`, `listing-en.md`, `listing-es.md`, `listing-pt-BR.md`, `listing-fr.md`, `listing-de.md`, `listing-ar.md`, `listing-hi.md`, `listing-tr.md`, `listing-zh-CN.md`, `listing-be.md`, `listing-uz.md`, `listing-ky.md` (в консоли — ky-KG), `listing-kk.md`, `listing-hy.md` (hy-AM); `listing-tg.md` — для сайта и других магазинов: таджикского Google Play не поддерживает |
 | Ответы для анкет Play Console (безопасность данных, рейтинг, аудитория, разрешения, подпись, тестирование) | `console-forms.md` |
 | Значок 512×512 | `graphics/icon-512.png` |
-| Баннер 1024×500 — 10 языков | `graphics/feature-graphic-<язык>.png` |
-| Скриншоты телефона **3:4**, 1200×1600 — 10 языков (для магазина и сайта) | `screenshots/phone/<язык>-NN-экран.jpg` |
-| Скриншоты планшета **3:4**, 1800×2400 — 10 языков (для магазина и сайта) | `screenshots/tablet/` |
+| Баннер 1024×500 — 16 языков | `graphics/feature-graphic-<язык>.png` |
+| Скриншоты телефона **3:4**, 1200×1600 — 16 языков (для магазина и сайта) | `screenshots/phone/<язык>-NN-экран.jpg` |
+| Скриншоты планшета **3:4**, 1800×2400 — 16 языков (для магазина и сайта) | `screenshots/tablet/` |
 | Политика конфиденциальности | `site/public/privacy.html` (ru), `site/public/privacy-en.html` (en) → https://www.os-browser.com/privacy.html |
 | Сборка для загрузки (AAB) | GitHub Releases, последний `build-N` → `Os-Browser-build-N.aab` |
 
 ## Какие 8 скриншотов загружать (порядок)
 `01-main`, `02-browser`, `07-cabinet`, `04-profiles`, `03-menu`, `09-notes`, `08-downloads`, `11-privacy`
-(префикс — код языка: `ru-`, `en-`, `es-`, `pt-`, `fr-`, `de-`, `ar-`, `hi-`, `tr-`, `zh-`). Остальные
+(префикс — код языка: `ru-`, `en-`, `es-`, `pt-`, `fr-`, `de-`, `ar-`, `hi-`, `tr-`, `zh-`, `be-`, `uz-`, `ky-`, `tg-`, `kk-`, `hy-`). Остальные
 (`05-address`, `06-start`, `10-settings`, `12-tabs`) — запасные.
 
 ## Порядок публикации
 1. Аккаунт разработчика Google Play (разовый взнос 25 $), подтверждение личности.
 2. «Создать приложение»: название из `listing-ru.md`, язык по умолчанию — русский, бесплатное.
 3. «Основная информация о приложении» → описания из `listing-*.md` (добавить переводы для
-   9 языков), значок, баннер, скриншоты телефона (8 штук) и планшета (8 штук).
+   14 языков; таджикского в Play нет), значок, баннер, скриншоты телефона (8 штук) и планшета (8 штук).
 4. «Контент приложения» — заполнить по `console-forms.md` (§2–7).
 5. «Тестирование → Внутреннее» → загрузить AAB, включить подпись приложений Google Play.
 6. Закрытое тестирование: 12+ тестировщиков на 14 дней (требование для новых личных аккаунтов).
@@ -33,8 +33,11 @@
 - Почта **hello@os-browser.com** — должна принимать письма (её увидят пользователи и Google).
 - Ключ загрузки: секреты CI `OS_KEYSTORE` / `OS_KEYSTORE_PASSWORD` уже используются для релизов.
 
+## Термины
+Все тексты магазина — только термины из `docs/GLOSSARY.md`.
+
 ## Как обновить скриншоты
-1. `git push -f origin HEAD:test/store-shots` — CI снимает телефон и планшет на 10 языках
+1. `git push -f origin HEAD:test/store-shots` — CI снимает телефон и планшет на 16 языках
    (ветки `store-shots-results-<устройство>-<языки>`).
 2. Локально: `node docs/play/tools/compose.js <сырые> <выход> phone|tablet` (все кадры 3:4) — подписи из
    `docs/play/tools/captions.json`; баннеры — `node docs/play/tools/graphics.js`.

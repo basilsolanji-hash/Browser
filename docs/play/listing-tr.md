@@ -54,7 +54,7 @@ HER GÜN KONFOR
 • Ana ekranda hızlı arama
 • Ось'u her açtığınızda bir selamlama ve olumlu bir düşünce
 • Yalnızca size özel, telefonunuzda tutulan kullanım istatistikleri
-• 10 arayüz dili ve koyu ile OLED dahil 6 tema
+• 16 arayüz dili ve koyu ile OLED dahil 6 tema
 • Telefonlarda ve tabletlerde çalışır
 
 GÜVENİLİR BİR MOTOR

@@ -2598,5 +2598,25 @@
  "dt_backup_warning": {
   "en": "The backup file is protected only by its password: if you forget it, the data cannot be recovered, and a weak password can be guessed.",
   "ru": "Файл копии защищён только паролем: забудете его — данные не вернуть, а слабый пароль можно подобрать."
+ },
+ "perm_defaults_desc": {
+  "en": "Location, camera, microphone and notifications are never given to a site without your explicit consent. Closing the request counts as «Block».",
+  "ru": "Геолокация, камера, микрофон и уведомления никогда не выдаются сайту без вашего явного согласия. Закрытый запрос считается запретом."
+ },
+ "perm_no_sites": {
+  "en": "No site has saved permissions yet. When a site asks, you decide — and can change it here at any time.",
+  "ru": "Пока ни у одного сайта нет сохранённых разрешений. Когда сайт спросит — решаете вы, а изменить решение можно здесь в любой момент."
+ },
+ "perm_site_desc": {
+  "en": "«Default» means the site follows the general setting for new sites.",
+  "ru": "«По умолчанию» — сайт следует общей настройке для новых сайтов."
+ },
+ "sec_tracking_ok": {
+  "en": "Standard: social trackers, cryptominers and fingerprinters are blocked; third-party cookies are isolated per site",
+  "ru": "Стандартная: блокируются соцтрекеры, майнеры и сборщики отпечатков; сторонние cookies изолированы по сайтам"
+ },
+ "https_desc": {
+  "en": "In «HTTPS only» mode insecure addresses are upgraded to HTTPS; a site without HTTPS will not open.",
+  "ru": "В режиме «Только HTTPS» незащищённые адреса открываются по HTTPS; сайт без HTTPS не откроется."
  }
 }

@@ -648,5 +648,10 @@
  "dt_more_tools": "Boshqa vositalar",
  "dt_doc_broken": "Hujjat ochilmadi: fayl buzilgan yoki format qoʻllab-quvvatlanmaydi. «Quyidagi bilan ochish» dan foydalaning.",
  "dt_backup_pw_rule": "Kamida 10 ta belgi, faqat raqamlar emas va keng tarqalgan parol emas",
- "dt_backup_warning": "Zaxira nusxa fayli faqat parol bilan himoyalangan: uni unutsangiz, maʼlumotlarni qaytarib boʻlmaydi, kuchsiz parolni esa topish mumkin."
+ "dt_backup_warning": "Zaxira nusxa fayli faqat parol bilan himoyalangan: uni unutsangiz, maʼlumotlarni qaytarib boʻlmaydi, kuchsiz parolni esa topish mumkin.",
+ "perm_defaults_desc": "Geolokatsiya, kamera, mikrofon va bildirishnomalar sizning aniq roziligingizsiz saytga hech qachon berilmaydi. Yopilgan soʻrov taqiq deb hisoblanadi.",
+ "perm_no_sites": "Hozircha hech bir saytda saqlangan ruxsatlar yoʻq. Sayt soʻraganda — siz hal qilasiz, qarorni esa bu yerda istalgan vaqtda oʻzgartirish mumkin.",
+ "perm_site_desc": "«Standart» — sayt yangi saytlar uchun umumiy sozlamaga amal qiladi.",
+ "sec_tracking_ok": "Standart: ijtimoiy trekerlar, maynerlar va barmoq izi yigʻuvchilar bloklanadi; uchinchi tomon cookie fayllari saytlar boʻyicha ajratilgan",
+ "https_desc": "«Faqat HTTPS» rejimida himoyalanmagan manzillar HTTPS orqali ochiladi; HTTPS’siz sayt ochilmaydi."
 }

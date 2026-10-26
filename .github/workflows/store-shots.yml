@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         device: [pixel_6, pixel_tablet]
-        langs: ["ru en es", "pt fr de", "ar hi tr zh"]
+        langs: ["ru en es", "pt fr de", "ar hi tr zh", "be uz ky", "tg kk hy"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

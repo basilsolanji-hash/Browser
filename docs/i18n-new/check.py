@@ -5,6 +5,11 @@ NEW = ["be", "uz", "ky", "tg", "kk", "hy"]
 src = json.load(open(f"{S}/source.json", encoding="utf-8")); rx = re.compile(r'%(\d+\$)?[sd%]')
 ph = lambda s: collections.Counter(m.group(0) for m in rx.finditer(s))
 ok = True
+# source.json должен покрывать все ключи Tr*.kt (включая многострочные listOf).
+import glob
+kt = set(re.findall(r'"([a-z0-9_]+)" to listOf\(', "".join(open(f, encoding="utf-8").read() for f in glob.glob(f"{S}/../../app/src/main/java/ru/multibrowser/Tr*.kt"))))
+print('Tr*.kt keys', len(kt), 'not in source.json', sorted(kt - set(src)))
+ok &= kt <= set(src)
 for l in NEW:
     t = json.load(open(f"{S}/tr_{l}.json", encoding="utf-8"))
     bad = [k for k in src if not t.get(k, '').strip()]
