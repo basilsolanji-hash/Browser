@@ -205,6 +205,11 @@ CASES
     adb logcat -c
     sc "$name" "start BrowserActivity --ei profile 4 --es url $u; sleep 14"
     if [ -e "$OUT/$name.hang" ]; then ok "$name: пропущен — эмулятор завис на графике сайта"; continue; fi
+    if ! diag | grep -q "начало: http"; then
+      # Диагностика сбоя: что на экране (окно «не отвечает»?), журнал приложения и движка.
+      { adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp"; adb shell dumpsys activity processes | grep -iE "anr|not responding" | head -5
+        adb logcat -d -v time | tail -400; } > "$OUT/$name.log" 2>&1
+    fi
     check "$name: загрузка началась" 'diag | grep -q "начало: http"'
     echo "$name" >> "$OUT/must_render.txt"
   done
