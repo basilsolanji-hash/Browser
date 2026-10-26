@@ -1,0 +1,2406 @@
+{
+ "profiles": {
+  "en": "Profiles",
+  "ru": "Профили"
+ },
+ "profiles_desc": {
+  "en": "%d isolated profiles: each has its own accounts and cookies.",
+  "ru": "%d изолированных профилей: в каждом свои аккаунты и cookies."
+ },
+ "not_signed_in": {
+  "en": "Not signed in",
+  "ru": "Вход не выполнен"
+ },
+ "profile_n": {
+  "en": "Profile %d",
+  "ru": "Профиль %d"
+ },
+ "settings": {
+  "en": "Settings",
+  "ru": "Настройки"
+ },
+ "rename": {
+  "en": "Rename",
+  "ru": "Переименовать"
+ },
+ "logout_clear": {
+  "en": "Sign out of accounts (clear profile)",
+  "ru": "Выйти из аккаунтов (очистить профиль)"
+ },
+ "profile_name": {
+  "en": "Profile name",
+  "ru": "Название профиля"
+ },
+ "save": {
+  "en": "Save",
+  "ru": "Сохранить"
+ },
+ "cancel": {
+  "en": "Cancel",
+  "ru": "Отмена"
+ },
+ "clear_q": {
+  "en": "Clear «%s»?",
+  "ru": "Очистить «%s»?"
+ },
+ "clear_profile_msg": {
+  "en": "Sign-ins, cookies and site data for this profile will be removed. Other profiles are not affected.",
+  "ru": "Будут удалены вход в аккаунты, cookies и данные сайтов этого профиля. Другие профили не пострадают."
+ },
+ "clear": {
+  "en": "Clear",
+  "ru": "Очистить"
+ },
+ "menu": {
+  "en": "Menu",
+  "ru": "Меню"
+ },
+ "copy_link": {
+  "en": "Copy link",
+  "ru": "Копировать ссылку"
+ },
+ "open_external": {
+  "en": "Open in another browser",
+  "ru": "Открыть в другом браузере"
+ },
+ "diagnostics": {
+  "en": "Diagnostics",
+  "ru": "Диагностика"
+ },
+ "link_copied": {
+  "en": "Link copied",
+  "ru": "Ссылка скопирована"
+ },
+ "back": {
+  "en": "Back",
+  "ru": "Назад"
+ },
+ "forward": {
+  "en": "Forward",
+  "ru": "Вперёд"
+ },
+ "home": {
+  "en": "Home",
+  "ru": "Домой"
+ },
+ "history": {
+  "en": "History",
+  "ru": "История"
+ },
+ "clear_short": {
+  "en": "Clear",
+  "ru": "Очистка"
+ },
+ "refresh": {
+  "en": "Reload",
+  "ru": "Обновить"
+ },
+ "address_hint": {
+  "en": "Address or search",
+  "ru": "Адрес или поиск"
+ },
+ "history_title": {
+  "en": "History: %s",
+  "ru": "История: %s"
+ },
+ "history_empty": {
+  "en": "History of «%s» is empty",
+  "ru": "История профиля «%s» пуста"
+ },
+ "clear_history": {
+  "en": "Clear history",
+  "ru": "Очистить историю"
+ },
+ "history_cleared": {
+  "en": "History cleared",
+  "ru": "История очищена"
+ },
+ "close": {
+  "en": "Close",
+  "ru": "Закрыть"
+ },
+ "clear_title": {
+  "en": "Clear data",
+  "ru": "Очистка"
+ },
+ "opt_history": {
+  "en": "History of «%s»",
+  "ru": "История профиля «%s»"
+ },
+ "opt_cache": {
+  "en": "Cache (all profiles, sign-ins kept)",
+  "ru": "Кэш (все профили, входы сохраняются)"
+ },
+ "opt_logout": {
+  "en": "Sign out of «%s»",
+  "ru": "Выйти из аккаунтов профиля «%s»"
+ },
+ "done": {
+  "en": "Done",
+  "ru": "Готово"
+ },
+ "restarted": {
+  "en": "Page restarted: %s",
+  "ru": "Страница перезапущена: %s"
+ },
+ "page_not_opened": {
+  "en": "Page didn't open",
+  "ru": "Страница не открылась"
+ },
+ "err_network": {
+  "en": "No connection to the site. Check the internet or VPN.",
+  "ru": "Нет соединения с сайтом. Проверьте интернет или VPN."
+ },
+ "err_security": {
+  "en": "Insecure connection: the site certificate failed verification.",
+  "ru": "Небезопасное соединение: сертификат сайта не прошёл проверку."
+ },
+ "err_uri": {
+  "en": "Site not found. Check the address.",
+  "ru": "Не удалось найти сайт. Проверьте адрес."
+ },
+ "err_safe": {
+  "en": "The site is flagged as dangerous (phishing or malware).",
+  "ru": "Сайт помечен как опасный (фишинг или вредоносные программы)."
+ },
+ "err_generic": {
+  "en": "The page failed to load.",
+  "ru": "Страница не загрузилась."
+ },
+ "err_retry": {
+  "en": "Tap «Reload» below to try again.",
+  "ru": "Нажмите «Обновить» внизу, чтобы попробовать снова."
+ },
+ "downloading": {
+  "en": "Downloading: %s",
+  "ru": "Скачивание: %s"
+ },
+ "saved_to": {
+  "en": "Saved to Downloads/%1$s: %2$s",
+  "ru": "Сохранено в Загрузки/%1$s: %2$s"
+ },
+ "download_failed": {
+  "en": "Couldn't download %s",
+  "ru": "Не удалось скачать %s"
+ },
+ "unlock": {
+  "en": "Unlock",
+  "ru": "Разблокировать"
+ },
+ "confirm_you": {
+  "en": "Confirm it's you",
+  "ru": "Подтвердите, что это вы"
+ },
+ "pinned_tabs": {
+  "en": "Pinned tabs",
+  "ru": "Закреплённые вкладки"
+ },
+ "add_tab": {
+  "en": "+ Add tab",
+  "ru": "+ Добавить вкладку"
+ },
+ "theme": {
+  "en": "Theme",
+  "ru": "Тема"
+ },
+ "dark": {
+  "en": "Dark",
+  "ru": "Тёмная"
+ },
+ "light": {
+  "en": "Light",
+  "ru": "Светлая"
+ },
+ "system": {
+  "en": "System",
+  "ru": "Как в системе"
+ },
+ "protection": {
+  "en": "Protection",
+  "ru": "Защита"
+ },
+ "lock_on": {
+  "en": "Fingerprint / PIN lock",
+  "ru": "Вход по отпечатку/PIN"
+ },
+ "lock_off": {
+  "en": "No lock",
+  "ru": "Без блокировки"
+ },
+ "no_screen_lock": {
+  "en": "No screen lock set on the phone — enable it in Android settings first.",
+  "ru": "На телефоне не задана блокировка экрана — сначала включите её в настройках Android."
+ },
+ "hide_content": {
+  "en": "Hide content",
+  "ru": "Скрывать содержимое"
+ },
+ "show": {
+  "en": "Show",
+  "ru": "Показывать"
+ },
+ "hide_content_desc": {
+  "en": "«Hide content»: pages aren't shown in the recent apps list and screenshots are blocked. The lock is asked at launch and after a minute in the background.",
+  "ru": "«Скрывать содержимое»: в списке недавних приложений не видно страниц, скриншоты запрещены. Блокировка запрашивается при запуске и после минуты в фоне."
+ },
+ "scroll_bars": {
+  "en": "Bars while scrolling",
+  "ru": "Панели при прокрутке"
+ },
+ "hide_bars": {
+  "en": "Hide",
+  "ru": "Прятать"
+ },
+ "always_visible": {
+  "en": "Always visible",
+  "ru": "Всегда видны"
+ },
+ "address_tabs": {
+  "en": "Address bar & tabs",
+  "ru": "Адресная строка и вкладки"
+ },
+ "top": {
+  "en": "Top",
+  "ru": "Сверху"
+ },
+ "bottom": {
+  "en": "Bottom",
+  "ru": "Снизу"
+ },
+ "profile_strip": {
+  "en": "Profile strip at the bottom",
+  "ru": "Полоса профилей внизу браузера"
+ },
+ "hide": {
+  "en": "Hide",
+  "ru": "Скрыть"
+ },
+ "live_tabs": {
+  "en": "Tabs kept in memory",
+  "ru": "Вкладок в памяти одновременно"
+ },
+ "live_tabs_desc": {
+  "en": "This many Gmail/Claude tabs run in the background without reloading: you can start a Claude reply in one profile and switch to another. More is handier but needs more memory (10–15 for phones with 8 GB or more).",
+  "ru": "Столько вкладок работают в фоне, не перезагружаясь: можно запустить ответ в одном профиле и спокойно переключиться в другой. Больше — удобнее, но нужно больше памяти (10–15 — для телефонов с 8 ГБ и более)."
+ },
+ "profiles_count": {
+  "en": "Number of profiles",
+  "ru": "Количество профилей"
+ },
+ "range_desc": {
+  "en": "From %1$d to %2$d. Reducing keeps the data of hidden profiles.",
+  "ru": "От %1$d до %2$d. При уменьшении данные скрытых профилей сохраняются."
+ },
+ "profile_names": {
+  "en": "Profile names",
+  "ru": "Названия профилей"
+ },
+ "data": {
+  "en": "Data",
+  "ru": "Данные"
+ },
+ "clear_cache_all": {
+  "en": "Clear cache of all profiles",
+  "ru": "Очистить кэш всех профилей"
+ },
+ "cache_cleared": {
+  "en": "Cache cleared. Sign-ins kept.",
+  "ru": "Кэш очищен. Входы в аккаунты сохранены"
+ },
+ "clear_history_all": {
+  "en": "Clear history of all profiles",
+  "ru": "Очистить историю всех профилей"
+ },
+ "clear_history_all_q": {
+  "en": "Clear history of all profiles?",
+  "ru": "Очистить историю всех профилей?"
+ },
+ "new_tab": {
+  "en": "New tab",
+  "ru": "Новая вкладка"
+ },
+ "edit_tab": {
+  "en": "Edit tab",
+  "ru": "Изменить вкладку"
+ },
+ "tab_name_hint": {
+  "en": "Name, e.g. Mail",
+  "ru": "Название, напр. Почта"
+ },
+ "tab_url_hint": {
+  "en": "Address, e.g. example.com",
+  "ru": "Адрес, напр. example.com"
+ },
+ "start_page": {
+  "en": "Start page",
+  "ru": "Стартовая страница"
+ },
+ "start": {
+  "en": "Start",
+  "ru": "Старт"
+ },
+ "language": {
+  "en": "Language",
+  "ru": "Язык"
+ },
+ "no_events": {
+  "en": "No events yet",
+  "ru": "Событий пока нет"
+ },
+ "crash_reason": {
+  "en": "page process crashed",
+  "ru": "сбой процесса страницы"
+ },
+ "killed_reason": {
+  "en": "page unloaded by the system",
+  "ru": "страница выгружена системой"
+ },
+ "theme_scarlet_dark": {
+  "en": "Scarlet Dark",
+  "ru": "Алый тёмный"
+ },
+ "theme_scarlet_light": {
+  "en": "Scarlet Light",
+  "ru": "Алый светлый"
+ },
+ "theme_graphite": {
+  "en": "Graphite",
+  "ru": "Графит"
+ },
+ "theme_sand": {
+  "en": "Sand",
+  "ru": "Песок"
+ },
+ "theme_oled": {
+  "en": "OLED Black",
+  "ru": "OLED чёрный"
+ },
+ "incognito": {
+  "en": "Incognito",
+  "ru": "Инкогнито"
+ },
+ "new_incognito": {
+  "en": "New incognito tab",
+  "ru": "Новая вкладка инкогнито"
+ },
+ "zoom": {
+  "en": "Zoom",
+  "ru": "Масштаб"
+ },
+ "search_engine": {
+  "en": "Search engine",
+  "ru": "Поисковая система"
+ },
+ "privacy_security": {
+  "en": "Privacy & security",
+  "ru": "Конфиденциальность и безопасность"
+ },
+ "general": {
+  "en": "General",
+  "ru": "Основные"
+ },
+ "reset": {
+  "en": "Reset",
+  "ru": "Сброс"
+ },
+ "favorites": {
+  "en": "Favorites",
+  "ru": "Избранное"
+ },
+ "add_favorite": {
+  "en": "Add to favorites",
+  "ru": "В избранное"
+ },
+ "added_favorite": {
+  "en": "Added to favorites",
+  "ru": "Добавлено в избранное"
+ },
+ "favorites_empty": {
+  "en": "No favorites yet",
+  "ru": "В избранном пока пусто"
+ },
+ "new_folder": {
+  "en": "New folder",
+  "ru": "Новая папка"
+ },
+ "folder": {
+  "en": "Folder",
+  "ru": "Папка"
+ },
+ "no_folder": {
+  "en": "No folder",
+  "ru": "Без папки"
+ },
+ "downloads": {
+  "en": "Downloads",
+  "ru": "Загрузки"
+ },
+ "downloads_empty": {
+  "en": "No downloads yet",
+  "ru": "Загрузок пока нет"
+ },
+ "open": {
+  "en": "Open",
+  "ru": "Открыть"
+ },
+ "share": {
+  "en": "Share",
+  "ru": "Поделиться"
+ },
+ "delete": {
+  "en": "Delete",
+  "ru": "Удалить"
+ },
+ "remove": {
+  "en": "Remove",
+  "ru": "Убрать"
+ },
+ "move_to_folder": {
+  "en": "Move to folder",
+  "ru": "Переместить в папку"
+ },
+ "cant_open_file": {
+  "en": "Can't open the file",
+  "ru": "Не удалось открыть файл"
+ },
+ "start_tagline": {
+  "en": "Business browser",
+  "ru": "Деловой браузер"
+ },
+ "start_hint": {
+  "en": "Privacy first. Type an address or search above. Add pinned tabs in settings.",
+  "ru": "Конфиденциальность прежде всего. Введите адрес или запрос выше. Закреплённые вкладки добавляются в настройках."
+ },
+ "tab_fallback": {
+  "en": "Tab",
+  "ru": "Вкладка"
+ },
+ "dt_all_profiles": {
+  "en": "All profiles",
+  "ru": "Все профили"
+ },
+ "dt_close_others": {
+  "en": "Close other tabs",
+  "ru": "Закрыть другие вкладки"
+ },
+ "dt_copy_image_link": {
+  "en": "Copy image link",
+  "ru": "Копировать ссылку на изображение"
+ },
+ "dt_cut": {
+  "en": "Cut",
+  "ru": "Вырезать"
+ },
+ "dt_paste": {
+  "en": "Paste",
+  "ru": "Вставить"
+ },
+ "dt_engine": {
+  "en": "Engine: Chromium %1$s (Electron %2$s)",
+  "ru": "Движок: Chromium %1$s (Electron %2$s)"
+ },
+ "dt_err_retry": {
+  "en": "Press F5 or «Reload» to try again.",
+  "ru": "Нажмите F5 или «Обновить», чтобы попробовать снова."
+ },
+ "dt_incognito_hint": {
+  "en": "Incognito window: history, cookies and sign-ins are not saved. Everything is erased when you close the window.",
+  "ru": "Окно инкогнито: история, cookies и входы в аккаунты не сохраняются. Всё стирается при закрытии окна."
+ },
+ "dt_new_incognito_window": {
+  "en": "New incognito window",
+  "ru": "Новое окно инкогнито"
+ },
+ "dt_secure": {
+  "en": "Connection is secure (HTTPS)",
+  "ru": "Соединение защищено (HTTPS)"
+ },
+ "dt_not_secure": {
+  "en": "Connection is not secure",
+  "ru": "Соединение не защищено"
+ },
+ "dt_notes_empty": {
+  "en": "No notes yet. Create the first one with «New note».",
+  "ru": "Заметок пока нет. Создайте первую кнопкой «Новая заметка»."
+ },
+ "dt_onb3_body": {
+  "en": "Pinned tabs sit at the top, next to the profile name. To change them, right-click a profile → «Description and files» → Pinned tabs.",
+  "ru": "Закреплённые вкладки — вверху, рядом с названием профиля. Чтобы изменить их, нажмите на профиль правой кнопкой → «Описание и файлы» → Закреплённые вкладки."
+ },
+ "dt_onb4_body": {
+  "en": "Drag a profile to change the order. Add a description and attach files — contracts, details, instructions.",
+  "ru": "Перетащите профиль, чтобы изменить порядок. Добавьте описание и прикрепите файлы — договоры, реквизиты, инструкции."
+ },
+ "dt_onb5_body": {
+  "en": "Ctrl+T — new tab, Ctrl+Shift+T — bring back a closed tab, Ctrl+Shift+N — incognito window. Menu ⋮ has zoom and full screen.",
+  "ru": "Ctrl+T — новая вкладка, Ctrl+Shift+T — вернуть закрытую, Ctrl+Shift+N — окно инкогнито. В меню ⋮ — масштаб и полный экран."
+ },
+ "dt_onb6_body": {
+  "en": "Ось has no servers or analytics of its own: history, notes and files stay on this computer.",
+  "ru": "У Оси нет своих серверов и аналитики: история, заметки и файлы остаются на этом компьютере."
+ },
+ "dt_open_link_new_tab": {
+  "en": "Open link in new tab",
+  "ru": "Открыть ссылку в новой вкладке"
+ },
+ "dt_pinned_desc_common": {
+  "en": "Common set: used by every profile that has no tabs of its own (set them on the profile screen). In each profile a tab has its own sign-in and cookies.",
+  "ru": "Общий набор: действует для профилей, у которых нет своих вкладок (их задают на экране профиля). В каждом профиле у вкладки свой вход и cookies."
+ },
+ "dt_profile_open": {
+  "en": "Profile has open tabs",
+  "ru": "У профиля открыты вкладки"
+ },
+ "dt_profiles_desc": {
+  "en": "%d isolated profiles: each has its own accounts and cookies. Right-click a profile for its menu.",
+  "ru": "%d изолированных профилей: в каждом свои аккаунты и cookies. Правая кнопка мыши — меню профиля."
+ },
+ "dt_reopen_closed": {
+  "en": "Reopen closed tab",
+  "ru": "Вернуть закрытую вкладку"
+ },
+ "dt_reorder_hint": {
+  "en": "Drag a profile to change the order.",
+  "ru": "Перетащите профиль, чтобы изменить порядок."
+ },
+ "dt_reset_pinned": {
+  "en": "Reset tab",
+  "ru": "Сбросить вкладку"
+ },
+ "dt_search_for": {
+  "en": "Search for «%s»",
+  "ru": "Искать «%s»"
+ },
+ "dt_show_in_folder": {
+  "en": "Show in folder",
+  "ru": "Показать в папке"
+ },
+ "dt_start_hint": {
+  "en": "Privacy first. Type an address or search in the bar above. Pinned tabs are set up in settings.",
+  "ru": "Конфиденциальность прежде всего. Введите адрес или запрос в строке выше. Закреплённые вкладки настраиваются в настройках."
+ },
+ "dt_fav_empty_hint": {
+  "en": "Open a page and press ☆ in the address bar or Ctrl+D.",
+  "ru": "Откройте страницу и нажмите ☆ в адресной строке или Ctrl+D."
+ },
+ "dt_downloads_clear_q": {
+  "en": "Clear the list? Files stay in the folder.",
+  "ru": "Очистить список? Файлы останутся в папке."
+ },
+ "dt_downloads_folder": {
+  "en": "Files are saved to %s",
+  "ru": "Файлы сохраняются в %s"
+ },
+ "dt_saved_empty": {
+  "en": "No saved pages yet. Menu ⋮ → «Save page offline» (Ctrl+S) keeps a page on this computer to read without internet.",
+  "ru": "Сохранённых страниц пока нет. Меню ⋮ → «Сохранить страницу офлайн» (Ctrl+S) оставит страницу на этом компьютере для чтения без интернета."
+ },
+ "dt_on": {
+  "en": "On",
+  "ru": "Включена"
+ },
+ "dt_off": {
+  "en": "Off",
+  "ru": "Выключена"
+ },
+ "dt_tracking_desc": {
+  "en": "Blocks third-party trackers and cryptominers (EasyPrivacy list), like Firefox standard protection.",
+  "ru": "Блокирует сторонние трекеры и майнеры (список EasyPrivacy) — как стандартная защита Firefox."
+ },
+ "dt_cookies_desc": {
+  "en": "Sites embedded in other sites can't read or set their cookies there, so they can't follow you across sites.",
+  "ru": "Сайты внутри чужих страниц не читают и не ставят там свои cookies — им не проследить за вами между сайтами."
+ },
+ "dt_hide_desc": {
+  "en": "The browser window is hidden from screen recording, screen sharing and screenshots.",
+  "ru": "Окно браузера не видно при записи экрана, демонстрации экрана и на скриншотах."
+ },
+ "dt_perm_clipboard": {
+  "en": "Clipboard",
+  "ru": "Буфер обмена"
+ },
+ "dt_perm_q_clipboard": {
+  "en": "%s wants to read your clipboard",
+  "ru": "%s хочет прочитать буфер обмена"
+ },
+ "dt_sec_lock_ok": {
+  "en": "A PIN is required to open the browser",
+  "ru": "Для входа в браузер нужен PIN"
+ },
+ "dt_sec_lock_off": {
+  "en": "Anyone at this computer can open your tabs and accounts",
+  "ru": "Любой за этим компьютером может открыть ваши вкладки и аккаунты"
+ },
+ "dt_sec_hide_ok": {
+  "en": "The window is hidden from screen recording and screenshots",
+  "ru": "Окно скрыто от записи экрана и скриншотов"
+ },
+ "dt_sec_hide_off": {
+  "en": "Pages are visible in screen recordings and screen sharing",
+  "ru": "Страницы видны при записи и демонстрации экрана"
+ },
+ "dt_sec_tracking_ok": {
+  "en": "Trackers and cryptominers are blocked (%d sites in the list)",
+  "ru": "Трекеры и майнеры блокируются (%d сайтов в списке)"
+ },
+ "dt_sec_tracking_off": {
+  "en": "Sites can follow you with trackers",
+  "ru": "Сайты могут следить за вами с помощью трекеров"
+ },
+ "dt_sec_cookies_ok": {
+  "en": "Cross-site cookies are blocked",
+  "ru": "Межсайтовые cookies заблокированы"
+ },
+ "dt_sec_cookies_off": {
+  "en": "Embedded sites can follow you with their cookies",
+  "ru": "Встроенные сайты могут следить за вами через свои cookies"
+ },
+ "dt_pin": {
+  "en": "PIN",
+  "ru": "PIN"
+ },
+ "dt_pin_set": {
+  "en": "Set PIN",
+  "ru": "Задать PIN"
+ },
+ "dt_pin_change": {
+  "en": "Change PIN",
+  "ru": "Сменить PIN"
+ },
+ "dt_pin_remove": {
+  "en": "Remove PIN",
+  "ru": "Убрать PIN"
+ },
+ "dt_pin_new": {
+  "en": "New PIN: 4–12 digits",
+  "ru": "Новый PIN: 4–12 цифр"
+ },
+ "dt_pin_repeat": {
+  "en": "Repeat the PIN",
+  "ru": "Повторите PIN"
+ },
+ "dt_pin_mismatch": {
+  "en": "The PINs don't match",
+  "ru": "PIN не совпадают"
+ },
+ "dt_pin_rule": {
+  "en": "The PIN must be 4–12 digits",
+  "ru": "PIN — от 4 до 12 цифр"
+ },
+ "dt_pin_enter": {
+  "en": "Enter your PIN to open your tabs.",
+  "ru": "Введите PIN, чтобы открыть вкладки."
+ },
+ "dt_pin_wrong": {
+  "en": "Wrong PIN",
+  "ru": "Неверный PIN"
+ },
+ "dt_pin_wait": {
+  "en": "Too many attempts. Try again in 30 seconds.",
+  "ru": "Слишком много попыток. Попробуйте через 30 секунд."
+ },
+ "dt_lock_desc": {
+  "en": "The PIN is asked at launch, after Windows is locked or asleep, and after the window was minimized for a minute.",
+  "ru": "PIN спрашивается при запуске, после блокировки или сна Windows и если окно было свёрнуто больше минуты."
+ },
+ "dt_lock_hello": {
+  "en": "Windows Hello is not supported yet — only a PIN.",
+  "ru": "Windows Hello пока не поддерживается — только PIN."
+ },
+ "dt_lock_now": {
+  "en": "Lock now",
+  "ru": "Заблокировать сейчас"
+ },
+ "dt_blocked_n": {
+  "en": "Trackers blocked on this page: %d",
+  "ru": "Заблокировано трекеров на странице: %d"
+ },
+ "dt_share_copy": {
+  "en": "Copy with link",
+  "ru": "Скопировать со ссылкой"
+ },
+ "dt_share_mail": {
+  "en": "Send by email",
+  "ru": "Отправить по почте"
+ },
+ "dt_reader_none": {
+  "en": "No article found on this page for reader mode",
+  "ru": "На этой странице не нашлось статьи для режима чтения"
+ },
+ "dt_licenses_desc": {
+  "en": "Ось Browser is built on these open components.",
+  "ru": "Ось Browser построен на этих открытых компонентах."
+ },
+ "dt_licenses_open": {
+  "en": "Chromium licenses",
+  "ru": "Лицензии Chromium"
+ },
+ "dt_help_a1": {
+  "en": "Each profile is a separate browser: its own accounts, cookies and history. Switch with the profile chip at the top-left or on the Profiles screen.",
+  "ru": "Каждый профиль — отдельный браузер: свои аккаунты, cookies и история. Переключайтесь чипом профиля слева вверху или на экране «Профили»."
+ },
+ "dt_help_a2": {
+  "en": "Nothing: no history, cookies or sign-ins. Everything is erased when you close the incognito window. Downloads and notes you create stay.",
+  "ru": "Ничего: ни истории, ни cookies, ни входов. Всё стирается при закрытии окна инкогнито. Загрузки и созданные заметки остаются."
+ },
+ "dt_help_a3": {
+  "en": "Menu ⋮ → «Save page offline» (Ctrl+S). The page is kept as a PDF on this computer; find it in «Saved pages». «Reader mode» (Ctrl+Alt+R) removes clutter from articles.",
+  "ru": "Меню ⋮ → «Сохранить страницу офлайн» (Ctrl+S). Страница хранится как PDF на этом компьютере — в «Сохранённых страницах». «Режим чтения» (Ctrl+Alt+R) убирает лишнее из статей."
+ },
+ "dt_help_a4": {
+  "en": "Select text on a page, right-click and choose «Add to note». Notes are kept only on this computer: menu ⋮ → «Notes».",
+  "ru": "Выделите текст на странице, нажмите правую кнопку мыши и выберите «Добавить в заметку». Заметки хранятся только на этом компьютере: меню ⋮ → «Заметки»."
+ },
+ "dt_help_a5": {
+  "en": "Settings → «Default browser» → «Make Ось Browser the default»: Windows opens «Default apps», choose Ось Browser for HTTP and HTTPS. Links from other programs then open in your last profile.",
+  "ru": "Настройки → «Браузер по умолчанию» → «Сделать Ось браузером по умолчанию»: откроются «Приложения по умолчанию» Windows, выберите Ось Browser для HTTP и HTTPS. Ссылки из других программ откроются в последнем профиле."
+ },
+ "dt_help_a6": {
+  "en": "Menu ⋮ → «Clear data» removes history and cache or signs you out of a profile. Settings → «Data» clears everything at once.",
+  "ru": "Меню ⋮ → «Очистка» удаляет историю и кэш или выходит из аккаунтов профиля. Настройки → «Данные» очищают всё сразу."
+ },
+ "dt_updates": {
+  "en": "Updates",
+  "ru": "Обновления"
+ },
+ "dt_update_auto": {
+  "en": "Automatic updates",
+  "ru": "Автообновление"
+ },
+ "dt_update_desc": {
+  "en": "New versions are downloaded from the project's GitHub Releases over HTTPS and installed when you close the browser.",
+  "ru": "Новые версии скачиваются из GitHub Releases проекта по HTTPS и ставятся при закрытии браузера."
+ },
+ "dt_update_off": {
+  "en": "Automatic updates are off",
+  "ru": "Автообновление выключено"
+ },
+ "dt_update_dev": {
+  "en": "Updates work in the installed version only",
+  "ru": "Обновления работают только в установленной версии"
+ },
+ "dt_update_idle": {
+  "en": "Updates are checked a minute after launch and every 6 hours",
+  "ru": "Обновления проверяются через минуту после запуска и каждые 6 часов"
+ },
+ "dt_update_checking": {
+  "en": "Checking for updates…",
+  "ru": "Проверяем обновления…"
+ },
+ "dt_update_none": {
+  "en": "You have the latest version",
+  "ru": "У вас последняя версия"
+ },
+ "dt_update_available": {
+  "en": "Downloading version %s…",
+  "ru": "Скачиваем версию %s…"
+ },
+ "dt_update_ready": {
+  "en": "Version %s is ready — it installs when you close the browser",
+  "ru": "Версия %s готова — установится при закрытии браузера"
+ },
+ "dt_update_error": {
+  "en": "Couldn't check for updates. Check the internet connection.",
+  "ru": "Не удалось проверить обновления. Проверьте подключение к интернету."
+ },
+ "dt_update_check": {
+  "en": "Check now",
+  "ru": "Проверить сейчас"
+ },
+ "dt_update_restart": {
+  "en": "Restart and update",
+  "ru": "Перезапустить и обновить"
+ },
+ "dt_pause": {
+  "en": "Pause",
+  "ru": "Пауза"
+ },
+ "dt_resume": {
+  "en": "Resume",
+  "ru": "Продолжить"
+ },
+ "dt_dl_paused": {
+  "en": "Paused: %s",
+  "ru": "На паузе: %s"
+ },
+ "dt_dl_interrupted": {
+  "en": "Stopped: %s — continue from the same point",
+  "ru": "Остановлено: %s — можно продолжить с того же места"
+ },
+ "dt_stop": {
+  "en": "Stop",
+  "ru": "Остановить"
+ },
+ "reader_mode": {
+  "en": "Reader mode",
+  "ru": "Режим чтения"
+ },
+ "reader_exit": {
+  "en": "Exit reader mode",
+  "ru": "Выйти из режима чтения"
+ },
+ "profiles_reorder_hint": {
+  "en": "Tap to open · hold for the menu · hold and drag to reorder.",
+  "ru": "Нажмите — открыть · удерживайте — меню · удерживайте и тяните — поменять порядок."
+ },
+ "profile_info": {
+  "en": "Description and files",
+  "ru": "Описание и файлы"
+ },
+ "move_up": {
+  "en": "Move up",
+  "ru": "Выше"
+ },
+ "move_down": {
+  "en": "Move down",
+  "ru": "Ниже"
+ },
+ "files_n": {
+  "en": "Files: %d",
+  "ru": "Файлов: %d"
+ },
+ "profile_desc": {
+  "en": "Description",
+  "ru": "Описание"
+ },
+ "profile_desc_hint": {
+  "en": "What this profile is for: work mail, client, project…",
+  "ru": "Для чего профиль: рабочая почта, клиент, проект…"
+ },
+ "profile_files": {
+  "en": "Files",
+  "ru": "Файлы"
+ },
+ "profile_files_empty": {
+  "en": "No files yet. Attach contracts, details or instructions you need in this profile.",
+  "ru": "Файлов пока нет. Прикрепите договоры, реквизиты или инструкции, которые нужны в этом профиле."
+ },
+ "profile_files_local": {
+  "en": "Copies are kept only on this device. Signing out of accounts doesn't delete them.",
+  "ru": "Копии хранятся только на этом устройстве. Выход из аккаунтов их не удаляет."
+ },
+ "add_files": {
+  "en": "Add files",
+  "ru": "Добавить файлы"
+ },
+ "file_add_failed": {
+  "en": "Some files couldn't be added",
+  "ru": "Не все файлы удалось добавить"
+ },
+ "delete_file_q": {
+  "en": "Delete this file?",
+  "ru": "Удалить файл?"
+ },
+ "pinned_desc_common": {
+  "en": "Common set: used by every profile that has no tabs of its own (set them in the profile's «Description and files»). In each profile a tab has its own sign-in and cookies.",
+  "ru": "Общий набор: действует во всех профилях без своих вкладок (свои задаются в профиле → «Описание и файлы»). В каждом профиле у вкладки свой вход и cookies."
+ },
+ "tabs_common_desc": {
+  "en": "This profile uses the common tabs from settings. Change any tab here to give the profile its own set.",
+  "ru": "Профиль использует общие вкладки из настроек. Измените любую вкладку здесь — и у профиля появится свой набор."
+ },
+ "tabs_own_desc": {
+  "en": "This profile has its own tabs; changes to the common set don't affect it.",
+  "ru": "У профиля свои вкладки; изменения общего набора его не затрагивают."
+ },
+ "tabs_use_common": {
+  "en": "Use common tabs",
+  "ru": "Использовать общие вкладки"
+ },
+ "profiles_all": {
+  "en": "Show all profiles (%d)",
+  "ru": "Показать все профили (%d)"
+ },
+ "profiles_fewer": {
+  "en": "Show fewer",
+  "ru": "Свернуть"
+ },
+ "onb_next": {
+  "en": "Next",
+  "ru": "Далее"
+ },
+ "onb_back": {
+  "en": "Back",
+  "ru": "Назад"
+ },
+ "onb_skip": {
+  "en": "Skip",
+  "ru": "Пропустить"
+ },
+ "onb_start": {
+  "en": "Start browsing",
+  "ru": "Начать"
+ },
+ "onb_again": {
+  "en": "Show the tutorial again",
+  "ru": "Показать обучение ещё раз"
+ },
+ "onb1_title": {
+  "en": "Welcome to Ось",
+  "ru": "Добро пожаловать в Ось"
+ },
+ "onb1_body": {
+  "en": "A business browser: a separate profile for every account, tracking protection, and your data stays on this device.",
+  "ru": "Бизнес-браузер: отдельный профиль для каждого аккаунта, защита от трекеров, а данные остаются на этом устройстве."
+ },
+ "onb2_title": {
+  "en": "Profiles are accounts",
+  "ru": "Профили — это аккаунты"
+ },
+ "onb2_body": {
+  "en": "Each profile is a separate browser with its own sign-ins and cookies. We've set up examples — Personal, Work, Shopping and Social. Rename them or set them up your way.",
+  "ru": "Каждый профиль — отдельный браузер со своими входами и cookies. Мы настроили примеры — «Личное», «Работа», «Покупки» и «Соцсети». Переименуйте их или настройте под себя."
+ },
+ "onb3_title": {
+  "en": "Each profile has its own tabs",
+  "ru": "У каждого профиля свои вкладки"
+ },
+ "onb3_body": {
+  "en": "Pinned tabs sit at the top of the browser. To change them, hold a profile → «Description and files» → Pinned tabs.",
+  "ru": "Закреплённые вкладки — вверху браузера. Чтобы их поменять, удерживайте профиль → «Описание и файлы» → «Закреплённые вкладки»."
+ },
+ "onb4_title": {
+  "en": "Keep things in order",
+  "ru": "Порядок под рукой"
+ },
+ "onb4_body": {
+  "en": "Hold a profile and drag it to change the order. Add a description and attach files — contracts, details, instructions.",
+  "ru": "Удерживайте профиль и перетащите, чтобы поменять порядок. Добавьте описание и прикрепите файлы — договоры, реквизиты, инструкции."
+ },
+ "onb5_title": {
+  "en": "Read, save, focus",
+  "ru": "Читать, сохранять, не отвлекаться"
+ },
+ "onb5_body": {
+  "en": "Menu ⋮ has reader mode, save page offline and full screen. Select text on a page to add it to Notes.",
+  "ru": "В меню ⋮ — режим чтения, сохранение страницы офлайн и полный экран. Выделите текст на странице, чтобы добавить его в заметки."
+ },
+ "onb6_title": {
+  "en": "Private by default",
+  "ru": "Приватность по умолчанию"
+ },
+ "onb6_body": {
+  "en": "Ось has no servers or analytics of its own. Make it your default browser so links from mail and messengers open here.",
+  "ru": "У Оси нет своих серверов и аналитики. Сделайте её браузером по умолчанию — и ссылки из почты и мессенджеров будут открываться здесь."
+ },
+ "tab_mail": {
+  "en": "Mail",
+  "ru": "Почта"
+ },
+ "ex_personal_name": {
+  "en": "Personal",
+  "ru": "Личное"
+ },
+ "ex_work_name": {
+  "en": "Work",
+  "ru": "Работа"
+ },
+ "ex_shopping_name": {
+  "en": "Shopping",
+  "ru": "Покупки"
+ },
+ "ex_social_name": {
+  "en": "Social",
+  "ru": "Соцсети"
+ },
+ "ex_personal_desc": {
+  "en": "Example: personal mail and accounts. Sign in on the «Mail» tab — or rename the profile and set your own tabs.",
+  "ru": "Пример: личная почта и аккаунты. Войдите во вкладке «Почта» — или переименуйте профиль и задайте свои вкладки."
+ },
+ "ex_work_desc": {
+  "en": "Example: work accounts — corporate mail, calendar, CRM, documents. Add your company's sites as tabs.",
+  "ru": "Пример: рабочие аккаунты — корпоративная почта, календарь, CRM, документы. Добавьте сайты компании как вкладки."
+ },
+ "ex_shopping_desc": {
+  "en": "Example: stores and marketplaces in a separate profile — their ads and trackers don't follow you into work and personal mail.",
+  "ru": "Пример: магазины и маркетплейсы в отдельном профиле — их реклама и трекеры не попадут в рабочий и личный профиль."
+ },
+ "ex_social_desc": {
+  "en": "Example: social networks live separately — sign in to them here, away from work and personal accounts.",
+  "ru": "Пример: соцсети живут отдельно — входите в них здесь, отдельно от рабочих и личных аккаунтов."
+ },
+ "tab_calendar": {
+  "en": "Calendar",
+  "ru": "Календарь"
+ },
+ "stats": {
+  "en": "Statistics",
+  "ru": "Статистика"
+ },
+ "stats_pages": {
+  "en": "pages opened",
+  "ru": "страниц открыто"
+ },
+ "stats_trackers": {
+  "en": "trackers blocked",
+  "ru": "трекеров заблокировано"
+ },
+ "stats_since": {
+  "en": "Counted since %s",
+  "ru": "Считается с %s"
+ },
+ "stats_top_sites": {
+  "en": "Frequent sites",
+  "ru": "Частые сайты"
+ },
+ "stats_no_sites": {
+  "en": "Nothing yet — open a few sites and they will appear here.",
+  "ru": "Пока пусто — откройте несколько сайтов, и они появятся здесь."
+ },
+ "stats_visits": {
+  "en": "Visits: %d",
+  "ru": "Посещений: %d"
+ },
+ "stats_reset": {
+  "en": "Reset statistics",
+  "ru": "Сбросить статистику"
+ },
+ "stats_reset_q": {
+  "en": "Reset page and tracker counters?",
+  "ru": "Обнулить счётчики страниц и трекеров?"
+ },
+ "stats_local": {
+  "en": "Statistics are counted only on this device and are never sent anywhere. History, notes and files are not affected by reset.",
+  "ru": "Статистика считается только на этом устройстве и никуда не отправляется. Сброс не трогает историю, заметки и файлы."
+ },
+ "notif_channel": {
+  "en": "Site notifications",
+  "ru": "Уведомления сайтов"
+ },
+ "notif_channel_desc": {
+  "en": "Notifications from sites you allowed, while their tab is open in Ось.",
+  "ru": "Уведомления от сайтов, которым вы разрешили, пока их вкладка открыта в Оси."
+ },
+ "perm_downloads": {
+  "en": "Downloads",
+  "ru": "Скачивание файлов"
+ },
+ "perm_uploads": {
+  "en": "File uploads",
+  "ru": "Отправка файлов"
+ },
+ "perm_q_downloads": {
+  "en": "%s wants to download «%s»",
+  "ru": "%s хочет скачать «%s»"
+ },
+ "perm_q_uploads": {
+  "en": "%s wants you to choose files from this device",
+  "ru": "%s просит выбрать файлы с этого устройства"
+ },
+ "perm_blocked_for": {
+  "en": "%s is blocked for %s (site settings)",
+  "ru": "%s запрещено для %s (настройки сайта)"
+ },
+ "menu_page": {
+  "en": "Page",
+  "ru": "Страница"
+ },
+ "menu_app": {
+  "en": "Ось",
+  "ru": "Ось"
+ },
+ "dl_progress": {
+  "en": "%1$d%% · %2$s of %3$s",
+  "ru": "%1$d%% · %2$s из %3$s"
+ },
+ "dl_progress_unknown": {
+  "en": "%s downloaded",
+  "ru": "Скачано %s"
+ },
+ "dl_done": {
+  "en": "Downloaded · %s",
+  "ru": "Скачано · %s"
+ },
+ "dl_cancelled": {
+  "en": "Download cancelled: %s",
+  "ru": "Скачивание отменено: %s"
+ },
+ "qs_in_profile": {
+  "en": "Opens in profile «%s» · change",
+  "ru": "Откроется в профиле «%s» · сменить"
+ },
+ "qs_pick_profile": {
+  "en": "Open in profile",
+  "ru": "Открыть в профиле"
+ },
+ "qs_go": {
+  "en": "Go",
+  "ru": "Перейти"
+ },
+ "upload_failed": {
+  "en": "Couldn't read the selected file",
+  "ru": "Не удалось прочитать выбранный файл"
+ },
+ "dl_title": {
+  "en": "Downloads",
+  "ru": "Скачанные файлы"
+ },
+ "dl_storage": {
+  "en": "Used: %1$s of %2$s",
+  "ru": "Использовано: %1$s из %2$s"
+ },
+ "dl_search_hint": {
+  "en": "Search downloads",
+  "ru": "Поиск по загрузкам"
+ },
+ "dl_clear_q": {
+  "en": "Clear the downloads list? Files stay on the device.",
+  "ru": "Очистить список загрузок? Сами файлы останутся на устройстве."
+ },
+ "dl_all": {
+  "en": "All",
+  "ru": "Все"
+ },
+ "dl_images": {
+  "en": "Images",
+  "ru": "Картинки"
+ },
+ "dl_audio": {
+  "en": "Audio",
+  "ru": "Аудио"
+ },
+ "dl_video": {
+  "en": "Video",
+  "ru": "Видео"
+ },
+ "dl_docs": {
+  "en": "Documents",
+  "ru": "Документы"
+ },
+ "dl_other": {
+  "en": "Other",
+  "ru": "Другое"
+ },
+ "dl_just_now": {
+  "en": "Just now",
+  "ru": "Только что"
+ },
+ "dl_today": {
+  "en": "Today — %s",
+  "ru": "Сегодня — %s"
+ },
+ "dl_yesterday": {
+  "en": "Yesterday — %s",
+  "ru": "Вчера — %s"
+ },
+ "dl_of": {
+  "en": "%1$s of %2$s",
+  "ru": "%1$s из %2$s"
+ },
+ "dl_left": {
+  "en": "%s left",
+  "ru": "Осталось %s"
+ },
+ "dl_sec": {
+  "en": "%d sec",
+  "ru": "%d сек."
+ },
+ "dl_min": {
+  "en": "%d min",
+  "ru": "%d мин."
+ },
+ "profile_pin": {
+  "en": "Pin profile",
+  "ru": "Закрепить"
+ },
+ "profile_unpin": {
+  "en": "Unpin profile",
+  "ru": "Открепить"
+ },
+ "profile_pinned": {
+  "en": "Pinned",
+  "ru": "Закреплён"
+ },
+ "profile_current": {
+  "en": "Current profile",
+  "ru": "Текущий профиль"
+ },
+ "profile_settings": {
+  "en": "Profile settings",
+  "ru": "Настройки профиля"
+ },
+ "switch_profile": {
+  "en": "Switch profile",
+  "ru": "Сменить профиль"
+ },
+ "all_profiles": {
+  "en": "All profiles",
+  "ru": "Все профили"
+ },
+ "bottom_button": {
+  "en": "Toolbar button",
+  "ru": "Кнопка на панели"
+ },
+ "bottom_button_desc": {
+  "en": "What the button between History and Reload does.",
+  "ru": "Что делает кнопка между «Историей» и «Обновить»."
+ },
+ "block_screenshots": {
+  "en": "Block screenshots",
+  "ru": "Запретить скриншоты"
+ },
+ "block_screenshots_desc": {
+  "en": "Screenshots and screen recording show a black screen; the app is hidden in recent apps.",
+  "ru": "На скриншотах и записи экрана — чёрный экран; в недавних приложениях содержимое скрыто."
+ },
+ "sg_general": {
+  "en": "General",
+  "ru": "Основные"
+ },
+ "sg_profiles": {
+  "en": "Profiles",
+  "ru": "Профили"
+ },
+ "sg_panels": {
+  "en": "Bars and tabs",
+  "ru": "Панели и вкладки"
+ },
+ "sg_privacy": {
+  "en": "Privacy and security",
+  "ru": "Конфиденциальность и безопасность"
+ },
+ "sg_data": {
+  "en": "Data",
+  "ru": "Данные"
+ },
+ "sg_library": {
+  "en": "My library",
+  "ru": "Моя библиотека"
+ },
+ "sg_about": {
+  "en": "About",
+  "ru": "О приложении"
+ },
+ "greet_morning": {
+  "en": "Good morning!",
+  "ru": "Доброе утро!"
+ },
+ "greet_day": {
+  "en": "Good afternoon!",
+  "ru": "Добрый день!"
+ },
+ "greet_evening": {
+  "en": "Good evening!",
+  "ru": "Добрый вечер!"
+ },
+ "greet_night": {
+  "en": "Good night!",
+  "ru": "Доброй ночи!"
+ },
+ "cabinet": {
+  "en": "Personal account",
+  "ru": "Личный кабинет"
+ },
+ "cabinet_desc": {
+  "en": "Everything saved in this profile: passwords, tab sets, favorites, notes and files. Stored only on this phone.",
+  "ru": "Всё, что сохранено в этом профиле: пароли, наборы вкладок, избранное, заметки и файлы. Хранится только на этом телефоне."
+ },
+ "passwords": {
+  "en": "Passwords",
+  "ru": "Пароли"
+ },
+ "passwords_empty": {
+  "en": "No saved passwords yet. When you sign in to a site, Ось offers to save the password.",
+  "ru": "Сохранённых паролей пока нет. При входе на сайт Ось предложит сохранить пароль."
+ },
+ "passwords_local": {
+  "en": "Passwords are encrypted with a key that never leaves this phone. Ось has no servers.",
+  "ru": "Пароли зашифрованы ключом, который не покидает этот телефон. Серверов у Оси нет."
+ },
+ "password_save_q": {
+  "en": "Save password for %s?",
+  "ru": "Сохранить пароль для %s?"
+ },
+ "password_never": {
+  "en": "Never for this site",
+  "ru": "Никогда для этого сайта"
+ },
+ "not_now": {
+  "en": "Not now",
+  "ru": "Не сейчас"
+ },
+ "password_show": {
+  "en": "Show password",
+  "ru": "Показать пароль"
+ },
+ "copy_login": {
+  "en": "Copy username",
+  "ru": "Копировать логин"
+ },
+ "copy_password": {
+  "en": "Copy password",
+  "ru": "Копировать пароль"
+ },
+ "password_copied": {
+  "en": "Copied",
+  "ru": "Скопировано"
+ },
+ "password_add": {
+  "en": "Add password",
+  "ru": "Добавить пароль"
+ },
+ "password_site": {
+  "en": "Site",
+  "ru": "Сайт"
+ },
+ "password_login": {
+  "en": "Username",
+  "ru": "Логин"
+ },
+ "password_value": {
+  "en": "Password",
+  "ru": "Пароль"
+ },
+ "edit": {
+  "en": "Edit",
+  "ru": "Изменить"
+ },
+ "pw_offer_on": {
+  "en": "Offer to save",
+  "ru": "Предлагать сохранять"
+ },
+ "pw_offer_off": {
+  "en": "Don't offer",
+  "ru": "Не предлагать"
+ },
+ "never_sites": {
+  "en": "Passwords are not saved on these sites (tap ⋮ to remove from the list):",
+  "ru": "На этих сайтах пароли не сохраняются (⋮ — убрать из списка):"
+ },
+ "login_pick": {
+  "en": "Choose an account",
+  "ru": "Выберите аккаунт"
+ },
+ "tab_sets": {
+  "en": "Saved tab sets",
+  "ru": "Наборы вкладок"
+ },
+ "tab_set_save": {
+  "en": "Save open tabs (%d)",
+  "ru": "Сохранить открытые вкладки (%d)"
+ },
+ "tab_set_empty": {
+  "en": "Save the open tabs as a set to reopen them later with one tap.",
+  "ru": "Сохраните открытые вкладки набором, чтобы потом открыть их одним нажатием."
+ },
+ "tab_set_name_q": {
+  "en": "Name of the set",
+  "ru": "Название набора"
+ },
+ "tab_sets_none": {
+  "en": "No open web pages to save",
+  "ru": "Нет открытых страниц для сохранения"
+ },
+ "tabs_n": {
+  "en": "%d tabs",
+  "ru": "Вкладок: %d"
+ },
+ "my_data": {
+  "en": "My data",
+  "ru": "Мои данные"
+ },
+ "backup": {
+  "en": "Backup",
+  "ru": "Резервная копия"
+ },
+ "backup_export": {
+  "en": "Save a backup to a file",
+  "ru": "Сохранить копию в файл"
+ },
+ "backup_import": {
+  "en": "Restore from a file",
+  "ru": "Восстановить из файла"
+ },
+ "backup_desc": {
+  "en": "The copy holds this profile's passwords, tab sets, favorites and notes. It is encrypted with the password you set; without it the file can't be opened. Keep it somewhere safe, for example to move to a new phone.",
+  "ru": "В копии — пароли, наборы вкладок, избранное и заметки этого профиля. Она зашифрована паролем, который вы зададите; без него файл не открыть. Храните копию в надёжном месте — например, для переноса на новый телефон."
+ },
+ "backup_pw": {
+  "en": "Backup password",
+  "ru": "Пароль копии"
+ },
+ "backup_pw_again": {
+  "en": "Repeat the password",
+  "ru": "Повторите пароль"
+ },
+ "backup_pw_short": {
+  "en": "The password must be at least 6 characters",
+  "ru": "Пароль — не короче 6 символов"
+ },
+ "backup_pw_mismatch": {
+  "en": "The passwords don't match",
+  "ru": "Пароли не совпадают"
+ },
+ "backup_done": {
+  "en": "Backup saved",
+  "ru": "Копия сохранена"
+ },
+ "backup_bad": {
+  "en": "Wrong password or damaged file",
+  "ru": "Неверный пароль или повреждённый файл"
+ },
+ "backup_restored": {
+  "en": "Restored: passwords %1$d, tab sets %2$d, favorites %3$d, notes %4$d.",
+  "ru": "Восстановлено: паролей %1$d, наборов вкладок %2$d, избранного %3$d, заметок %4$d."
+ },
+ "search_history": {
+  "en": "Search history",
+  "ru": "Поиск по истории"
+ },
+ "history_profile_hint": {
+  "en": "History of the «%s» profile. Other profiles keep their own.",
+  "ru": "История профиля «%s». У других профилей — своя."
+ },
+ "clear_browsing_data": {
+  "en": "Clear browsing data",
+  "ru": "Удалить данные о работе в браузере"
+ },
+ "time_range": {
+  "en": "Time range",
+  "ru": "Временной диапазон"
+ },
+ "range_15m": {
+  "en": "Last 15 minutes",
+  "ru": "Последние 15 минут"
+ },
+ "range_1h": {
+  "en": "Last hour",
+  "ru": "Последний час"
+ },
+ "range_24h": {
+  "en": "Last 24 hours",
+  "ru": "Последние 24 часа"
+ },
+ "range_7d": {
+  "en": "Last 7 days",
+  "ru": "Последние 7 дней"
+ },
+ "range_4w": {
+  "en": "Last 4 weeks",
+  "ru": "Последние 4 недели"
+ },
+ "range_all": {
+  "en": "All time",
+  "ru": "Всё время"
+ },
+ "cd_history_n": {
+  "en": "Entries: %d",
+  "ru": "Записей: %d"
+ },
+ "cd_cookies": {
+  "en": "Cookies and site data",
+  "ru": "Файлы cookie и данные сайтов"
+ },
+ "cd_cookies_desc": {
+  "en": "For the whole profile: you will be signed out of most sites.",
+  "ru": "Для всего профиля: вы выйдете из аккаунтов на большинстве сайтов."
+ },
+ "cd_cache": {
+  "en": "Cached images and files",
+  "ru": "Кешированные файлы и изображения"
+ },
+ "cd_cache_desc": {
+  "en": "Some sites may load more slowly next time.",
+  "ru": "Некоторые сайты при следующем открытии загрузятся медленнее."
+ },
+ "cd_tabs_n": {
+  "en": "Open tabs: %d",
+  "ru": "Открытых вкладок: %d"
+ },
+ "cd_passwords_n": {
+  "en": "Saved: %d",
+  "ru": "Сохранено: %d"
+ },
+ "cd_sites_n": {
+  "en": "Sites: %d",
+  "ru": "Сайтов: %d"
+ },
+ "cd_note": {
+  "en": "Favorites, notes, saved pages and profile files are not deleted.",
+  "ru": "Избранное, заметки, сохранённые страницы и файлы профиля не удаляются."
+ },
+ "cd_delete": {
+  "en": "Delete data",
+  "ru": "Удалить данные"
+ },
+ "perm_android_off": {
+  "en": "Access to %s is turned off for Ось in Android settings. Turn it on there, then try again.",
+  "ru": "Доступ к: %s выключен для Оси в настройках Android. Включите его там и попробуйте снова."
+ },
+ "open_settings": {
+  "en": "Open settings",
+  "ru": "Открыть настройки"
+ },
+ "cabinet_all_desc": {
+  "en": "All profiles in one place: passwords, tab sets and files. Tap a profile to open its account.",
+  "ru": "Все профили в одном месте: пароли, наборы вкладок и файлы. Нажмите на профиль, чтобы открыть его кабинет."
+ },
+ "pw_generator": {
+  "en": "Password generator",
+  "ru": "Генератор паролей"
+ },
+ "pw_generate": {
+  "en": "Generate a strong password",
+  "ru": "Сгенерировать надёжный пароль"
+ },
+ "pw_search": {
+  "en": "Search all passwords",
+  "ru": "Поиск по всем паролям"
+ },
+ "pw_length": {
+  "en": "Length: %d",
+  "ru": "Длина: %d"
+ },
+ "pw_weak": {
+  "en": "weak",
+  "ru": "слабый"
+ },
+ "pw_ok": {
+  "en": "fair",
+  "ru": "средний"
+ },
+ "pw_strong": {
+  "en": "strong",
+  "ru": "надёжный"
+ },
+ "pw_very_strong": {
+  "en": "very strong",
+  "ru": "очень надёжный"
+ },
+ "pw_digits": {
+  "en": "Digits",
+  "ru": "Цифры"
+ },
+ "pw_symbols": {
+  "en": "Symbols",
+  "ru": "Знаки"
+ },
+ "pw_new": {
+  "en": "New",
+  "ru": "Новый"
+ },
+ "backup_export_all": {
+  "en": "Save a backup of all profiles",
+  "ru": "Сохранить копию всех профилей"
+ },
+ "profiles_view_list": {
+  "en": "Show as list",
+  "ru": "Списком"
+ },
+ "profiles_view_grid": {
+  "en": "Show as tiles",
+  "ru": "Плиткой"
+ },
+ "profiles_grid_hint": {
+  "en": "Tap to open · hold for the menu (folder, pin, settings).",
+  "ru": "Нажмите — открыть · удерживайте — меню (папка, закрепить, настройки)."
+ },
+ "folder_move": {
+  "en": "Move to folder",
+  "ru": "В папку"
+ },
+ "folder_new": {
+  "en": "New folder…",
+  "ru": "Новая папка…"
+ },
+ "folder_none": {
+  "en": "No folder",
+  "ru": "Без папки"
+ },
+ "folder_name": {
+  "en": "Folder name",
+  "ru": "Название папки"
+ },
+ "folder_rename": {
+  "en": "Rename folder",
+  "ru": "Переименовать папку"
+ },
+ "folder_delete": {
+  "en": "Remove folder (profiles stay)",
+  "ru": "Убрать папку (профили останутся)"
+ },
+ "leave_page_q": {
+  "en": "Leave this page?",
+  "ru": "Покинуть страницу?"
+ },
+ "leave_page_msg": {
+  "en": "Changes you made may not be saved.",
+  "ru": "Внесённые изменения могут не сохраниться."
+ },
+ "leave_page": {
+  "en": "Leave",
+  "ru": "Покинуть"
+ },
+ "stay_page": {
+  "en": "Stay",
+  "ru": "Остаться"
+ },
+ "repost_q": {
+  "en": "Resend the form?",
+  "ru": "Отправить форму ещё раз?"
+ },
+ "repost_msg": {
+  "en": "The page will send the data you entered again (for example, a payment or an order may repeat).",
+  "ru": "Страница снова отправит введённые данные (например, оплата или заказ могут повториться)."
+ },
+ "repost_send": {
+  "en": "Resend",
+  "ru": "Отправить"
+ },
+ "fill_in": {
+  "en": "Fill in",
+  "ru": "Подставить в строку"
+ },
+ "clear_text": {
+  "en": "Clear",
+  "ru": "Очистить"
+ },
+ "edit_address": {
+  "en": "Edit address",
+  "ru": "Изменить адрес"
+ },
+ "find_in_page": {
+  "en": "Find in page",
+  "ru": "Найти на странице"
+ },
+ "find_hint": {
+  "en": "Find in page",
+  "ru": "Найти на странице"
+ },
+ "find_prev": {
+  "en": "Previous",
+  "ru": "Предыдущее"
+ },
+ "find_next": {
+  "en": "Next",
+  "ru": "Следующее"
+ },
+ "find_none": {
+  "en": "No matches",
+  "ru": "Нет совпадений"
+ },
+ "find_count": {
+  "en": "%1$d of %2$d",
+  "ru": "%1$d из %2$d"
+ },
+ "desktop_site": {
+  "en": "Desktop site",
+  "ru": "Версия для ПК"
+ },
+ "full_screen": {
+  "en": "Full screen",
+  "ru": "Полный экран"
+ },
+ "exit_full_screen": {
+  "en": "Exit full screen",
+  "ru": "Выйти из полного экрана"
+ },
+ "web_only": {
+  "en": "Works on web pages only",
+  "ru": "Работает только на веб-страницах"
+ },
+ "save_page": {
+  "en": "Save page offline",
+  "ru": "Сохранить страницу офлайн"
+ },
+ "saving_page": {
+  "en": "Saving page…",
+  "ru": "Сохраняем страницу…"
+ },
+ "page_saved": {
+  "en": "Page saved — read it offline in «Saved pages»",
+  "ru": "Страница сохранена — читайте без интернета в «Сохранённых страницах»"
+ },
+ "save_failed": {
+  "en": "Couldn't save the page",
+  "ru": "Не удалось сохранить страницу"
+ },
+ "saved_pages": {
+  "en": "Saved pages",
+  "ru": "Сохранённые страницы"
+ },
+ "saved_empty": {
+  "en": "No saved pages yet. Menu ⋮ → «Save page offline» keeps a page on this device to read without internet.",
+  "ru": "Сохранённых страниц пока нет. Меню ⋮ → «Сохранить страницу офлайн» — и её можно читать без интернета."
+ },
+ "open_with": {
+  "en": "Open with another app",
+  "ru": "Открыть в другом приложении"
+ },
+ "open_source": {
+  "en": "Open source page",
+  "ru": "Открыть исходную страницу"
+ },
+ "notes": {
+  "en": "Notes",
+  "ru": "Заметки"
+ },
+ "new_note": {
+  "en": "New note",
+  "ru": "Новая заметка"
+ },
+ "note_hint": {
+  "en": "Note text",
+  "ru": "Текст заметки"
+ },
+ "notes_empty": {
+  "en": "No notes yet. Select text on any page and tap «Add to note» — or create a note with «+».",
+  "ru": "Заметок пока нет. Выделите текст на любой странице и нажмите «Добавить в заметку» — или создайте заметку кнопкой «+»."
+ },
+ "notes_local": {
+  "en": "Notes are stored only on this device and are not sent anywhere.",
+  "ru": "Заметки хранятся только на этом устройстве и никуда не отправляются."
+ },
+ "add_to_note": {
+  "en": "Add to note",
+  "ru": "Добавить в заметку"
+ },
+ "note_added": {
+  "en": "Added to notes",
+  "ru": "Добавлено в заметки"
+ },
+ "delete_note_q": {
+  "en": "Delete this note?",
+  "ru": "Удалить заметку?"
+ },
+ "copy": {
+  "en": "Copy",
+  "ru": "Копировать"
+ },
+ "copied": {
+  "en": "Copied",
+  "ru": "Скопировано"
+ },
+ "search_web": {
+  "en": "Search",
+  "ru": "Поиск"
+ },
+ "my_library": {
+  "en": "My library",
+  "ru": "Моя библиотека"
+ },
+ "home_page": {
+  "en": "Home page",
+  "ru": "Главная страница"
+ },
+ "home_os": {
+  "en": "Ось start",
+  "ru": "Старт Ось"
+ },
+ "home_blank": {
+  "en": "Blank page",
+  "ru": "Пустая"
+ },
+ "home_custom": {
+  "en": "Custom address",
+  "ru": "Свой адрес"
+ },
+ "home_url_hint": {
+  "en": "Page address, e.g. example.com",
+  "ru": "Адрес страницы, например example.com"
+ },
+ "home_desc": {
+  "en": "Opens in a new tab and with the «Home» button on the «Start» tab.",
+  "ru": "Открывается в новой вкладке и по кнопке «Главная» во вкладке «Старт»."
+ },
+ "default_browser": {
+  "en": "Default browser",
+  "ru": "Браузер по умолчанию"
+ },
+ "default_is": {
+  "en": "Ось Browser is your default browser ✓",
+  "ru": "Ось Browser — браузер по умолчанию ✓"
+ },
+ "default_not": {
+  "en": "Links from other apps open in another browser now.",
+  "ru": "Сейчас ссылки из других приложений открываются в другом браузере."
+ },
+ "default_make": {
+  "en": "Make Ось Browser the default",
+  "ru": "Сделать Ось браузером по умолчанию"
+ },
+ "default_change": {
+  "en": "Change default browser",
+  "ru": "Сменить браузер по умолчанию"
+ },
+ "default_desc": {
+  "en": "Links from mail, messengers and other apps will open in Ось — with tracking protection and in your profile.",
+  "ru": "Ссылки из почты, мессенджеров и других приложений будут открываться в Оси — с защитой от трекеров и в вашем профиле."
+ },
+ "about": {
+  "en": "About",
+  "ru": "О приложении"
+ },
+ "about_section": {
+  "en": "About Ось",
+  "ru": "Об Оси"
+ },
+ "about_desc": {
+  "en": "Privacy comes first: isolated profiles, tracking protection, and your data stays on the device.",
+  "ru": "Главное — конфиденциальность: изолированные профили, защита от трекеров, данные остаются на устройстве."
+ },
+ "version": {
+  "en": "Version %s",
+  "ru": "Версия %s"
+ },
+ "engine": {
+  "en": "Engine: GeckoView (Firefox %s)",
+  "ru": "Движок: GeckoView (Firefox %s)"
+ },
+ "about_privacy": {
+  "en": "Ось has no servers or analytics of its own: the developer collects no data. History, notes and saved pages are stored only on your device.",
+  "ru": "У Оси нет своих серверов и аналитики: разработчик не собирает никаких данных. История, заметки и сохранённые страницы хранятся только на вашем устройстве."
+ },
+ "privacy_policy": {
+  "en": "Privacy policy",
+  "ru": "Политика конфиденциальности"
+ },
+ "licenses": {
+  "en": "Open-source licenses",
+  "ru": "Лицензии открытого ПО"
+ },
+ "licenses_desc": {
+  "en": "Ось Browser is built on these open components. Tap one to read its license.",
+  "ru": "Ось Browser построен на этих открытых компонентах. Нажмите, чтобы прочитать лицензию."
+ },
+ "help_feedback": {
+  "en": "Help & feedback",
+  "ru": "Справка и отзывы"
+ },
+ "help": {
+  "en": "Help",
+  "ru": "Справка"
+ },
+ "feedback": {
+  "en": "Feedback",
+  "ru": "Отзывы"
+ },
+ "send_feedback": {
+  "en": "Send feedback",
+  "ru": "Отправить отзыв"
+ },
+ "report_problem": {
+  "en": "Report a problem",
+  "ru": "Сообщить о проблеме"
+ },
+ "feedback_desc": {
+  "en": "Feedback goes by email to %s. We only see what you write; nothing else is attached.",
+  "ru": "Отзыв уходит письмом на %s. Мы видим только то, что вы напишете, — больше ничего не прикладывается."
+ },
+ "feedback_subject": {
+  "en": "Ось Browser %s — feedback",
+  "ru": "Ось Browser %s — отзыв"
+ },
+ "problem_subject": {
+  "en": "Ось Browser %s — problem",
+  "ru": "Ось Browser %s — проблема"
+ },
+ "problem_body": {
+  "en": "What happened, and on which site?",
+  "ru": "Что произошло и на каком сайте?"
+ },
+ "no_mail_app": {
+  "en": "No email app found. Write to us at %s",
+  "ru": "Почтовое приложение не найдено. Напишите нам на %s"
+ },
+ "help_q1": {
+  "en": "How do profiles work?",
+  "ru": "Как работают профили?"
+ },
+ "help_a1": {
+  "en": "Each profile is a separate browser: its own accounts, cookies and history. Switch with the chip at the top-left or the profile strip.",
+  "ru": "Каждый профиль — отдельный браузер: свои аккаунты, cookies и история. Переключайтесь чипом слева вверху или полосой профилей."
+ },
+ "help_q2": {
+  "en": "What does incognito keep?",
+  "ru": "Что сохраняет инкогнито?"
+ },
+ "help_a2": {
+  "en": "Nothing: no history, cookies or sign-ins. Everything is erased when you leave the incognito tab. Downloads and notes you create stay.",
+  "ru": "Ничего: ни истории, ни cookies, ни входов. Всё стирается при выходе из вкладки инкогнито. Остаются только скачанные файлы и созданные вами заметки."
+ },
+ "help_q3": {
+  "en": "How do I read a page without internet?",
+  "ru": "Как читать страницу без интернета?"
+ },
+ "help_a3": {
+  "en": "Menu ⋮ → «Save page offline». The page is kept as a PDF on this device; find it in «Saved pages». «Reader mode» removes clutter from articles.",
+  "ru": "Меню ⋮ → «Сохранить страницу офлайн». Страница сохраняется в PDF на этом устройстве — она в «Сохранённых страницах». «Режим чтения» убирает лишнее со статей."
+ },
+ "help_q4": {
+  "en": "How do notes work?",
+  "ru": "Как работают заметки?"
+ },
+ "help_a4": {
+  "en": "Select text on a page and tap «Add to note». Notes are kept only on this device: Settings → «Notes» or menu ⋮ → «Notes».",
+  "ru": "Выделите текст на странице и нажмите «Добавить в заметку». Заметки хранятся только на этом устройстве: Настройки → «Заметки» или меню ⋮ → «Заметки»."
+ },
+ "help_q5": {
+  "en": "How do I make Ось the default browser?",
+  "ru": "Как сделать Ось браузером по умолчанию?"
+ },
+ "help_a5": {
+  "en": "Settings → «Default browser» → «Make Ось Browser the default». Links from other apps will then open in your current profile.",
+  "ru": "Настройки → «Браузер по умолчанию» → «Сделать Ось браузером по умолчанию». Ссылки из других приложений откроются в текущем профиле."
+ },
+ "help_q6": {
+  "en": "How do I clear my data?",
+  "ru": "Как удалить свои данные?"
+ },
+ "help_a6": {
+  "en": "The «Clear» button in the browser removes history and cache, or signs you out of a profile. Settings → «Data» clears everything at once.",
+  "ru": "Кнопка «Очистка» в браузере удаляет историю и кэш или выходит из аккаунтов профиля. Настройки → «Данные» — очистка всего сразу."
+ },
+ "fav_remove": {
+  "en": "Remove from favorites",
+  "ru": "Удалить из избранного"
+ },
+ "fav_removed": {
+  "en": "Removed from favorites",
+  "ru": "Удалено из избранного"
+ },
+ "fav_unavailable": {
+  "en": "This page can't be added to favorites",
+  "ru": "Эту страницу нельзя добавить в избранное"
+ },
+ "fav_empty_hint": {
+  "en": "Open a page and choose Menu → Add to favorites.",
+  "ru": "Откройте страницу и выберите Меню → В избранное."
+ },
+ "fav_folder_empty": {
+  "en": "This folder is empty",
+  "ru": "Папка пуста"
+ },
+ "fav_folder_empty_hint": {
+  "en": "To put a page here, open its menu ⋮ and choose «Move to folder».",
+  "ru": "Чтобы положить сюда страницу, откройте её меню ⋮ и выберите «Переместить в папку»."
+ },
+ "fav_search": {
+  "en": "Search favorites",
+  "ru": "Поиск в избранном"
+ },
+ "fav_nothing_found": {
+  "en": "Nothing found",
+  "ru": "Ничего не найдено"
+ },
+ "fav_folder_name": {
+  "en": "Folder name",
+  "ru": "Название папки"
+ },
+ "fav_page_name": {
+  "en": "Name",
+  "ru": "Название"
+ },
+ "fav_rename_folder": {
+  "en": "Rename folder",
+  "ru": "Переименовать папку"
+ },
+ "fav_delete_folder": {
+  "en": "Delete folder",
+  "ru": "Удалить папку"
+ },
+ "fav_delete_folder_q": {
+  "en": "Delete folder «%s»?",
+  "ru": "Удалить папку «%s»?"
+ },
+ "fav_delete_folder_msg": {
+  "en": "It contains %d pages. Delete them too or keep them in Favorites?",
+  "ru": "В ней страниц: %d. Удалить их тоже или оставить в избранном?"
+ },
+ "fav_delete_all": {
+  "en": "Delete all",
+  "ru": "Удалить всё"
+ },
+ "fav_keep_pages": {
+  "en": "Keep pages",
+  "ru": "Оставить страницы"
+ },
+ "fav_folder_exists": {
+  "en": "A folder with this name already exists",
+  "ru": "Папка с таким названием уже есть"
+ },
+ "fav_delete_q": {
+  "en": "Delete «%s» from favorites?",
+  "ru": "Удалить «%s» из избранного?"
+ },
+ "fav_count": {
+  "en": "Pages: %d",
+  "ru": "Страниц: %d"
+ },
+ "fav_folders": {
+  "en": "Folders",
+  "ru": "Папки"
+ },
+ "fav_pages": {
+  "en": "Pages",
+  "ru": "Страницы"
+ },
+ "fav_moved": {
+  "en": "Moved to «%s»",
+  "ru": "Перемещено в «%s»"
+ },
+ "site_settings": {
+  "en": "Site settings",
+  "ru": "Настройки сайтов"
+ },
+ "site_permissions": {
+  "en": "Site permissions",
+  "ru": "Разрешения сайта"
+ },
+ "perm_location": {
+  "en": "Location",
+  "ru": "Геолокация"
+ },
+ "perm_camera": {
+  "en": "Camera",
+  "ru": "Камера"
+ },
+ "perm_microphone": {
+  "en": "Microphone",
+  "ru": "Микрофон"
+ },
+ "perm_notifications": {
+  "en": "Notifications",
+  "ru": "Уведомления"
+ },
+ "perm_popups": {
+  "en": "Pop-ups",
+  "ru": "Всплывающие окна"
+ },
+ "perm_autoplay": {
+  "en": "Autoplay with sound",
+  "ru": "Автовоспроизведение со звуком"
+ },
+ "perm_drm": {
+  "en": "Protected content (DRM)",
+  "ru": "Защищённый контент (DRM)"
+ },
+ "perm_cookies3p": {
+  "en": "Cross-site cookies",
+  "ru": "Межсайтовые cookies"
+ },
+ "perm_local_network": {
+  "en": "Local network devices",
+  "ru": "Устройства локальной сети"
+ },
+ "perm_ask": {
+  "en": "Ask",
+  "ru": "Спрашивать"
+ },
+ "perm_allow": {
+  "en": "Allow",
+  "ru": "Разрешить"
+ },
+ "perm_block": {
+  "en": "Block",
+  "ru": "Запретить"
+ },
+ "perm_by_default": {
+  "en": "Default (%s)",
+  "ru": "По умолчанию (%s)"
+ },
+ "perm_defaults": {
+  "en": "Default for new sites",
+  "ru": "По умолчанию для новых сайтов"
+ },
+ "perm_sites": {
+  "en": "Sites",
+  "ru": "Сайты"
+ },
+ "perm_reset_site": {
+  "en": "Reset site permissions",
+  "ru": "Сбросить разрешения сайта"
+ },
+ "perm_reset_all": {
+  "en": "Reset all sites",
+  "ru": "Сбросить для всех сайтов"
+ },
+ "perm_reset_all_q": {
+  "en": "Reset permissions for all sites?",
+  "ru": "Сбросить разрешения всех сайтов?"
+ },
+ "perm_all_sites": {
+  "en": "All sites",
+  "ru": "Все сайты"
+ },
+ "perm_remember": {
+  "en": "Remember for this site",
+  "ru": "Запомнить для этого сайта"
+ },
+ "perm_private_note": {
+  "en": "Incognito: the decision applies to this tab only and is not saved.",
+  "ru": "Инкогнито: решение действует только в этой вкладке и не сохраняется."
+ },
+ "perm_q_location": {
+  "en": "%s wants to know your location",
+  "ru": "%s запрашивает ваше местоположение"
+ },
+ "perm_q_camera": {
+  "en": "%s wants to use your camera",
+  "ru": "%s запрашивает доступ к камере"
+ },
+ "perm_q_microphone": {
+  "en": "%s wants to use your microphone",
+  "ru": "%s запрашивает доступ к микрофону"
+ },
+ "perm_q_camera_mic": {
+  "en": "%s wants to use your camera and microphone",
+  "ru": "%s запрашивает доступ к камере и микрофону"
+ },
+ "perm_q_notifications": {
+  "en": "%s wants to send you notifications",
+  "ru": "%s хочет присылать вам уведомления"
+ },
+ "perm_q_popups": {
+  "en": "%s wants to open a pop-up window",
+  "ru": "%s хочет открыть всплывающее окно"
+ },
+ "perm_q_drm": {
+  "en": "%s wants to play protected content (DRM)",
+  "ru": "%s хочет воспроизвести защищённый контент (DRM)"
+ },
+ "perm_q_cookies3p": {
+  "en": "%s wants to use its cookies on this site",
+  "ru": "%s хочет использовать свои cookies на этом сайте"
+ },
+ "perm_q_local_network": {
+  "en": "%s wants to access devices on your local network",
+  "ru": "%s запрашивает доступ к устройствам вашей локальной сети"
+ },
+ "security_check": {
+  "en": "Security check",
+  "ru": "Проверка безопасности"
+ },
+ "sec_items": {
+  "en": "Checks",
+  "ru": "Пункты проверки"
+ },
+ "sec_local_note": {
+  "en": "The check runs entirely on your device; nothing is sent anywhere.",
+  "ru": "Проверка выполняется только на устройстве, никуда ничего не отправляется."
+ },
+ "sec_score": {
+  "en": "%1$d of %2$d checks passed",
+  "ru": "Пройдено %1$d из %2$d"
+ },
+ "sec_good": {
+  "en": "You're well protected",
+  "ru": "Вы хорошо защищены"
+ },
+ "sec_fair": {
+  "en": "Good, but can be improved",
+  "ru": "Хорошо, но можно лучше"
+ },
+ "sec_poor": {
+  "en": "Needs your attention",
+  "ru": "Требует внимания"
+ },
+ "sec_fix": {
+  "en": "Fix",
+  "ru": "Исправить"
+ },
+ "sec_review": {
+  "en": "Review",
+  "ru": "Открыть"
+ },
+ "sec_lock": {
+  "en": "App lock",
+  "ru": "Блокировка приложения"
+ },
+ "sec_lock_ok": {
+  "en": "Fingerprint or PIN is required to open the browser",
+  "ru": "Для входа в браузер нужен отпечаток или PIN"
+ },
+ "sec_lock_off": {
+  "en": "Anyone holding your phone can open your tabs and accounts",
+  "ru": "Любой, у кого в руках ваш телефон, откроет ваши вкладки и аккаунты"
+ },
+ "sec_lock_no_device": {
+  "en": "Set a screen lock on the phone so the app lock can work",
+  "ru": "Установите блокировку экрана телефона — без неё блокировка приложения не работает"
+ },
+ "sec_hide": {
+  "en": "Hide content",
+  "ru": "Скрытие содержимого"
+ },
+ "sec_hide_ok": {
+  "en": "Hidden in recent apps; screenshots are blocked",
+  "ru": "Скрыто в недавних приложениях, скриншоты запрещены"
+ },
+ "sec_hide_off": {
+  "en": "Page contents are visible in the recent apps screen",
+  "ru": "Содержимое страниц видно в списке недавних приложений"
+ },
+ "sec_tracking": {
+  "en": "Tracker protection",
+  "ru": "Защита от трекеров"
+ },
+ "sec_https": {
+  "en": "HTTPS-only mode",
+  "ru": "Режим «только HTTPS»"
+ },
+ "sec_https_ok": {
+  "en": "Connections are always encrypted",
+  "ru": "Соединения всегда зашифрованы"
+ },
+ "sec_https_off": {
+  "en": "Sites may open over unencrypted HTTP",
+  "ru": "Сайты могут открываться по незашифрованному HTTP"
+ },
+ "sec_search_ok": {
+  "en": "%s doesn't build a profile of your searches",
+  "ru": "%s не составляет профиль по вашим запросам"
+ },
+ "sec_search_bad": {
+  "en": "%s may track your searches. Switch to DuckDuckGo",
+  "ru": "%s может отслеживать ваши запросы. Переключить на DuckDuckGo"
+ },
+ "sec_perms_ok": {
+  "en": "No site has access to your location, camera, microphone or notifications",
+  "ru": "Ни у одного сайта нет доступа к геолокации, камере, микрофону и уведомлениям"
+ },
+ "sec_perms_n": {
+  "en": "Permissions allowed: %1$d (sites: %2$d) — check that you still need them",
+  "ru": "Выдано разрешений: %1$d (сайтов: %2$d) — проверьте, нужны ли они ещё"
+ },
+ "https_on": {
+  "en": "HTTPS only",
+  "ru": "Только HTTPS"
+ },
+ "https_off": {
+  "en": "Allow HTTP",
+  "ru": "Разрешать HTTP"
+ },
+ "search_settings": {
+  "en": "Search settings",
+  "ru": "Поиск в настройках"
+ },
+ "nothing_found": {
+  "en": "Nothing found",
+  "ru": "Ничего не найдено"
+ },
+ "tabs": {
+  "en": "Tabs",
+  "ru": "Вкладки"
+ },
+ "tabs_open_n": {
+  "en": "Open tabs: %d",
+  "ru": "Открыто вкладок: %d"
+ },
+ "search": {
+  "en": "Search",
+  "ru": "Поиск"
+ },
+ "new_tab_group": {
+  "en": "New tab group",
+  "ru": "Новая группа вкладок"
+ },
+ "close_all_tabs": {
+  "en": "Close all tabs",
+  "ru": "Закрыть все вкладки"
+ },
+ "close_all_q": {
+  "en": "Close all tabs (%d)? Pinned tabs stay.",
+  "ru": "Закрыть все вкладки (%d)? Закреплённые останутся."
+ },
+ "tabs_closed": {
+  "en": "Tabs closed",
+  "ru": "Вкладки закрыты"
+ },
+ "select_tabs": {
+  "en": "Select tabs",
+  "ru": "Выбрать вкладки"
+ },
+ "select": {
+  "en": "Select",
+  "ru": "Выбрать"
+ },
+ "select_all": {
+  "en": "Select all",
+  "ru": "Выбрать все"
+ },
+ "selected_n": {
+  "en": "Selected: %d",
+  "ru": "Выбрано: %d"
+ },
+ "to_group": {
+  "en": "To group",
+  "ru": "В группу"
+ },
+ "close_tab": {
+  "en": "Close tab",
+  "ru": "Закрыть вкладку"
+ },
+ "tabs_empty": {
+  "en": "No open tabs",
+  "ru": "Нет открытых вкладок"
+ },
+ "tabs_empty_hint": {
+  "en": "Open a new tab — it will appear here. Pinned tabs are in the strip at the top.",
+  "ru": "Откройте новую вкладку — она появится здесь. Закреплённые вкладки — в полосе сверху."
+ },
+ "search_tabs": {
+  "en": "Search tabs",
+  "ru": "Поиск по вкладкам"
+ },
+ "tabs_not_found": {
+  "en": "Nothing found",
+  "ru": "Ничего не найдено"
+ },
+ "tabs_not_found_hint": {
+  "en": "No tab title or address contains “%s”.",
+  "ru": "Ни в одном заголовке или адресе нет «%s»."
+ },
+ "group_empty": {
+  "en": "No tabs in this group yet",
+  "ru": "В группе пока нет вкладок"
+ },
+ "group_n": {
+  "en": "Group %d",
+  "ru": "Группа %d"
+ },
+ "group_name_hint": {
+  "en": "Group name, e.g. Work",
+  "ru": "Название группы, напр. Работа"
+ },
+ "rename_group": {
+  "en": "Rename group",
+  "ru": "Переименовать группу"
+ },
+ "group_color": {
+  "en": "Group color",
+  "ru": "Цвет группы"
+ },
+ "delete_group": {
+  "en": "Delete group",
+  "ru": "Удалить группу"
+ },
+ "delete_group_msg": {
+  "en": "Delete group “%s”? Its tabs stay open.",
+  "ru": "Удалить группу «%s»? Её вкладки останутся открытыми."
+ },
+ "close_group_tabs": {
+  "en": "Close group tabs",
+  "ru": "Закрыть вкладки группы"
+ },
+ "new_tab_in_group": {
+  "en": "New tab in group",
+  "ru": "Новая вкладка в группе"
+ },
+ "add_to_group": {
+  "en": "Add to group",
+  "ru": "Добавить в группу"
+ },
+ "ungroup": {
+  "en": "Remove from group",
+  "ru": "Убрать из группы"
+ },
+ "other_tabs": {
+  "en": "Other tabs",
+  "ru": "Другие вкладки"
+ },
+ "no_tabs_to_close": {
+  "en": "No open tabs to close",
+  "ru": "Нет открытых вкладок для закрытия"
+ }
+}
