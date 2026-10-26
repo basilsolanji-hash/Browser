@@ -1,0 +1,111 @@
+ok   T-scarlet_dark-MainActivity: без падения
+ok   T-scarlet_dark-SettingsActivity: без падения
+ok   T-scarlet_dark-AboutActivity: без падения
+ok   T-scarlet_dark-StatsActivity: без падения
+ok   T-scarlet_dark-Browser: без падения
+ok   T-scarlet_dark-Tabs: без падения
+ok   T-scarlet_light-MainActivity: без падения
+ok   T-scarlet_light-SettingsActivity: без падения
+ok   T-scarlet_light-AboutActivity: без падения
+ok   T-scarlet_light-StatsActivity: без падения
+ok   T-scarlet_light-Browser: без падения
+ok   T-scarlet_light-Tabs: без падения
+ok   T-graphite-MainActivity: без падения
+ok   T-graphite-SettingsActivity: без падения
+ok   T-graphite-AboutActivity: без падения
+ok   T-graphite-StatsActivity: без падения
+ok   T-graphite-Browser: без падения
+ok   T-graphite-Tabs: без падения
+ok   T-sand-MainActivity: без падения
+ok   T-sand-SettingsActivity: без падения
+ok   T-sand-AboutActivity: без падения
+ok   T-sand-StatsActivity: без падения
+ok   T-sand-Browser: без падения
+ok   T-sand-Tabs: без падения
+ok   T-oled-MainActivity: без падения
+ok   T-oled-SettingsActivity: без падения
+ok   T-oled-AboutActivity: без падения
+ok   T-oled-StatsActivity: без падения
+ok   T-oled-Browser: без падения
+ok   T-oled-Tabs: без падения
+ok   T-system-MainActivity: без падения
+ok   T-system-SettingsActivity: без падения
+ok   T-system-AboutActivity: без падения
+ok   T-system-StatsActivity: без падения
+ok   T-system-Browser: без падения
+ok   T-system-Tabs: без падения
+ok   A: «example.com» → https://example.com/
+ok   A: «https://example.org» → https://example.org/
+ok   A: «example.org/path» → https://example.org/path
+ok   A: «ru.wikipedia.org» → https://ru.wikipedia.org/
+ok   A: «en.m.wikipedia.org/wiki/Moon» → https://en.m.wikipedia.org/wiki/Moon
+ok   A: «hello» → https://duckduckgo.com/?q=hello
+ok   A: «hello world» → https://duckduckgo.com/?q=hello+world
+ok   A: «weather» → https://duckduckgo.com/?q=weather
+ok   A: «duckduckgo.com» → https://duckduckgo.com/ (со второй попытки)
+ok   A: «news» → https://duckduckgo.com/?q=news
+ok   A: «1+1» → https://duckduckgo.com/?q=1%2B1
+ok   A: «claude.ai» → https://claude.ai/
+ok   A: «mozilla.org» → https://mozilla.org/
+ok   A: «openai com» → https://duckduckgo.com/?q=openai+com
+ok   A: «kotlin» → https://duckduckgo.com/?q=kotlin
+ok   A: «android 15» → https://duckduckgo.com/?q=android+15
+ok   A: «wikipedia.org» → https://wikipedia.org/
+ok   A: «localhost:8770/page» → https://duckduckgo.com/?q=localhost%3A8770%2Fpage
+ok   A: «# github.com — последним: его 3D-графика (WebGL) вешает программный GPU эмулятора целиком.» → 
+ok   A: «github.com» → https://github.com/
+ok   A-1_1: экран не пустой
+ok   A-__github.com________________________________3D_________________WebGL______________________________________GPU__________________________________.: экран не пустой
+ok   A-android_15: экран не пустой
+ok   A-claude.ai: экран не пустой
+ok   A-duckduckgo.com: экран не пустой
+ok   A-en.m.wikipedia.org_wiki_Moon: экран не пустой
+ok   A-example.com: экран не пустой
+ok   A-example.org_path: экран не пустой
+ok   A-hello: экран не пустой
+ok   A-hello_world: экран не пустой
+ok   A-https___example.org: экран не пустой
+ok   A-kotlin: экран не пустой
+ok   A-localhost_8770_page: экран не пустой
+ok   A-mozilla.org: экран не пустой
+ok   A-news: экран не пустой
+ok   A-openai_com: экран не пустой
+ok   A-ru.wikipedia.org: экран не пустой
+ok   A-weather: экран не пустой
+ok   A-wikipedia.org: экран не пустой
+ok   T-graphite-AboutActivity: экран не пустой
+ok   T-graphite-Browser: экран не пустой
+ok   T-graphite-MainActivity: экран не пустой
+ok   T-graphite-SettingsActivity: экран не пустой
+ok   T-graphite-StatsActivity: экран не пустой
+ok   T-graphite-Tabs: экран не пустой
+ok   T-oled-AboutActivity: экран не пустой
+ok   T-oled-Browser: экран не пустой
+ok   T-oled-MainActivity: экран не пустой
+ok   T-oled-SettingsActivity: экран не пустой
+ok   T-oled-StatsActivity: экран не пустой
+ok   T-oled-Tabs: экран не пустой
+ok   T-sand-AboutActivity: экран не пустой
+ok   T-sand-Browser: экран не пустой
+ok   T-sand-MainActivity: экран не пустой
+ok   T-sand-SettingsActivity: экран не пустой
+ok   T-sand-StatsActivity: экран не пустой
+ok   T-sand-Tabs: экран не пустой
+ok   T-scarlet_dark-AboutActivity: экран не пустой
+ok   T-scarlet_dark-Browser: экран не пустой
+ok   T-scarlet_dark-MainActivity: экран не пустой
+ok   T-scarlet_dark-SettingsActivity: экран не пустой
+ok   T-scarlet_dark-StatsActivity: экран не пустой
+ok   T-scarlet_dark-Tabs: экран не пустой
+ok   T-scarlet_light-AboutActivity: экран не пустой
+ok   T-scarlet_light-Browser: экран не пустой
+ok   T-scarlet_light-MainActivity: экран не пустой
+ok   T-scarlet_light-SettingsActivity: экран не пустой
+ok   T-scarlet_light-StatsActivity: экран не пустой
+ok   T-scarlet_light-Tabs: экран не пустой
+ok   T-system-AboutActivity: экран не пустой
+ok   T-system-Browser: экран не пустой
+ok   T-system-MainActivity: экран не пустой
+ok   T-system-SettingsActivity: экран не пустой
+ok   T-system-StatsActivity: экран не пустой
+ok   T-system-Tabs: экран не пустой

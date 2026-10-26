@@ -1,0 +1,77 @@
+Performing Streamed Install
+Success
+8770
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.7 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.7 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.043s)
+== T-scarlet_dark-MainActivity 13:15:42
+== T-scarlet_dark-SettingsActivity 13:15:47
+== T-scarlet_dark-AboutActivity 13:15:50
+== T-scarlet_dark-StatsActivity 13:15:53
+== T-scarlet_dark-Browser 13:15:55
+== T-scarlet_dark-Tabs 13:16:02
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.4 MB/s (157 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.3 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (268 bytes in 0.078s)
+== T-scarlet_light-MainActivity 13:16:06
+== T-scarlet_light-SettingsActivity 13:16:12
+== T-scarlet_light-AboutActivity 13:16:15
+== T-scarlet_light-StatsActivity 13:16:17
+== T-scarlet_light-Browser 13:16:20
+== T-scarlet_light-Tabs 13:16:26
+/tmp/settings.xml: 1 file pushed, 0 skipped. 2.2 MB/s (152 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 3.6 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (263 bytes in 0.053s)
+== T-graphite-MainActivity 13:16:29
+== T-graphite-SettingsActivity 13:16:33
+== T-graphite-AboutActivity 13:16:36
+== T-graphite-StatsActivity 13:16:38
+== T-graphite-Browser 13:16:41
+== T-graphite-Tabs 13:16:48
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.7 MB/s (148 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.6 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (259 bytes in 0.010s)
+== T-sand-MainActivity 13:16:51
+== T-sand-SettingsActivity 13:16:55
+== T-sand-AboutActivity 13:16:57
+== T-sand-StatsActivity 13:17:00
+== T-sand-Browser 13:17:02
+== T-sand-Tabs 13:17:09
+/tmp/settings.xml: 1 file pushed, 0 skipped. 2.0 MB/s (148 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 3.6 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (259 bytes in 0.047s)
+== T-oled-MainActivity 13:17:11
+== T-oled-SettingsActivity 13:17:15
+== T-oled-AboutActivity 13:17:17
+== T-oled-StatsActivity 13:17:19
+== T-oled-Browser 13:17:22
+== T-oled-Tabs 13:17:29
+/tmp/settings.xml: 1 file pushed, 0 skipped. 0.9 MB/s (150 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 3.0 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (261 bytes in 0.052s)
+== T-system-MainActivity 13:17:31
+== T-system-SettingsActivity 13:17:35
+== T-system-AboutActivity 13:17:38
+== T-system-StatsActivity 13:17:40
+== T-system-Browser 13:17:43
+== T-system-Tabs 13:17:49
+/tmp/settings.xml: 1 file pushed, 0 skipped. 1.3 MB/s (156 bytes in 0.000s)
+/tmp/onboarding.xml: 1 file pushed, 0 skipped. 2.8 MB/s (111 bytes in 0.000s)
+2 files pushed, 0 skipped. 0.0 MB/s (267 bytes in 0.053s)
+
+Exception occurred while executing 'text':
+java.lang.IllegalArgumentException: Argument expected after "text"
+	at com.android.modules.utils.BasicShellCommandHandler.getNextArgRequired(BasicShellCommandHandler.java:295)
+	at com.android.server.input.InputShellCommand.runText(InputShellCommand.java:291)
+	at com.android.server.input.InputShellCommand.onCommand(InputShellCommand.java:232)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.input.InputManagerService.onShellCommand(InputManagerService.java:3297)
+	at android.os.Binder.shellCommand(Binder.java:1068)
+	at android.os.Binder.onTransact(Binder.java:888)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:1339)
+	at android.os.Binder.execTransactInternal(Binder.java:1344)
+	at android.os.Binder.execTransact(Binder.java:1275)
+TIMEOUT: adb exec-out screencap -p
+GPU-HANG: A-github.com — графика эмулятора зависла, дальнейшие сайты пропускаются
+Часть 2: сценариев 56, проверок 111, провалов 0

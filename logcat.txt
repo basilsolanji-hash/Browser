@@ -1,0 +1,742 @@
+--------- beginning of main
+10-26 13:20:55.093 D/TaplEvents( 1098): TIS / TouchInteractionService.onInputEvent: MotionEvent { action=ACTION_DOWN, actionButton=0, id[0]=0, x[0]=160.0, y[0]=99.0, toolType[0]=TOOL_TYPE_FINGER, buttonState=0, classification=NONE, metaState=0, flags=0x0, edgeFlags=0x0, pointerCount=1, historySize=0, eventTime=376910, downTime=376910, deviceId=-1, source=0x1002, displayId=0, eventId=-73613143 }
+10-26 13:20:55.096 D/TaplEvents( 1098): TIS / TouchInteractionService.onInputEvent: MotionEvent { action=ACTION_UP, actionButton=0, id[0]=0, x[0]=160.0, y[0]=99.0, toolType[0]=TOOL_TYPE_FINGER, buttonState=0, classification=NONE, metaState=0, flags=0x0, edgeFlags=0x0, pointerCount=1, historySize=0, eventTime=376910, downTime=376910, deviceId=-1, source=0x1002, displayId=0, eventId=-584354356 }
+10-26 13:20:55.136 I/GoogleInputMethodService( 1537): GoogleInputMethodService.onFinishInput():3227 
+10-26 13:20:55.137 I/GoogleInputMethodService( 1537): GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 0, unlocked = true
+10-26 13:20:55.138 I/GoogleInputMethodService( 1537): GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x11(Uri) imeOptions=0x2 privateImeOptions=null actionName=GO actionLabel=null actionId=0 initialSelStart=0 initialSelEnd=0 initialCapsMode=0x0 hintText=non-empty label=null packageName=ru.multibrowser.test fieldId=-1 fieldName=null extras=null}, false)
+10-26 13:20:55.138 I/ImeTracker( 8054): ru.multibrowser.test:2a0d01de: onRequestShow at ORIGIN_CLIENT_SHOW_SOFT_INPUT reason SHOW_SOFT_INPUT
+10-26 13:20:55.138 I/GoogleInputMethodService( 1537): GoogleInputMethodService.shouldHideHeaderOnInitialState():4008 ShouldHideHeaderOnInitialState = false
+10-26 13:20:55.138 I/GoogleInputMethodService( 1537): GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 2, unlocked = true
+10-26 13:20:55.138 D/InputMethodManager( 8054): showSoftInput() view=android.widget.EditText{34b87cf VFED..CL. .F.P..ID 26,0-296,38 aid=1073741824} flags=0 reason=SHOW_SOFT_INPUT
+--------- beginning of system
+10-26 13:20:55.139 D/OomAdjuster(  525): Not killing cached processes
+10-26 13:20:55.142 I/DeviceModeUtil( 1537): DeviceModeUtil.getDeviceMode():122 Get device mode phone by ui mode:1 and smallestScreenWidthDp:320
+10-26 13:20:55.143 I/GoogleInputMethodService( 1537): GoogleInputMethodService.onStartInputView():1995 onStartInputView(EditorInfo{inputType=0x11(Uri) imeOptions=0x2 privateImeOptions=null actionName=GO actionLabel=null actionId=0 initialSelStart=0 initialSelEnd=0 initialCapsMode=0x0 hintText=non-empty label=null packageName=ru.multibrowser.test fieldId=-1 fieldName=null extras=null}, false)
+10-26 13:20:55.143 I/GoogleInputMethodService( 1537): GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 2, unlocked = true
+10-26 13:20:55.143 W/ModuleManager( 1537): ModuleManager.loadModule():450 Module erj is not available
+10-26 13:20:55.143 I/KeyboardViewUtil( 1537): KeyboardViewUtil.getKeyboardHeightRatio():189 systemKeyboardHeightRatio:1.000000; userKeyboardHeightRatio:1.000000.
+10-26 13:20:55.144 I/AndroidIME( 1537): AbstractIme.onActivate():86 LatinIme.onActivate() : EditorInfo = inputType=0x11(Uri) imeOptions=0x2 privateImeOptions=null actionName=GO actionLabel=null actionId=0 initialSelStart=0 initialSelEnd=0 initialCapsMode=0x0 hintText=non-empty label=null packageName=ru.multibrowser.test fieldId=-1 fieldName=null extras=null, IncognitoMode = false, DeviceLocked = false
+10-26 13:20:55.145 I/Delight5Facilitator( 1537): Delight5Facilitator.initializeForIme():777 initializeForIme() : Locale = [en_US], layout = qwerty
+10-26 13:20:55.145 I/DeviceModeUtil( 1537): DeviceModeUtil.getDeviceMode():122 Get device mode phone by ui mode:1 and smallestScreenWidthDp:320
+10-26 13:20:55.145 I/VoiceInputManagerWrapper( 1537): VoiceInputManagerWrapper.cancelShutdown():55 cancelShutdown()
+10-26 13:20:55.145 I/VoiceInputManagerWrapper( 1537): VoiceInputManagerWrapper.syncLanguagePacks():67 syncLanguagePacks()
+10-26 13:20:55.145 I/LatinIme( 1537): LatinIme.updateEnableInlineSuggestionsOnDecoderSideFlags():1003 inline flag updated to:false
+10-26 13:20:55.149 I/KeyboardWrapper( 1537): KeyboardWrapper.consumeEvent():275 Skip consuming an event as current keyboard is deactivated (state=0, keyboard existence=true)
+10-26 13:20:55.150 I/SpeechFactory( 1537): SpeechRecognitionFactory.maybeScheduleAutoPackDownloadForFallback():205 maybeScheduleAutoPackDownloadForFallback()
+10-26 13:20:55.150 I/FallbackOnDeviceRecognitionProvider( 1537): FallbackOnDeviceRecognitionProvider.maybeScheduleAutoPackDownload():195 maybeScheduleAutoPackDownload() for language tag en-US
+10-26 13:20:55.152 I/KeyboardViewUtil( 1537): KeyboardViewUtil.calculateMaxKeyboardBodyHeight():40 leave 110 height for app when screen height:640, header height:38 and isFullscreenMode:false, so the max keyboard body height is:492
+10-26 13:20:55.152 I/DeviceModeUtil( 1537): DeviceModeUtil.getDeviceMode():122 Get device mode phone by ui mode:1 and smallestScreenWidthDp:320
+10-26 13:20:55.152 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3483 setKeyboardViewShown() : type = HEADER, shownType = SHOW_OPTIONAL
+10-26 13:20:55.152 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3530 setKeyboardViewShown() : shouldShow = true
+10-26 13:20:55.152 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3483 setKeyboardViewShown() : type = BODY, shownType = SHOW_MANDATORY
+10-26 13:20:55.152 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3530 setKeyboardViewShown() : shouldShow = true
+10-26 13:20:55.152 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3483 setKeyboardViewShown() : type = FLOATING_CANDIDATES, shownType = HIDE
+10-26 13:20:55.152 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3530 setKeyboardViewShown() : shouldShow = false
+10-26 13:20:55.153 I/KeyboardViewUtil( 1537): KeyboardViewUtil.calculateMaxKeyboardBodyHeight():40 leave 110 height for app when screen height:640, header height:38 and isFullscreenMode:false, so the max keyboard body height is:492
+10-26 13:20:55.153 I/DeviceModeUtil( 1537): DeviceModeUtil.getDeviceMode():122 Get device mode phone by ui mode:1 and smallestScreenWidthDp:320
+10-26 13:20:55.154 I/DeviceModeUtil( 1537): DeviceModeUtil.getDeviceMode():122 Get device mode phone by ui mode:1 and smallestScreenWidthDp:320
+10-26 13:20:55.154 I/DeviceModeUtil( 1537): DeviceModeUtil.getDeviceMode():122 Get device mode phone by ui mode:1 and smallestScreenWidthDp:320
+10-26 13:20:55.154 I/KeyboardModeManager( 1537): KeyboardModeManager.setInputView():364 setInputView() : supportsOneHandedMode=true
+10-26 13:20:55.154 I/NormalModeController( 1537): NormalModeController.getKeyboardBodyViewHolderPaddingBottom():116 currentPrimeKeyboardType:SOFT systemPaddingBottom:-1
+10-26 13:20:55.154 I/NormalModeController( 1537): NormalModeController.getKeyboardBodyViewHolderPaddingBottom():116 currentPrimeKeyboardType:SOFT systemPaddingBottom:-1
+10-26 13:20:55.155 I/KeyboardModeManager( 1537): KeyboardModeManager.setInputView():356 setInputView() : entry=hwn{languageTag=en-US, variant=qwerty, hasLocalizedResources=true, conditionCacheKey=_device=phone_device_size=default_enable_adaptive_text_editing=true_enable_inline_suggestions_on_client_side=false_enable_large_tablet_batch_1=false_enable_large_tablet_batch_2=false_enable_more_candidates_view_for_multilingual=false_enable_nav_redesign=false_enable_number_row=false_enable_preemptive_decode=true_enable_secondary_symbols=false_expressions=normal_four_or_more_letter_rows=false_keyboard_mode=normal_language=en-US_orientation=portrait_physical_keyboard=qwerty_show_secondary_digits=true_show_suggestions=true_split_with_duplicate_keys=true_variant=qwerty, imeDef.stringId=ime_english_united_states, imeDef.className=com.google.android.apps.inputmethod.libs.latin5.LatinIme, imeDef.languageTag=en-US}
+10-26 13:20:55.156 I/VoiceImeExtension( 1537): VoiceImeExtension.shouldStartVoiceInputAutomatically():383 No private IME option set to start voice input.
+10-26 13:20:55.160 D/BoundBrokerSvc( 5944): onBind: Intent { act=com.google.android.gms.common.BIND_SHARED_PREFS pkg=com.google.android.gms }
+10-26 13:20:55.160 D/BoundBrokerSvc( 5944): Loading bound service for intent: Intent { act=com.google.android.gms.common.BIND_SHARED_PREFS pkg=com.google.android.gms }
+10-26 13:20:55.161 D/BoundBrokerSvc( 5944): onUnbind: Intent { act=com.google.android.gms.common.BIND_SHARED_PREFS pkg=com.google.android.gms }
+10-26 13:20:55.200 D/EGL_emulation( 8054): app_time_stats: avg=1371.33ms min=11.66ms max=5365.84ms count=4
+10-26 13:20:55.202 W/InputManager-JNI(  525): Input channel object '97d9601 PopupWindow:a1770fe (client)' was disposed without first being removed with the input manager!
+10-26 13:20:55.206 D/CoreBackPreview(  525): Window{6e5f0a0 u0 ru.multibrowser.test/ru.multibrowser.BrowserActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@574f294, mPriority=0, mIsAnimationCallback=false}
+10-26 13:20:55.228 W/InputContextProxyV4( 1537): InputContextProxyV4.applyClientDiffInternal():897 Ignore [FetchSuggestions] diff due to stale request: 650<651, inputStateId=573, lastInputStateId=574
+10-26 13:20:55.228 I/DeviceModeUtil( 1537): DeviceModeUtil.getDeviceMode():122 Get device mode phone by ui mode:1 and smallestScreenWidthDp:320
+10-26 13:20:55.228 I/DeviceModeUtil( 1537): DeviceModeUtil.getDeviceMode():122 Get device mode phone by ui mode:1 and smallestScreenWidthDp:320
+10-26 13:20:55.228 I/NormalModeController( 1537): NormalModeController.getKeyboardBodyViewHolderPaddingBottom():116 currentPrimeKeyboardType:SOFT systemPaddingBottom:-1
+10-26 13:20:55.230 I/Delight5Decoder( 1537): Delight5DecoderWrapper.setKeyboardLayout():457 setKeyboardLayout()
+10-26 13:20:55.232 D/BoundBrokerSvc( 5944): onBind: Intent { act=com.google.android.gms.common.BIND_SHARED_PREFS pkg=com.google.android.gms }
+10-26 13:20:55.232 D/BoundBrokerSvc( 5944): Loading bound service for intent: Intent { act=com.google.android.gms.common.BIND_SHARED_PREFS pkg=com.google.android.gms }
+10-26 13:20:55.233 D/InsetsController( 8054): show(ime(), fromIme=true)
+10-26 13:20:55.233 D/BoundBrokerSvc( 5944): onUnbind: Intent { act=com.google.android.gms.common.BIND_SHARED_PREFS pkg=com.google.android.gms }
+10-26 13:20:55.270 E/InputConnectionParser( 1537): InputConnectionParser.responseWithError():106 responseWithError(): parse_code: 2
+10-26 13:20:55.270 E/InputContextProxyV4( 1537): InputContextProxyV4.reset():371 reset(): un-successful, parse_code: 2, input_state_id 0
+10-26 13:20:55.271 W/Delight5Decoder( 1537): Delight5DecoderWrapper.asyncFetchSuggestions():1876 asyncFetchSuggestions(): Decoder state is invalid
+10-26 13:20:55.285 I/ImeTracker( 8054): ru.multibrowser.test:2a0d01de: onShown
+10-26 13:20:55.363 W/FrameTracker( 8054): Missed App frame:JANK_APP_DEADLINE_MISSED, 96589, 0, CUJ=J<IME_INSETS_ANIMATION::1@0@ru.multibrowser.test>
+10-26 13:20:55.471 W/TooltipLifecycleManager( 1537): TooltipLifecycleManager.dismissTooltips():159 Tooltip with id spell_check_add_to_dictionary not found in tooltipManager.
+10-26 13:20:55.471 E/InputConnectionParser( 1537): InputConnectionParser.responseWithError():106 responseWithError(): parse_code: 2
+10-26 13:20:55.471 E/InputContextProxyV4( 1537): InputContextProxyV4.reset():371 reset(): un-successful, parse_code: 2, input_state_id 0
+10-26 13:20:55.471 W/Delight5Decoder( 1537): Delight5DecoderWrapper.asyncFetchSuggestions():1876 asyncFetchSuggestions(): Decoder state is invalid
+10-26 13:20:56.425 D/StatusBarIconController(  845): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:20:56.427 D/EGL_emulation(  845): app_time_stats: avg=30000.22ms min=30000.22ms max=30000.22ms count=1
+10-26 13:20:56.712 D/EGL_emulation( 8054): app_time_stats: avg=210.29ms min=1.44ms max=1399.20ms count=7
+10-26 13:20:57.233 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3483 setKeyboardViewShown() : type = HEADER, shownType = SHOW_MANDATORY_WITH_ANIMATION
+10-26 13:20:57.233 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3530 setKeyboardViewShown() : shouldShow = true
+10-26 13:20:57.266 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3483 setKeyboardViewShown() : type = HEADER, shownType = SHOW_MANDATORY_WITH_ANIMATION
+10-26 13:20:57.266 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3530 setKeyboardViewShown() : shouldShow = true
+10-26 13:20:57.296 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3483 setKeyboardViewShown() : type = HEADER, shownType = SHOW_MANDATORY_WITH_ANIMATION
+10-26 13:20:57.296 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3530 setKeyboardViewShown() : shouldShow = true
+10-26 13:20:57.353 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3483 setKeyboardViewShown() : type = HEADER, shownType = SHOW_MANDATORY_WITH_ANIMATION
+10-26 13:20:57.354 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3530 setKeyboardViewShown() : shouldShow = true
+10-26 13:20:57.361 I/KeyboardViewController( 1537): KeyboardViewController.lambda$showSelfAndAncestors$6():609 current view doesn't has the priority com.google.android.libraries.inputmethod.accesspoint.widget.AccessPointsBar{43873bb I.E...... ......ID 0,0-232,38 #7f0b0018 app:id/0_resource_name_obfuscated} to show itself, DEFAULT
+10-26 13:20:57.378 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3483 setKeyboardViewShown() : type = HEADER, shownType = SHOW_MANDATORY_WITH_ANIMATION
+10-26 13:20:57.378 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3530 setKeyboardViewShown() : shouldShow = true
+10-26 13:20:57.424 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3483 setKeyboardViewShown() : type = HEADER, shownType = SHOW_MANDATORY_WITH_ANIMATION
+10-26 13:20:57.424 I/GoogleInputMethodService( 1537): GoogleInputMethodService.setKeyboardViewShown():3530 setKeyboardViewShown() : shouldShow = true
+10-26 13:20:57.532 I/resolv  (  336): ResNSendHandler::run: 0 / {100 100 100 983140 10192 0}
+10-26 13:20:57.532 I/ImeTracker( 8054): ru.multibrowser.test:d40ae431: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT
+10-26 13:20:57.533 I/resolv  (  336): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:20:57.533 I/resolv  (  336): GetAddrInfoHandler::run: {100 100 100 983140 10192 0}
+10-26 13:20:57.534 I/GoogleInputMethodService( 1537): GoogleInputMethodService.onFinishInputView():2241 
+10-26 13:20:57.534 W/TooltipLifecycleManager( 1537): TooltipLifecycleManager.dismissTooltips():159 Tooltip with id spell_check_add_to_dictionary not found in tooltipManager.
+10-26 13:20:57.535 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:20:57.535 I/InputBundle( 1537): InputBundle.consumeEvent():923 Skip consuming an event as keyboard status is 0
+10-26 13:20:57.535 I/KeyboardWrapper( 1537): KeyboardWrapper.consumeEvent():275 Skip consuming an event as current keyboard is deactivated (state=0, keyboard existence=true)
+10-26 13:20:57.535 I/VoiceInputManagerWrapper( 1537): VoiceInputManagerWrapper.shutdown():77 shutdown()
+10-26 13:20:57.536 I/AndroidIME( 1537): AbstractIme.onDeactivate():207 LatinIme.onDeactivate()
+10-26 13:20:57.537 W/ModuleManager( 1537): ModuleManager.loadModule():450 Module jjj is not available
+10-26 13:20:57.539 I/resolv  (  336): GetAddrInfoHandler::run: {100 100 100 983140 10192 0}
+10-26 13:20:57.539 I/resolv  (  336): res_nsend: used send_dg 93 terrno: 0
+10-26 13:20:57.539 I/resolv  (  336): doQuery: rcode=0, ancount=0, return value=93
+10-26 13:20:57.539 I/resolv  (  336): resolv_cache_lookup: unsupported query
+10-26 13:20:57.539 I/resolv  (  336): ResNSendHandler::run: 0 / {100 100 100 983140 10192 0}
+10-26 13:20:57.539 I/resolv  (  336): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:20:57.539 I/resolv  (  336): resolv_cache_lookup: unsupported query
+10-26 13:20:57.539 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:20:57.540 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:20:57.540 I/resolv  (  336): resolv_cache_lookup: FOUND IN CACHE entry=0x740d82259790
+10-26 13:20:57.540 I/resolv  (  336): doQuery: rcode=0, ancount=0, return value=93
+10-26 13:20:57.540 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:20:57.540 I/resolv  (  336): resolv_cache_lookup: Waiting for previous request
+10-26 13:20:57.545 I/resolv  (  336): res_nsend: used send_dg 93 terrno: 0
+10-26 13:20:57.545 I/resolv  (  336): res_nsend: used send_dg 93 terrno: 0
+10-26 13:20:57.545 I/resolv  (  336): res_nsend: used send_dg 44 terrno: 0
+10-26 13:20:57.545 I/resolv  (  336): doQuery: rcode=0, ancount=1, return value=44
+10-26 13:20:57.546 I/resolv  (  336): resolv_cache_lookup: FOUND IN CACHE entry=0x740e5225b560
+10-26 13:20:57.546 I/resolv  (  336): doQuery: rcode=0, ancount=1, return value=44
+10-26 13:20:57.553 W/KeyboardViewController( 1537): KeyboardViewController.show():491 Requesting to show sub view with id 2131427352(#0x7f0b0018) when keyboard HEADER view is not ready to show
+10-26 13:20:57.553 I/GoogleInputMethodService( 1537): GoogleInputMethodService.onFinishInput():3227 
+10-26 13:20:57.554 I/GoogleInputMethodService( 1537): GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 0, unlocked = true
+10-26 13:20:57.554 I/GoogleInputMethodService( 1537): GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=ru.multibrowser.test fieldId=0 fieldName=null extras=null}, false)
+10-26 13:20:57.554 I/GoogleInputMethodService( 1537): GoogleInputMethodService.shouldHideHeaderOnInitialState():4008 ShouldHideHeaderOnInitialState = false
+10-26 13:20:57.554 I/GoogleInputMethodService( 1537): GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 2, unlocked = true
+10-26 13:20:57.562 D/GeckoSession( 8054): handleMessage GeckoView:ProgressChanged uri=null
+10-26 13:20:57.563 D/GeckoSession( 8054): handleMessage GeckoView:PageStart uri=https://github.com/
+10-26 13:20:57.563 I/OsDiag  ( 8054): [3:start] начало: https://github.com/
+10-26 13:20:57.565 W/WindowOnBackDispatcher( 8054): sendCancelIfRunning: isInProgress=falsecallback=ImeCallback=ImeOnBackInvokedCallback@3570266 Callback=android.window.IOnBackInvokedCallback$Stub$Proxy@c6edf8c
+10-26 13:20:57.565 D/CoreBackPreview(  525): Window{6e5f0a0 u0 ru.multibrowser.test/ru.multibrowser.BrowserActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@606f318, mPriority=0, mIsAnimationCallback=false}
+10-26 13:20:57.614 I/ImeTracker( 8054): ru.multibrowser.test:250882f7: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT_BY_INSETS_API
+10-26 13:20:57.615 I/ImeTracker(  525): ru.multibrowser.test:250882f7: onCancelled at PHASE_SERVER_SHOULD_HIDE
+10-26 13:20:57.615 I/ImeTracker( 8054): ru.multibrowser.test:d40ae431: onHidden
+10-26 13:20:57.738 D/ServiceAllocator( 8054): org.mozilla.gecko.process.GeckoChildProcessServices$tab39 updateBindings: FOREGROUND priority, 2 importance, 9540 pid, 1 successful binds, 0 failed binds, 0 successful unbinds
+10-26 13:20:57.792 D/GeckoSession( 8054): handleMessage GeckoView:LocationChange uri=https://github.com/
+10-26 13:20:57.806 D/EGL_emulation( 8054): app_time_stats: avg=32.46ms min=1.94ms max=241.80ms count=33
+10-26 13:20:57.807 D/GeckoSession( 8054): handleMessage GeckoView:SecurityChanged uri=null
+10-26 13:20:57.813 I/resolv  (  336): GetAddrInfoHandler::run: {100 100 100 983140 10192 0}
+10-26 13:20:57.815 I/resolv  (  336): GetAddrInfoHandler::run: {100 100 100 983140 10192 0}
+10-26 13:20:57.815 I/resolv  (  336): ResNSendHandler::run: 0 / {100 100 100 983140 10192 0}
+10-26 13:20:57.815 I/resolv  (  336): ResNSendHandler::run: 0 / {100 100 100 983140 10192 0}
+10-26 13:20:57.815 I/resolv  (  336): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:20:57.815 I/resolv  (  336): resolv_cache_lookup: unsupported query
+10-26 13:20:57.816 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:20:57.816 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:20:57.816 I/resolv  (  336): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:20:57.816 I/resolv  (  336): resolv_cache_lookup: unsupported query
+10-26 13:20:57.819 I/resolv  (  336): res_nsend: used send_dg 159 terrno: 0
+10-26 13:20:57.819 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:20:57.819 I/resolv  (  336): doQuery: rcode=0, ancount=4, return value=159
+10-26 13:20:57.820 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:20:57.821 I/resolv  (  336): res_nsend: used send_dg 105 terrno: 0
+10-26 13:20:57.821 I/resolv  (  336): doQuery: rcode=0, ancount=4, return value=105
+10-26 13:20:57.822 I/resolv  (  336): res_nsend: used send_dg 106 terrno: 0
+10-26 13:20:57.822 I/resolv  (  336): res_nsend: used send_dg 112 terrno: 0
+10-26 13:20:57.823 I/resolv  (  336): res_nsend: used send_dg 153 terrno: 0
+10-26 13:20:57.823 I/resolv  (  336): doQuery: rcode=0, ancount=4, return value=153
+10-26 13:20:57.831 I/resolv  (  336): res_nsend: used send_dg 111 terrno: 0
+10-26 13:20:57.832 I/resolv  (  336): doQuery: rcode=0, ancount=4, return value=111
+10-26 13:20:57.881 W/Isolated Web Content( 9540): [JavaScript Warning: "Unexpected value calc(100% - 2px) parsing width attribute." {file: "https://github.com/" line: 0}]
+10-26 13:20:57.881 W/Isolated Web Content( 9540): [JavaScript Warning: "Unexpected value calc(100% - 2px) parsing height attribute." {file: "https://github.com/" line: 0}]
+10-26 13:20:57.885 W/Isolated Web Content( 9540): [JavaScript Warning: "Unexpected value calc(100% - 2px) parsing width attribute." {file: "https://github.com/" line: 0}]
+10-26 13:20:57.885 W/Isolated Web Content( 9540): [JavaScript Warning: "Unexpected value calc(100% - 2px) parsing height attribute." {file: "https://github.com/" line: 0}]
+10-26 13:20:57.889 I/resolv  (  336): GetAddrInfoHandler::run: {100 100 100 983140 10192 0}
+10-26 13:20:57.889 I/resolv  (  336): GetAddrInfoHandler::run: {100 100 100 983140 10192 0}
+10-26 13:20:57.889 I/resolv  (  336): ResNSendHandler::run: 0 / {100 100 100 983140 10192 0}
+10-26 13:20:57.890 I/resolv  (  336): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:20:57.890 I/resolv  (  336): resolv_cache_lookup: unsupported query
+10-26 13:20:57.891 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:20:57.891 I/resolv  (  336): ResNSendHandler::run: 0 / {100 100 100 983140 10192 0}
+10-26 13:20:57.891 I/resolv  (  336): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:20:57.891 I/resolv  (  336): resolv_cache_lookup: unsupported query
+10-26 13:20:57.896 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:20:57.896 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:20:57.896 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:20:57.903 I/resolv  (  336): res_nsend: used send_dg 116 terrno: 0
+10-26 13:20:57.903 I/resolv  (  336): res_nsend: used send_dg 175 terrno: 0
+10-26 13:20:57.907 I/resolv  (  336): res_nsend: used send_dg 175 terrno: 0
+10-26 13:20:57.907 I/resolv  (  336): doQuery: rcode=0, ancount=2, return value=175
+10-26 13:20:57.914 I/resolv  (  336): res_nsend: used send_dg 115 terrno: 0
+10-26 13:20:57.914 I/resolv  (  336): doQuery: rcode=0, ancount=4, return value=115
+10-26 13:20:57.914 I/resolv  (  336): res_nsend: used send_dg 163 terrno: 0
+10-26 13:20:57.914 I/resolv  (  336): doQuery: rcode=0, ancount=4, return value=163
+10-26 13:20:57.917 I/resolv  (  336): res_nsend: used send_dg 225 terrno: 0
+10-26 13:20:57.917 I/resolv  (  336): doQuery: rcode=0, ancount=10, return value=225
+10-26 13:20:58.047 W/ru.multibrowser.test( 8054): type=1400 audit(0.0:145): avc:  denied  { nlmsg_readpriv } for  comm=536F636B657420546872656164 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tclass=netlink_route_socket permissive=0 bug=b/155595000 app=ru.multibrowser.test
+10-26 13:20:58.293 D/GeckoSession( 8054): handleMessage: GeckoView:ContentPermission
+10-26 13:20:58.303 D/GeckoSession( 8054): handleMessage: GeckoView:ContentPermission
+10-26 13:20:58.399 W/ru.multibrowser.test( 8054): type=1400 audit(0.0:146): avc:  denied  { nlmsg_readpriv } for  comm=536F636B657420546872656164 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tclass=netlink_route_socket permissive=0 bug=b/155595000 app=ru.multibrowser.test
+10-26 13:20:58.828 D/CompatibilityChangeReporter(  525): Compat change id reported: 135634846; UID 10192; state: DISABLED
+10-26 13:20:58.828 D/CompatibilityChangeReporter(  525): Compat change id reported: 143937733; UID 10192; state: ENABLED
+10-26 13:20:58.830 D/ServiceAllocator( 8054): org.mozilla.gecko.process.GeckoChildProcessServices$tab3 updateBindings: FOREGROUND priority, 0 importance, not connected pid, 3 successful binds, 0 failed binds, 0 successful unbinds
+10-26 13:20:58.834 D/Zygote  (  337): Forked child process 9690
+10-26 13:20:58.835 I/ActivityManager(  525): Start proc 9690:ru.multibrowser.test:tab_disable_art_image_3/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.process.GeckoChildProcessServices$tab3}
+10-26 13:20:58.878 I/ble_art_image_3( 9690): Late-enabling -Xcheck:jni
+10-26 13:20:58.900 I/ble_art_image_3( 9690): Using CollectorTypeCC GC.
+10-26 13:20:58.901 W/ble_art_image_3( 9690): Unexpected CPU variant for x86: x86_64.
+10-26 13:20:58.901 W/ble_art_image_3( 9690): Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+10-26 13:20:58.933 I/adbd    (  416): jdwp connection from 9690
+10-26 13:20:58.944 D/CompatibilityChangeReporter( 9690): Compat change id reported: 171979766; UID 10192; state: ENABLED
+10-26 13:20:58.945 D/CompatibilityChangeReporter( 9690): Compat change id reported: 242716250; UID 10192; state: ENABLED
+10-26 13:20:58.964 W/ziparchive( 9690): Unable to open '/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.dm': No such file or directory
+10-26 13:20:58.964 W/ziparchive( 9690): Unable to open '/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.dm': No such file or directory
+10-26 13:20:59.008 I/netd    (  336): tetherGetStats() -> {[]} <0.40ms>
+10-26 13:20:59.013 I/netd    (  336): bandwidthSetGlobalAlert(2097152) <0.12ms>
+10-26 13:20:59.015 I/netd    (  336): bandwidthRemoveInterfaceQuota(eth0) <0.52ms>
+10-26 13:20:59.016 I/netd    (  336): bandwidthSetInterfaceQuota(eth0, 9223372036854775807) <0.45ms>
+10-26 13:20:59.075 W/Isolated Web Content( 8604): [JavaScript Warning: "The resource at “https://duckduckgo.com/font/DuckSansProduct-Regular.woff2” preloaded with link preload was not used within a few seconds. Make sure all attributes of the preload tag are set correctly." {file: "https://duckduckgo.com/?q=localhost%3A8770%2Fpage&ia=web" line: 0}]
+10-26 13:20:59.075 W/Isolated Web Content( 8604): [JavaScript Warning: "The resource at “https://duckduckgo.com/font/DuckSansProduct-Medium.woff2” preloaded with link preload was not used within a few seconds. Make sure all attributes of the preload tag are set correctly." {file: "https://duckduckgo.com/?q=localhost%3A8770%2Fpage&ia=web" line: 0}]
+10-26 13:20:59.075 W/Isolated Web Content( 8604): [JavaScript Warning: "The resource at “https://duckduckgo.com/font/DuckSansProduct-Bold.woff2” preloaded with link preload was not used within a few seconds. Make sure all attributes of the preload tag are set correctly." {file: "https://duckduckgo.com/?q=localhost%3A8770%2Fpage&ia=web" line: 0}]
+10-26 13:20:59.107 D/GeckoSession( 8054): handleMessage GeckoView:LocationChange uri=https://github.com/
+10-26 13:20:59.135 D/EGL_emulation( 8054): app_time_stats: avg=1329.22ms min=1329.22ms max=1329.22ms count=1
+10-26 13:20:59.211 D/nativeloader( 9690): Configuring clns-6 for other apk /data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/lib/x86_64:/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/ru.multibrowser.test
+10-26 13:20:59.217 V/GraphicsEnvironment( 9690): Currently set values for:
+10-26 13:20:59.217 V/GraphicsEnvironment( 9690):   angle_gl_driver_selection_pkgs=[]
+10-26 13:20:59.217 V/GraphicsEnvironment( 9690):   angle_gl_driver_selection_values=[]
+10-26 13:20:59.217 V/GraphicsEnvironment( 9690): ANGLE GameManagerService for ru.multibrowser.test: false
+10-26 13:20:59.217 V/GraphicsEnvironment( 9690): ru.multibrowser.test is not listed in per-application setting
+10-26 13:20:59.217 V/GraphicsEnvironment( 9690): Neither updatable production driver nor prerelease driver is supported.
+10-26 13:20:59.236 I/ActivityManager(  525): Flag disabled. Ignoring finishAttachApplication from uid: 10192. pid: 9690
+10-26 13:20:59.238 I/ServiceChildProcess( 9690): onCreate, process name: ru.multibrowser.test:tab_disable_art_image_3
+10-26 13:20:59.241 D/GeckoThread( 9690): State changed to LAUNCHED
+10-26 13:20:59.241 I/GeckoThread( 9690): preparing to run Gecko
+10-26 13:20:59.246 D/ServiceAllocator( 8054): org.mozilla.gecko.process.GeckoChildProcessServices$tab3 updateBindings: BACKGROUND priority, 3 importance, 9690 pid, 1 successful binds, 0 failed binds, 1 successful unbinds
+10-26 13:20:59.249 D/GeckoThread( 9690): State changed to MOZGLUE_READY
+10-26 13:20:59.256 D/GeckoLoader( 9690): Library base=/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.apk!/lib/x86_64
+10-26 13:20:59.256 D/GeckoLoader( 9690): Library base=/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.apk!/lib/x86_64
+10-26 13:20:59.279 E/GeckoLibLoad( 9690): Load sqlite start
+10-26 13:20:59.280 E/GeckoLibLoad( 9690): Load sqlite done
+10-26 13:20:59.280 D/GeckoLoader( 9690): Library base=/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.apk!/lib/x86_64
+10-26 13:20:59.280 E/GeckoLibLoad( 9690): Load nss start
+10-26 13:20:59.280 E/GeckoLibLoad( 9690): Load nss done
+10-26 13:20:59.280 D/GeckoLoader( 9690): Library base=/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.apk!/lib/x86_64
+10-26 13:20:59.291 E/GeckoLibLoad( 9690): Loaded libs in 10.290075ms total, 1ms(3ms) user, 3ms(4ms) system, 0(0) faults
+10-26 13:20:59.291 D/GeckoThread( 9690): State changed to LIBS_READY
+10-26 13:20:59.291 W/GeckoThread( 9690): zerdatime 381110 - runGecko
+10-26 13:20:59.328 W/Isolated Web Content( 9540): [JavaScript Warning: "Ignoring unsupported entryTypes: layout-shift." {file: "https://github.githubassets.com/assets/chunk-l1-18d79a71714bc7ea.js" line: 2}]
+10-26 13:20:59.365 D/GeckoThread( 9690): State changed to RUNNING
+10-26 13:20:59.367 W/ru.multibrowser.test:tab_disable_art_image_3( 9690): type=1400 audit(0.0:147): avc:  denied  { read } for  comm=57656220436F6E74656E74 name="product_name" dev="sysfs" ino=973 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-26 13:20:59.375 W/ru.multibrowser.test:tab_disable_art_image_3( 9690): type=1400 audit(0.0:148): avc:  denied  { read } for  comm=57656220436F6E74656E74 name="product_sku" dev="sysfs" ino=977 scontext=u:r:untrusted_app:s0:c192,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=ru.multibrowser.test
+10-26 13:20:59.395 D/GeckoSession( 8054): handleMessage GeckoView:LocationChange uri=https://github.com/
+10-26 13:20:59.485 D/GeckoSession( 8054): handleMessage GeckoView:LocationChange uri=https://github.com/
+10-26 13:20:59.499 E/Isolated Web Content( 9540): [JavaScript Error: "Content-Security-Policy: The page’s settings blocked a JavaScript eval (script-src) from being executed because it violates the following directive: “script-src https://github.githubassets.com 'sha256-6AKuI+cDd1MoUL1u4eqrA9PXmnPAkOB4h7421hPUUm0='” (Missing 'unsafe-eval')" {file: "https://github.githubassets.com/assets/97-0cac04fbfd3179b0.js" line: 56}]
+10-26 13:20:59.571 I/resolv  (  336): ResNSendHandler::run: 0 / {100 100 100 983140 10192 0}
+10-26 13:20:59.572 I/resolv  (  336): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:20:59.572 I/resolv  (  336): resolv_cache_lookup: unsupported query
+10-26 13:20:59.574 I/resolv  (  336): GetAddrInfoHandler::run: {100 100 100 983140 10192 0}
+10-26 13:20:59.578 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:20:59.579 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:20:59.583 I/resolv  (  336): res_nsend: used send_dg 136 terrno: 0
+10-26 13:20:59.583 I/resolv  (  336): res_nsend: used send_dg 220 terrno: 0
+10-26 13:20:59.583 I/resolv  (  336): doQuery: rcode=0, ancount=1, return value=220
+10-26 13:20:59.584 I/resolv  (  336): res_nsend: used send_dg 171 terrno: 0
+10-26 13:20:59.584 I/resolv  (  336): doQuery: rcode=0, ancount=2, return value=171
+10-26 13:20:59.623 I/DialerTaskExecutor( 2661): com.android.voicemail.impl.scheduling.TaskExecutor.lambda$new$0:152 Stopping service [CONTEXT enable_persistent_logger=true ]
+10-26 13:20:59.624 I/DialerTaskExecutor( 2661): com.android.voicemail.impl.scheduling.TaskExecutor.finishJobAsync:461 finishing Job [CONTEXT enable_persistent_logger=true ]
+10-26 13:20:59.624 I/DialerTaskSchedulerJobService( 2661): com.android.voicemail.impl.scheduling.TaskSchedulerJobService.finishAsync:195 finishing job [CONTEXT enable_persistent_logger=true ]
+10-26 13:20:59.626 I/DialerTaskExecutor( 2661): com.android.voicemail.impl.scheduling.TaskExecutor$JobFinishedPoller.run:189 JobFinishedPoller.run Job finished [CONTEXT enable_persistent_logger=true ]
+10-26 13:20:59.626 I/DialerTaskExecutor( 2661): com.android.voicemail.impl.scheduling.TaskExecutor.terminate:287 terminated [CONTEXT enable_persistent_logger=true ]
+10-26 13:20:59.954 I/resolv  (  336): GetAddrInfoHandler::run: {100 100 100 983140 10192 0}
+10-26 13:20:59.956 I/resolv  (  336): ResNSendHandler::run: 0 / {100 100 100 983140 10192 0}
+10-26 13:20:59.956 I/resolv  (  336): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:20:59.957 I/resolv  (  336): resolv_cache_lookup: unsupported query
+10-26 13:20:59.958 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:20:59.961 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:20:59.984 I/resolv  (  336): res_nsend: used send_dg 100 terrno: 0
+10-26 13:20:59.992 I/resolv  (  336): res_nsend: used send_dg 142 terrno: 0
+10-26 13:20:59.993 I/resolv  (  336): doQuery: rcode=0, ancount=5, return value=142
+10-26 13:20:59.993 I/resolv  (  336): ResNSendHandler::run: 0 / {100 100 100 983140 10192 0}
+10-26 13:20:59.993 I/resolv  (  336): _dnsPacket_checkQR: unsupported TYPE
+10-26 13:20:59.993 I/resolv  (  336): resolv_cache_lookup: unsupported query
+10-26 13:20:59.997 I/resolv  (  336): GetAddrInfoHandler::run: {100 100 100 983140 10192 0}
+10-26 13:21:00.002 I/resolv  (  336): res_nsend: used send_dg 302 terrno: 0
+10-26 13:21:00.002 I/resolv  (  336): doQuery: rcode=0, ancount=9, return value=302
+10-26 13:21:00.006 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:21:00.007 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:21:00.018 I/resolv  (  336): GetAddrInfoHandler::run: {100 100 100 983140 10192 0}
+10-26 13:21:00.021 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:21:00.024 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:21:00.032 I/AiAiEcho( 1636): Predicting[0]: 
+10-26 13:21:00.033 I/AiAiEcho( 1636): EchoTargets: 
+10-26 13:21:00.033 I/AiAiEcho( 1636): Filtered by AiAi flag check: 
+10-26 13:21:00.033 I/AiAiEcho( 1636): Ranked targets strategy: SORT, count: 0, ranking metadata: 
+10-26 13:21:00.036 I/AiAiEcho( 1636): #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+10-26 13:21:00.036 I/resolv  (  336): res_nsend: used send_dg 271 terrno: 0
+10-26 13:21:00.036 I/resolv  (  336): doQuery: rcode=0, ancount=8, return value=271
+10-26 13:21:00.038 I/resolv  (  336): res_nsend: used send_dg 111 terrno: 0
+10-26 13:21:00.038 I/resolv  (  336): doQuery: rcode=0, ancount=4, return value=111
+10-26 13:21:00.042 I/resolv  (  336): res_nsend: used send_dg 102 terrno: 0
+10-26 13:21:00.042 I/resolv  (  336): doQuery: rcode=0, ancount=4, return value=102
+10-26 13:21:00.044 W/PageIndicator(  845): Total number of pages invalid: 0. Assuming 1 page.
+10-26 13:21:00.071 I/resolv  (  336): res_nsend: used send_dg 119 terrno: 0
+10-26 13:21:00.094 I/resolv  (  336): res_nsend: used send_dg 119 terrno: 0
+10-26 13:21:00.094 I/resolv  (  336): doQuery: rcode=0, ancount=0, return value=119
+10-26 13:21:00.736 D/HardwareCodecCapability( 9540): MIME support: SW audio/3gpp
+10-26 13:21:00.750 D/HardwareCodecCapability( 9540): MIME support: SW audio/flac
+10-26 13:21:00.750 D/OomAdjuster(  525): Not killing cached processes
+10-26 13:21:00.750 D/HardwareCodecCapability( 9540): MIME support: SW video/hevc
+10-26 13:21:00.751 D/HardwareCodecCapability( 9540): MIME support: HW video/x-vnd.on2.vp8
+10-26 13:21:00.751 D/HardwareCodecCapability( 9540): MIME support: SW video/3gpp
+10-26 13:21:00.751 D/HardwareCodecCapability( 9540): MIME support: SW audio/g711-mlaw
+10-26 13:21:00.751 D/HardwareCodecCapability( 9540): MIME support: SW video/mp4v-es
+10-26 13:21:00.752 D/ServiceAllocator( 8054): org.mozilla.gecko.process.GeckoChildProcessServices$tab7 updateBindings: IDLE priority, 6 importance, 8604 pid, 1 successful binds, 0 failed binds, 2 successful unbinds
+10-26 13:21:00.759 D/HardwareCodecCapability( 9540): MIME support: SW audio/mp4a-latm
+10-26 13:21:00.759 D/HardwareCodecCapability( 9540): MIME support: SW audio/vorbis
+10-26 13:21:00.759 D/HardwareCodecCapability( 9540): MIME support: HW video/x-vnd.on2.vp9
+10-26 13:21:00.759 D/HardwareCodecCapability( 9540): MIME support: SW video/av01
+10-26 13:21:00.760 D/HardwareCodecCapability( 9540): MIME support: SW audio/raw
+10-26 13:21:00.760 D/HardwareCodecCapability( 9540): MIME support: HW video/avc
+10-26 13:21:00.760 D/HardwareCodecCapability( 9540): MIME support: SW audio/opus
+10-26 13:21:00.760 D/HardwareCodecCapability( 9540): MIME support: SW audio/mpeg
+10-26 13:21:00.760 D/HardwareCodecCapability( 9540): MIME support: HW video/hevc
+10-26 13:21:00.760 D/HardwareCodecCapability( 9540): MIME support: SW audio/g711-alaw
+10-26 13:21:00.760 D/HardwareCodecCapability( 9540): MIME support: SW audio/amr-wb
+10-26 13:21:00.760 D/HardwareCodecCapability( 9540): MIME support: SW video/x-vnd.on2.vp8
+10-26 13:21:00.760 D/HardwareCodecCapability( 9540): MIME support: SW video/avc
+10-26 13:21:00.760 D/HardwareCodecCapability( 9540): MIME support: SW video/x-vnd.on2.vp9
+10-26 13:21:00.819 D/ActivityManager(  525): freezing 1805 com.google.process.gservices
+10-26 13:21:00.834 D/CompatibilityChangeReporter(  525): Compat change id reported: 135634846; UID 10192; state: DISABLED
+10-26 13:21:00.834 D/CompatibilityChangeReporter(  525): Compat change id reported: 143937733; UID 10192; state: ENABLED
+10-26 13:21:00.839 D/Zygote  (  337): Forked child process 9744
+10-26 13:21:00.840 I/ActivityManager(  525): Start proc 9744:ru.multibrowser.test:media/u0a192 for service {ru.multibrowser.test/org.mozilla.gecko.media.MediaManager}
+10-26 13:21:00.880 I/wser.test:media( 9744): Late-enabling -Xcheck:jni
+10-26 13:21:00.889 I/wser.test:media( 9744): Using CollectorTypeCC GC.
+10-26 13:21:00.896 W/wser.test:media( 9744): Unexpected CPU variant for x86: x86_64.
+10-26 13:21:00.896 W/wser.test:media( 9744): Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+10-26 13:21:00.926 I/adbd    (  416): jdwp connection from 9744
+10-26 13:21:00.952 D/CompatibilityChangeReporter( 9744): Compat change id reported: 171979766; UID 10192; state: ENABLED
+10-26 13:21:00.952 D/CompatibilityChangeReporter( 9744): Compat change id reported: 242716250; UID 10192; state: ENABLED
+10-26 13:21:00.957 W/ziparchive( 9744): Unable to open '/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.dm': No such file or directory
+10-26 13:21:00.957 W/ziparchive( 9744): Unable to open '/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.dm': No such file or directory
+10-26 13:21:01.120 I/netd    (  336): tetherGetStats() -> {[]} <0.27ms>
+10-26 13:21:01.124 I/netd    (  336): bandwidthSetGlobalAlert(2097152) <0.07ms>
+10-26 13:21:01.246 D/nativeloader( 9744): Configuring clns-6 for other apk /data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/lib/x86_64:/data/app/~~QwMU1aGn0_5OEOSmmjBb9Q==/ru.multibrowser.test-VNXFkmno9EjwVJWgkakZQA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/ru.multibrowser.test
+10-26 13:21:01.260 V/GraphicsEnvironment( 9744): Currently set values for:
+10-26 13:21:01.261 V/GraphicsEnvironment( 9744):   angle_gl_driver_selection_pkgs=[]
+10-26 13:21:01.261 V/GraphicsEnvironment( 9744):   angle_gl_driver_selection_values=[]
+10-26 13:21:01.261 V/GraphicsEnvironment( 9744): ANGLE GameManagerService for ru.multibrowser.test: false
+10-26 13:21:01.261 V/GraphicsEnvironment( 9744): ru.multibrowser.test is not listed in per-application setting
+10-26 13:21:01.261 V/GraphicsEnvironment( 9744): Neither updatable production driver nor prerelease driver is supported.
+10-26 13:21:01.304 I/ActivityManager(  525): Flag disabled. Ignoring finishAttachApplication from uid: 10192. pid: 9744
+10-26 13:21:01.308 W/le_art_image_39( 9540): Long monitor contention with owner MediaPDecoder # (9741) at org.mozilla.gecko.media.RemoteManager org.mozilla.gecko.media.RemoteManager.getInstance()(RemoteManager.java:33) waiters=0 in org.mozilla.gecko.media.RemoteManager org.mozilla.gecko.media.RemoteManager.getInstance() for 418ms
+10-26 13:21:01.855 D/CCodec  ( 9744): allocate(c2.goldfish.h264.decoder)
+10-26 13:21:01.868 I/Codec2Client( 9744): Available Codec2 services: "default" "software"
+10-26 13:21:01.887 I/CCodec  ( 9744): setting up 'default' as default (vendor) store
+10-26 13:21:01.920 I/GoldfishComponentStore(  350): in init
+10-26 13:21:01.920 I/GoldfishComponentStore(  350): loading dll of path libcodec2_goldfish_avcdec.so
+10-26 13:21:01.921 I/GoldfishComponentStore(  350): Create()
+10-26 13:21:01.924 I/GoldfishComponentStore(  350): created interface
+10-26 13:21:01.925 I/GoldfishComponentStore(  350): created component
+10-26 13:21:01.931 I/CCodec  ( 9744): Created component [c2.goldfish.h264.decoder]
+10-26 13:21:01.932 D/CCodecConfig( 9744): read media type: video/avc
+10-26 13:21:01.933 D/ReflectedParamUpdater( 9744): extent() != 1 for single value type: algo.buffers.max-count.values
+10-26 13:21:01.933 D/ReflectedParamUpdater( 9744): extent() != 1 for single value type: output.subscribed-indices.values
+10-26 13:21:01.933 D/ReflectedParamUpdater( 9744): extent() != 1 for single value type: input.buffers.allocator-ids.values
+10-26 13:21:01.933 D/ReflectedParamUpdater( 9744): extent() != 1 for single value type: output.buffers.allocator-ids.values
+10-26 13:21:01.933 D/ReflectedParamUpdater( 9744): extent() != 1 for single value type: algo.buffers.allocator-ids.values
+10-26 13:21:01.934 D/ReflectedParamUpdater( 9744): extent() != 1 for single value type: output.buffers.pool-ids.values
+10-26 13:21:01.934 D/ReflectedParamUpdater( 9744): extent() != 1 for single value type: algo.buffers.pool-ids.values
+10-26 13:21:01.934 D/ReflectedParamUpdater( 9744): ignored struct field coded.color-format.locations
+10-26 13:21:01.934 D/CCodecConfig( 9744): ignoring local param raw.size (0xd2001800) as it is already supported
+10-26 13:21:01.934 D/CCodecConfig( 9744): ignoring local param default.color (0x5200180b) as it is already supported
+10-26 13:21:01.934 D/ReflectedParamUpdater( 9744): ignored struct field raw.hdr-static-info.mastering
+10-26 13:21:01.935 I/CCodecConfig( 9744): query failed after returning 12 values (BAD_INDEX)
+10-26 13:21:01.935 D/CCodecConfig( 9744): c2 config diff is Dict {
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 coded.pl.level = 20496
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 coded.pl.profile = 20481
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 coded.vui.color.matrix = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 coded.vui.color.primaries = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 coded.vui.color.range = 2
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 coded.vui.color.transfer = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 default.color.matrix = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 default.color.primaries = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 default.color.range = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 default.color.transfer = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 input.buffers.max-size.value = 6291456
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 input.delay.value = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   string input.media-type.value = "video/avc"
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 output.delay.value = 8
+10-26 13:21:01.935 D/CCodecConfig( 9744):   string output.media-type.value = "video/raw"
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.color.matrix = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.color.primaries = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.color.range = 2
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.color.transfer = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.max-size.height = 240
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.max-size.width = 320
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.pixel-format.value = 35
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::i32 raw.rotation.flip = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::i32 raw.rotation.value = 0
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.sar.height = 1
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.sar.width = 1
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.size.height = 240
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2::u32 raw.size.width = 320
+10-26 13:21:01.935 D/CCodecConfig( 9744):   c2:
+10-26 13:21:01.935 W/ColorUtils( 9744): expected specified color aspects (2:0:0:0)
+10-26 13:21:01.963 I/MediaCodec( 9744): MediaCodec will operate in async mode
+10-26 13:21:01.964 D/HardwareCodecCapability( 9744): The device ModelID is sdk_gphone64_x86_64
+10-26 13:21:01.966 D/MediaCodec( 9744): flushMediametrics
+10-26 13:21:01.967 D/SurfaceUtils( 9744): connecting to surface 0x7368ccb17e90, reason connectToSurface
+10-26 13:21:01.968 I/MediaCodec( 9744): [c2.goldfish.h264.decoder] setting surface generation to 9977857
+10-26 13:21:01.975 D/SurfaceUtils( 9744): disconnecting from surface 0x7368ccb17e90, reason connectToSurface(reconnect)
+10-26 13:21:01.975 D/SurfaceUtils( 9744): connecting to surface 0x7368ccb17e90, reason connectToSurface(reconnect)
+10-26 13:21:01.976 D/CCodec  ( 9744): [c2.goldfish.h264.decoder] buffers are bound to CCodec for this session
+10-26 13:21:01.976 D/CCodecConfig( 9744): no c2 equivalents for native-window
+10-26 13:21:01.976 D/CCodecConfig( 9744): no c2 equivalents for flags
+10-26 13:21:01.976 D/CCodecConfig( 9744): config failed => CORRUPTED
+10-26 13:21:01.976 D/CCodecConfig( 9744): c2 config diff is   c2::u32 raw.max-size.height = 1196
+10-26 13:21:01.976 D/CCodecConfig( 9744):   c2::u32 raw.max-size.width = 1920
+10-26 13:21:01.976 D/CCodecConfig( 9744):   c2::u32 raw.size.height = 1196
+10-26 13:21:01.976 D/CCodecConfig( 9744):   c2::u32 raw.size.width = 1000
+10-26 13:21:01.977 W/Codec2Client( 9744): query -- param skipped: index = 1107298332.
+10-26 13:21:01.977 D/CCodec  ( 9744): encoding statistics level = 0
+10-26 13:21:01.977 D/CCodec  ( 9744): setup formats input: AMessage(what = 0x00000000) = {
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t height = 1196
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t level = 65536
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t max-input-size = 6291456
+10-26 13:21:01.977 D/CCodec  ( 9744):   string mime = "video/avc"
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t profile = 65536
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t width = 1000
+10-26 13:21:01.977 D/CCodec  ( 9744):   Rect crop(0, 0, 999, 1195)
+10-26 13:21:01.977 D/CCodec  ( 9744): }
+10-26 13:21:01.977 D/CCodec  ( 9744): setup formats output: AMessage(what = 0x00000000) = {
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t android._color-format = 2135033992
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t android._video-scaling = 1
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t rotation-degrees = 0
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t color-standard = 1
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t color-range = 2
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t color-transfer = 3
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t sar-height = 1
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t sar-width = 1
+10-26 13:21:01.977 D/CCodec  ( 9744):   Rect crop(0, 0, 999, 1195)
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t width = 1000
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t height = 1196
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t max-height = 1196
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t max-width = 1920
+10-26 13:21:01.977 D/CCodec  ( 9744):   string mime = "video/raw"
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t android._dataspace = 260
+10-26 13:21:01.977 D/CCodec  ( 9744):   int32_t color-format = 2130708361
+10-26 13:21:01.977 D/CCodec  ( 9744): }
+10-26 13:21:01.977 I/CCodecConfig( 9744): query failed after returning 12 values (BAD_INDEX)
+10-26 13:21:01.978 D/MediaCodec( 9744): keep callback message for reclaim
+10-26 13:21:01.981 D/C2GoldfishAvcDec(  350): calling onInit
+10-26 13:21:01.981 W/Codec2Client( 9744): query -- param skipped: index = 1342179345.
+10-26 13:21:01.981 W/Codec2Client( 9744): query -- param skipped: index = 2415921170.
+10-26 13:21:01.981 W/Codec2Client( 9744): query -- param skipped: index = 1610614798.
+10-26 13:21:01.981 W/Codec2Client( 9744): query -- param skipped: index = 2684356609.
+10-26 13:21:01.981 D/C2Store ( 9744): Using DMABUF Heaps
+10-26 13:21:01.982 D/CCodecBufferChannel( 9744): [c2.goldfish.h264.decoder#572] Created input block pool with allocatorID 16 => poolID 17 - OK (0)
+10-26 13:21:01.982 D/CCodecBufferChannel( 9744): [c2.goldfish.h264.decoder#572] Query output surface allocator returned 0 params => BAD_INDEX (6)
+10-26 13:21:01.982 I/CCodecBufferChannel( 9744): [c2.goldfish.h264.decoder#572] Created output block pool with allocatorID 18 => poolID 17 - OK
+10-26 13:21:01.982 D/CCodecBufferChannel( 9744): [c2.goldfish.h264.decoder#572] Configured output block pool ids 17 => OK
+10-26 13:21:01.982 D/Codec2-OutputBufferQueue( 9744): remote graphic buffer migration 0/0
+10-26 13:21:01.982 D/Codec2Client( 9744): setOutputSurface -- failed to set consumer usage (6/BAD_INDEX)
+10-26 13:21:01.982 D/Codec2Client( 9744): setOutputSurface -- generation=9977857 consumer usage=0x900
+--------- beginning of kernel
+10-26 13:21:03.767 I/logd    (    0): logdr: UID=2000 GID=2000 PID=9770 n tail=0 logMask=99 pid=0 start=0ns deadline=0ns
+10-26 13:21:03.867 W/BpBinder( 9775): Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+10-26 13:21:03.874 W/ProcessState( 9775): Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+10-26 13:21:04.009 D/ActivityManager(  525): sync unfroze 1481 android.process.acore for 7
+10-26 13:21:04.057 I/ChimeraConfigurator( 5944): Starting update, reason: 4 urgentFeatures: vision.ocr:-1
+10-26 13:21:04.123 I/ChimeraConfigurator( 5944): Detected pending changes for urgent request: [vision.ocr]. Pending module sets: container:2318189190800+mlkit.ocr.common,tflite_dynamite:2627305025100800+tflite_dynamite,vision_ocr:2316024025100000+vision.ocr
+10-26 13:21:04.158 I/GmsDebugLogger( 5944): [73] 1801
+10-26 13:21:04.173 W/ZappDownloader( 5944): No successful module downloads for requested features [vision.ocr].
+10-26 13:21:04.173 I/GmsDebugLogger( 5944): [30] [VisionOcrDynamite.integ:231602402100000],[TfliteDynamiteDynamite.integ:262730502100800],[MlkitOcrCommon.optional:231818100800]
+10-26 13:21:04.178 W/ChimeraConfigService( 5944): Retry attempt was throttled. [CONTEXT service_id=264 ]
+10-26 13:21:04.179 I/GmsDebugLogger( 5944): [83] 1 [vision.ocr]
+10-26 13:21:04.181 W/Vision  ( 5944): Request for optional module download of ocr failed. Request again.
+10-26 13:21:04.182 W/Vision  ( 5944): Would have logged:
+10-26 13:21:04.182 W/Vision  ( 5944): # dsae@37884fe7
+10-26 13:21:04.182 I/Vision  ( 5944): Schedule retrying download ocr at 386001 with backoff 160 seconds
+10-26 13:21:04.272 V/NFC     ( 5828): this device does not have NFC support
+10-26 13:21:04.272 W/TapAndPay( 5828): NfcAdapter is null while obtaining CardEmulation instance. [CONTEXT service_id=79 ]
+10-26 13:21:04.272 W/TapAndPay( 5828): java.lang.NullPointerException: NfcAdapter is null
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at android.nfc.cardemulation.CardEmulation.getInstance(CardEmulation.java:152)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at cdoy.<init>(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at com.google.android.gms.tapandpay.hce.task.TapAndPayAidRegistrationTaskOperation.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):5)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at com.google.android.gms.tapandpay.gcmtask.TapAndPayGcmTaskChimeraService.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):4)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at avzs.call(:com.google.android.gms@231818047@23.18.18 (190800-535401451):4)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at aced.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):6)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at aced.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at acjn.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+10-26 13:21:04.272 W/TapAndPay( 5828): 	at java.lang.Thread.run(Thread.java:1012)
+10-26 13:21:04.316 I/NetworkScheduler.Stats( 5828): Task com.google.android.gms/com.google.android.gms.tapandpay.gcmtask.TapAndPayGcmTaskService started execution. cause:4 exec_start_elapsed_seconds: 385 [CONTEXT service_id=218 ]
+10-26 13:21:04.352 I/NetworkScheduler.Stats( 5828): Task com.google.android.gms/com.google.android.gms.auth.account.be.legacy.AuthCronService started execution. cause:4 exec_start_elapsed_seconds: 386 [CONTEXT service_id=218 ]
+10-26 13:21:04.403 D/ActivityManager(  525): sync unfroze 3142 com.google.android.gms.unstable for 6
+10-26 13:21:04.418 W/ProcessStats(  525): Tracking association SourceState{a0a34db com.google.android.gms.persistent/10131 BFgs #13881} whose proc state 4 is better than process ProcessState{94c0903 com.google.android.gms.unstable/10131 pkg=com.google.android.gms} proc state 14 (0 skipped)
+10-26 13:21:04.427 I/NetworkScheduler.Stats( 5828): Task com.google.android.gms/com.google.android.gms.tapandpay.gcmtask.TapAndPayGcmTaskService finished executing. cause:4 result: 3 elapsed_millis: 253 uptime_millis: 253 exec_start_elapsed_seconds: 385 [CONTEXT service_id=218 ]
+10-26 13:21:04.469 I/GMS_MM_Logger( 3142): Memory Metric Logging not allowed. Stopping.
+10-26 13:21:04.527 I/resolv  (  336): GetAddrInfoHandler::run: {100 786532 100 983140 10131 0}
+10-26 13:21:04.528 D/TrafficStats( 3142): tagSocket(112) with statsTag=0x1809, statsUid=-1
+10-26 13:21:04.591 W/binder:3142_7( 3142): type=1400 audit(0.0:149): avc:  denied  { read } for  name="u:object_r:system_adbd_prop:s0" dev="tmpfs" ino=292 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:system_adbd_prop:s0 tclass=file permissive=0 app=com.google.android.gms
+10-26 13:21:04.598 W/libc    ( 3142): Access denied finding property "persist.adb.tls_server.enable"
+10-26 13:21:04.604 W/libc    ( 3142): Access denied finding property "service.adb.tls.port"
+10-26 13:21:04.595 W/binder:3142_7( 3142): type=1400 audit(0.0:150): avc:  denied  { read } for  name="u:object_r:adbd_prop:s0" dev="tmpfs" ino=60 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:adbd_prop:s0 tclass=file permissive=0 app=com.google.android.gms
+10-26 13:21:04.618 W/GmsUrlRequestImpl( 5828): Content-Type header is overwritten.
+10-26 13:21:04.627 I/resolv  (  336): GetAddrInfoHandler::run: {100 786532 100 983140 10131 0}
+10-26 13:21:04.635 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:21:04.641 I/resolv  (  336): res_nsend: used send_dg 168 terrno: 0
+10-26 13:21:04.641 I/resolv  (  336): doQuery: rcode=0, ancount=8, return value=168
+10-26 13:21:04.679 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:21:04.684 I/resolv  (  336): res_nsend: used send_dg 264 terrno: 0
+10-26 13:21:04.684 I/resolv  (  336): doQuery: rcode=0, ancount=8, return value=264
+10-26 13:21:04.692 D/TrafficStats( 5828): tagSocket(84) with statsTag=0x401, statsUid=10131
+10-26 13:21:04.819 W/GLSUser ( 5828): [AppCertManager] Exception while requesting key: 
+10-26 13:21:04.819 W/GLSUser ( 5828): java.util.concurrent.ExecutionException: avvw: Parse Proto Exception.
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at dlnv.s(:com.google.android.gms@231818047@23.18.18 (190800-535401451):3)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at dlnv.get(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at oub.b(:com.google.android.gms@231818047@23.18.18 (190800-535401451):78)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at otz.b(:com.google.android.gms@231818047@23.18.18 (190800-535401451):4)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at otu.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at otx.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):6)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at lzq.call(:com.google.android.gms@231818047@23.18.18 (190800-535401451):14)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at aced.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):6)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at aced.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at acjn.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at java.lang.Thread.run(Thread.java:1012)
+10-26 13:21:04.819 W/GLSUser ( 5828): Caused by: avvw: Parse Proto Exception.
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at avwn.f(:com.google.android.gms@231818047@23.18.18 (190800-535401451):5)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at avxk.onSucceeded(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at jf.onSucceeded(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):0)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at ie.run(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):4)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	... 6 more
+10-26 13:21:04.819 W/GLSUser ( 5828): Caused by: dzfz: Protocol message contained an invalid tag (zero).
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at dzdb.k(:com.google.android.gms@231818047@23.18.18 (190800-535401451):13)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at dzha.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):47)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at dzha.h(:com.google.android.gms@231818047@23.18.18 (190800-535401451):45)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at dzfd.A(:com.google.android.gms@231818047@23.18.18 (190800-535401451):2)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at dzex.f(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at dzcx.d(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at dzcx.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at dzcx.n(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at avwn.h(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	at avwn.f(:com.google.android.gms@231818047@23.18.18 (190800-535401451):1)
+10-26 13:21:04.819 W/GLSUser ( 5828): 	... 9 more
+10-26 13:21:04.826 I/NetworkScheduler.Stats( 5828): Task com.google.android.gms/com.google.android.gms.auth.account.be.legacy.AuthCronService finished executing. cause:4 result: 3 elapsed_millis: 508 uptime_millis: 508 exec_start_elapsed_seconds: 386 [CONTEXT service_id=218 ]
+10-26 13:21:05.155 W/CCodec  ( 9744): [c2.goldfish.h264.decoder] previous call to start exceeded timeout
+10-26 13:21:06.441 D/StatusBarIconController(  845): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:21:06.991 D/BufferPoolAccessor2.0( 9744): bufferpool2 0x73685cb21a58 : 0(0 size) total buffers - 0(0 size) used buffers - 0/0 (recycle/alloc) - 0/0 (fetch/transfer)
+10-26 13:21:06.991 D/BufferPoolAccessor2.0( 9744): evictor expired: 1, evicted: 1
+10-26 13:21:08.292 I/ProtoXDBBufferWrapper( 1537): ProtoXDBBufferWrapper.flushToStorage():153 Flushed 36 data item(s) to storage.
+10-26 13:21:09.416 D/OomAdjuster(  525): Not killing cached processes
+10-26 13:21:09.651 D/ActivityManager(  525): freezing 2661 com.google.android.dialer
+10-26 13:21:10.312 D/BoundBrokerSvc( 5944): onUnbind: Intent { act=com.google.firebase.dynamiclinks.service.START pkg=com.google.android.gms }
+10-26 13:21:10.784 D/ActivityManager(  525): freezing 1047 com.android.settings
+10-26 13:21:10.785 D/ActivityManager(  525): freezing 3449 com.android.dynsystem:dynsystem
+10-26 13:21:10.785 D/ActivityManager(  525): freezing 3412 com.android.dynsystem
+10-26 13:21:10.785 D/ActivityManager(  525): freezing 2337 com.android.localtransport
+10-26 13:21:10.785 D/ActivityManager(  525): freezing 1856 com.android.keychain
+10-26 13:21:16.436 D/StatusBarIconController(  845): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:21:17.539 I/VoiceInputManagerWrapper( 1537): VoiceInputManagerWrapper.shutdownVoiceInternal():95 shutdownVoiceInternal()
+10-26 13:21:19.111 D/OomAdjuster(  525): Not killing cached processes
+10-26 13:21:19.662 D/ActivityManager(  525): freezing 3142 com.google.android.gms.unstable
+10-26 13:21:21.207 D/ActivityManager(  525): freezing 5944 com.google.android.gms
+10-26 13:21:26.423 D/StatusBarIconController(  845): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:21:36.425 D/StatusBarIconController(  845): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:21:37.200 D/StatusBarIconController(  845): ignoring old pipeline callback because the new wifi icon is enabled
+10-26 13:21:40.215 D/StatusBarIconController(  845): ignoring old pipeline callback because the new wifi icon is enabled
+10-26 13:21:43.391 D/ActivityManager(  525): sync unfroze 3707 com.google.android.projection.gearhead:shared for 6
+10-26 13:21:43.392 D/OomAdjuster(  525): Not killing cached processes
+10-26 13:21:43.420 I/BgTaskExecutorImpl( 1751): Starting EXCLUSIVE background task SEND_GSA_HOME_REQUEST.
+10-26 13:21:43.425 I/GH.IconVerifyService( 3707): triggerSource = BOOT_COMPLETE, componentState = 2
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): Error when converting version: messages.android_20230529_03_RC01_alldpi.x86_64.phone
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): java.lang.NumberFormatException: For input string: "messages"
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at java.lang.Long.parseLong(Long.java:751)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at java.lang.Long.parseLong(Long.java:876)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.h.c(PG:3)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.h.g(PG:3)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.h.d(PG:267)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.h.a(PG:38)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.p.a(PG:1)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.android.libraries.gsa.k.a.f.a(PG:2)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.common.util.concurrent.dx.a(PG:1)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.common.util.concurrent.cv.run(PG:4)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.common.util.concurrent.dz.run(PG:1)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.android.libraries.i.ae.run(PG:1)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.android.libraries.i.k.run(PG:2)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at com.google.android.libraries.i.p.run(PG:4)
+10-26 13:21:43.504 E/ApplicationPropertiesBu( 1751): 	at java.lang.Thread.run(Thread.java:1012)
+10-26 13:21:43.525 E/ApplicationPropertiesBu( 1751): Date 2021-12-06T00:00:00Z is out of expected range.
+10-26 13:21:43.526 E/ApplicationPropertiesBu( 1751): Date 2022-02-15T00:00:00Z is out of expected range.
+10-26 13:21:43.526 E/ApplicationPropertiesBu( 1751): Date 2022-02-22T00:00:00Z is out of expected range.
+10-26 13:21:43.526 W/A       ( 1751): Exception while fetching versionCode for package[com.google.android.apps.tv.dreamx].
+10-26 13:21:43.526 W/A       ( 1751): android.content.pm.PackageManager$NameNotFoundException: com.google.android.apps.tv.dreamx
+10-26 13:21:43.526 W/A       ( 1751): 	at android.app.ApplicationPackageManager.getPackageInfoAsUser(ApplicationPackageManager.java:256)
+10-26 13:21:43.526 W/A       ( 1751): 	at android.app.ApplicationPackageManager.getPackageInfo(ApplicationPackageManager.java:216)
+10-26 13:21:43.526 W/A       ( 1751): 	at android.app.ApplicationPackageManager.getPackageInfo(ApplicationPackageManager.java:210)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.h.d(PG:372)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.h.a(PG:38)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.p.a(PG:1)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.libraries.gsa.k.a.f.a(PG:2)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.common.util.concurrent.dx.a(PG:1)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.common.util.concurrent.cv.run(PG:4)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.common.util.concurrent.dz.run(PG:1)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.libraries.i.ae.run(PG:1)
+10-26 13:21:43.526 W/A       ( 1751): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+10-26 13:21:43.526 W/A       ( 1751): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.libraries.i.k.run(PG:2)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.libraries.i.p.run(PG:4)
+10-26 13:21:43.526 W/A       ( 1751): 	at java.lang.Thread.run(Thread.java:1012)
+10-26 13:21:43.526 W/A       ( 1751): Failed to fetch versionCode for package[com.google.android.apps.tv.dreamx].
+10-26 13:21:43.526 W/A       ( 1751): Exception while fetching versionCode for package[com.google.android.apps.tv.launcherx].
+10-26 13:21:43.526 W/A       ( 1751): android.content.pm.PackageManager$NameNotFoundException: com.google.android.apps.tv.launcherx
+10-26 13:21:43.526 W/A       ( 1751): 	at android.app.ApplicationPackageManager.getPackageInfoAsUser(ApplicationPackageManager.java:256)
+10-26 13:21:43.526 W/A       ( 1751): 	at android.app.ApplicationPackageManager.getPackageInfo(ApplicationPackageManager.java:216)
+10-26 13:21:43.526 W/A       ( 1751): 	at android.app.ApplicationPackageManager.getPackageInfo(ApplicationPackageManager.java:210)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.h.d(PG:372)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.h.a(PG:38)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.apps.gsa.staticplugins.ad.p.a(PG:1)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.libraries.gsa.k.a.f.a(PG:2)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.common.util.concurrent.dx.a(PG:1)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.common.util.concurrent.cv.run(PG:4)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.common.util.concurrent.dz.run(PG:1)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.libraries.i.ae.run(PG:1)
+10-26 13:21:43.526 W/A       ( 1751): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+10-26 13:21:43.526 W/A       ( 1751): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.libraries.i.k.run(PG:2)
+10-26 13:21:43.526 W/A       ( 1751): 	at com.google.android.libraries.i.p.run(PG:4)
+10-26 13:21:43.526 W/A       ( 1751): 	at java.lang.Thread.run(Thread.java:1012)
+10-26 13:21:43.526 W/A       ( 1751): Failed to fetch versionCode for package[com.google.android.apps.tv.launcherx].
+10-26 13:21:43.566 D/ActivityManager(  525): sync unfroze 5944 com.google.android.gms for 6
+10-26 13:21:43.591 D/BoundBrokerSvc( 5944): onBind: Intent { act=com.google.android.gms.languageprofile.service.START pkg=com.google.android.gms }
+10-26 13:21:43.591 D/BoundBrokerSvc( 5944): Loading bound service for intent: Intent { act=com.google.android.gms.languageprofile.service.START pkg=com.google.android.gms }
+10-26 13:21:43.593 I/A       ( 1751): getModuleProperties: device does not support SoundTrigger recognition
+10-26 13:21:43.891 I/NetworkScheduler.Stats( 5828): Task com.google.android.gms/com.google.android.gms.languageprofile.GcmTaskService started execution. cause:7 exec_start_elapsed_seconds: 425 [CONTEXT service_id=218 ]
+10-26 13:21:43.949 I/NetworkScheduler.Stats( 5828): Task com.google.android.gms/com.google.android.gms.languageprofile.GcmTaskService finished executing. cause:7 result: 1 elapsed_millis: 123 uptime_millis: 123 exec_start_elapsed_seconds: 425 [CONTEXT service_id=218 ]
+10-26 13:21:44.999 I/HeterodyneSyncer( 5828): Removed 0 invalid users [CONTEXT service_id=51 ]
+10-26 13:21:45.855 I/resolv  (  336): GetAddrInfoHandler::run: {100 786532 100 983140 10131 0}
+10-26 13:21:45.863 I/resolv  (  336): res_nmkquery: (QUERY, IN, A)
+10-26 13:21:45.866 I/resolv  (  336): res_nmkquery: (QUERY, IN, AAAA)
+10-26 13:21:45.869 I/resolv  (  336): res_nsend: used send_dg 260 terrno: 0
+10-26 13:21:45.869 I/resolv  (  336): doQuery: rcode=0, ancount=8, return value=260
+10-26 13:21:45.886 I/resolv  (  336): res_nsend: used send_dg 164 terrno: 0
+10-26 13:21:45.886 I/resolv  (  336): doQuery: rcode=0, ancount=8, return value=164
+10-26 13:21:45.892 D/TrafficStats( 5828): tagSocket(197) with statsTag=0x1203, statsUid=10132
+10-26 13:21:46.433 D/StatusBarIconController(  845): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:21:48.490 W/healthd (    0): battery l=100 v=5000 t=25.0 h=2 st=2 c=900000 fc=3000000 cc=10 chg=a
+10-26 13:21:48.399 D/OomAdjuster(  525): Not killing cached processes
+10-26 13:21:51.583 D/ActivityManager(  525): sync unfroze 1805 com.google.process.gservices for 7
+10-26 13:21:53.519 D/ActivityManager(  525): freezing 3707 com.google.android.projection.gearhead:shared
+10-26 13:21:53.757 D/ActivityManager(  525): sync unfroze 4287 com.google.android.googlequicksearchbox for 3
+10-26 13:21:53.758 I/PhenotypeBackgroundRecv( 4287): Skipping com.google.android.googlequicksearchbox which doesn't use ProcessStable flags.
+10-26 13:21:53.759 D/OomAdjuster(  525): Not killing cached processes
+10-26 13:21:53.772 I/BgTaskExecutorImpl( 1751): Starting EXCLUSIVE background task FETCH_CONFIGS_FROM_PHENOTYPE.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_birthdaydoodle_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_call_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_canvas_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_chkpkg_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_crashtest_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_dining_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_doodle_notifications_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_imageviewer_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_ipa_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_jslocation_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_localintent_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_messaging_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_nativesrp_activity_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_nativesrp_presenter_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_nowcontent_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_recents_activity_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_save_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_searchresults_activity_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_test_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_weather_jar__name to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag bindle_flags__bloblobber_blob to integer.
+10-26 13:21:54.860 W/A       ( 1751): Can't format flag bindle_flags__velour_jar to integer.
+10-26 13:21:54.886 I/BlobLobber( 1751): Canceling downloads: []
+10-26 13:21:54.891 I/BgTaskExecutorImpl( 1751): Starting EXCLUSIVE background task BLOBLOBBER_SYNC.
+10-26 13:21:54.893 I/FedAssExpListener( 1751): Fed-ass not supported for signed out users.
+10-26 13:21:54.893 I/FedAssExpListener( 1751): Successfully processed experiments changed.
+10-26 13:21:54.893 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:54.893 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:54.893 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:54.893 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:54.894 I/A       ( 1751): NGA enabled in interactor.
+10-26 13:21:54.899 I/OpaEligibilityChecker( 1751): send OpaEligibilityChange broadcast to CommonBroadcastReceiver
+10-26 13:21:54.906 I/BistoSettingsListener( 1751): listener created
+10-26 13:21:54.907 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:54.907 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:54.907 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:54.907 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:54.920 W/JobScheduler(  525): Job didn't exist in JobStore: 2bf0a44 #u0a132/-17 com.google.android.googlequicksearchbox/com.google.android.apps.gsa.tasks.BackgroundTasksJobService
+10-26 13:21:54.938 I/Icing   ( 5944): IndexChimeraService.getServiceInterface callingPackage=com.google.android.googlequicksearchbox componentName=agsa_icing_connection serviceId=32
+10-26 13:21:54.958 I/Icing   ( 5944): IndexChimeraService.getServiceInterface callingPackage=com.google.android.googlequicksearchbox componentName=agsa_icing_connection serviceId=33
+10-26 13:21:54.971 W/BpBinder( 5828): Large outgoing transaction of 329812 bytes, interface descriptor , code 4
+10-26 13:21:54.994 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_birthdaydoodle_jar__name to integer.
+10-26 13:21:54.994 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_call_jar__name to integer.
+10-26 13:21:54.994 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_canvas_jar__name to integer.
+10-26 13:21:54.994 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_chkpkg_jar__name to integer.
+10-26 13:21:54.994 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_crashtest_jar__name to integer.
+10-26 13:21:54.994 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_dining_jar__name to integer.
+10-26 13:21:54.994 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_doodle_notifications_jar__name to integer.
+10-26 13:21:54.994 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_imageviewer_jar__name to integer.
+10-26 13:21:54.994 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_ipa_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_jslocation_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_localintent_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_messaging_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_nativesrp_activity_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_nativesrp_presenter_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_nowcontent_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_recents_activity_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_save_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_searchresults_activity_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_test_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag AndroidGsaVelourJars__velour_weather_jar__name to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag bindle_flags__bloblobber_blob to integer.
+10-26 13:21:54.995 W/A       ( 1751): Can't format flag bindle_flags__velour_jar to integer.
+10-26 13:21:55.008 W/BpBinder( 5828): Large outgoing transaction of 329812 bytes, interface descriptor , code 4
+10-26 13:21:55.016 I/FedAssExpListener( 1751): Fed-ass not supported for signed out users.
+10-26 13:21:55.016 I/FedAssExpListener( 1751): Successfully processed experiments changed.
+10-26 13:21:55.016 I/A       ( 1751): NGA enabled in interactor.
+10-26 13:21:55.024 I/OpaEligibilityChecker( 1751): send OpaEligibilityChange broadcast to CommonBroadcastReceiver
+10-26 13:21:55.026 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:55.026 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:55.026 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:55.026 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:55.032 I/Icing   ( 5944): IndexChimeraService.getServiceInterface callingPackage=com.google.android.googlequicksearchbox componentName=agsa_icing_connection serviceId=32
+10-26 13:21:55.042 I/Icing   ( 5944): IndexChimeraService.getServiceInterface callingPackage=com.google.android.googlequicksearchbox componentName=agsa_icing_connection serviceId=33
+10-26 13:21:55.053 W/ProcessStats(  525): Tracking association SourceState{161a4b0 com.google.android.gms.persistent/10131 BFgs #13953} whose proc state 4 is better than process ProcessState{d2fbf5d com.google.android.gms/10131 pkg=com.google.android.gms} proc state 6 (9 skipped)
+10-26 13:21:55.053 D/BoundBrokerSvc( 5944): onBind: Intent { act=com.google.android.gms.feedback.internal.IFeedbackService dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsBoundBrokerService }
+10-26 13:21:55.053 D/BoundBrokerSvc( 5944): Loading bound service for intent: Intent { act=com.google.android.gms.feedback.internal.IFeedbackService dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsBoundBrokerService }
+10-26 13:21:55.057 D/CompatibilityChangeReporter(  525): Compat change id reported: 161252188; UID 10192; state: DISABLED
+10-26 13:21:55.059 I/Icing   ( 5944): Usage reports ok 1, Failed Usage reports 0, indexed 0, rejected 0
+10-26 13:21:55.063 I/Icing   ( 5944): Usage reports ok 0, Failed Usage reports 0, indexed 0, rejected 0
+10-26 13:21:55.067 I/Icing   ( 5944): Usage reports ok 0, Failed Usage reports 0, indexed 0, rejected 0
+10-26 13:21:55.070 I/Icing   ( 5944): Usage reports ok 0, Failed Usage reports 0, indexed 0, rejected 0
+10-26 13:21:55.158 I/Icing   ( 5944): IndexChimeraService.getServiceInterface callingPackage=com.google.android.gms componentName=null serviceId=30
+10-26 13:21:55.195 I/Icing   ( 5944): Usage reports ok 0, Failed Usage reports 0, indexed 0, rejected 0
+10-26 13:21:55.716 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:55.716 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:55.716 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:55.717 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:55.717 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:55.719 W/JobScheduler(  525): Job didn't exist in JobStore: eb8f29d #u0a132/-151 com.google.android.googlequicksearchbox/com.google.android.apps.gsa.tasks.BackgroundTasksJobService
+10-26 13:21:56.264 W/SearchServiceCore( 1751): Abort, client detached.
+10-26 13:21:56.267 W/JobScheduler(  525): Job didn't exist in JobStore: 8cccf1 #u0a132/-43 com.google.android.googlequicksearchbox/com.google.android.apps.gsa.tasks.BackgroundTasksJobService
+10-26 13:21:56.426 D/StatusBarIconController(  845): ignoring old pipeline callbacks, because the new mobile icons are enabled
+10-26 13:21:58.684 D/BoundBrokerSvc( 5944): onUnbind: Intent { act=com.google.android.gms.languageprofile.service.START pkg=com.google.android.gms }
+10-26 13:21:58.799 D/OomAdjuster(  525): Not killing cached processes
+10-26 13:22:03.854 I/logd    (    0): logdr: UID=2000 GID=2000 PID=9812 n tail=0 logMask=99 pid=0 start=0ns deadline=0ns
