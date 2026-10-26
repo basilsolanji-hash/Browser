@@ -804,15 +804,17 @@ os.on('state', (s) => {
   if (booted) render();
 });
 let toastTimer = 0;
-os.on('toast', (text) => toast(String(text)));
+os.on('toast', (d) => (typeof d === 'object' && d ? toast(String((d as { text: string }).text), (d as { action?: string }).action) : toast(String(d))));
 
-function toast(text: string): void {
+/** Подсказка внизу шапки; с действием («Перейти», §23) живёт 4 с. */
+function toast(text: string, action?: string): void {
   document.querySelector('.toast')?.remove();
-  const el = h('div', { class: 'toast', role: 'status' }, text);
+  const el = h('div', { class: 'toast', role: 'status' }, text,
+    action ? h('button', { class: 'toast-go', id: 'toast-go', onclick: () => { el.remove(); void os.call('toastGo'); } }, action) : null);
   document.body.append(el);
   // Тост живёт внизу шапки: на время показа шапка не растягивается, поэтому он — под адресной строкой справа.
   clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => el.remove(), 2600);
+  toastTimer = window.setTimeout(() => el.remove(), action ? 4000 : 2600);
 }
 os.on('focusFind', () => {
   const el = document.getElementById('find') as HTMLInputElement | null;

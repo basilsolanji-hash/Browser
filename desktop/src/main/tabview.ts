@@ -8,6 +8,7 @@ import { t } from './i18n';
 import { resetTab } from './privacy';
 import * as Diag from './diag';
 import * as Unload from './unload';
+import { linkMenu, linkTarget, mediaKeys, type LinkItem, type LinkTarget } from './linkmenu';
 import { askSync } from './ask';
 
 /** «Мобильная версия» сайта: User-Agent Chrome для Android (без версии устройства). */
@@ -27,6 +28,15 @@ export interface TabHost {
   searchText(text: string, opener: TabView): void;
   shareText(text: string, tab: TabView, how: 'copy' | 'mail'): void;
   shortcut(input: Electron.Input, wc: WebContents): boolean;
+  /** Меню ссылки (§23): в фоне с подсказкой «Перейти», в группе, в инкогнито, в другом профиле, избранное. */
+  openLink(url: string, opener: TabView, inGroup: boolean): void;
+  openIncognitoUrl(url: string): void;
+  openInProfile(url: string, profile: number): void;
+  otherProfiles(): { id: number; name: string }[];
+  toggleFavorite(url: string, title: string): void;
+  shareDone(): void;
+  isFavorite(url: string): boolean;
+  readonly incognito: boolean;
   /** Окно для вопросов «Покинуть страницу?» и «Отправить форму ещё раз?». */
   parentWindow(): BrowserWindow;
   onFound(wc: WebContents, r: Electron.Result): void;
@@ -69,6 +79,11 @@ function suggestPasswords(wc: WebContents): void {
 function allowedFromSite(url: string): boolean {
   return isWebUrl(url) || url === 'about:blank';
 }
+
+/** Последнее контекстное меню (только при OS_TEST). */
+let lastMenu: Electron.Menu | null = null;
+export const lastContextMenu = () => lastMenu;
+export const resetContextMenu = () => { lastMenu = null; };
 
 export class TabView {
   readonly view: WebContentsView;
@@ -207,12 +222,12 @@ export class TabView {
   private contextMenu(p: Electron.ContextMenuParams): void {
     const wc = this.wc;
     const items: Electron.MenuItemConstructorOptions[] = [];
-    if (p.linkURL && allowedFromSite(p.linkURL)) {
-      items.push(
-        { label: t('dt_open_link_new_tab'), click: () => this.host.openTab(p.linkURL, this, false) },
-        { label: t('copy_link'), click: () => clipboard.writeText(p.linkURL) },
-        { type: 'separator' },
-      );
+    const target = linkTarget(p);
+    if (target) {
+      for (const group of linkMenu(target, { incognito: this.host.incognito, otherProfiles: this.host.otherProfiles().length > 0 })) {
+        for (const id of group) items.push(this.linkItem(id, target));
+        items.push({ type: 'separator' });
+      }
     }
     if (p.isEditable) {
       items.push(
@@ -235,16 +250,43 @@ export class TabView {
         { label: t('dt_search_for', short), click: () => this.host.searchText(text, this) },
       );
     }
-    if (p.mediaType === 'image' && isWebUrl(p.srcURL)) {
-      items.push({ label: t('dt_copy_image_link'), click: () => clipboard.writeText(p.srcURL) });
-    }
     if (!items.length || items[items.length - 1].type !== 'separator') items.push({ type: 'separator' });
     items.push(
       { label: t('back'), enabled: wc.navigationHistory.canGoBack(), click: () => wc.navigationHistory.goBack() },
       { label: t('forward'), enabled: wc.navigationHistory.canGoForward(), click: () => wc.navigationHistory.goForward() },
       { label: t('refresh'), click: () => this.reload() },
     );
-    Menu.buildFromTemplate(items).popup();
+    const menu = Menu.buildFromTemplate(items);
+    // Приёмка не может нажать системное меню — берёт его из lastContextMenu() и вызывает пункты сама.
+    if (process.env.OS_TEST === '1') lastMenu = menu;
+    else menu.popup();
+  }
+
+  /** Пункт меню ссылки, картинки, видео или аудио. */
+  private linkItem(id: LinkItem, x: LinkTarget): Electron.MenuItemConstructorOptions {
+    const link = x.link ?? '';
+    const media = x.media ?? '';
+    const keys = mediaKeys(x.type ?? 'image');
+    const share = (url: string, text: string | null): Electron.MenuItemConstructorOptions[] => [
+      { label: t('dt_share_copy'), click: () => { clipboard.writeText(url); this.host.shareDone(); } },
+      { label: t('dt_share_mail'), click: () => openExternal(`mailto:?subject=${encodeURIComponent(text ?? '')}&body=${encodeURIComponent(url)}`) },
+    ];
+    switch (id) {
+      case 'open': return { label: t('open'), click: () => void this.wc.loadURL(link) };
+      case 'open_new_tab': return { label: t('ctx_open_new_tab'), click: () => this.host.openLink(link, this, false) };
+      case 'open_in_group': return { label: t('ctx_open_in_group'), click: () => this.host.openLink(link, this, true) };
+      case 'open_incognito': return { label: t('ctx_open_incognito'), click: () => this.host.openIncognitoUrl(link) };
+      case 'open_in_profile': return { label: t('ctx_open_in_profile'), submenu: this.host.otherProfiles().map((pr) => ({ label: pr.name, click: () => this.host.openInProfile(link, pr.id) })) };
+      case 'copy_link': return { label: t('ctx_copy_link'), click: () => clipboard.writeText(link) };
+      case 'copy_link_text': return { label: t('ctx_copy_link_text'), click: () => clipboard.writeText(x.text ?? '') };
+      case 'download_link': return { label: t('ctx_download_link'), click: () => this.wc.downloadURL(link) };
+      case 'favorite': return { label: t(this.host.isFavorite(link) ? 'fav_remove' : 'add_favorite'), click: () => this.host.toggleFavorite(link, x.text ?? link) };
+      case 'share_link': return { label: t('ctx_share_link'), submenu: share(link, x.text) };
+      case 'open_media': return { label: t(keys.open), click: () => this.host.openLink(media, this, false) };
+      case 'download_media': return { label: t(keys.download), click: () => this.wc.downloadURL(media) };
+      case 'copy_media': return { label: t(keys.copy), click: () => clipboard.writeText(media) };
+      case 'share_image': return { label: t('ctx_share_image'), submenu: share(media, x.text) };
+    }
   }
 
   /**
