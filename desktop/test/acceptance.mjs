@@ -2347,7 +2347,8 @@ try {
       await main(() => { const ws = globalThis.osTest.windows(); ws[ws.length - 1].win.close(); });
     }
     const mm = await menuAt(lk2, '#m');
-    check('mailto: only copy and share', mm.slice(0, 2).join('|') === `${L('ctx_copy_link')}|${L('ctx_share_link')}/${L('dt_share_copy')}|${L('dt_share_mail')}`, mm.join(' | '));
+    check('mailto: only copy and share (no open, download or favorites)', mm[0] === L('ctx_copy_link') && mm.some((x) => x.startsWith(L('ctx_share_link') + '/')) &&
+      ![L('ctx_open_new_tab'), L('ctx_download_link'), L('add_favorite')].some((x) => mm.includes(x)), mm.join(' | '));
     await main(() => globalThis.osTest.resetContextMenu());
     const mj = await menuAt(lk2, '#j');
     check('javascript: link — no link items', !mj.includes(L('ctx_copy_link')) && !mj.includes(L('ctx_open_new_tab')), mj.join(' | '));
