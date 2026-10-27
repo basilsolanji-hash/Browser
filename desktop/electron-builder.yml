@@ -43,3 +43,7 @@ nsis:
   installerIcon: assets/icon.ico
   uninstallerIcon: assets/icon.ico
   installerHeaderIcon: assets/icon.ico
+  # Оформление в стиле приложения: тёмная панель с логотипом и красной полосой (scripts/installer-art.mjs).
+  installerSidebar: assets/installerSidebar.bmp
+  uninstallerSidebar: assets/installerSidebar.bmp
+  installerHeader: assets/installerHeader.bmp

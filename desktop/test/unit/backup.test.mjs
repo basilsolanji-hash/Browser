@@ -1,10 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { decrypt, encrypt, isAll, merge, originOf, sameSite, upsert } from '../../src/main/backupcrypto.ts';
+import { ITERATIONS, decrypt, encrypt, isAll, iterationsOf, merge, originOf, sameSite, upsert } from '../../src/main/backupcrypto.ts';
 
 // Образец собран по алгоритму Backup.encrypt Android (javax.crypto: PBKDF2WithHmacSHA256, 120000,
 // AES/GCM/NoPadding) с фиксированными солью и IV; пароль копии — «пароль-копии 7».
 const ANDROID = '{"app":"os-browser","v":1,"salt":"AQgPFh0kKzI5QEdOVVxjag==","iv":"yMXCv7y5trOwraqn","data":"JUGeljemUGbtrpwUYY/hlGukYGY5IumpZ/YnFkY1f6ggIp9PE0+a1dmku1gaQl+J+GPMAgG8p91JGE/gmRmmGU8C3epPrS4+6e2vHRsNWT+rwIzDuAjg1D38DFMhaejm7/2mCKR+7v4M7LOtuvO+jQEPc4JP9yBNZjSNezKjjoTpKZGd4I6ZZAVkgG/QmBxl5U0RItvMFn30tQIS6S21Apn5ULYyALEx3ly67nroEr4Mx+bRkUBr2rcxLurXHthAjGZhoc4tMktXDcIJAk4Dq4YDbJUQpZUpePOjV5BQFSGrvC8tXrMAO1t68grbvd9Hyp88Pwxsks22RmNyQBklV7ZW+UlDXcdIS/7BoipRlP9fu7J/Dp+cMhtnrthsCpEQH+Kt65hawoWTFQNQeM0FR3Ap3+6evSRmT8iKXQ//1EN9AlQq3S9B7wLJ/mdWcMSgdaMBMMYSjEE6i1YPjhhlik2C/KXj/O3eZ1/Rh8xh0RLbC3sHUTYO6QUfJvRmrgasPYOe2E8Noi1nn6MQWobzSLcouey01sa3WzyMYeWFvLYUnzhW097Fc3apW0yJIMVkBQKokJ+hOu9pYQtmNdo="}';
+
+// Тот же образец в формате v2 (PBKDF2 600000) — эталон для Android: Backup.encrypt с той же солью и IV
+// должен дать ровно эту строку.
+const V2 = '{"app":"os-browser","v":2,"iter":600000,"salt":"AQgPFh0kKzI5QEdOVVxjag==","iv":"yMXCv7y5trOwraqn","data":"DpCFBvxKL5/K+KrJzGdXVW/zQdw3q5h+jnNo8MdK38T+L6AMhFW1n4HIqcPF/QWX177XWTj47jfqy2JJ1FlooxMC1IKDNNWlz1rJGaF6plYYKeTbj4mdyZZkLHmnoczjaMrE4Sa81EcH7MPVYrYEMlRjOPtlL0bXWwp1CHGvu9vERQKSOUXaSAvk7jEaiBFgiz/qWxuBzVJMQ8N65e54OIGc2XILMKXop4XprhoUKn/Twj2yp0qhNLCXsBIU1+8iWYKsLfoEfZP21dFtPFlWUOPVmBHdjGiur4E4LM4qrZsChdfQ3GhqdwdNFG+N7Y8eOZGw1ZJirIlKofL1BVZJh22xUQXjHdwxoH6RiyiCf3ZVARZ3HOO5BNwxlnPcXhYE2t/CwsUzebZ7OB6KxFW6Lkg2YuO7qCfklZXnNWjpl1lwbaGsl+LmvMx6XfbSV4qJqpQiL99o7DT7/K1yEMNwm7Yo0X0t7I1VkVxtNIo9MIUF3O8t78GfuQEk0uC9kywwr9QJyUGphK4a6pmbeMdW169SayPybFDv8LoAhlXZWyR6zwmWZ8z3ZVWeW5/cWPpmqk7h/ynOt5TqZi+937A="}';
 
 const sample = () => ({
   v: 1, name: 'Работа', desc: 'Счета',
@@ -17,9 +21,11 @@ const sample = () => ({
 test('backup: encrypt → decrypt round trip, no plain text inside', () => {
   const file = encrypt(sample(), 'correct horse');
   const o = JSON.parse(file);
-  assert.deepEqual(Object.keys(o), ['app', 'v', 'salt', 'iv', 'data']);
+  assert.deepEqual(Object.keys(o), ['app', 'v', 'iter', 'salt', 'iv', 'data']);
   assert.equal(o.app, 'os-browser');
-  assert.equal(o.v, 1);
+  assert.equal(o.v, 2);
+  assert.equal(o.iter, 600_000);
+  assert.equal(ITERATIONS, 600_000);
   assert.equal(Buffer.from(o.salt, 'base64').length, 16);
   assert.equal(Buffer.from(o.iv, 'base64').length, 12);
   assert.ok(!file.includes('s3cret') && !file.includes('anna'));
@@ -52,10 +58,10 @@ test('backup: file made by the Android algorithm opens here', () => {
   assert.equal(decrypt(ANDROID, 'пароль-копии 8'), null);
 });
 
-test('backup: our file decrypts with the same parameters (salt + iv + PBKDF2 120000)', () => {
+test('backup: v2 file with fixed salt + iv matches the reference (PBKDF2 600000)', () => {
   const salt = Buffer.from('AQgPFh0kKzI5QEdOVVxjag==', 'base64');
   const iv = Buffer.from('yMXCv7y5trOwraqn', 'base64');
-  // Тот же JSON, что в образце Android (порядок полей как в Backup.collect) → тот же шифротекст.
+  // Тот же JSON, что в образце Android (порядок полей как в Backup.collect).
   const data = {
     v: 1, name: 'Работа', desc: 'Счета и почта',
     passwords: [{ g: 'os-1', o: 'https://bank.example', u: 'anna', p: 's3cret-Ж', t: 1700000000000 }],
@@ -63,7 +69,8 @@ test('backup: our file decrypts with the same parameters (salt + iv + PBKDF2 120
     favorites: [{ title: 'Docs', url: 'https://docs.example/', folder: '' }],
     notes: [{ text: 'Позвонить Ивану', url: 'https://crm.example/' }],
   };
-  assert.equal(encrypt(data, 'пароль-копии 7', salt, iv), ANDROID);
+  assert.equal(encrypt(data, 'пароль-копии 7', salt, iv), V2);
+  assert.deepEqual(decrypt(V2, 'пароль-копии 7'), decrypt(ANDROID, 'пароль-копии 7'));
 });
 
 test('restore: adds only what is missing, no duplicates', () => {
@@ -130,4 +137,16 @@ test('passwords: origin, subdomains, update by site and login', () => {
   list = upsert(list, 'https://b.example.com', 'anna2', 'z', g);
   assert.equal(list.length, 2);
   assert.equal(list.find((l) => l.g === g).o, 'https://b.example.com');
+});
+
+test('backup: version and iterations in the header; old v1 copies still open', () => {
+  assert.equal(iterationsOf({ v: 1 }), 120_000);
+  assert.equal(iterationsOf({ v: 2, iter: 600_000 }), 600_000);
+  assert.equal(iterationsOf({ v: 2 }), null, 'v2 without iter');
+  assert.equal(iterationsOf({ v: 2, iter: 1000 }), null, 'too weak');
+  assert.equal(iterationsOf({ v: 2, iter: 1e9 }), null, 'would hang');
+  assert.equal(iterationsOf({ v: 3, iter: 600_000 }), null, 'unknown version');
+  const o = JSON.parse(encrypt(sample(), 'pw-123456'));
+  assert.equal(decrypt(JSON.stringify({ ...o, iter: 300_000 }), 'pw-123456'), null, 'iter is bound to the key');
+  assert.equal(decrypt(JSON.stringify({ ...o, v: 1, iter: undefined }), 'pw-123456'), null, 'v2 file read as v1');
 });
