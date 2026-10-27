@@ -407,6 +407,13 @@ function renderRow2(): void {
   }
   if (st.zoom !== 100) nodes.push(h('button', { class: 'zoom', title: t('reset'), onclick: () => void os.call('zoom', 0) }, st.zoom + '%'));
   if (st.profile && !st.incognito) {
+    for (const e of pinnedExts(st.profile.id)) {
+      const b = h('button', {
+        class: 'icon-btn ext-pin', 'data-ext': e.id, title: e.popup ? e.name : `${e.name} — ${t('dt_ext_no_popup')}`, 'aria-label': e.name,
+        onclick: () => openExt(e, b.getBoundingClientRect()),
+      }, e.icon ? h('img', { src: e.icon, alt: '', width: 18, height: 18 }) : icon('extension', 18));
+      nodes.push(b);
+    }
     const ext = iconButton('extension', t('dt_extensions'), () => void extMenu(ext.getBoundingClientRect()));
     ext.id = 'ext-btn';
     nodes.push(ext);
@@ -570,24 +577,53 @@ function paintSuggestions(): void {
   layer.classList.add('through');
 }
 
-/** Расширения профиля: всплывающие окна (action.default_popup) и «Управление расширениями». */
+interface ExtItem { id: string; name: string; icon: string | null; popup: boolean; pinned: boolean }
+/** Расширения профиля для панели: читаются один раз на профиль и после закрепления. */
+let extCache: { profile: number; list: ExtItem[] } | null = null;
+let extLoading = false;
+
+function pinnedExts(profile: number): ExtItem[] {
+  if (extCache?.profile !== profile) {
+    if (!extLoading) {
+      extLoading = true;
+      void os.call<ExtItem[]>('extMenu').then((list) => { extCache = { profile, list }; }).finally(() => { extLoading = false; render(); });
+    }
+    return [];
+  }
+  return extCache.list.filter((e) => e.pinned);
+}
+
+function openExt(e: ExtItem, anchor: DOMRect): void {
+  hideDrop();
+  if (e.popup) void os.call('extPopup', e.id, anchor.left, anchor.right, anchor.bottom);
+  else void os.call('openPanel', `os://extensions/?profile=${st?.profile?.id}`);
+}
+
+/** Расширения профиля: всплывающие окна (action.default_popup), закрепление на панели и «Управление расширениями». */
 async function extMenu(anchor: DOMRect): Promise<void> {
   if (!st?.profile) return;
   const id = st.profile.id;
-  const list = await os.call<{ id: string; name: string; icon: string | null; popup: boolean }[]>('extMenu');
+  const list = await os.call<ExtItem[]>('extMenu');
+  extCache = { profile: id, list };
   const items: Item[] = [{ head: t('dt_extensions') }];
   if (!list.length) items.push({ el: h('div', { class: 'empty-note' }, t('dt_ext_empty')) });
   for (const e of list) {
     const pic = e.icon ? h('span', { class: 'ic' }, h('img', { src: e.icon, alt: '', width: 18, height: 18 })) : icon('extension', 18);
+    const pin = h('button', {
+      class: `icon-btn ext-pin-toggle ${e.pinned ? 'on' : ''}`, 'data-pin': e.id,
+      title: e.pinned ? t('profile_unpin') : t('profile_pin'), 'aria-label': `${e.pinned ? t('profile_unpin') : t('profile_pin')}: ${e.name}`, 'aria-pressed': String(e.pinned),
+      onclick: (ev: MouseEvent) => {
+        ev.stopPropagation();
+        void os.call('extPin', e.id, !e.pinned).then(() => { hideDrop(); extCache = null; render(); });
+      },
+    }, icon('pin', 16));
     items.push({
-      el: h('button', {
-        role: 'menuitem', 'data-ext': e.id, title: e.popup ? e.name : t('dt_ext_no_popup'),
-        onclick: () => {
-          hideDrop();
-          if (e.popup) void os.call('extPopup', e.id, anchor.left, anchor.right, anchor.bottom);
-          else void os.call('openPanel', `os://extensions/?profile=${id}`);
-        },
-      }, pic, h('span', { class: 'grow' }, e.name, e.popup ? null : h('span', { class: 'sub' }, '  ' + t('dt_ext_no_popup')))),
+      el: h('div', { class: 'ext-row' },
+        h('button', {
+          role: 'menuitem', 'data-ext': e.id, title: e.popup ? e.name : t('dt_ext_no_popup'),
+          onclick: () => openExt(e, anchor),
+        }, pic, h('span', { class: 'grow' }, e.name, e.popup ? null : h('span', { class: 'sub' }, '  ' + t('dt_ext_no_popup')))),
+        pin),
     });
   }
   items.push({ sep: true }, { label: t('dt_ext_manage'), icon: 'settings', run: () => void os.call('openPanel', `os://extensions/?profile=${id}`) });
@@ -818,6 +854,8 @@ function toast(text: string, action?: string): void {
   clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => el.remove(), action ? 4000 : 2600);
 }
+// Закрепили или открепили расширение (в этом или другом окне) — перечитать значки панели.
+os.on('extPins', () => { extCache = null; render(); });
 os.on('focusFind', () => {
   const el = document.getElementById('find') as HTMLInputElement | null;
   if (el) { el.focus(); el.select(); } else setTimeout(() => (document.getElementById('find') as HTMLInputElement | null)?.focus(), 50);

@@ -18,6 +18,8 @@ export interface ExtEntry {
   version: string;
   enabled: boolean;
   time: number;
+  /** Закреплено на панели рядом с адресной строкой (как значок-булавка в Chrome). */
+  pinned?: boolean;
 }
 
 export const extensionsFile = new JsonFile<{ profiles: Record<string, ExtEntry[]> }>('extensions', () => ({ profiles: {} }));
@@ -189,6 +191,13 @@ export async function setEnabled(ses: Session, profile: number, id: string, on: 
   if (on) return load(ses, profile, id);
   if (ses.extensions.getExtension(id)) ses.extensions.removeExtension(id);
   errors.delete(`${profile}:${id}`);
+  return true;
+}
+
+export function setPinned(profile: number, id: string, on: boolean): boolean {
+  const e = entry(profile, id);
+  if (!e) return false;
+  extensionsFile.update(() => { e.pinned = on; });
   return true;
 }
 
