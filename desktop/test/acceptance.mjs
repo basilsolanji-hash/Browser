@@ -2357,6 +2357,37 @@ try {
     await pick(L('ctx_copy_image'));
     check('image: «Copy image address»', (await main(({ clipboard }) => clipboard.readText())) === `${SITE}/pic.png`);
 
+    // --- 61. Несколько окон: Ctrl+N — новое окно, профиль — только в одном окне (решение владельца 27.10) ---
+    step('61. Ctrl+N: новое окно с выбором профиля; «Работа» и второй профиль рядом; профиль из другого окна не дублируется');
+    await main(() => { const ws = globalThis.osTest.windows(); for (const w of ws.slice(1)) w.win.close(); ws[0].openProfile(1); ws[0].win.focus(); });
+    const n61 = await main(() => globalThis.osTest.windows().length);
+    const ui61 = await waitFor(() => app.windows().find((p) => !p.isClosed() && p.url().startsWith('os://ui')));
+    await ui61.click('#address');
+    await ui61.keyboard.press('Escape');
+    await ui61.keyboard.press('Control+n');
+    const w61 = await waitFor(() => main((_e, n) => { const ws = globalThis.osTest.windows(); return ws.length === n + 1 ? ws.map((w) => ({ inc: w.incognito, profile: w.profile, panel: w.panel })) : null; }, n61), 8000);
+    check('Ctrl+N opens a second normal window', !!w61 && !w61[n61].inc, JSON.stringify(w61));
+    check('new window shows the profile screen', w61?.[n61]?.profile == null && String(w61?.[n61]?.panel).startsWith('os://home'), JSON.stringify(w61?.[n61]));
+    check('first window keeps its profile and tabs', w61?.[0]?.profile === 1);
+    const b61 = await main(() => globalThis.osTest.windows().map((w) => w.win.getBounds()));
+    check('new window is cascaded, not on top of the first', b61[1] && (b61[1].x !== b61[0].x || b61[1].y !== b61[0].y), JSON.stringify(b61));
+    // Профиль 1 уже открыт в первом окне — второе окно не берёт его, а переводит фокус в первое.
+    const dup = await main(() => { const ws = globalThis.osTest.windows(); ws[1].openProfile(1); return { p0: ws[0].profile, p1: ws[1].profile, n: ws.length }; });
+    check('profile open in another window is not duplicated', dup.p0 === 1 && dup.p1 == null && dup.n === n61 + 1, JSON.stringify(dup));
+    const other61 = await main(() => globalThis.osTest.windows()[0].otherProfiles()[0].id);
+    await main((_e, id) => { const w = globalThis.osTest.windows()[1]; w.openProfile(id); w.win.focus(); }, other61);
+    const st61 = await waitFor(async () => { const a = await state(0), b = await state(1); return a && b && b.profile?.id === other61 ? [a, b] : null; }, 8000);
+    check('two profiles side by side in two windows', !!st61 && st61[0].profile?.id === 1 && st61[1].profile?.id === other61, JSON.stringify(st61?.map((x) => x.profile?.id)));
+    check('window titles name their profiles', await main(() => globalThis.osTest.windows().map((w) => w.win.getTitle()).every((x, i, a) => a.indexOf(x) === i)));
+    await keyScreen('61-second-window', 'chrome', 1);
+    await windowShot('61-second-window', 1);
+    // Новая вкладка во втором окне — в его профиле, первое окно не меняется.
+    const tabs61 = (await state(0)).tabs.length;
+    await main((_e, url) => globalThis.osTest.windows()[1].newTab(url), `${SITE}/page/second`);
+    check('new tab in the second window goes to its profile', await waitFor(async () => (await state(1)).url.startsWith(`${SITE}/page/second`), 8000) && (await state(0)).tabs.length === tabs61);
+    await main(() => globalThis.osTest.windows()[1].win.close());
+    check('closing the second window keeps the first', await waitFor(() => main((_e, n) => globalThis.osTest.windows().length === n, n61), 5000));
+
     // --- 57. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки; снимки страниц — только для человека (страница /tracked почти пустая). ---
     step('57. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');
     const report = (text) => { line('extensions-report.txt', text); line('checks.txt', `note ${text}`); };

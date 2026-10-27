@@ -624,6 +624,7 @@ function mainMenu(anchor: DOMRect): void {
   const groups: Item[][] = [];
   groups.push([
     { label: t('new_tab'), icon: 'add', kbd: 'Ctrl+T', run: () => void os.call('newTab') },
+    ...(st.incognito ? [] : [{ label: t('dt_new_window'), icon: 'window', kbd: 'Ctrl+N', run: () => void os.call('newWindow') }]),
     { label: t('dt_new_incognito_window'), icon: 'incognito', kbd: 'Ctrl+Shift+N', run: () => void os.call('incognito') },
     ...(id != null ? [{ k: 'group', label: t('new_tab_group'), icon: 'group', run: panel(`os://tabs/?profile=${id}&new=group`) }] : []),
   ]);

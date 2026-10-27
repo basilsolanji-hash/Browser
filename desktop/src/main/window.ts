@@ -214,11 +214,13 @@ export class OsWindow implements TabHost {
   /** Окно заблокировано PIN-ом: видно только os://lock. */
   locked = false;
 
-  constructor(opts: { incognito?: boolean } = {}) {
+  constructor(opts: { incognito?: boolean; from?: OsWindow } = {}) {
     this.incognito = !!opts.incognito;
     const pal = this.palette();
     const saved = windowFile.get();
-    const bounds = this.incognito ? { width: 1100, height: 760 } : visibleBounds(saved);
+    const from = opts.from && !opts.from.win.isDestroyed() ? opts.from.win.getBounds() : null;
+    // Новое окно — каскадом от текущего, как в Windows; первое — где было при закрытии.
+    const bounds = this.incognito ? { width: 1100, height: 760 } : from ? visibleBounds({ ...from, x: from.x + 32, y: from.y + 32 }) : visibleBounds(saved);
     this.win = new BrowserWindow({
       ...bounds,
       minWidth: 560,
@@ -235,7 +237,7 @@ export class OsWindow implements TabHost {
     this.win.webContents.loadURL('about:blank');
     // Скрывать содержимое окна от записи экрана и скриншотов — по настройке.
     this.win.setContentProtection(settings.get().hideContent);
-    if (!this.incognito && saved.maximized) this.win.maximize();
+    if (!this.incognito && !from && saved.maximized) this.win.maximize();
 
     this.page = this.ownView();
     this.chrome = this.ownView();
@@ -466,6 +468,13 @@ export class OsWindow implements TabHost {
 
   // --- Профили и экраны ---
 
+  /** Показать окно поверх остальных (было свёрнуто — развернуть). */
+  focus(): void {
+    if (this.win.isDestroyed()) return;
+    if (this.win.isMinimized()) this.win.restore();
+    this.win.focus();
+  }
+
   showHome(): void {
     if (this.incognito) return;
     this.profile = null;
@@ -474,6 +483,13 @@ export class OsWindow implements TabHost {
 
   openProfile(id: number, tabId?: string): void {
     if (this.incognito || !Profiles.exists(id)) return;
+    // Профиль — только в одном окне (у вкладки один вид): уже открыт в другом — переходим туда.
+    const other = ownerOf(id);
+    if (other && other !== this) {
+      other.openProfile(id, tabId);
+      other.focus();
+      return;
+    }
     this.profile = id;
     this.panel = null;
     this.overlay = false;
@@ -545,7 +561,13 @@ export class OsWindow implements TabHost {
       return m.id;
     }
     if (this.profile == null) {
-      this.openProfile(Tabs.tabsFile.get().lastProfile ?? Profiles.order()[0]);
+      const last = Tabs.tabsFile.get().lastProfile ?? Profiles.order()[0];
+      this.openProfile(last);
+      // Профиль открыт в другом окне — вкладка откроется там.
+      if (this.profile == null) {
+        const other = ownerOf(last);
+        return other && other !== this ? other.newTab(url, opts) : '';
+      }
     }
     const tab = Tabs.add(this.profile!, target, { after: opts.after ?? null });
     if (opts.foreground !== false) this.activate(tab.id);
@@ -1109,8 +1131,11 @@ export class OsWindow implements TabHost {
     if (ctrl && input.shift && (code === 'KeyT')) { this.reopenClosed(); return true; }
     if (ctrl && input.shift && code === 'KeyN') { openIncognito(); return true; }
     if (ctrl && !input.shift && code === 'KeyT') { this.newTab(); this.focusAddress(); return true; }
-    // Ctrl+N — как привыкли в Chrome: новая вкладка (окно на профиль одно).
-    if (ctrl && !input.shift && code === 'KeyN' && (this.profile != null || this.incognito)) { this.newTab(); this.focusAddress(); return true; }
+    // Ctrl+N — как в Chrome: новое окно (решение владельца 27.10). В инкогнито — новая вкладка инкогнито.
+    if (ctrl && !input.shift && code === 'KeyN') {
+      if (this.incognito) { this.newTab(); this.focusAddress(); } else openWindow(this);
+      return true;
+    }
     if (ctrl && code === 'KeyW') { if (this.panel && this.profile != null) this.closePanel(); else this.closeTab(); return true; }
     if (ctrl && (k === 'Tab' || k === 'PageDown' || k === 'PageUp')) {
       this.cycle(k === 'PageUp' || (k === 'Tab' && input.shift) ? -1 : 1);
@@ -1287,6 +1312,29 @@ export function lockAll(): void {
 
 export function mainWindow(): OsWindow | undefined {
   return [...windows].find((w) => !w.incognito);
+}
+
+/** Окно, где профиль показан или где живут его вкладки. */
+export function ownerOf(profile: number): OsWindow | undefined {
+  const normal = [...windows].filter((w) => !w.incognito);
+  return normal.find((w) => w.profile === profile) ?? normal.find((w) => w.liveTabs().some((v) => v.key.startsWith(`${profile}:`)));
+}
+
+/** Окно для профиля: где он уже открыт, иначе первое обычное. */
+export function windowFor(profile: number | null): OsWindow | undefined {
+  return (profile != null ? ownerOf(profile) : undefined) ?? mainWindow();
+}
+
+/**
+ * Новое обычное окно (Ctrl+N): со смещением от текущего, на экране профилей — выбрать, какой профиль
+ * держать рядом. Профиль, открытый в другом окне, там и откроется.
+ */
+export function openWindow(from?: OsWindow): OsWindow {
+  const w = new OsWindow({ from });
+  if (from?.locked) w.lock();
+  w.showHome();
+  w.win.focus();
+  return w;
 }
 
 export function openIncognito(): OsWindow {

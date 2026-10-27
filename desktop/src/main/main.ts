@@ -12,7 +12,7 @@ import * as Passwords from './passwords';
 import { applyLanguage } from './i18n';
 import { flushAll } from './store';
 import { installIpc, applyTheme } from './ipc';
-import { OsWindow, lockAll, mainWindow, profileSession, windows } from './window';
+import { OsWindow, lockAll, profileSession, windowFor, windows } from './window';
 import { setBlockedListener } from './privacy';
 import { installNotifications, shownForTest, clickLastForTest } from './notify';
 import { installUploads } from './window';
@@ -53,7 +53,8 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   // Ссылка из другой программы (Ось — браузер по умолчанию) приходит вторым запуском.
   app.on('second-instance', (_e, argv) => {
-    const w = mainWindow() ?? createMain();
+    // Ссылка извне — в окно последнего профиля (окон может быть несколько).
+    const w = windowFor(Tabs.tabsFile.get().lastProfile) ?? createMain();
     if (w.win.isMinimized()) w.win.restore();
     w.win.focus();
     const url = incomingUrl(argv);
