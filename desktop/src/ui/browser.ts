@@ -584,9 +584,10 @@ let extLoading = false;
 
 function pinnedExts(profile: number): ExtItem[] {
   if (extCache?.profile !== profile) {
-    if (!extLoading) {
+    // Под PIN главный процесс не отвечает: спросим после разблокировки (придёт новое состояние окна).
+    if (!extLoading && !st?.locked) {
       extLoading = true;
-      void os.call<ExtItem[]>('extMenu').then((list) => { extCache = { profile, list }; }).finally(() => { extLoading = false; render(); });
+      void os.call<ExtItem[]>('extMenu').then((list) => { extCache = { profile, list }; render(); }).catch(() => {}).finally(() => { extLoading = false; });
     }
     return [];
   }
