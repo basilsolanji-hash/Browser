@@ -6,7 +6,7 @@ import { applyLanguage, currentLang, isRtl, strings, t } from './i18n';
 import { greeting, next } from './phrases';
 import { engine, settings, toolbarButton, TOOLBAR_BUTTONS, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
 import { THEME_IDS, themeNameKey } from './themes';
-import { OsWindow, byWebContents, mainWindow, openExtensionWindow, openIncognito, profileInfo, profileSession, saveWithToast, windows } from './window';
+import { OsWindow, byWebContents, mainWindow, openExtensionWindow, openIncognito, openWindow, profileInfo, profileSession, saveWithToast, windows } from './window';
 import { fromInput, isWebUrl } from './urls';
 import * as Profiles from './profiles';
 import * as Pins from './pins';
@@ -78,6 +78,7 @@ on(both, 'showHome', (w) => w.showHome());
 on(both, 'openProfile', (w, id, tab) => w.openProfile(profileArg(id), typeof tab === 'string' ? tab : undefined));
 on(both, 'openUrl', (w, url) => { const u = fromInput(str(url)); if (u && isWebUrl(u)) w.openUrl(u); });
 on(both, 'incognito', () => { openIncognito(); });
+on(both, 'newWindow', (w) => { openWindow(w); });
 on(both, 'closePanel', (w) => w.closePanel());
 // Приветствие и фраза для главного экрана (в инкогнито фраз нет).
 on(['page'], 'phrase', (w) => (w.incognito ? null : { greeting: greeting(), phrase: next() }));

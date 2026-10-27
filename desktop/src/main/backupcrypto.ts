@@ -28,7 +28,13 @@ export interface BackupAll { v: 2; profiles: { id: number; data: BackupData }[] 
 export type BackupFile = BackupData | BackupAll;
 export const isAll = (x: BackupFile): x is BackupAll => x.v === 2 && Array.isArray((x as BackupAll).profiles);
 
-export const ITERATIONS = 120_000;
+/** Новые копии: формат файла v2 с полем iter (решение владельца 27.10, синхронно с Android). */
+export const ITERATIONS = 600_000;
+/** Копии v1 (без поля iter) шифровались так — их по-прежнему открываем. */
+export const ITERATIONS_V1 = 120_000;
+/** Границы iter из файла: ниже — слабо, выше — расшифровка зависнет на минуты. */
+const ITER_MIN = 100_000;
+const ITER_MAX = 5_000_000;
 export const MIN_PASSWORD = 6;
 
 /** Как Passwords.originOf: схема http/https (иначе https), хост в нижнем регистре, порт — если указан. */
@@ -76,16 +82,24 @@ export function upsert(list: Login[], origin: string, username: string, password
 
 const b64 = (b: Buffer) => b.toString('base64');
 
-function key(password: string, salt: Buffer): Buffer {
+function key(password: string, salt: Buffer, iter: number): Buffer {
   // PBEKeySpec(char[]) в Java → UTF-8 байты пароля; длина ключа 256 бит.
-  return pbkdf2Sync(Buffer.from(password, 'utf8'), salt, ITERATIONS, 32, 'sha256');
+  return pbkdf2Sync(Buffer.from(password, 'utf8'), salt, iter, 32, 'sha256');
 }
 
-/** {"app":"os-browser","v":1,"salt","iv","data"}; data — AES-256-GCM, тег (16 байт) в конце, как в Java. */
+/** Число итераций по заголовку файла: v1 — 120 000, v2 — поле iter. null — файл не наш или iter вне границ. */
+export function iterationsOf(o: Record<string, unknown>): number | null {
+  if (o.v === 1 && o.iter === undefined) return ITERATIONS_V1;
+  if (o.v !== 2) return null;
+  const n = o.iter;
+  return typeof n === 'number' && Number.isInteger(n) && n >= ITER_MIN && n <= ITER_MAX ? n : null;
+}
+
+/** {"app":"os-browser","v":2,"iter":600000,"salt","iv","data"}; data — AES-256-GCM, тег (16 байт) в конце, как в Java. */
 export function encrypt(data: BackupFile, password: string, salt = randomBytes(16), iv = randomBytes(12)): string {
-  const c = createCipheriv('aes-256-gcm', key(password, salt), iv);
+  const c = createCipheriv('aes-256-gcm', key(password, salt, ITERATIONS), iv);
   const body = Buffer.concat([c.update(JSON.stringify(data), 'utf8'), c.final(), c.getAuthTag()]);
-  return JSON.stringify({ app: 'os-browser', v: 1, salt: b64(salt), iv: b64(iv), data: b64(body) });
+  return JSON.stringify({ app: 'os-browser', v: 2, iter: ITERATIONS, salt: b64(salt), iv: b64(iv), data: b64(body) });
 }
 
 /** null — неверный пароль или повреждённый файл. */
@@ -93,11 +107,13 @@ export function decrypt(file: string, password: string): BackupFile | null {
   try {
     const o = JSON.parse(file) as Record<string, unknown>;
     if (typeof o.salt !== 'string' || typeof o.iv !== 'string' || typeof o.data !== 'string') return null;
+    const iter = iterationsOf(o);
+    if (iter == null) return null;
     const salt = Buffer.from(o.salt, 'base64');
     const iv = Buffer.from(o.iv, 'base64');
     const raw = Buffer.from(o.data, 'base64');
     if (iv.length !== 12 || raw.length < 17) return null;
-    const d = createDecipheriv('aes-256-gcm', key(password, salt), iv);
+    const d = createDecipheriv('aes-256-gcm', key(password, salt, iter), iv);
     d.setAuthTag(raw.subarray(raw.length - 16));
     const text = Buffer.concat([d.update(raw.subarray(0, raw.length - 16)), d.final()]).toString('utf8');
     return normalizeFile(JSON.parse(text));
