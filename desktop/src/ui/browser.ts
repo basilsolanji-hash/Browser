@@ -632,7 +632,6 @@ function mainMenu(anchor: DOMRect): void {
     groups.push([
       { label: t('history'), icon: 'history', kbd: 'Ctrl+H', run: panel(`os://history/?profile=${id}`) },
       { label: t('clear_title'), icon: 'delete', kbd: 'Ctrl+Shift+Del', run: panel(`os://clear/?profile=${id}`) },
-      { label: t('site_permissions'), icon: 'shield', disabled: !web, run: panel(`os://site/?profile=${id}&host=${encodeURIComponent(host(st.url))}`) },
     ]);
     groups.push([
       { k: 'cabinet', label: t('cabinet'), icon: 'account', run: panel(`os://cabinet/?profile=${id}`) },
@@ -673,6 +672,8 @@ function moreTools(anchor: DOMRect, web: boolean, id: number | undefined): void 
       { label: t('saved_pages'), icon: 'saved', run: () => void os.call('openPanel', 'os://saved/') },
       { label: t('notes'), icon: 'note', run: () => void os.call('openPanel', 'os://notes/') },
       { k: 'extensions', label: t('dt_extensions'), icon: 'extension', run: () => void os.call('openPanel', `os://extensions/?profile=${id}`) },
+      // Разрешения сайта — ещё и по значку замка в адресной строке; здесь, чтобы меню влезало с «Новым окном».
+      { label: t('site_permissions'), icon: 'shield', disabled: !web, run: () => void os.call('openPanel', `os://site/?profile=${id}&host=${encodeURIComponent(host(st!.url))}`) },
       { sep: true },
     ] : []),
     { k: 'share', label: t('share'), icon: 'share', disabled: !web, run: () => shareMenu(anchor) },

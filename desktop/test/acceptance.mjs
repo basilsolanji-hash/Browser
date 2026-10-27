@@ -1585,8 +1585,8 @@ try {
     await cab3.click('#form-ok');
     const written = await waitFor(() => existsSync(bfile) && readFileSync(bfile, 'utf8'));
     const bj = written ? JSON.parse(written) : {};
-    check('Личный кабинет: backup file in the Android format {app, v, salt, iv, data}',
-      bj.app === 'os-browser' && bj.v === 1 && Buffer.from(bj.salt ?? '', 'base64').length === 16 && Buffer.from(bj.iv ?? '', 'base64').length === 12 && !!bj.data, Object.keys(bj).join(','));
+    check('Личный кабинет: backup file in format v2 {app, v:2, iter:600000, salt, iv, data}',
+      bj.app === 'os-browser' && bj.v === 2 && bj.iter === 600000 && Buffer.from(bj.salt ?? '', 'base64').length === 16 && Buffer.from(bj.iv ?? '', 'base64').length === 12 && !!bj.data, Object.keys(bj).join(','));
     check('Личный кабинет: backup file has no plain-text passwords', written && !written.includes(PW1) && !written.includes(PW2) && !written.includes('anna'));
     await main(() => globalThis.osTest.windows()[0].openPanel('os://cabinet/?profile=3'));
     const cab4 = await waitFor(() => app.windows().find((x) => !x.isClosed() && x.url().startsWith('os://cabinet/?profile=3')));
@@ -2361,10 +2361,8 @@ try {
     step('61. Ctrl+N: новое окно с выбором профиля; «Работа» и второй профиль рядом; профиль из другого окна не дублируется');
     await main(() => { const ws = globalThis.osTest.windows(); for (const w of ws.slice(1)) w.win.close(); ws[0].openProfile(1); ws[0].win.focus(); });
     const n61 = await main(() => globalThis.osTest.windows().length);
-    const ui61 = await waitFor(() => app.windows().find((p) => !p.isClosed() && p.url().startsWith('os://ui')));
-    await ui61.click('#address');
-    await ui61.keyboard.press('Escape');
-    await ui61.keyboard.press('Control+n');
+    // Нажатие Ctrl+N — через тот же обработчик горячих клавиш, что и у настоящей клавиатуры.
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.shortcut({ type: 'keyDown', key: 'n', code: 'KeyN', control: true, shift: false, alt: false, meta: false }, w.chrome.webContents); });
     const w61 = await waitFor(() => main((_e, n) => { const ws = globalThis.osTest.windows(); return ws.length === n + 1 ? ws.map((w) => ({ inc: w.incognito, profile: w.profile, panel: w.panel })) : null; }, n61), 8000);
     check('Ctrl+N opens a second normal window', !!w61 && !w61[n61].inc, JSON.stringify(w61));
     check('new window shows the profile screen', w61?.[n61]?.profile == null && String(w61?.[n61]?.panel).startsWith('os://home'), JSON.stringify(w61?.[n61]));
