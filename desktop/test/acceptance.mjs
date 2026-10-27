@@ -2137,6 +2137,25 @@ try {
       await main(({ BrowserWindow }, id) => BrowserWindow.getAllWindows().find((x) => x.webContents.getURL().startsWith(`chrome-extension://${id}/`))?.close(), extId);
     }
 
+    // Закрепить расширение на панели (как булавка в Chrome) и открыть его оттуда; открепить.
+    await main(() => globalThis.osTest.windows()[0].win.focus());
+    await ui6.click('#ext-btn');
+    await ui6.click(`.menu [data-pin="${extId}"]`);
+    const pinned55 = await waitFor(() => ui6.$(`#row2 .ext-pin[data-ext="${extId}"]`), 5000);
+    check('pin: the extension icon appears on the toolbar', !!pinned55);
+    check('pin: remembered in extensions.json', await waitFor(async () => { await flush(); return (readJson('extensions')?.profiles?.['1'] ?? []).find((e) => e.id === extId)?.pinned === true; }, 5000));
+    await keyScreen('55-extension-pinned', 'chrome');
+    if (pinned55) {
+      await pinned55.click();
+      const pop2 = await page(`chrome-extension://${extId}/popup.html`, 10000);
+      check('pin: clicking the pinned icon opens the popup', !!pop2);
+      await main(({ BrowserWindow }, id) => BrowserWindow.getAllWindows().find((x) => x.webContents.getURL().startsWith(`chrome-extension://${id}/`))?.close(), extId);
+    }
+    await ui6.click('#ext-btn');
+    check('pin: the menu shows it as pinned', (await ui6.getAttribute(`.menu [data-pin="${extId}"]`, 'aria-pressed')) === 'true');
+    await ui6.click(`.menu [data-pin="${extId}"]`);
+    check('unpin: the icon leaves the toolbar', await waitFor(async () => (await ui6.$(`#row2 .ext-pin[data-ext="${extId}"]`)) === null, 5000));
+
     step('56. Экран os://extensions: список, выключение, перезапуск, удаление');
     const mui6 = await page('os://ui/');
     await mui6.click('#more');

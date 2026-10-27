@@ -608,7 +608,14 @@ on(['chrome'], 'extMenu', async (w) => {
   const p = w.profile;
   await Extensions.ready(p);
   return Extensions.info(profileSession(p), p, currentLang()).filter((e) => e.enabled && e.loaded)
-    .map((e) => ({ id: e.id, name: e.name, icon: e.icon, popup: !!e.popup }));
+    .map((e) => ({ id: e.id, name: e.name, icon: e.icon, popup: !!e.popup, pinned: !!e.pinned }));
+});
+on(['chrome'], 'extPin', (w, id, pinned) => {
+  if (w.incognito || w.profile == null) return false;
+  const ok = Extensions.setPinned(w.profile, extArg(id), pinned === true);
+  // Панель всех окон этого профиля перерисуется с новым набором значков.
+  for (const x of windows) x.chrome.webContents.send('os:event', 'extPins', null);
+  return ok;
 });
 on(['chrome'], 'extPopup', (w, id, left, right, bottom) => {
   if (w.incognito || w.profile == null) return false;
