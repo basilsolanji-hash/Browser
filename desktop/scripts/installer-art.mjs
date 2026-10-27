@@ -1,3 +1,4 @@
+/* global Image */
 // Картинки установщика в стиле приложения: боковая панель (164×314) и шапка (150×57), 24-битные BMP для NSIS.
 // Запуск: node scripts/installer-art.mjs — пересоздаёт assets/installerSidebar.bmp и assets/installerHeader.bmp.
 import { chromium } from 'playwright';
