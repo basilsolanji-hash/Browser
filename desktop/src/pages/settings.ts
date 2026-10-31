@@ -197,6 +197,7 @@ async function render(): Promise<void> {
       link(t('security_check'), 'os://security/', undefined, 'sec-check'))),
     sec('data', t('sg_data'), h('div', { class: 'card' },
       link(t('clear_browsing_data'), `os://clear/?profile=${lastProfile}`, t('cd_note'), 'open-clear'),
+      link(t('dt_import_chrome'), `os://import/?profile=${lastProfile}`, t('dt_import_chrome_desc'), 'open-import'),
       link(t('history'), `os://history/?profile=${lastProfile}`),
       setting(t('clear_cache_all'), h('button', { class: 'btn', onclick: async () => { await os.call('clearCacheAll'); toast(t('cache_cleared')); } }, t('clear'))),
       setting(t('clear_history_all'), h('button', {

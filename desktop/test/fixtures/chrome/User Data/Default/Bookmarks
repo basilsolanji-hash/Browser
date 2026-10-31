@@ -1,0 +1,18 @@
+{
+   "checksum": "00000000000000000000000000000000",
+   "roots": {
+      "bookmark_bar": {
+         "children": [ { "date_added": "13350000000000000", "id": "5", "name": "News", "type": "url", "url": "https://news.example/" } ],
+         "date_added": "13350000000000000", "id": "1", "name": "Bookmarks bar", "type": "folder"
+      },
+      "other": {
+         "children": [ { "children": [ { "id": "8", "name": "Docs", "type": "url", "url": "https://docs-json.example/" } ], "id": "7", "name": "Справка", "type": "folder" } ],
+         "id": "2", "name": "Other bookmarks", "type": "folder"
+      },
+      "synced": {
+         "children": [ { "id": "9", "name": "Mobile site", "type": "url", "url": "https://mobile-json.example/" } ],
+         "id": "3", "name": "Mobile bookmarks", "type": "folder"
+      }
+   },
+   "version": 1
+}

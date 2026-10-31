@@ -23,6 +23,8 @@ import * as Lock from './lock';
 import * as Passwords from './passwords';
 import * as TabSets from './tabsets';
 import * as Backup from './backup';
+import * as ChromeImport from './chromeimport';
+import { sqliteAvailable } from './chromeparse';
 import { verify } from './hello';
 import { backupPasswordOk } from '../shared/pwgen';
 import { blocklistSize } from './privacy';
@@ -689,6 +691,28 @@ on(['page'], 'backupExport', (w, profile, pw, again) => {
 on(['page'], 'backupPick', (w) => Backup.pick(w.win));
 on(['page'], 'backupImport', async (_w, profile, pw) => {
   const r = await Backup.importPicked(profileArg(profile), str(pw, 500));
+  if (typeof r === 'object') broadcast();
+  return r;
+});
+
+// --- Перенос из Chrome: в инкогнито недоступен; путь к файлу из экрана не принимается ---
+on(['page'], 'importInfo', async (w, profile) => {
+  if (w.incognito) return { incognito: true, profile: null, chrome: null, sqlite: false, crypto: false };
+  const p = profileArg(profile);
+  return { incognito: false, profile: profileInfo(p), chrome: await ChromeImport.chromeProfiles(), sqlite: sqliteAvailable(), crypto: Passwords.available() };
+});
+on(['page'], 'importChrome', async (w, profile, dir, what) => {
+  if (w.incognito) return 'incognito';
+  const o = (what && typeof what === 'object' ? what : {}) as Record<string, unknown>;
+  const r = await ChromeImport.fromChrome(profileArg(profile), str(dir, 40), { bookmarks: o.bookmarks === true, history: o.history === true }, t('dt_import_other'));
+  if (typeof r === 'object') broadcast();
+  return r;
+});
+on(['page'], 'importFile', async (w, profile, kind) => {
+  if (w.incognito) return 'incognito';
+  const p = profileArg(profile);
+  if (kind !== 'html' && kind !== 'csv') return 'bad';
+  const r = await ChromeImport.fromFile(w.win, p, kind);
   if (typeof r === 'object') broadcast();
   return r;
 });
