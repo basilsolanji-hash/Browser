@@ -1,0 +1,71 @@
+{
+ "list": [
+  {
+   "id": "b8dc066cf-ba85-44f6-a1db-e7e9118a447a",
+   "t": "Page fav",
+   "u": "http://127.0.0.1:59706/page/fav",
+   "f": ""
+  },
+  {
+   "id": "bc66276f8-dd92-468b-b917-fdb78168c9ab",
+   "t": "Set menu",
+   "u": "http://127.0.0.1:59706/set?p=menu",
+   "f": ""
+  },
+  {
+   "id": "bd6a4d86c-47b3-4520-ab2c-d8196751f392",
+   "t": "News & Weather",
+   "u": "https://news.example/",
+   "f": ""
+  },
+  {
+   "id": "b035e2a92-2d24-40da-8028-4c50be2152ab",
+   "t": "Почта",
+   "u": "https://mail.example/inbox",
+   "f": ""
+  },
+  {
+   "id": "b70042226-950a-40af-b1ba-a3e9f2100e8e",
+   "t": "Задачи",
+   "u": "https://tasks.example/board",
+   "f": "Работа / Проекты"
+  },
+  {
+   "id": "b485dfdb3-3fdf-49b7-94b1-e13593de17f9",
+   "t": "Wiki",
+   "u": "https://wiki.example/",
+   "f": "Работа / Проекты"
+  },
+  {
+   "id": "bd9197a60-410e-482d-861c-7f61c7e638db",
+   "t": "Shop",
+   "u": "https://shop.example/",
+   "f": "Другие закладки"
+  },
+  {
+   "id": "b85024396-c632-4018-98e1-15c2055fb5c6",
+   "t": "http://old.example/page?a=1&b=2",
+   "u": "http://old.example/page?a=1&b=2",
+   "f": "Другие закладки"
+  },
+  {
+   "id": "b621f2bbd-4f7d-4921-9bb5-e0584349786d",
+   "t": "Docs",
+   "u": "https://docs-json.example/",
+   "f": "Другое избранное / Справка"
+  },
+  {
+   "id": "bc12e7f60-4b32-4970-853c-07cf5cf55487",
+   "t": "Mobile site",
+   "u": "https://mobile-json.example/",
+   "f": "Mobile bookmarks"
+  }
+ ],
+ "folders": [
+  "Work docs",
+  "Работа / Проекты",
+  "Другие закладки",
+  "Другое избранное / Справка",
+  "Mobile bookmarks"
+ ]
+}

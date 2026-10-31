@@ -1,0 +1,569 @@
+ok onboarding shown on first run
+ok example profiles seeded (@ex_*) — {"1":"@ex_personal_name","2":"@ex_work_name","3":"@ex_shopping_name","4":"@ex_social_name"}
+ok example pins: Work has Start, Mail, Calendar
+ok screen 01-onboarding-1 not blank — varied=0.0452 1024x680
+ok screen 01-onboarding-2 not blank — varied=0.1232 1024x680
+ok screen 01-onboarding-3 not blank — varied=0.0700 1024x680
+ok screen 01-onboarding-4 not blank — varied=0.0728 1024x680
+ok screen 01-onboarding-5 not blank — varied=0.0728 1024x680
+ok screen 01-onboarding-6 not blank — varied=0.0822 1024x680
+ok onboarding has 6 distinct pages — Welcome to Ось | Profiles are accounts | Each profile has its own tabs | Keep things in order | Read, save, focus | Private by default
+ok tutorial finishes on the profiles screen
+ok onboarding.json done
+ok home lists example profiles — Personal,Work,Shopping,Social,Profile 5,Profile 6,Profile 7,Profile 8,Profile 9,Profile 10
+ok home shows first 10 profiles and «Show all» — rows=10
+ok screen 02-home not blank — varied=0.2746 1024x680
+ok profile 1 opened from the profiles screen
+ok pinned tabs of profile 1 in the strip
+ok screen 03-profile1-start not blank — varied=0.0171 1024x636
+ok screen 03-chrome not blank — varied=0.3161 1024x84
+ok Ctrl+T opens a new tab
+ok address bar opens a site in the new tab — http://127.0.0.1:59706/set?p=one
+ok address bar at rest shows the domain — 127.0.0.1
+ok address without scheme opens over http for localhost — http://localhost:59706/page/three
+ok history of profile 1 is saved — 3 entries
+ok Ctrl+W closes the tab
+ok Ctrl+Shift+T brings back the closed tab
+ok Ctrl+Tab switches to another tab
+ok drag and drop reorders tabs (saved) — tab1793469488079,tab1793469489153,tab1793469491534 → tab1793469491534,tab1793469488079,tab1793469489153
+ok target=_blank opens a new tab in the same profile — 5 → 6
+ok no extra windows from target=_blank
+ok screen 04-profile-menu not blank — varied=0.3845 1024x720
+ok switch to profile 2 from the profile chip
+ok profile 2 has its own pinned tabs
+ok profile 2 request has no cookie of profile 1 — {"path":"/get","cookie":"","lang":"en-US,en;q=0.9"}
+ok document.cookie in profile 2 is empty — Get none
+ok cookie stored only in profile 1 session — {"one":["one"],"two":[]}
+ok each profile keeps its own cookie value — ["one","two"]
+ok tab webPreferences: contextIsolation, sandbox, no node, webSecurity — {"ci":true,"sb":true,"ni":false,"ws":true,"preload":null,"bridge":"undefined/undefined/undefined","before":"http://127.0.0.1:59706/set?p=two","after":"http://127.0.0.1:59706/set?p=two"}
+ok sites get no preload bridge (only the notification shim) — null undefined/undefined/undefined
+ok site cannot navigate to os:// or file:// — http://127.0.0.1:59706/set?p=two → http://127.0.0.1:59706/set?p=two
+ok user agent has no Electron token — Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) OsBrowser/0.1.0 Chrome/152.0.7977.167 Safari/537.36
+ok Ctrl+Shift+A opens the tabs screen
+ok tabs screen shows every open tab — 4 vs 4
+ok screen 05-tabs-grid not blank — varied=0.3102 1024x636
+ok search filters tabs — found 1
+ok search shows «nothing found»
+ok group created and two tabs added to it — [{"id":"g1793469498593","name":"Clients","color":"#E53935"}]
+ok screen 05-tabs-groups not blank — varied=0.2825 1024x636
+ok Esc closes the tabs screen
+ok group chip appears in the tab strip
+ok screen 05-strip-groups not blank — varied=0.3617 1024x84
+ok profile 3 got its own pinned tab — [{"id":"start","title":"Старт","url":"os://start/"},{"id":"p1793469500250","title":"Docs","url":"https://127.0.0.1:59706/page/docs"}]
+ok common set is unchanged
+ok screen 06-profile-screen not blank — varied=0.3175 1024x636
+ok Ctrl+Shift+N opens an incognito window
+ok incognito window has one start tab
+ok screen 07-incognito not blank — varied=0.0142 1024x636
+ok screen 07-incognito-chrome not blank — varied=0.2961 1024x84
+ok incognito session is in memory — {"persistent":false,"value":"incog","path":null}
+ok incognito cookie lives only there
+ok profile 1 cookie untouched by incognito — one
+ok incognito window closed
+ok no incognito URLs in history or tabs
+ok no incognito partition on disk — profile_1,profile_2
+ok settings screen switched to Russian
+ok settings.json lang = ru
+ok browser chrome switched to Russian — Адрес или поиск
+ok start page re-rendered in Russian — ОсьBrowser
+
+ДЕЛОВОЙ БРАУЗЕР
+
+Добрый вечер!
+
+Конфиденциальность прежде всего. Вве
+ok screen 08-start-ru not blank — varied=0.0201 1024x636
+ok screen 08-chrome-ru not blank — varied=0.3570 1024x84
+ok Arabic switches the interface to RTL
+ok screen 08-settings-ar not blank — varied=0.4453 1024x636
+ok last profile reopened after restart
+ok open tabs restored after restart — os://start/ https://mail.google.com/ http://127.0.0.1:59706/open http://127.0.0.1:59706/page/opened http://127.0.0.1:59706/set?p=one http://127.0.0.1:59706/page/two → os://start/ https://mail.google.com/ http://127.0.0.1:59706/open http://127.0.0.1:59706/page/opened http://127.0.0.1:59706/set?p=one http://127.0.0.1:59706/page/two
+ok active tab restored — tab1793469489153 → tab1793469489153
+ok active tab reloaded its page — http://127.0.0.1:59706/page/two → http://127.0.0.1:59706/page/two
+ok tabs of profile 2 kept
+ok language kept after restart
+ok window size remembered — {"x":40,"y":30,"width":900,"height":640}
+ok screen 09-after-restart not blank — varied=0.4291 900x556
+ok drag a profile changes the order (saved) — 3,1,2,4,5
+ok screen 10-profile-menu not blank — varied=0.4532 900x600
+ok profile context menu has rename and sign out
+ok ☆ adds the page to favorites
+ok star shows the page is in favorites
+ok Ctrl+D removes it again
+ok Ctrl+Shift+O opens favorites
+ok favorites list shows the page
+ok folder created in favorites
+ok screen 11-favorites not blank — varied=0.2190 900x556
+ok Ctrl+H opens history
+ok history shows visits — 7
+ok history search filters
+ok screen 12-history not blank — varied=0.1466 900x556
+ok history entry deleted
+ok download asks the site permission (default «Ask») — 127.0.0.1 хочет скачать «os-test-3936.txt»
+ok screen 13-download-prompt not blank — varied=0.2076 900x640
+ok «Allow» with «Remember» saved for the site
+ok download completed and logged — {"id":"d17934695154780","name":"os-test-3936.txt","path":"C:\\Users\\runneradmin\\Downloads\\Ось\\os-test-3936.txt","url":"http://127.0.0.1:59706/file.txt","time":1793469515478,"size":20,"state":"completed","received":20,"profile":1,"mime":"text/plain","pending":false,"urlChain":["http://127.0.0.1:59706/file.txt"],"etag":"","lastModified":"","start":1793469515.447875,"resumable":false}
+ok downloaded file saved in Downloads/Ось — C:\Users\runneradmin\Downloads\Ось\os-test-3936.txt
+ok no Zone.Identifier written on non-Windows — C:\Users\runneradmin\Downloads\Ось\os-test-3936.txt
+ok downloads screen lists the file
+ok screen 13-downloads not blank — varied=0.1734 900x556
+ok page saved as PDF — {"id":1793469517098,"title":"Page save","url":"http://127.0.0.1:59706/page/save","file":"page_1793469517098.pdf","time":1793469517098,"size":28307}
+ok saved page title and address
+ok saved pages screen lists it
+ok screen 14-saved not blank — varied=0.0867 900x556
+ok statistics counts opened pages — 10
+ok screen 15-stats not blank — varied=0.4318 900x556
+ok note saved locally
+ok screen 15-notes not blank — varied=0.1212 900x556
+ok screen 16-clear not blank — varied=0.4532 900x556
+ok clear data: history, cookies, cache, tabs on; passwords, site settings off; all time
+ok profile 2 cookies removed
+ok profile 2 tabs and history removed
+ok other profiles not affected — one
+ok third-party tracker request is blocked — /tracked /first.png /set3p /favicon.ico
+ok first-party request still loads
+ok address bar shows blocked trackers count — 1
+ok statistics count blocked trackers
+ok cross-site cookie from an embedded site is not stored
+ok screen 17-tracked-chrome not blank — varied=0.3756 900x84
+ok HTTPS-only saved
+ok HTTPS-only upgrades http:// addresses — https://os-https-test.invalid/
+ok settings search leaves matching rows — 2
+ok settings search shows «nothing found»
+ok screen 17-settings-search not blank — varied=0.0566 900x556
+ok site permission request shows a prompt — 127.0.0.1 хочет присылать вам уведомления
+ok screen 18-permission-prompt not blank — varied=0.2076 900x640
+ok page gets the permission after «Allow»
+ok decision saved for site and profile
+ok another profile is asked again
+ok «Block» denies the permission
+ok site permissions screen lists the site
+ok screen 18-site-permissions not blank — varied=0.5205 900x556
+ok security check shows a score — 4/7
+ok security check counts granted permissions
+ok screen 19-security not blank — varied=0.4364 900x556
+ok PIN stored only as a hash
+ok hide content saved
+ok security score improves after fixes — 4/7 → 6/7
+ok lock screen shown
+ok tabs and chrome hidden under the lock
+ok shortcuts ignored while locked
+ok screen 19-lock not blank — varied=0.0733 900x640
+ok wrong PIN rejected
+ok correct PIN unlocks
+ok tab visible again after unlock
+ok reader mode opens
+ok address bar keeps the article address in reader mode — http://127.0.0.1:59706/article
+ok reader shows the article text — JS ran
+127.0.0.1
+Ось reader test
+
+Параграф 1: деловой браузер Ось хранит данные 
+ok reader page has no site scripts or embeds — 0
+ok screen 20-reader not blank — varied=0.1074 900x556
+ok reader mode exits
+ok «Add to note» saves the selection with its page
+ok «Search» opens a search tab
+ok site notification shown with the profile name — {"title":"Личное · Hello","body":"World","profile":1,"tab":"tab1793469530070"}
+ok click opens the tab
+ok page gets the click event
+ok no notification without permission (forged event ignored)
+ok F11 enters full screen and hides the chrome
+ok F11 again leaves full screen
+ok URL from another program opens in a new tab
+ok dangerous schemes from the command line are ignored
+ok about shows version and Chromium engine
+ok about lists open-source licenses
+ok screen 25-about not blank — varied=0.3094 900x556
+ok help has 6 answers and a feedback address
+ok screen 25-help not blank — varied=0.4380 900x556
+ok incognito window switched language too
+ok site receives the chosen file (form upload) — ------WebKitFormBoundaryJyAT77JcFUz4a5xC
+Content-Disposition: form-data; name="doc"; filename="os-upload-3936.txt"
+Con
+ok page after upload loads
+ok Ctrl+F opens the find bar
+ok find counts matches on the page — {"text":"договор","active":1,"matches":3}
+ok Enter goes to the next match
+ok screen 30-find-bar not blank — varied=0.5222 900x124
+ok no matches is shown
+ok Esc closes the find bar
+ok auth popup opens as a window
+ok window.open from the popup opens a tab, not a window
+ok only one auth popup per tab (second → tab)
+ok popup cannot navigate to os://
+ok popup title shows the site — 127.0.0.1:59706 — Page login
+ok updates section present (installed-only notice in dev build)
+ok automatic updates can be turned off
+ok automatic updates on by default and saved
+ok screen 27-settings-updates not blank — varied=0.4492 900x556
+ok PIN cannot be changed or removed without the current PIN — wrong wrong
+ok download resumes by itself after a dropped connection (Range request) — [{"path":"/big.bin","cookie":"","lang":"ru,en-US;q=0.8;q=0.9,en;q=0.7;q=0.8"},{"path":"/big.bin","cookie":"","range":"bytes=1048576-","lang":"ru,en-US;q=0.8;q=0.9,en;q=0.7;q=0.8"}]
+ok pause stops the download
+ok paused download does not grow
+ok screen 28-download-paused not blank — varied=0.2669 900x556
+ok resume continues the download
+ok unfinished download is kept as resumable after quitting — {"s":"interrupted","r":2850816}
+ok screen 28-download-interrupted not blank — varied=0.2669 900x556
+ok after restart the download continues from the same point (Range, not from zero) — [{"path":"/big.bin","cookie":"","range":"bytes=2949120-","lang":"ru,en-US;q=0.8;q=0.9,en;q=0.7;q=0.8"}]
+ok resumed file is complete and intact (sha256) — C:\Users\runneradmin\Downloads\Ось\os-big.bin cedfbbe18446
+ok site popup marked display=popup opens one window
+ok window.open from a popup does not create another window — windows 2 (было 2)
+ok window.open from a popup opens a tab in the browser window — ["os://start/","https://mail.google.com/","http://127.0.0.1:59706/open","http://127.0.0.1:59706/page/opened","http://127.0.0.1:59706/set?p=one","http://127.0.0.1:59706/page/two","http://127.0.0.1:59706/page/save","http://127.0.0.1:59706/notify","http://127.0.0.1:59706/article","http://127.0.0.1:59706/notify","http://127.0.0.1:59706/qa-popup","http://127.0.0.1:59706/qa-third"]
+ok popup cannot navigate to file:// — http://127.0.0.1:59706/qa-inner?display=popup
+ok popup cannot navigate to os:// — http://127.0.0.1:59706/qa-inner?display=popup
+ok no script errors on own pages (os://)
+ok menu: test page opened in a profile tab — {"panel":null,"url":"http://127.0.0.1:59706/set?p=menu"}
+ok sites get Accept-Language = app language — ru / ru,en-US;q=0.8;q=0.9,en;q=0.7;q=0.8
+ok menu: row of 5 round buttons with labels — {"round":5,"backDisabled":true,"groups":5,"icons":true,"fits":true,"height":645,"cut":[],"labels":true}
+ok menu: Back disabled when there is nowhere to go
+ok menu: groups divided by lines, every item has an icon — {"round":5,"backDisabled":true,"groups":5,"icons":true,"fits":true,"height":645,"cut":[],"labels":true}
+ok menu: fits a 768 px laptop screen (rare items under «More tools») — height=645
+ok menu: labels are not cut off
+ok menu: card at the corner, not full screen, fits the window
+ok screen 39-menu not blank — varied=0.4329 900x640
+ok menu: star adds the page to favorites
+ok menu: star shows as pressed
+ok screen 39-more-tools not blank — varied=0.3119 900x640
+ok menu: mobile site switches the User-Agent
+ok menu: mobile site item is checked
+ok menu: mobile site off restores the desktop User-Agent
+ok menu: diagnostics shows version and page log — Ось 0.1.0 (win32 x64, Chromium 152.0.7977.167)
+http://127.0.0.1:59706/set?p=menu
+
+17:59:18 [tab1793469557101] 200 http://127.0.0.1:59706/set?p=menu
+17:59:17 [tab1793469557101] 200 http://127.0.0.1:597
+ok screen 39-diagnostics not blank — varied=0.4361 900x640
+ok menu: New tab group asks for the group name
+ok address: engine badge on the left while typing (instead of the lock) — {"engine":"ddg","lockHidden":true,"card":true,"tiles":[["127.0.0.1","Set menu"],["localhost","Page three"]],"clear":true,"net":0}
+ok address: current page card on empty input
+ok address: frequent sites tiles (letter + page title, not domain) — [["127.0.0.1","Set menu"],["localhost","Page three"]]
+ok address: tiles do not load icons from the network
+ok address: clear button shown when there is text
+ok screen 40-address-empty not blank — varied=0.3099 900x640
+ok address: first row is the typed query itself — [["search","Искать «weath»",false],["query","weather spb",true],["query","weather moscow",true]]
+ok address: past search queries from history (q=, text=) — [["search","Искать «weath»",false],["query","weather spb",true],["query","weather moscow",true]]
+ok address: every row except the first has ↖ «fill in»
+ok screen 40-address-typing not blank — varied=0.3099 900x640
+ok address: ↖ puts the suggestion into the field — weather spb
+ok address: × clears the field and shows tiles again
+ok no sound without a user action (autoplay blocked) — suspended
+ok sound allowed for a player started shortly after a click — running
+ok location, camera and microphone defaults: Ask · Allow · Block — buttons=9
+ok screen 42-site-permissions not blank — varied=0.5205 900x556
+ok blocked permission is explained (site settings), not silent — Геолокация запрещено для 127.0.0.1 (настройки сайта)
+ok permission asked by a third-party iframe names the tab site, not the iframe — {"id":1,"text":"127.0.0.1 запрашивает ваше местоположение","canRemember":true,"rememberDefault":false}
+ok «Remember» is off by default for location, camera and microphone
+ok screen 37-iframe-permission not blank — varied=0.2076 900x640
+ok the decision is stored for the tab site only — {"127.0.0.1":{"downloads":"ALLOW","notifications":"ALLOW","location":"ALLOW"}}
+ok toolbar button defaults to Downloads
+ok toolbar button opens Downloads
+ok toolbar button switched to «Find on page»
+ok find button opens the find bar
+ok screen 38-toolbar-find not blank — varied=0.5710 900x124
+ok Личный кабинет: after signing in, Ось asks to save the password for the site — {"id":2,"kind":"save","text":"Сохранить пароль для 127.0.0.1?","host":"127.0.0.1","users":[]}
+ok Личный кабинет: the card offers Save · Never for this site · Not now
+ok screen 39-password-save-prompt not blank — varied=0.2177 900x640
+ok Личный кабинет: password saved in profile 1 (site + login) — {"1":[{"g":"os-1793469566079","o":"http://127.0.0.1:59706","u":"anna","p":"djEwwEEhm6Je+s401i/geQEojfSzLVPI9VcEqPEFhdwN+WA6tdD7LjHCmfS0VQ==","t":1793469566079}]}
+ok Личный кабинет: stored password is encrypted (base64 of safeStorage), not plain
+ok Личный кабинет: the prompt goes away after the answer
+ok Личный кабинет: profile 2 does not get the password of profile 1
+ok Личный кабинет: «Never for this site» is remembered for the profile — {"2":["127.0.0.1"]}
+ok Личный кабинет: no question on a «never» site
+ok Личный кабинет: nothing is filled before the user acts (no autofill on page load)
+ok Личный кабинет: a click in the password field offers «Sign in as…» — {"id":4,"kind":"pick","text":"Выберите аккаунт","host":"127.0.0.1","users":[{"g":"os-1793469566079","u":"anna"}]}
+ok Личный кабинет: saved login fills the sign-in form in profile 1
+ok screen 39-password-filled not blank — varied=0.0054 900x556
+ok Личный кабинет: password is not given to another site
+ok Личный кабинет: incognito neither fills nor asks to save
+ok Личный кабинет: «Add password» adds a login
+ok Личный кабинет: login added by hand is stored for the http site with port — ["http://127.0.0.1:59706","http://127.0.0.1:59706"]
+ok Личный кабинет: content is not wider than 720px — 720
+ok screen 39-cabinet not blank — varied=0.4402 900x556
+ok Личный кабинет: «Show password» shows the saved password — Os-Secret-Pw-91
+ok screen 39-cabinet-show-password not blank — varied=0.5280 900x556
+ok Личный кабинет: «Copy password» copies it — Os-Secret-Pw-91
+ok Личный кабинет: «Copy username» copies the login
+ok Личный кабинет: «Don't offer» switch is saved
+ok Личный кабинет: «Offer to save» switch back on
+ok Личный кабинет: «Never» site of profile 2 is not in the list of profile 1
+ok Личный кабинет: two accounts for the site → account choice — {"id":5,"kind":"pick","text":"Выберите аккаунт","host":"127.0.0.1","users":[{"g":"os-1793469566079","u":"anna"},{"g":"os-1793469575065","u":"second"}]}
+ok screen 39-password-pick not blank — varied=0.2362 900x640
+ok Личный кабинет: the chosen account fills the form
+ok Личный кабинет: invisible login form on /hidden gets no password — []
+ok Личный кабинет: invisible login form on /offscreen gets no password — []
+ok Личный кабинет: no plain-text password anywhere in userData (grep)
+ok Личный кабинет: profile 1 has a start page tab open (os://)
+ok Личный кабинет: «Save open tabs (N)» counts only web pages — Сохранить открытые вкладки (19) / 19 of 20
+ok Личный кабинет: tab set saved with a name, without os:// start pages — [["Набор Q",19]]
+ok Личный кабинет: list shows name, tab count and date
+ok screen 40-cabinet-tabsets not blank — varied=0.3413 900x556
+ok Личный кабинет: «Open» adds the set tabs to the open ones — 20 + 19
+ok Личный кабинет: backup warns that the file is protected only by its password
+ok Личный кабинет: weak backup password «12345» is refused (10+ chars, not only digits)
+ok Личный кабинет: weak backup password «abcdef» is refused (10+ chars, not only digits)
+ok Личный кабинет: weak backup password «1234567890123» is refused (10+ chars, not only digits)
+ok Личный кабинет: backup passwords must match
+ok Личный кабинет: backup file in format v2 {app, v:2, iter:600000, salt, iv, data} — app,v,iter,salt,iv,data
+ok Личный кабинет: backup file has no plain-text passwords
+ok Личный кабинет: wrong backup password → «Wrong password or damaged file», nothing restored — Неверный пароль или повреждённый файл
+ok screen 41-backup-wrong-password not blank — varied=0.4410 900x556
+ok Личный кабинет: restore shows what was restored (2 passwords, 1 set, 0 favorites, 0 notes) — Восстановлено: паролей 2, наборов вкладок 1, избранного 0, заметок 0.
+ok screen 41-backup-restored not blank — varied=0.5189 900x556
+ok Личный кабинет: passwords restored into profile 3 (encrypted) — 2
+ok Личный кабинет: tab set restored into profile 3
+ok Личный кабинет: favorites and notes not duplicated — 2 2
+ok Личный кабинет: restoring the same file again adds nothing — Восстановлено: паролей 0, наборов вкладок 0, избранного 0, заметок 0.
+ok Личный кабинет: restored passwords work in profile 3 (account choice)
+ok Личный кабинет: sign-up form (new-password) is not filled with saved logins
+ok Личный кабинет: sign-up form offers «Suggest a strong password»
+ok screen 42-suggest-password not blank — varied=0.0386 900x556
+ok Личный кабинет: suggested password fills both new-password fields — FgkSvymgma-9_6aA
+ok Личный кабинет: after sign-up Ось offers to save the suggested password
+ok Личный кабинет: suggested password saved in profile 4
+ok Личный кабинет: generator makes a 16-character password without look-alikes — w3oHMry#Zv+XfyP@
+ok Личный кабинет: generator length 24 without digits, strength shown — %N+rmP+DN%nYzj+daUhcEc=g Длина: 24 · очень надёжный
+ok screen 42-password-generator not blank — varied=0.4744 900x556
+ok Личный кабинет: «New» makes another password
+ok Личный кабинет: generator «Copy» copies the password
+ok Личный кабинет: «Generate a strong password» in «Add password»
+ok Личный кабинет: shared cabinet opens with «All profiles» selected
+ok Личный кабинет: summary lists every profile — 15
+ok Личный кабинет: summary shows passwords per profile
+ok Личный кабинет: search finds passwords in all profiles — ["3","1"]
+ok screen 42-cabinet-all not blank — varied=0.4393 900x600
+ok Личный кабинет: backup of all profiles is v2 {"v":2,"profiles":[{id,data}]} — [[3,2],[1,2],[2,0],[4,1],[5,0],[6,0],[7,0],[8,0],[9,0],[10,0],[11,0],[12,0],[13,0],[14,0],[15,0]]
+ok Личный кабинет: password deleted from profile 4
+ok Личный кабинет: v2 backup restores into the same profiles without duplicates — Восстановлено: паролей 1, наборов вкладок 0, избранного 0, заметок 0. 2/2/1
+ok Личный кабинет: item in the profile menu on the home screen
+ok Личный кабинет: opens from the profile menu
+ok Личный кабинет: own pages without script errors
+ok remembered «Allow» downloads without asking — {"id":"d17934695910400","name":"os-photo.png","path":"C:\\Users\\runneradmin\\Downloads\\Ось\\os-photo.png","url":"http://127.0.0.1:59706/photo.bin","time":1793469591040,"size":70,"state":"completed","received":70,"profile":1,"mime":"application/octet-stream","urlChain":["http://127.0.0.1:59706/photo.bin"],"etag":"","lastModified":"","start":1793469591.038626,"resumable":false}
+ok octet-stream file typed by extension (image)
+ok free disk space line (fs.statfs) — Использовано: 120 GB из 150 GB
+ok six type chips
+ok «Just now» group on top — Только что
+ok chip «Images» filters the list — images
+ok screen 43-downloads-images not blank — varied=0.0770 1400x816
+ok search shows «nothing found»
+ok row menu: Open · Show in folder · Share · Delete (Open with — only on Windows) — Открыть | Открыть в другом приложении | Показать в папке | Поделиться | Удалить
+ok screen 43-downloads-menu not blank — varied=0.0766 1400x816
+ok share copies the file path — C:\Users\runneradmin\Downloads\Ось\os-photo.png
+ok image opens in an Ось tab (protected os://file) — os://file/adac400187de9d335abe761b915e3aa0/os-photo.png
+ok image is shown in the tab (scripts off) — os-photo.png (1×1)
+ok no scripts run on the file page (CSP sandbox) — blocked
+ok os://file is not guessable and not served to another profile — [404,404]
+ok PDF attachment downloaded as a file — {"id":"d17934695924331","name":"os-doc.pdf","path":"C:\\Users\\runneradmin\\Downloads\\Ось\\os-doc.pdf","url":"http://127.0.0.1:59706/pdf-attach","time":1793469592433,"size":550,"state":"completed","received":550,"profile":1,"mime":"application/pdf","urlChain":["http://127.0.0.1:59706/pdf-attach"],"etag":"","lastModified":"","start":1793469592.427692,"resumable":false}
+ok blank tab for the attachment is closed — 43 → 43
+ok opener tab is back and not reloaded — http://127.0.0.1:59706/pdf-opener loads 1→1
+ok no extra windows
+ok PDF opens in an Ось tab — os://file/4f92d00a36b4de16d57e12fd7b3e20a2/os-doc.pdf
+ok screen 44-pdf-in-tab not blank — varied=0.1809 1400x816
+ok blocked site does not start a download — 4 → 4
+ok «Ask» shows the question again — localhost хочет скачать «os-test-3936.txt»
+ok while the question is open, the file is downloading (pending) — {"p":true,"s":"completed"}
+ok screen 45-download-ask not blank — varied=0.1284 1400x900
+ok «Block» cancels and deletes the file — C:\Users\runneradmin\Downloads\Ось\os-test-3936.txt
+ok one-time «Block» is not remembered
+ok site permissions list downloads (Ask) and uploads (Allow) by default — [{"key":"uploads","title":"Отправка файлов","defaults":["ALLOW","ASK","BLOCK"],"current":"ALLOW"},{"key":"downloads","title":"Скачивание файлов","defaults":["ASK","ALLOW","BLOCK"],"current":"ASK"}]
+ok file chooser opens by default
+ok blocked site cannot open the file chooser
+ok screen 46-site-permissions-files not blank — varied=0.2564 1400x816
+ok home shows 10 profiles and «Show all profiles (N)»
+ok current profile has an accent frame and a check mark
+ok pinned profile goes on top with a pin, stored apart from the order — [7]
+ok profile menu: settings, rename, unpin, folder, up/down, sign out — Открыть | Настройки профиля | Личный кабинет | Переименовать | Открепить | В папку | Ниже | Выйти из аккаунтов (очистить профиль)
+ok screen 47-home-pinned not blank — varied=0.4283 1400x860
+ok folders sorted, «No folder» last — Банки|Работа|Без папки
+ok folder collapses
+ok folder renamed (profiles stay in it)
+ok tiles view: avatar, name, marks, gear; saved
+ok screen 47-home-tiles-folders not blank — varied=0.1260 1400x860
+ok wide window: 4 tile columns — 4
+ok folder removed, profiles stay
+ok cabinet button links to the common cabinet
+ok gear opens profile settings: pin, own tabs, files, clear data
+ok pin from the profile screen
+ok screen 47-profile-settings not blank — varied=0.2419 1400x860
+ok chip list marks the current profile
+ok screen 48-profile-chip-list not blank — varied=0.2827 1400x900
+ok choosing switches the profile
+ok «All profiles» opens the home screen
+ok 7 groups with icons and summaries — [["Основные","Язык · Тема · Поисковая система · Главная страница · Браузер по умолчанию"],["Профили","Количество профилей · Все профили · Настройки профиля · Старт"],["Панели и вкладки","Кнопка на панели · Масштаб · Вкладки"],["Конфиденциальность и безопасность","Запретить скриншоты · Блокировка приложения · Режим «только HTTPS» · Защита от трекеров · Межсайтовые cookies"],["Данные","Удалить данные о работе в браузере · Перенести из Chrome · История · Очистить кэш всех профилей · Очистить историю всех профилей"],["Моя библиотека","Избранное · Заметки · Сохранённые страницы · Скачанные файлы · Статистика"],["О приложении","Автообновление · Проверить сейчас · Справка и отзывы · О приложении · Показать обучение ещё раз"]]
+ok no single setting is shown on the main page
+ok screen 49-settings-groups not blank — varied=0.3209 1400x860
+ok search finds «Block screenshots» in Privacy — Запретить скриншотыНа скриншотах и записи экрана — чёрный экран; в недавних приложениях содержимое скрыто.ВключенаВыключена
+ok screen 49-settings-search not blank — varied=0.0730 1400x860
+ok privacy group: block screenshots, lock, HTTPS, site permissions
+ok screen 49-settings-privacy not blank — varied=0.3067 1400x860
+ok days titled «Сегодня — <date>» — Сегодня — 31 окт. 2026 г.
+ok profile hint and «Clear browsing data…» link
+ok site letter in a circle
+ok screen 50-history not blank — varied=0.4113 1400x860
+ok cross removes one entry
+ok click opens a new tab of this profile
+ok six ranges: 15 min … all time — Последние 15 минут|Последний час|Последние 24 часа|Последние 7 дней|Последние 4 недели|Всё время
+ok note: favorites, notes, saved pages and files are kept
+ok screen 51-clear-range not blank — varied=0.2675 1400x816
+ok history of the last 15 minutes deleted, older kept, tabs untouched — 0 left
+ok cookies of the profile kept when unchecked
+ok content ≤ 720 px, centered — [[720,0],[720,0],[720,0],[720,0],[720,0]]
+ok no script errors on own pages (os://) after the new screens
+ok document plan.docx: opens
+ok DOCX in a tab: heading and bold text
+ok DOCX: document text cannot run scripts
+ok screen 53-docx not blank — varied=0.0140 1400x816
+ok document sales.xlsx: opens
+ok XLSX in a tab: table with column letters and values
+ok screen 53-xlsx not blank — varied=0.0177 1400x816
+ok document list.csv: opens
+ok CSV in a tab: table with a header row
+ok documents: no script errors on own pages
+ok tampered CRX is rejected by the signature check — {"ok":false,"error":"bad","detail":"bad signature"}
+ok test extension installed into profile 1 from a signed CRX3 — {"ok":true,"id":"hblklenojfgpkcffcdkjaocobdmmleee","name":"Os test extension"}
+ok extensions.json lists it for profile 1 only, enabled
+ok manifest gets the store key, so the extension ID matches the package ID
+ok extension loaded into the profile 1 session
+ok content script of the extension marks the test page in profile 1
+ok content script talks to the MV3 service worker (runtime messaging + storage) — pong
+ok screen 54-extension-on-page not blank — varied=0.2944 1400x816
+ok extension does not touch own os:// pages (start page)
+ok browser UI session has no extensions — 0
+ok profile 2 does not have the extension (no mark, empty session list)
+ok incognito runs without extensions
+ok no extensions button in incognito
+ok toolbar menu lists the profile extension
+ok screen 55-extensions-menu not blank — varied=0.1233 1400x900
+ok popup of the extension opens (action.default_popup)
+ok popup runs with the extension API (chrome.runtime.id) — id: hblklenojfgpkcffcdkjaocobdmmleee
+ok popup reads chrome.storage written by the service worker — pings: 1
+ok popup window sized to its content
+ok popup has no os:// bridge
+ok popup lives in the profile session — {"partition":true,"frame":{"x":1056,"y":101,"width":288,"height":120}}
+ok pin: the extension icon appears on the toolbar
+ok pin: remembered in extensions.json
+ok screen 55-extension-pinned not blank — varied=0.3142 1400x84
+ok pin: clicking the pinned icon opens the popup
+ok pin: the menu shows it as pinned
+ok unpin: the icon leaves the toolbar
+ok «More tools ▸ Extensions» in the ⋮ menu opens the extensions screen — os://extensions/?profile=1
+ok extensions screen lists the extension with its name and version
+ok extensions screen warns that only some extensions work
+ok extension icon shown
+ok screen 56-extensions-screen not blank — varied=0.1589 1400x816
+ok turning off is saved
+ok turned-off extension is unloaded
+ok turned-off extension does not run on pages
+ok after restart the extension stays off
+ok turning on loads it again
+ok enabled extension is loaded at startup (before the first tab)
+ok after restart the content script works again
+ok options page of the extension opens
+ok removal is saved
+ok removed extension is unloaded
+ok extensions screen shows the empty state
+ok after restart the removed extension is gone (list, session and files)
+ok beforeunload: "Stay" keeps the page
+ok beforeunload: the question is asked in the app language — ["Покинуть страницу?"]
+ok beforeunload: "Leave" opens the new address
+ok beforeunload: after 3 idle minutes the page is left without a question
+ok form resend: "Cancel" does not send the payment again — POST item=tea application/x-www-form-urlencoded
+ok form resend: "Resend" posts the same data again — POST item=tea application/x-www-form-urlencoded | POST item=tea application/x-www-form-urlencoded
+ok screen 58-form-resent not blank — varied=0.2319 1024x636
+ok plain reload asks nothing
+ok language list: «system» and 16 languages — system,en,ru,es,pt,fr,de,ar,hi,tr,zh,be,uz,ky,tg,kk,hy
+ok be: browser chrome in the new language, left to right — be Адрас або пошук
+ok be: start page phrase in the new language — Добрае патрабуе часу — і час у вас ёсць.
+ok be: menu labels are not cut off and the menu fits — 645 
+ok uz: browser chrome in the new language, left to right — uz Manzil yoki qidiruv
+ok uz: start page phrase in the new language — Sevimli qoʻshiq butun kunni koʻtarishi mumkin.
+ok uz: menu labels are not cut off and the menu fits — 645 
+ok ky: browser chrome in the new language, left to right — ky Дарек же издөө
+ok ky: start page phrase in the new language — Убада кылганыңызды аткарыңыз — жана бир аз ашыгы менен.
+ok ky: menu labels are not cut off and the menu fits — 645 
+ok tg: browser chrome in the new language, left to right — tg Суроға ё ҷустуҷӯ
+ok tg: start page phrase in the new language — То нисфирӯзӣ кори ҷасуронае кун!
+ok tg: menu labels are not cut off and the menu fits — 645 
+ok kk: browser chrome in the new language, left to right — kk Мекенжай немесе іздеу
+ok kk: start page phrase in the new language — Қадамдап жүруге болады — бұл қалыпты жағдай.
+ok kk: menu labels are not cut off and the menu fits — 645 
+ok screen 59-menu-kk not blank — varied=0.3972 1024x720
+ok hy: browser chrome in the new language, left to right — hy Հասցե կամ որոնում
+ok hy: start page phrase in the new language — Այսօրվա հավասարակշռությունը վաղը դարձնում է ավելի հեշտ։
+ok hy: menu labels are not cut off and the menu fits — 645 
+ok screen 59-menu-hy not blank — varied=0.4166 1024x720
+ok link menu: Chrome items in order — Открыть в новой вкладке | Открыть в новой вкладке группы | Открыть во вкладке инкогнито | Открыть в другом профиле/Покупки|Работа|Соцсети|Профиль 5|Профиль 6|Профиль 7|Профиль 8|Профиль 9|Профиль 10|Профиль 11|Профиль 12|Профиль 13|Профиль 14|Профиль 15 | Копировать адрес ссылки | Копировать текст ссылки | Скачать по ссылке | В избранное | Поделиться ссылкой/Скопировать со ссылкой|Отправить по почте | Назад | Вперёд | Обновить
+ok "Open in new tab": opens in the background, the page stays
+ok "Open in new tab": hint «Opened in new tab · Go» — Открыто в новой вкладкеПерейти
+ok screen 60-opened-in-tab not blank — varied=0.3884 1024x84
+ok «Go» switches to the new tab
+ok "In new tab in group": a new group of the current tab and the new one — ["http://127.0.0.1:59706/links","http://127.0.0.1:59706/get?from=menu"]
+ok "In another profile": the tab is added to that profile
+ok "In another profile": hint names the profile
+ok "Copy link text": text without extra spaces
+ok "In incognito tab": a private window with the link
+ok incognito link menu: «Open», no profiles, groups or favorites — Открыть | Копировать адрес ссылки | Копировать текст ссылки | Скачать по ссылке | Поделиться ссылкой/Скопировать со ссылкой|Отправить по почте | Назад | Вперёд | Обновить
+ok mailto: only copy and share (no open, download or favorites) — Копировать адрес ссылки | Копировать текст ссылки | Поделиться ссылкой/Скопировать со ссылкой|Отправить по почте | Назад | Вперёд | Обновить
+ok javascript: link — no link items — Назад | Вперёд | Обновить
+ok image: open, download, copy address, share — Открыть изображение в новой вкладке | Скачать изображение | Копировать адрес изображения | Поделиться изображением/Скопировать со ссылкой|Отправить по почте | Назад | Вперёд | Обновить
+ok image: «Copy image address»
+ok Ctrl+N opens a second normal window — [{"inc":false,"profile":1,"panel":null},{"inc":false,"profile":null,"panel":"os://home/"}]
+ok new window shows the profile screen — {"inc":false,"profile":null,"panel":"os://home/"}
+ok first window keeps its profile and tabs
+ok new window is cascaded, not on top of the first — [{"x":20,"y":20,"width":1024,"height":720},{"x":52,"y":52,"width":1024,"height":720}]
+ok profile open in another window is not duplicated — {"p0":1,"p1":null,"n":2}
+ok two profiles side by side in two windows — [1,3]
+ok window titles name their profiles
+ok screen 61-second-window not blank — varied=0.3528 1024x84
+ok new tab in the second window goes to its profile
+ok closing the second window keeps the first
+ok Settings → Data has «Import from Chrome»
+ok settings search «Chrome» finds the import item — open-import
+ok the item opens os://import/ of the profile — os://import/?profile=1
+ok import page: profile chip, Chrome profile «Тест», CSV warning
+ok history checkbox shown (built-in SQLite)
+ok screen 62-import-page not blank — varied=0.5306 1024x636
+ok HTML: added 6 bookmarks, skipped 0 duplicates and 2 unsuitable — Добавлено: 6 в избранном, 0 паролей, 0 записей историиПропущено: 0 дубликатов, 2 неподходящих записейИзбранноеЛичный кабинет
+ok bookmarks.json: folder «Работа / Проекты», no javascript: — [{"id":"bd6a4d86c-47b3-4520-ab2c-d8196751f392","t":"News & Weather","u":"https://news.example/","f":""},{"id":"b035e2a92-2d24-40da-8028-4c50be2152ab","t":"Почта","u":"https://mail.example/inbox","f":""},{"id":"b70042226-950a-40af-b1ba-a3e9f2100e8e","t":"Задачи","u":"https://tasks.example/board","f":"Работа / Проекты"},{"id":"b485dfdb3-3fdf-49b7-94b1-e13593de17f9","t":"Wiki","u":"https://wiki.example/","f":"Работа / Проекты"},{"id":"bd9197a60-410e-482d-861c-7f61c7e638db","t":"Shop","u":"https://shop.example/","f":"Другие закладки"},{"id":"b85024396-c632-4018-98e1-15c2055fb5c6","t":"http://old.example/page?a=1&b=2","u":"http://old.example/page?a=1&b=2","f":"Другие закладки"}]
+ok screen 62-import-report not blank — varied=0.5243 1024x636
+ok HTML again: 0 added, 6 duplicates, bookmarks unchanged — Добавлено: 0 в избранном, 0 паролей, 0 записей историиПропущено: 6 дубликатов, 2 неподходящих записейИзбранноеЛичный кабинет
+ok CSV: 1 password added, 1 duplicate, 2 unsuitable — Добавлено: 0 в избранном, 1 паролей, 0 записей историиПропущено: 1 дубликатов, 2 неподходящих записейИзбранноеЛичный кабинет
+ok existing password is not overwritten by the CSV — OLD
+ok new password saved and decrypts — pa,ss"Csv-2
+ok passwords.json has no plain text from the CSV, profile 2 untouched
+ok Chrome profile: 2 bookmarks and 2 history entries added, 1 duplicate, 1 unsuitable — Добавлено: 2 в избранном, 0 паролей, 2 записей историиПропущено: 1 дубликатов, 1 неподходящих записейИзбранноеЛичный кабинет
+ok history: hist-a and hist-b imported, no accounts.google.com, ordered by time — [{"u":"http://127.0.0.1:59706/links","t":"Links","d":1793469641429},{"u":"http://127.0.0.1:59706/get?from=menu","t":"Get os_test=keep","d":1793469641291},{"u":"http://127.0.0.1:59706/links","t":"Links","d":1793469640992},{"u":"http://127.0.0.1:59706/get","t":"Get os_test=keep","d":1793469633235},{"u":"http://127.0.0.1:59706/paid","t":"Paid","d":1793469632139}]
+ok temporary copy of History removed
+ok Chrome profile again: nothing added (3 + 2 duplicates) — Добавлено: 0 в избранном, 0 паролей, 0 записей историиПропущено: 5 дубликатов, 1 неподходящих записейИзбранноеЛичный кабинет
+ok no Chrome: «Chrome was not found» shown, file buttons stay
+ok CSV over 5 MB: «The file is too large», nothing added — Файл слишком большой
+ok broken HTML: 0 added, no crash — Добавлено: 0 в избранном, 0 паролей, 0 записей историиПропущено: 0 дубликатов, 0 неподходящих записейИзбранноеЛичный кабинет
+ok incognito: «Import is unavailable in incognito»
+ok incognito: direct importFile/importChrome calls refused — ["incognito","incognito"]
+ok under the PIN lock import calls are refused — Error invoking remote method 'os': Error: locked
+note Dark Reader 4.9.134: installed, loaded=true, popup=ui/popup/index.html; no visible effect on the test page
+note JSON Formatter 0.10.2: installed, loaded=true, popup=-; content script works
+note uBlock Origin Lite 2026.1026.1812: installed, loaded=true, popup=popup.html; no visible effect on the test page
+note Bitwarden 2026.10.1: installed, loaded=true, popup=popup/index.html; no visible effect on the test page
+ok screen 57-extensions-store not blank — varied=0.4478 1024x636
+PASSED: 0 failed checks
+ok installer: latest.yml for auto-update is generated
+ok installer: latest.yml has sha512
+ok installer: previous release installs (Os-Browser-Setup-0.1.93.exe)
+ok installer: install over the previous version keeps Os Browser.exe
+ok installer: shortcut points to an existing exe (Desktop)
+ok installer: shortcut points to an existing exe (Programs)
+ok installer: registered for Windows default apps (https → OsBrowserURL)
+ok installer: listed in RegisteredApplications
+ok installer: Start menu shortcut
+ok installer: installed app starts
+ok installer: silent uninstall removes the app
+ok installer: uninstall removes browser registration
+ok installer: install into a chosen folder — latin (ps)
+ok installer: app starts from the chosen folder — latin
+ok installer: install into a chosen folder — cyrillic (ps)
+ok installer: app starts from the chosen folder — cyrillic
+ok portable: zip is built
+ok portable: unpacked Os Browser.exe
+ok portable: app starts from the zip
+installer: 0 failed

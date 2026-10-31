@@ -1,0 +1,82 @@
+{
+ "list": [
+  {
+   "id": "d17934695924331",
+   "name": "os-doc.pdf",
+   "path": "C:\\Users\\runneradmin\\Downloads\\Ось\\os-doc.pdf",
+   "url": "http://127.0.0.1:59706/pdf-attach",
+   "time": 1793469592433,
+   "size": 550,
+   "state": "completed",
+   "received": 550,
+   "profile": 1,
+   "mime": "application/pdf",
+   "urlChain": [
+    "http://127.0.0.1:59706/pdf-attach"
+   ],
+   "etag": "",
+   "lastModified": "",
+   "start": 1793469592.427692,
+   "resumable": false
+  },
+  {
+   "id": "d17934695910400",
+   "name": "os-photo.png",
+   "path": "C:\\Users\\runneradmin\\Downloads\\Ось\\os-photo.png",
+   "url": "http://127.0.0.1:59706/photo.bin",
+   "time": 1793469591040,
+   "size": 70,
+   "state": "completed",
+   "received": 70,
+   "profile": 1,
+   "mime": "application/octet-stream",
+   "urlChain": [
+    "http://127.0.0.1:59706/photo.bin"
+   ],
+   "etag": "",
+   "lastModified": "",
+   "start": 1793469591.038626,
+   "resumable": false
+  },
+  {
+   "id": "d17934695413361",
+   "name": "os-big.bin",
+   "path": "C:\\Users\\runneradmin\\Downloads\\Ось\\os-big.bin",
+   "url": "http://127.0.0.1:59706/big.bin",
+   "time": 1793469541336,
+   "size": 6291456,
+   "state": "completed",
+   "received": 6291456,
+   "profile": 4,
+   "mime": "application/octet-stream",
+   "pending": false,
+   "urlChain": [
+    "http://127.0.0.1:59706/big.bin"
+   ],
+   "etag": "\"os-v1\"",
+   "lastModified": "Wed, 21 Oct 2026 07:28:00 GMT",
+   "start": 1793469541.336185,
+   "resumable": false
+  },
+  {
+   "id": "d17934695154780",
+   "name": "os-test-3936.txt",
+   "path": "C:\\Users\\runneradmin\\Downloads\\Ось\\os-test-3936.txt",
+   "url": "http://127.0.0.1:59706/file.txt",
+   "time": 1793469515478,
+   "size": 20,
+   "state": "completed",
+   "received": 20,
+   "profile": 1,
+   "mime": "text/plain",
+   "pending": false,
+   "urlChain": [
+    "http://127.0.0.1:59706/file.txt"
+   ],
+   "etag": "",
+   "lastModified": "",
+   "start": 1793469515.447875,
+   "resumable": false
+  }
+ ]
+}

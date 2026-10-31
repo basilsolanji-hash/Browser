@@ -1,0 +1,53 @@
+{
+ "common": null,
+ "own": {
+  "1": [
+   {
+    "id": "start",
+    "title": "Старт",
+    "url": "os://start/"
+   },
+   {
+    "id": "mail",
+    "title": "@tab_mail",
+    "url": "https://mail.google.com/"
+   }
+  ],
+  "2": [
+   {
+    "id": "start",
+    "title": "Старт",
+    "url": "os://start/"
+   },
+   {
+    "id": "mail",
+    "title": "@tab_mail",
+    "url": "https://mail.google.com/"
+   },
+   {
+    "id": "calendar",
+    "title": "@tab_calendar",
+    "url": "https://calendar.google.com/"
+   }
+  ],
+  "3": [
+   {
+    "id": "start",
+    "title": "Старт",
+    "url": "os://start/"
+   },
+   {
+    "id": "p1793469500250",
+    "title": "Docs",
+    "url": "https://127.0.0.1:59706/page/docs"
+   }
+  ],
+  "4": [
+   {
+    "id": "start",
+    "title": "Старт",
+    "url": "os://start/"
+   }
+  ]
+ }
+}

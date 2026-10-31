@@ -1,0 +1,475 @@
+{
+ "profiles": {
+  "1": {
+   "tabs": [
+    {
+     "id": "tab1793469491534",
+     "title": "Opener",
+     "url": "http://127.0.0.1:59706/open",
+     "group": "g1793469498593"
+    },
+    {
+     "id": "tab1793469493485",
+     "title": "Page opened",
+     "url": "http://127.0.0.1:59706/page/opened",
+     "group": "g1793469498593"
+    },
+    {
+     "id": "tab1793469488079",
+     "title": "Set one",
+     "url": "http://127.0.0.1:59706/set?p=one",
+     "group": null
+    },
+    {
+     "id": "tab1793469489153",
+     "title": "Page two",
+     "url": "http://127.0.0.1:59706/page/two",
+     "group": null
+    },
+    {
+     "id": "tab1793469509942",
+     "title": "Page save",
+     "url": "http://127.0.0.1:59706/page/save",
+     "group": null
+    },
+    {
+     "id": "tab1793469519172",
+     "title": "Notify",
+     "url": "http://127.0.0.1:59706/notify",
+     "group": null
+    },
+    {
+     "id": "tab1793469528372",
+     "title": "JS ran",
+     "url": "http://127.0.0.1:59706/article",
+     "group": null
+    },
+    {
+     "id": "tab1793469530070",
+     "title": "Notify",
+     "url": "http://127.0.0.1:59706/notify",
+     "group": null
+    },
+    {
+     "id": "tab1793469553627",
+     "title": "QA popup host",
+     "url": "http://127.0.0.1:59706/qa-popup",
+     "group": null
+    },
+    {
+     "id": "tab1793469553953",
+     "title": "Page qa-third",
+     "url": "http://127.0.0.1:59706/qa-third",
+     "group": null
+    },
+    {
+     "id": "tab1793469557101",
+     "title": "Set menu",
+     "url": "http://127.0.0.1:59706/set?p=menu",
+     "group": null
+    },
+    {
+     "id": "tab1793469560300",
+     "title": "Sound",
+     "url": "http://127.0.0.1:59706/sound",
+     "group": null
+    },
+    {
+     "id": "tab1793469561884",
+     "title": "Geo top",
+     "url": "http://127.0.0.1:59706/geo-top",
+     "group": null
+    },
+    {
+     "id": "tab1793469565705",
+     "title": "Welcome",
+     "url": "http://127.0.0.1:59706/welcome",
+     "group": null
+    },
+    {
+     "id": "tab1793469569144",
+     "title": "Login",
+     "url": "http://127.0.0.1:59706/login?k=4",
+     "group": null
+    },
+    {
+     "id": "tab1793469570263",
+     "title": "Login",
+     "url": "http://localhost:59706/login?k=5",
+     "group": null
+    },
+    {
+     "id": "tab1793469575481",
+     "title": "Login",
+     "url": "http://127.0.0.1:59706/login?k=6",
+     "group": null
+    },
+    {
+     "id": "tab1793469575823",
+     "title": "Tracker",
+     "url": "http://127.0.0.1:59706/hidden?k=7",
+     "group": null
+    },
+    {
+     "id": "tab1793469579574",
+     "title": "Tracker",
+     "url": "http://127.0.0.1:59706/offscreen?k=8",
+     "group": null
+    },
+    {
+     "id": "tab1793469583404",
+     "title": "",
+     "url": "os://start/",
+     "group": null
+    },
+    {
+     "id": "tab1793469583609",
+     "title": "Opener",
+     "url": "http://127.0.0.1:59706/open",
+     "group": null
+    },
+    {
+     "id": "tab1793469583610",
+     "title": "",
+     "url": "http://127.0.0.1:59706/page/opened",
+     "group": null
+    },
+    {
+     "id": "tab1793469583611",
+     "title": "",
+     "url": "http://127.0.0.1:59706/set?p=one",
+     "group": null
+    },
+    {
+     "id": "tab1793469583612",
+     "title": "",
+     "url": "http://127.0.0.1:59706/page/two",
+     "group": null
+    },
+    {
+     "id": "tab1793469583613",
+     "title": "",
+     "url": "http://127.0.0.1:59706/page/save",
+     "group": null
+    },
+    {
+     "id": "tab1793469583614",
+     "title": "",
+     "url": "http://127.0.0.1:59706/notify",
+     "group": null
+    },
+    {
+     "id": "tab1793469583615",
+     "title": "",
+     "url": "http://127.0.0.1:59706/article",
+     "group": null
+    },
+    {
+     "id": "tab1793469583616",
+     "title": "",
+     "url": "http://127.0.0.1:59706/notify",
+     "group": null
+    },
+    {
+     "id": "tab1793469583617",
+     "title": "",
+     "url": "http://127.0.0.1:59706/qa-popup",
+     "group": null
+    },
+    {
+     "id": "tab1793469583618",
+     "title": "",
+     "url": "http://127.0.0.1:59706/qa-third",
+     "group": null
+    },
+    {
+     "id": "tab1793469583619",
+     "title": "",
+     "url": "http://127.0.0.1:59706/set?p=menu",
+     "group": null
+    },
+    {
+     "id": "tab1793469583620",
+     "title": "",
+     "url": "http://127.0.0.1:59706/sound",
+     "group": null
+    },
+    {
+     "id": "tab1793469583621",
+     "title": "",
+     "url": "http://127.0.0.1:59706/geo-top",
+     "group": null
+    },
+    {
+     "id": "tab1793469583622",
+     "title": "",
+     "url": "http://127.0.0.1:59706/welcome",
+     "group": null
+    },
+    {
+     "id": "tab1793469583623",
+     "title": "",
+     "url": "http://127.0.0.1:59706/login?k=4",
+     "group": null
+    },
+    {
+     "id": "tab1793469583624",
+     "title": "",
+     "url": "http://localhost:59706/login?k=5",
+     "group": null
+    },
+    {
+     "id": "tab1793469583625",
+     "title": "",
+     "url": "http://127.0.0.1:59706/login?k=6",
+     "group": null
+    },
+    {
+     "id": "tab1793469583626",
+     "title": "",
+     "url": "http://127.0.0.1:59706/hidden?k=7",
+     "group": null
+    },
+    {
+     "id": "tab1793469583627",
+     "title": "",
+     "url": "http://127.0.0.1:59706/offscreen?k=8",
+     "group": null
+    },
+    {
+     "id": "tab1793469591988",
+     "title": "",
+     "url": "os://file/adac400187de9d335abe761b915e3aa0/os-photo.png",
+     "group": null
+    },
+    {
+     "id": "tab1793469592180",
+     "title": "PDF opener",
+     "url": "http://127.0.0.1:59706/pdf-opener",
+     "group": null
+    },
+    {
+     "id": "tab1793469593456",
+     "title": "Upload",
+     "url": "http://127.0.0.1:59706/upload",
+     "group": null
+    },
+    {
+     "id": "tab1793469605721",
+     "title": "Set keep",
+     "url": "http://127.0.0.1:59706/set?p=keep",
+     "group": null
+    },
+    {
+     "id": "tab1793469608080",
+     "title": "",
+     "url": "os://file/18394959512f1bc66ae727017003abf9/plan.docx",
+     "group": null
+    },
+    {
+     "id": "tab1793469608347",
+     "title": "",
+     "url": "os://file/a7e3986c2353dac60d6daf23281c3836/sales.xlsx",
+     "group": null
+    },
+    {
+     "id": "tab1793469608600",
+     "title": "",
+     "url": "os://file/951b695e47b271cd390b9013035dae24/list.csv",
+     "group": null
+    },
+    {
+     "id": "tab1793469608959",
+     "title": "Page ext",
+     "url": "os://start/",
+     "group": null
+    },
+    {
+     "id": "tab1793469616135",
+     "title": "Page ext-off",
+     "url": "http://127.0.0.1:59706/page/ext-off",
+     "group": null
+    },
+    {
+     "id": "tab1793469623015",
+     "title": "Page ext-again",
+     "url": "http://127.0.0.1:59706/page/ext-again",
+     "group": null
+    },
+    {
+     "id": "tab1793469627649",
+     "title": "Get os_test=keep",
+     "url": "http://127.0.0.1:59706/get",
+     "group": null
+    },
+    {
+     "id": "tab1793469640900",
+     "title": "Links",
+     "url": "http://127.0.0.1:59706/links",
+     "group": "g1793469642255"
+    },
+    {
+     "id": "tab1793469642256",
+     "title": "",
+     "url": "http://127.0.0.1:59706/get?from=menu",
+     "group": "g1793469642255"
+    },
+    {
+     "id": "tab1793469641144",
+     "title": "Links",
+     "url": "http://127.0.0.1:59706/links",
+     "group": null
+    }
+   ],
+   "groups": [
+    {
+     "id": "g1793469498593",
+     "name": "Clients",
+     "color": "#E53935"
+    },
+    {
+     "id": "g1793469642255",
+     "name": "Группа 2",
+     "color": "#FB8C00"
+    }
+   ],
+   "active": "tab1793469641144",
+   "closed": [
+    {
+     "id": "tab1793469592409",
+     "title": "",
+     "url": "http://127.0.0.1:59706/pdf-attach",
+     "group": null
+    }
+   ],
+   "pinState": {}
+  },
+  "2": {
+   "tabs": [
+    {
+     "id": "tab1793469566134",
+     "title": "Welcome",
+     "url": "http://127.0.0.1:59706/welcome",
+     "group": null
+    },
+    {
+     "id": "tab1793469567691",
+     "title": "Welcome",
+     "url": "http://127.0.0.1:59706/welcome",
+     "group": null
+    },
+    {
+     "id": "tab1793469610600",
+     "title": "Page ext2",
+     "url": "http://127.0.0.1:59706/page/ext2",
+     "group": null
+    }
+   ],
+   "groups": [],
+   "active": "tab1793469610600",
+   "closed": [],
+   "pinState": {}
+  },
+  "3": {
+   "tabs": [
+    {
+     "id": "tab1793469585032",
+     "title": "Login",
+     "url": "http://127.0.0.1:59706/login?k=9",
+     "group": null
+    },
+    {
+     "id": "tab1793469642304",
+     "title": "",
+     "url": "http://127.0.0.1:59706/get?from=menu",
+     "group": null
+    },
+    {
+     "id": "tab1793469649173",
+     "title": "Page second",
+     "url": "http://127.0.0.1:59706/page/second",
+     "group": null
+    },
+    {
+     "id": "tab1793469653715",
+     "title": "Page dark",
+     "url": "http://127.0.0.1:59706/page/dark",
+     "group": null
+    },
+    {
+     "id": "tab1793469662622",
+     "title": "",
+     "url": "http://127.0.0.1:59706/data.json",
+     "group": null
+    },
+    {
+     "id": "tab1793469664918",
+     "title": "Tracked",
+     "url": "http://127.0.0.1:59706/tracked",
+     "group": null
+    },
+    {
+     "id": "tab1793469675281",
+     "title": "Page bw",
+     "url": "http://127.0.0.1:59706/page/bw",
+     "group": null
+    }
+   ],
+   "groups": [],
+   "active": "tab1793469675281",
+   "closed": [],
+   "pinState": {}
+  },
+  "4": {
+   "tabs": [
+    {
+     "id": "tab1793469524176",
+     "title": "Notify",
+     "url": "http://127.0.0.1:59706/notify",
+     "group": null
+    },
+    {
+     "id": "tab1793469530843",
+     "title": "Notify",
+     "url": "http://127.0.0.1:59706/notify",
+     "group": null
+    },
+    {
+     "id": "tab1793469533078",
+     "title": "Page external",
+     "url": "http://127.0.0.1:59706/page/external",
+     "group": null
+    },
+    {
+     "id": "tab1793469534940",
+     "title": "Popup opener",
+     "url": "http://127.0.0.1:59706/popup-opener",
+     "group": null
+    },
+    {
+     "id": "tab1793469538594",
+     "title": "Page second",
+     "url": "http://127.0.0.1:59706/page/second?display=popup",
+     "group": null
+    },
+    {
+     "id": "tab1793469537766",
+     "title": "Page third",
+     "url": "http://127.0.0.1:59706/page/third?display=popup",
+     "group": null
+    },
+    {
+     "id": "tab1793469585886",
+     "title": "Welcome",
+     "url": "http://127.0.0.1:59706/welcome",
+     "group": null
+    }
+   ],
+   "groups": [],
+   "active": "tab1793469585886",
+   "closed": [],
+   "pinState": {}
+  }
+ },
+ "lastProfile": 3
+}

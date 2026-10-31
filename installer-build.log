@@ -1,0 +1,26 @@
+  • electron-builder  version=26.17.0 os=10.0.26100
+  • loaded configuration  file=D:\a\Browser\Browser\desktop\electron-builder.yml
+  • executing @electron/rebuild  electronVersion=44.9.3 arch=x64 buildFromSource=false workspaceRoot=D:\a\Browser\Browser\desktop projectDir=./ appDir=./
+  • installing native dependencies  arch=x64
+  • completed installing native dependencies
+  • packaging       platform=win32 arch=x64 electron=44.9.3 appOutDir=release\win-unpacked
+  • downloaded      label=electron progress=100%
+  • downloaded electron zip extracted successfully  output=D:\a\Browser\Browser\desktop\release\win-unpacked
+  • searching for node modules  pm=npm searchDir=D:\a\Browser\Browser\desktop
+  • no node modules found in collection, trying next search directory  pm=npm searchDir=D:\a\Browser\Browser\desktop
+  • searching for node modules  pm=traversal searchDir=D:\a\Browser\Browser\desktop
+  • using manual traversal of node_modules to build dependency tree
+  • no node modules found in collection, trying next search directory  pm=traversal searchDir=D:\a\Browser\Browser\desktop
+  • no node modules returned while searching directories  searchDirectories=[""]
+  • updating asar integrity executable resource  executablePath=release\win-unpacked\Os Browser.exe
+  • executing @electron/fuses  electronPath=release\win-unpacked\Os Browser.exe
+  • no code signing certificate configured, signing is skipped  path=release\win-unpacked\Os Browser.exe
+  • building        target=zip arch=x64 file=release\Os-Browser-Portable-0.1.64.zip
+  • downloaded      label=7zip-win-x64.tar.gz progress=100%
+  • building        target=nsis file=release\Os-Browser-Setup-0.1.64.exe archs=x64 oneClick=false perMachine=false
+  • downloaded      label=nsis-3.0.4.1.7z progress=100%
+  • no code signing certificate configured, signing is skipped  path=C:\Users\RUNNER~1\AppData\Local\Temp\t-eCPErC\elevate-staging-1\resources\elevate.exe
+  • downloaded      label=nsis-resources-3.4.1.7z progress=100%
+  • no code signing certificate configured, signing is skipped  path=release\Os-Browser-Setup-0.1.64.__uninstaller.exe
+  • no code signing certificate configured, signing is skipped  path=release\Os-Browser-Setup-0.1.64.exe
+  • building block map  blockMapFile=release\Os-Browser-Setup-0.1.64.exe.blockmap

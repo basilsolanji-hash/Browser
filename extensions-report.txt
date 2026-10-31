@@ -1,0 +1,4 @@
+Dark Reader 4.9.134: installed, loaded=true, popup=ui/popup/index.html; no visible effect on the test page
+JSON Formatter 0.10.2: installed, loaded=true, popup=-; content script works
+uBlock Origin Lite 2026.1026.1812: installed, loaded=true, popup=popup.html; no visible effect on the test page
+Bitwarden 2026.10.1: installed, loaded=true, popup=popup/index.html; no visible effect on the test page
