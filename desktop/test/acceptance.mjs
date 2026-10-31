@@ -757,6 +757,7 @@ try {
     check('«Allow» with «Remember» saved for the site', readJson('site_permissions')?.sites?.['1']?.['127.0.0.1']?.downloads === 'ALLOW');
     check('download completed and logged', dl, JSON.stringify(dl));
     check('downloaded file saved in Downloads/Ось', dl && existsSync(dl.path) && readFileSync(dl.path, 'utf8') === 'Ось download test' && /[\\/]Ось[\\/]/.test(dl.path), dl?.path);
+    check('no Zone.Identifier written on non-Windows', process.platform === 'win32' || (dl && !existsSync(`${dl.path}:Zone.Identifier`)), dl?.path);
     await key('Ctrl+J');
     const dp = await page('os://downloads/');
     await dp.waitForSelector('.item');

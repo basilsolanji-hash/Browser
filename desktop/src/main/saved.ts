@@ -2,6 +2,7 @@ import { app } from 'electron';
 import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { JsonFile } from './store';
+import { markFromInternet } from './motw';
 
 /** Сохранённые страницы (SavedPages.kt): PDF в userData/saved, список — новые сверху. */
 export interface SavedPage { id: number; title: string; url: string; file: string; time: number; size: number }
@@ -14,12 +15,13 @@ export const pathOf = (p: SavedPage) => join(dir(), p.file);
 export const list = (): SavedPage[] => file.get().list.filter((p) => existsSync(pathOf(p)));
 export const byId = (id: number) => list().find((p) => p.id === id);
 
-export function store(title: string, url: string, pdf: Buffer): SavedPage {
+export function store(title: string, url: string, pdf: Buffer, incognito = false): SavedPage {
   mkdirSync(dir(), { recursive: true });
   let id = Date.now();
   while (file.get().list.some((p) => p.id === id)) id++;
   const name = `page_${id}.pdf`;
   writeFileSync(join(dir(), name), pdf);
+  markFromInternet(join(dir(), name), { referrer: url, host: url, incognito });
   const page: SavedPage = { id, title: (title || url).slice(0, 300), url, file: name, time: id, size: statSync(join(dir(), name)).size };
   file.update((d) => { d.list = [page, ...d.list]; });
   return page;
