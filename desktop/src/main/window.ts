@@ -25,7 +25,7 @@ import * as Reader from './reader';
 import * as Notes from './notes';
 import * as Extensions from './extensions';
 import { searchUrl as searchFor } from './settings';
-import type { Palette, ProfileInfo, StripTab, WindowState } from '../shared/types';
+import type { Palette, ProfileInfo, ShareSource, StripTab, WindowState } from '../shared/types';
 
 /** Высота шапки: верхний ряд (вкладки + кнопки окна) и панель адреса. */
 export const ROW1 = 40;
@@ -83,6 +83,11 @@ interface Prompt {
   id: number; wcId: number; host: string; kinds: string[]; resolve: (allow: boolean, remember: boolean) => void;
   /** Свой текст вопроса (скачивание: сайт и имя файла). */
   text?: string;
+}
+/** Окно выбора показа экрана: список (с миниатюрами) только в памяти. sourceId = null — отказ. */
+interface ScreenPick {
+  id: number; wcId: number; host: string; audio: boolean; systemAudio: boolean; sources: ShareSource[];
+  resolve: (sourceId: string | null, audio: boolean) => void;
 }
 export interface AskOptions { text?: string; keepOnNavigate?: boolean }
 /** Вопрос о пароле: сохранить после входа или выбрать аккаунт для подстановки. */
@@ -216,6 +221,8 @@ export class OsWindow implements TabHost {
   /** Запросы разрешений сайтов, ждущие ответа пользователя. */
   private prompts: Prompt[] = [];
   private pwPrompts: PwPrompt[] = [];
+  /** Открытое окно выбора показа экрана (одно на окно). */
+  private screenPick: ScreenPick | null = null;
   /** Поиск на странице: текст и найденное (null — строка поиска закрыта). */
   private find: { text: string; active: number; matches: number } | null = null;
   /** Окно заблокировано PIN-ом: видно только os://lock. */
@@ -410,6 +417,7 @@ export class OsWindow implements TabHost {
       bookmarked: isWebUrl(url) && !!Bookmarks.findByUrl(url),
       prompt: this.currentPrompt(),
       pw: this.currentPw(),
+      screenPick: this.currentScreenPick(),
       blocked: wc ? Privacy.blockedOnTab(wc.id) : 0,
       locked: this.locked,
       lockEnabled: Lock.enabled(),
@@ -536,6 +544,8 @@ export class OsWindow implements TabHost {
     this.panel = null;
     const key = this.key(id);
     let v = this.views.get(key);
+    // Выбор показа экрана привязан к вкладке, которая его запросила.
+    if (this.screenPick && v?.wc.id !== this.screenPick.wcId) this.cancelScreen();
     if (!v) {
       // Сайты без своего фона — на белом, как в Chrome.
       v = new TabView(key, id, this.session(), this, '#FFFFFF');
@@ -828,11 +838,68 @@ export class OsWindow implements TabHost {
     return { id: p.id, text, canRemember: !this.incognito, rememberDefault: !sensitive };
   }
 
+  // --- Показ экрана ---
+
+  /** Вкладки этого окна (та же сессия) — источники «Вкладка» в окне выбора. */
+  shareTabs(): { id: string; wc: WebContents; title: string; favicon: string | null }[] {
+    const titles = new Map(this.strip().map((x) => [x.id, x]));
+    return [...this.views.values()].filter((v) => !v.wc.isDestroyed() && !v.wc.getURL().startsWith('os://')).map((v) => ({
+      id: v.id, wc: v.wc, title: titles.get(v.id)?.title || v.wc.getTitle() || v.url(), favicon: v.favicon,
+    }));
+  }
+
+  /** Показать вкладку-инициатора (запрос идёт по жесту пользователя, но вкладка могла уйти в фон). */
+  showTabOf(wc: WebContents): void {
+    const v = this.tabOf(wc);
+    if (v && this.shown !== v) this.activate(v.id);
+  }
+
+  /** Открыть окно выбора. false — выбор уже открыт (новый запрос отклоняется). */
+  askScreen(wc: WebContents, host: string, audio: boolean, sources: ShareSource[], resolve: (sourceId: string | null, audio: boolean) => void): boolean {
+    if (this.screenPick || this.locked) return false;
+    const p: ScreenPick = { id: ++promptSeq, wcId: wc.id, host, audio, systemAudio: process.platform === 'win32', sources, resolve };
+    this.screenPick = p;
+    // Вкладку закрыли или увели на другой сайт — отказ.
+    const cancel = () => this.answerScreen(p.id, null, false);
+    const nav = (e: Electron.Event<Electron.WebContentsDidStartNavigationEventParams>) => {
+      if (e.isMainFrame && !e.isSameDocument) { wc.off('did-start-navigation', nav); cancel(); }
+    };
+    wc.once('destroyed', cancel);
+    wc.on('did-start-navigation', nav);
+    this.push();
+    return true;
+  }
+
+  answerScreen(id: number, sourceId: string | null, audio: boolean): void {
+    const p = this.screenPick;
+    if (!p || p.id !== id) return;
+    this.screenPick = null;
+    // Выбрать можно только то, что было в списке этого запроса.
+    p.resolve(sourceId != null && p.sources.some((x) => x.id === sourceId) ? sourceId : null, audio);
+    this.push();
+  }
+
+  cancelScreen(): void {
+    if (this.screenPick) this.answerScreen(this.screenPick.id, null, false);
+  }
+
+  /** Список для окна выбора (с миниатюрами) — отдельным вызовом, не в состоянии окна. */
+  screenSources(id: number): ShareSource[] {
+    return this.screenPick && this.screenPick.id === id && !this.locked ? this.screenPick.sources : [];
+  }
+
+  private currentScreenPick(): WindowState['screenPick'] {
+    const p = this.screenPick;
+    if (!p || this.locked || this.panel || this.shown?.wc.id !== p.wcId) return null;
+    return { id: p.id, host: p.host, audio: p.audio, systemAudio: p.systemAudio };
+  }
+
   // --- Блокировка ---
 
   lock(): void {
     if (!Lock.enabled() || this.locked) return;
     this.locked = true;
+    this.cancelScreen();
     this.overlay = false;
     void this.page.webContents.loadURL('os://lock/');
     this.layout();

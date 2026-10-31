@@ -17,3 +17,21 @@ test('own pages and non-http origins: deny', () => {
   assert.equal(decideDisplay({ ...ok, securityOrigin: 'os://settings' }), 'deny');
   assert.equal(decideDisplay({ ...ok, securityOrigin: 'file://' }), 'deny');
 });
+
+import { buildStreams } from '../../src/main/displayrule.ts';
+
+test('buildStreams: system audio only on Windows', () => {
+  assert.deepEqual(buildStreams('screen', true, 'win32', true), { video: 'source', audio: 'loopback' });
+  assert.deepEqual(buildStreams('window', true, 'win32', true), { video: 'source', audio: 'loopback' });
+  assert.equal(buildStreams('screen', true, 'linux', true).audio, null);
+  assert.equal(buildStreams('screen', true, 'darwin', true).audio, null);
+});
+test('buildStreams: no audio unless requested and ticked', () => {
+  assert.equal(buildStreams('screen', true, 'win32', false).audio, null);
+  assert.equal(buildStreams('screen', false, 'win32', true).audio, null);
+  assert.equal(buildStreams('tab', false, 'linux', true).audio, null);
+});
+test('buildStreams: tab uses its frame, audio on any platform', () => {
+  assert.deepEqual(buildStreams('tab', true, 'linux', true), { video: 'frame', audio: 'frame' });
+  assert.deepEqual(buildStreams('tab', true, 'win32', false), { video: 'frame', audio: null });
+});

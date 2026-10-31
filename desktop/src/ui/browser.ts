@@ -1,6 +1,6 @@
 import { boot, h, icon, iconButton, os, svg, t } from '../shared/ui';
 import { MARK } from '../shared/icons';
-import type { ProfileInfo, StripTab, Suggestion, Tile, WindowState } from '../shared/types';
+import type { ProfileInfo, ShareSource, StripTab, Suggestion, Tile, WindowState } from '../shared/types';
 
 /**
  * Шапка браузера: верхний ряд (логотип, профиль, вкладки) и панель адреса. Выпадающие меню рисуются
@@ -759,6 +759,7 @@ let shownPrompt = 0;
 
 /** Запрос разрешения сайта (или вопрос о пароле): карточка под адресной строкой. */
 function renderPrompt(): void {
+  if (st?.screenPick) { renderScreenPick(st.screenPick); return; }
   const p = st?.prompt;
   if (!p) {
     if (st?.pw) { renderPw(st.pw); return; }
@@ -780,6 +781,73 @@ function renderPrompt(): void {
       h('button', { class: 'pbtn accent', id: 'perm-allow', onclick: () => answer(true) }, t('perm_allow'))));
   const r = addr.getBoundingClientRect();
   openDrop(card, new DOMRect(r.left + 8, r.top, 360, r.height), 'start', 360, false, () => void os.call('permissionAnswer', p.id, false, false));
+}
+
+/** Окно выбора показа экрана: разделы «Весь экран / Окно / Вкладка», миниатюры, звук. Закрытие любым способом — отказ. */
+function renderScreenPick(q: NonNullable<WindowState['screenPick']>): void {
+  if (q.id === shownPrompt) return;
+  const addr = document.getElementById('addr');
+  if (!addr) return;
+  shownPrompt = q.id;
+  const refuse = () => void os.call('screenAnswer', q.id, null, false);
+  void (os.call('screenSources', q.id) as Promise<ShareSource[]>).then((all) => {
+    if (st?.screenPick?.id !== q.id) return;
+    const sections = (['screen', 'window', 'tab'] as const).filter((k) => all.some((x) => x.kind === k));
+    const label = { screen: 'dt_share_screens', window: 'dt_share_windows', tab: 'dt_share_tabs' } as const;
+    let kind: 'screen' | 'window' | 'tab' = sections[0] ?? 'screen';
+    let chosen: string | null = all.find((x) => x.kind === kind)?.id ?? null;
+    const seg = h('div', { class: 'share-seg', role: 'tablist' });
+    const grid = h('div', { class: 'share-grid', role: 'radiogroup', 'aria-label': t(label[kind]) });
+    const audioBox = h('input', { type: 'checkbox', id: 'share-audio', checked: true });
+    const audioText = h('span', {});
+    const audioRow = h('label', { class: 'share-audio' }, audioBox, audioText);
+    const go = h('button', { class: 'pbtn accent', id: 'share-go', disabled: !chosen, onclick: () => { hideDrop(); void os.call('screenAnswer', q.id, chosen, audioBox.checked); } }, t('dt_share_go'));
+    const sync = () => {
+      go.disabled = !chosen;
+      // Системный звук — только Windows; звук вкладки — везде; без запроса звука сайтом строки нет.
+      audioRow.hidden = !q.audio || !chosen || (kind !== 'tab' && !q.systemAudio);
+      audioText.textContent = t(kind === 'tab' ? 'dt_share_audio_tab' : 'dt_share_audio_system');
+    };
+    const draw = () => {
+      seg.replaceChildren(...sections.map((k) => h('button', { role: 'tab', 'aria-selected': k === kind, class: k === kind ? 'on' : '', 'data-k': k,
+        onclick: () => { kind = k; chosen = all.find((x) => x.kind === k)?.id ?? null; draw(); } }, t(label[k]))));
+      grid.setAttribute('aria-label', t(label[kind]));
+      const items = all.filter((x) => x.kind === kind);
+      grid.replaceChildren(...items.map((x) => {
+        const on = x.id === chosen;
+        const pic = x.thumb ? h('img', { src: x.thumb, alt: '' }) : x.icon ? h('img', { class: 'ico', src: x.icon, alt: '' }) : icon(x.kind === 'tab' ? 'tabs' : 'screen', 28);
+        return h('button', { class: 'share-item' + (on ? ' on' : ''), role: 'radio', 'aria-checked': on, tabindex: on ? 0 : -1, 'data-id': x.id, title: x.name,
+          onclick: () => { chosen = x.id; draw(); },
+          onkeydown: (e: KeyboardEvent) => {
+            const i = items.indexOf(x);
+            const rtl = document.documentElement.dir === 'rtl';
+            const step = e.key === 'ArrowRight' ? (rtl ? -1 : 1) : e.key === 'ArrowLeft' ? (rtl ? 1 : -1) : e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0;
+            if (!step) return;
+            e.preventDefault();
+            chosen = items[(i + step + items.length) % items.length].id;
+            draw();
+            (grid.querySelector('[aria-checked="true"]') as HTMLElement | null)?.focus();
+          } },
+          h('span', { class: 'share-pic' }, pic), h('span', { class: 'share-name' }, x.name));
+      }));
+      if (!items.length) grid.replaceChildren(h('div', { class: 'empty-note', id: 'share-none' }, t('dt_share_none')));
+      sync();
+    };
+    draw();
+    // Нечего показать: только текст и «Отмена».
+    const none = !all.length;
+    const card = h('div', { class: 'menu perm-card share-card', role: 'dialog', 'aria-label': t('dt_share_title', q.host) },
+      h('div', { class: 'perm-text' }, t('dt_share_title', q.host)),
+      none ? h('div', { class: 'empty-note', id: 'share-none' }, t('dt_share_none')) : seg,
+      none ? '' : grid,
+      none ? '' : audioRow,
+      none ? '' : h('div', { class: 'share-warn' }, t('dt_share_warn', q.host)),
+      h('div', { class: 'perm-actions' },
+        h('button', { class: 'pbtn', id: 'share-cancel', onclick: () => { hideDrop(); refuse(); } }, t('cancel')),
+        none ? '' : go));
+    const r = addr.getBoundingClientRect();
+    openDrop(card, new DOMRect(r.left + 8, r.top, 620, r.height), 'start', 620, false, refuse);
+  }, refuse);
 }
 
 /** «Сохранить пароль для сайта?» после входа или выбор аккаунта для подстановки (как карточка разрешения). */

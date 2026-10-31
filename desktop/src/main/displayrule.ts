@@ -26,3 +26,19 @@ export function decideDisplay(c: DisplayCheck): DisplayDecision {
   // ALLOW для показа экрана невозможен (permissions.ts), но на случай ручной правки — всё равно спрашиваем.
   return 'ask';
 }
+
+/** Что выбрал пользователь: экран, окно или вкладка Оси. */
+export type ShareKind = 'screen' | 'window' | 'tab';
+
+/** Ответ для getDisplayMedia: откуда брать картинку и звук (сами объекты подставляет screenshare.ts). */
+export interface StreamPlan { video: 'source' | 'frame'; audio: 'loopback' | 'frame' | null }
+
+/**
+ * Звук отдаём только если сайт просил звук и пользователь не снял галочку.
+ * Экран/окно: системный звук (loopback) — только на Windows; вкладка: звук самой вкладки на всех ОС.
+ */
+export function buildStreams(kind: ShareKind, audio: boolean, platform: string, audioRequested: boolean): StreamPlan {
+  const want = audio && audioRequested;
+  if (kind === 'tab') return { video: 'frame', audio: want ? 'frame' : null };
+  return { video: 'source', audio: want && platform === 'win32' ? 'loopback' : null };
+}
