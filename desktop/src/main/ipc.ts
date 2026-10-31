@@ -137,6 +137,7 @@ on(['chrome'], 'pwAnswer', (w, id, action) => w.answerPassword(int(id), str(acti
 on(['chrome'], 'permissionAnswer', (w, id, allow, remember) => w.answerPrompt(int(id), allow === true, remember === true));
 on(['chrome'], 'screenSources', (w, id) => w.screenSources(int(id)));
 on(['chrome'], 'screenAnswer', (w, id, sourceId, audio) => w.answerScreen(int(id), typeof sourceId === 'string' ? str(sourceId, 200) : null, audio === true));
+on(['chrome'], 'shareStop', (w) => w.stopShare());
 on(['chrome'], 'lockNow', () => { for (const w of windows) w.lock(); });
 on(['chrome'], 'reader', (w) => w.toggleReader());
 on(['chrome'], 'mobileSite', (w) => { const v = w.current; if (v && isWebUrl(v.url())) { v.setMobile(!v.mobile); w.push(); } });

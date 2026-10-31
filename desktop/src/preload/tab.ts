@@ -63,6 +63,57 @@ ipcRenderer.on('tab:notify-click', (_e, id: string) => {
 });
 
 /**
+ * Показ экрана (getDisplayMedia): обёртка запоминает полученные треки, чтобы вкладка могла сообщить, что показ
+ * закончился (сайт остановил сам, ушёл со страницы), и по команде кнопки «Остановить показ» остановить треки —
+ * из главного процесса поток остановить нельзя. События называются случайным именем, известным только этому
+ * preload: сайт не может ни подделать «показ закончился» (индикатор погасить), ни отключить остановку.
+ * Если остановка не сработала (клоны треков, кадр без preload), главный процесс перезагрузит вкладку.
+ */
+const shareKey = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, '0')).join('');
+contextBridge.executeInMainWorld({
+  func: (key: string) => {
+    const md = navigator.mediaDevices;
+    const proto = md && Object.getPrototypeOf(md);
+    if (!proto || typeof md.getDisplayMedia !== 'function') return;
+    // Всё нужное забираем до сценариев страницы, чтобы она не могла подменить.
+    const orig = md.getDisplayMedia;
+    const dispatch = EventTarget.prototype.dispatchEvent;
+    const listen = EventTarget.prototype.addEventListener;
+    const Ev = Event;
+    const setTick = window.setInterval.bind(window);
+    const clearTick = window.clearInterval.bind(window);
+    const tracks = new Set<MediaStreamTrack>();
+    let timer = 0;
+    const check = () => {
+      const had = tracks.size > 0;
+      for (const t of [...tracks]) if (t.readyState === 'ended') tracks.delete(t);
+      if (tracks.size || !had) return;
+      clearTick(timer);
+      timer = 0;
+      dispatch.call(window, new Ev('os-share-end-' + key));
+    };
+    const wrapped = async function getDisplayMedia(this: MediaDevices, ...args: unknown[]): Promise<MediaStream> {
+      const stream = await Reflect.apply(orig, this, args) as MediaStream;
+      for (const t of stream.getTracks()) { tracks.add(t); listen.call(t, 'ended', check); }
+      // stop() у трека событие ended не вызывает — поэтому ещё и опрос.
+      if (!timer) timer = setTick(check, 500);
+      return stream;
+    };
+    Object.defineProperty(proto, 'getDisplayMedia', { value: wrapped, writable: true, configurable: true, enumerable: true });
+    listen.call(window, 'os-share-stop-' + key, () => {
+      for (const t of [...tracks]) {
+        t.stop();
+        dispatch.call(t, new Ev('ended'));
+      }
+      check();
+    });
+  },
+  args: [shareKey],
+});
+window.addEventListener('os-share-end-' + shareKey, () => ipcRenderer.send('tab:share', 'end'));
+ipcRenderer.on('tab:share-stop', () => window.dispatchEvent(new Event('os-share-stop-' + shareKey)));
+
+/**
  * Отправка файлов (<input type=file>): перед окном выбора спрашиваем разрешение сайта у главного процесса.
  * «Запретить» — окно не открывается; «Спросить» — после «Разрешить» в карточке окно открывается само.
  * Слушатель — в изолированном мире preload, сайт его не видит и не может снять.

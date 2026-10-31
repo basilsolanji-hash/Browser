@@ -19,6 +19,8 @@ export interface StripTab {
   group: string | null;
   loading: boolean;
   favicon: string | null;
+  /** На вкладке идёт показ экрана. */
+  sharing: boolean;
 }
 
 export interface ProfileInfo {
@@ -67,6 +69,8 @@ export interface WindowState {
   pw: { id: number; kind: 'save' | 'pick'; text: string; host: string; users: { g: string; u: string }[] } | null;
   /** Окно выбора показа экрана для текущей вкладки (список с миниатюрами — отдельным вызовом screenSources). */
   screenPick: { id: number; host: string; audio: boolean; systemAudio: boolean } | null;
+  /** На показанной вкладке идёт показ экрана (кнопка «Остановить показ»). */
+  sharing: boolean;
   /** Сколько трекеров заблокировано на текущей вкладке. */
   blocked: number;
   locked: boolean;

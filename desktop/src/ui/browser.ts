@@ -144,6 +144,8 @@ function tabEl(tab: StripTab, groups: Map<string, { name: string; color: string 
     onkeydown: (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') void os.call('activate', tab.id); },
     oncontextmenu: (e: MouseEvent) => { e.preventDefault(); tabMenu(tab, el.getBoundingClientRect()); },
   }, favicon(tab), h('span', { class: 'label', dir: 'auto' }, tab.pinned ? short(label, 18) : label));
+  // Красная точка: на вкладке идёт показ экрана (видна и на других вкладках).
+  if (tab.sharing) el.insertBefore(h('span', { class: 'rec', role: 'img', title: t('dt_share_active'), 'aria-label': t('dt_share_active') }), el.children[1]);
   if (!tab.pinned) {
     el.append(h('button', {
       class: 'x', title: t('close_tab'), 'aria-label': t('close_tab'),
@@ -301,6 +303,7 @@ function renderRow2(): void {
       address.value = st.url;
       address.select();
     }
+    syncShareChip();
     updateNavButtons();
     return;
   }
@@ -397,6 +400,7 @@ function renderRow2(): void {
   const nodes: HTMLElement[] = [back, fwd, reload];
   if (!st.incognito) nodes.push(home);
   nodes.push(addr);
+  if (st.sharing) addr.append(shareChip());
   if (st.blocked > 0) {
     addr.append(h('span', { class: 'shield', id: 'shield', title: t('dt_blocked_n', st.blocked) }, icon('lock', 13), String(st.blocked)));
   }
@@ -425,6 +429,23 @@ function renderRow2(): void {
   nodes.push(more);
   row2.replaceChildren(...nodes);
   updateNavButtons();
+}
+
+/** Кнопка «Остановить показ» внутри адресной строки (высота шапки не меняется). */
+function shareChip(): HTMLElement {
+  const b = h('button', { class: 'share-chip', id: 'share-chip', title: t('dt_share_stop'), 'aria-label': t('dt_share_stop'), onclick: () => void os.call('shareStop') },
+    h('span', { class: 'rec' }), h('span', { class: 'share-chip-t' }, t('dt_share_stop')));
+  b.addEventListener('mousedown', (e) => e.preventDefault());
+  return b;
+}
+
+/** Пока в адресной строке идёт ввод, шапка не перерисовывается — кнопку показа добавляем и убираем отдельно. */
+function syncShareChip(): void {
+  const addr = document.getElementById('addr');
+  const chip = document.getElementById('share-chip');
+  if (!addr || !!chip === !!st?.sharing) return;
+  if (chip) chip.remove();
+  else addr.append(shareChip());
 }
 
 /** Настраиваемая кнопка справа от адресной строки (по умолчанию — «Скачанные файлы»). */

@@ -18,7 +18,7 @@ import * as Downloads from './downloads';
 import * as Bookmarks from './bookmarks';
 import * as Saved from './saved';
 import * as Perms from './permissions';
-import { installDisplayHandler } from './screenshare';
+import { installDisplayHandler, isSharing, stopSharing, stopWindowSharing, endSharing } from './screenshare';
 import * as Privacy from './privacy';
 import * as Lock from './lock';
 import * as Reader from './reader';
@@ -418,6 +418,7 @@ export class OsWindow implements TabHost {
       prompt: this.currentPrompt(),
       pw: this.currentPw(),
       screenPick: this.currentScreenPick(),
+      sharing: !!wc && isSharing(wc.id),
       blocked: wc ? Privacy.blockedOnTab(wc.id) : 0,
       locked: this.locked,
       lockEnabled: Lock.enabled(),
@@ -444,6 +445,7 @@ export class OsWindow implements TabHost {
         title: v?.wc.getTitle() && !v.wc.getURL().startsWith('os://start') ? v.wc.getTitle() : title,
         loading: !!v?.wc.isLoading(),
         favicon: v?.favicon ?? null,
+        sharing: !!v && isSharing(v.wc.id),
       };
     };
     if (this.incognito) return this.memTabs.map((m) => item(m.id, false, m.title || t('new_tab'), m.url, null));
@@ -879,6 +881,12 @@ export class OsWindow implements TabHost {
     this.push();
   }
 
+  /** Кнопка «Остановить показ» у адресной строки: показ на видимой вкладке. */
+  stopShare(): void {
+    const wc = this.shown?.wc;
+    if (wc && !wc.isDestroyed()) stopSharing(wc);
+  }
+
   cancelScreen(): void {
     if (this.screenPick) this.answerScreen(this.screenPick.id, null, false);
   }
@@ -900,6 +908,7 @@ export class OsWindow implements TabHost {
     if (!Lock.enabled() || this.locked) return;
     this.locked = true;
     this.cancelScreen();
+    stopWindowSharing(this);
     this.overlay = false;
     void this.page.webContents.loadURL('os://lock/');
     this.layout();
@@ -1474,6 +1483,11 @@ Downloads.setGate(downloadGate);
  * окно выбора открывается (жест пользователя даёт главный процесс).
  */
 export function installUploads(): void {
+  // Preload вкладки сообщает, что все потоки показа экрана закончились (сайт остановил сам или кнопкой).
+  ipcMain.on('tab:share', (e, kind) => {
+    if (kind !== 'end' || e.senderFrame !== e.sender.mainFrame) return;
+    if ([...windows].some((w) => w.tabOf(e.sender))) endSharing(e.sender.id);
+  });
   ipcMain.on('tab:upload', (e) => {
     let mode: Perms.Mode = 'ALLOW';
     for (const w of windows) {

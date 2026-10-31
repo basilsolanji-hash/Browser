@@ -13,6 +13,7 @@ import type { ShareSource } from '../shared/types';
 export interface ShareWindow {
   locked: boolean;
   toast(text: string): void;
+  push(): void;
   shareTabs(): { id: string; wc: WebContents; title: string; favicon: string | null }[];
   showTabOf(wc: WebContents): void;
   askScreen(wc: WebContents, host: string, audio: boolean, sources: ShareSource[], resolve: (sourceId: string | null, audio: boolean) => void): boolean;
@@ -29,6 +30,73 @@ export interface ShareHost {
 
 interface Streams { video?: DesktopCapturerSource | Electron.WebFrameMain; audio?: 'loopback' | 'loopbackWithMute' | Electron.WebFrameMain }
 type Callback = (streams?: Streams) => void;
+
+// --- Индикатор и остановка показа ---
+// Включает и снимает индикатор только главный процесс по своим событиям; сайт его скрыть не может.
+
+interface Active { w: ShareWindow; label: string; startedAt: number; off: () => void; timer: NodeJS.Timeout | null }
+const active = new Map<number, Active>();
+
+/** Идёт ли показ экрана на этой вкладке. */
+export const isSharing = (wcId: number): boolean => active.has(wcId);
+
+/** Показ начался: индикатор включён, пока не кончатся все потоки (уход на другой сайт, закрытие, остановка). */
+function beginSharing(w: ShareWindow, wc: WebContents, label: string): void {
+  const prev = active.get(wc.id);
+  if (prev) { prev.label = label; prev.startedAt = Date.now(); w.push(); return; }
+  const nav = (e: Electron.Event<Electron.WebContentsDidStartNavigationEventParams>) => {
+    if (e.isMainFrame && !e.isSameDocument) endSharing(wc.id);
+  };
+  const gone = () => endSharing(wc.id);
+  wc.on('did-start-navigation', nav);
+  wc.once('destroyed', gone);
+  const off = () => {
+    if (wc.isDestroyed()) return;
+    wc.off('did-start-navigation', nav);
+    wc.off('destroyed', gone);
+  };
+  active.set(wc.id, { w, label, startedAt: Date.now(), off, timer: null });
+  w.toast(t('dt_share_started'));
+  w.push();
+}
+
+/** Индикатор снят (потоки кончились, вкладка ушла или закрыта). */
+export function endSharing(wcId: number): void {
+  const a = active.get(wcId);
+  if (!a) return;
+  active.delete(wcId);
+  if (a.timer) clearTimeout(a.timer);
+  a.off();
+  a.w.push();
+}
+
+/**
+ * Остановить показ вкладки. Мягко: preload вкладки останавливает треки (из главного процесса поток не
+ * остановить). Если за секунду индикатор не погас (кадр без preload, клонированные треки) — перезагрузка
+ * вкладки, она гарантированно рвёт все потоки.
+ */
+export function stopSharing(wc: WebContents, quiet = false): void {
+  const a = active.get(wc.id);
+  if (!a || wc.isDestroyed()) return;
+  try { wc.send('tab:share-stop'); } catch { /* вкладка закрывается */ }
+  if (a.timer) clearTimeout(a.timer);
+  a.timer = setTimeout(() => {
+    a.timer = null;
+    if (active.get(wc.id) !== a) return;
+    if (!wc.isDestroyed()) wc.reload();
+    endSharing(wc.id);
+    if (!quiet) a.w.toast(t('dt_share_stopped'));
+  }, 1000);
+}
+
+/** Остановить показ всех вкладок окна (блокировка PIN-ом). */
+export function stopWindowSharing(w: ShareWindow): void {
+  for (const [id, a] of [...active]) {
+    if (a.w !== w) continue;
+    const wc = webContents.fromId(id);
+    if (wc) stopSharing(wc, true); else endSharing(id);
+  }
+}
 
 /** Навесить обработчик показа экрана на сессию (профиль или инкогнито). */
 export function installDisplayHandler(ses: Session, host: ShareHost): void {
@@ -100,11 +168,13 @@ async function handleDisplayMedia(host: ShareHost, request: DisplayRequest, call
       if (kind === 'tab') {
         const twc = tabs.get(sourceId);
         if (!twc || twc.isDestroyed() || w.locked) return deny();
-        return done({ video: twc.mainFrame, audio: plan.audio ? twc.mainFrame : undefined });
+        done({ video: twc.mainFrame, audio: plan.audio ? twc.mainFrame : undefined });
+        return beginSharing(w, wc, site);
       }
       const src = real.get(sourceId);
       if (!src || w.locked) return deny();
       done({ video: src, audio: plan.audio === 'loopback' ? 'loopback' : undefined });
+      beginSharing(w, wc, site);
     });
     if (!opened) deny();
   } catch {
