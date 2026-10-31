@@ -20,11 +20,14 @@ export const LIMITS = {
 const FOLDER_MAX = 80;
 const TITLE_MAX = 300;
 const JSON_DEPTH = 50;
+/** Адрес длиннее 8 КБ не переносится. */
+const URL_MAX = 8192;
 
 export const emptyReport = (): ImportReport => ({ bookmarks: 0, passwords: 0, history: 0, duplicates: 0, skipped: 0 });
 
 /** Только адреса сайтов: javascript:, data:, file:, chrome: и прочие не переносятся. */
 export function isWebUrl(u: string): boolean {
+  if (u.trim().length > URL_MAX) return false;
   try {
     const x = new URL(u.trim());
     return (x.protocol === 'http:' || x.protocol === 'https:') && !!x.hostname;
@@ -60,7 +63,7 @@ function textUntil(text: string, from: number, tag: string): [string, number] {
   re.lastIndex = from;
   const m = re.exec(text);
   const end = m ? m.index : text.length;
-  return [decodeEntities(text.slice(from, end).replace(/<[^>]*>/g, '')).replace(/\s+/g, ' ').trim(), m ? re.lastIndex : end];
+  return [decodeEntities(text.slice(from, end).replace(/<[^<>]{0,9000}>/g, '')).replace(/\s+/g, ' ').trim(), m ? re.lastIndex : end];
 }
 
 function attr(attrs: string, name: string): string | null {
@@ -83,7 +86,7 @@ export function parseBookmarksHtml(text: string): Parsed<ImportBookmark> {
   // null — безымянный уровень (верхний <DL>), '' — панель закладок.
   const stack: (string | null)[] = [];
   let pending: string | null = null;
-  const re = /<(\/?)(dl|h3|a)(?=[\s>])([^>]*)>/gi;
+  const re = /<(\/?)(dl|h3|a)(?=[\s>])([^<>]{0,9000})>/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
     const close = m[1] === '/';

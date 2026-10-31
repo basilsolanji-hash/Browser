@@ -155,3 +155,21 @@ test('Пароли из профиля Chrome (Login Data) не читаются
   const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../../src/main/chromeimport.ts'), 'utf8');
   assert.ok(!src.includes('Login Data') && !src.includes('os_crypt'));
 });
+
+test('Патологический ввод: 100 тыс. «<a » без «>» разбирается за ~1 с', () => {
+  const t0 = Date.now();
+  parseBookmarksHtml('<a '.repeat(100000));
+  parseBookmarksHtml('<DL><a href="https://x.example/">' + '<b '.repeat(100000));
+  assert.ok(Date.now() - t0 < 1500, `слишком долго: ${Date.now() - t0} мс`);
+});
+
+test('Адрес длиннее 8 КБ не переносится', () => {
+  const long = 'https://x.example/' + 'a'.repeat(8200);
+  assert.equal(isWebUrl(long), false);
+  assert.equal(isWebUrl('https://x.example/' + 'a'.repeat(100)), true);
+  const r = parseBookmarksHtml(`<DL><DT><A HREF="${long}">L</A><DT><A HREF="https://ok.example/">OK</A></DL>`);
+  assert.equal(r.items.length, 1);
+  assert.equal(r.bad, 1);
+  const j = parseBookmarksJson(JSON.stringify({ roots: { bookmark_bar: { children: [{ type: 'url', name: 'L', url: long }] } } }), 'O');
+  assert.deepEqual([j.items.length, j.bad], [0, 1]);
+});
