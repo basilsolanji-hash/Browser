@@ -1,0 +1,14 @@
+.ph { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border: 1px solid var(--border); border-radius: 16px; margin: 4px 0 8px; }
+.ph .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.imp { border-radius: 16px; margin-top: 12px; padding: 16px; }
+.imp h3 { margin: 0 0 4px; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+.imp .hint { margin: 4px 0; }
+.imp .opts { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 12px 0; align-items: center; }
+.imp label { display: inline-flex; align-items: center; gap: 8px; }
+.imp input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); }
+.imp .go { display: flex; justify-content: flex-end; margin-top: 8px; }
+.imp .btn { border-radius: 20px; padding: 0 20px; }
+.warn { color: var(--accent); font-size: 13px; margin: 6px 0; }
+#import-report { border-color: var(--accent); }
+#import-report .links { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; }
+#import-report a { color: var(--accent); }

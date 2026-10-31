@@ -1,7 +1,8 @@
 import { safeStorage } from 'electron';
 import { JsonFile } from './store';
 import { registerPasswords } from './clearhooks';
-import { type Login, hostOf, sameSite, upsert as upsertIn } from './backupcrypto';
+import { type Login, hostOf, newGuid, sameSite, upsert as upsertIn } from './backupcrypto';
+import { type ImportLogin, loginKey, mergeLogins } from './chromeparse';
 
 /**
  * Пароли (Passwords.kt) — свои у каждого профиля, только на этом компьютере. Пароль шифруется ключом ОС
@@ -70,6 +71,19 @@ export function upsert(profile: number, origin: string, username: string, pass: 
   if (!next) return false;
   file.update((d) => { d.profiles[profile] = next; });
   return true;
+}
+
+/** Перенос из CSV: одной записью файла; пара «сайт + логин», которая уже есть, не перезаписывается. */
+export function importMany(profile: number, items: ImportLogin[]): { added: number; duplicates: number } | 'nocrypto' {
+  if (!available()) return 'nocrypto';
+  const { fresh, duplicates } = mergeLogins(new Set(raw(profile).map((s) => loginKey(s.o, s.u))), items);
+  if (fresh.length) {
+    const t = Date.now();
+    // Шифруются только новые пароли.
+    const sealed = fresh.map((l): Stored => ({ g: newGuid(), o: l.origin, u: l.username, p: seal(l.password), t }));
+    file.update((d) => { d.profiles[profile] = [...raw(profile), ...sealed]; });
+  }
+  return { added: fresh.length, duplicates };
 }
 
 export function remove(profile: number, guid: string): void {

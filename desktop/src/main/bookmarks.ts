@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { JsonFile } from './store';
+import { type ImportBookmark, mergeBookmarks } from './chromeparse';
 
 /** Избранное с папками одного уровня — общее для всех профилей (Bookmarks.kt). */
 export interface Bookmark { id: string; t: string; u: string; f: string }
@@ -19,6 +20,18 @@ export function folders(): string[] {
 export function add(title: string, url: string, folder = ROOT): void {
   if (findByUrl(url)) return;
   bookmarksFile.update((d) => { d.list.push({ id: 'b' + randomUUID(), t: (title || url).slice(0, 300), u: url, f: folder }); });
+}
+
+/** Перенос (Chrome, HTML): одной записью файла; адреса, которые уже есть, — дубликаты. */
+export function addMany(items: ImportBookmark[]): { added: number; duplicates: number } {
+  const { fresh, folders: made, duplicates } = mergeBookmarks(all().map((b) => b.u), folders(), items);
+  if (fresh.length || made.length) {
+    bookmarksFile.update((d) => {
+      d.folders.push(...made);
+      for (const b of fresh) d.list.push({ id: 'b' + randomUUID(), t: b.title.slice(0, 300), u: b.url, f: b.folder });
+    });
+  }
+  return { added: fresh.length, duplicates };
 }
 
 export function remove(id: string): void {

@@ -7,7 +7,7 @@ import { createServer } from 'node:http';
 import { createHash, generateKeyPairSync, createSign } from 'node:crypto';
 import { crc32 } from 'node:zlib';
 import { execFileSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { load as loadTr } from '../scripts/gen-i18n.mjs';
@@ -2404,6 +2404,141 @@ try {
     check('new tab in the second window goes to its profile', await waitFor(async () => (await state(1)).url.startsWith(`${SITE}/page/second`), 8000) && (await state(0)).tabs.length === tabs61);
     await main(() => globalThis.osTest.windows()[1].win.close());
     check('closing the second window keeps the first', await waitFor(() => main((_e, n) => globalThis.osTest.windows().length === n, n61), 5000));
+
+    // --- 62. Перенос из Chrome (DESKTOP_TASKS №1) ---
+    step('62. Перенос из Chrome: HTML закладок, CSV паролей, профиль Chrome (закладки и история), без дублей; недоступно в инкогнито');
+    const FX = join(root, 'test/fixtures/chrome');
+    const { makeHistory } = await import('./fixtures/chrome/make-history.mjs');
+    const tmp62 = join(tmpdir(), `os-acc-chrome-${Date.now()}`);
+    const ud62 = join(tmp62, 'User Data');
+    cpSync(join(FX, 'User Data'), ud62, { recursive: true });
+    const now62 = Date.now();
+    makeHistory(join(ud62, 'Default/History'), [
+      { url: 'https://hist-a.example/', title: 'Hist A', time: now62 - 3600_000 },
+      { url: 'https://hist-b.example/', title: 'Hist B', time: now62 - 7200_000 },
+      { url: 'https://accounts.google.com/x', title: 'Google', time: now62 - 60_000 },
+    ]);
+    const added62 = (b, p, h) => L('dt_import_added').replace('%1$d', b).replace('%2$d', p).replace('%3$d', h);
+    const skipped62 = (d, e) => L('dt_import_skipped').replace('%1$d', d).replace('%2$d', e);
+    await main((_e, dir) => globalThis.osTest.chromeRoot(dir), ud62);
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.openPanel('os://settings/?g=data'); });
+    const st62 = await page('os://settings/');
+    await st62.waitForSelector('#open-import');
+    check('Settings → Data has «Import from Chrome»', (await st62.textContent('#open-import')).includes(L('dt_import_chrome')));
+    await st62.fill('#settings-search', 'Chrome');
+    await sleep(200);
+    const hit62 = await st62.$$eval('.setting', (e) => e.filter((x) => x.offsetParent !== null).map((x) => x.id));
+    check('settings search «Chrome» finds the import item', hit62.includes('open-import'), hit62.join(','));
+    await st62.fill('#settings-search', '');
+    await st62.click('#open-import');
+    check('the item opens os://import/ of the profile', await waitFor(() => main(() => globalThis.osTest.windows()[0].page.webContents.getURL().startsWith('os://import/?profile='))),
+      await main(() => globalThis.osTest.windows()[0].page.webContents.getURL()));
+    await main(() => globalThis.osTest.windows()[0].openPanel('os://import/?profile=1'));
+    const ip62 = await page('os://import/');
+    await ip62.waitForSelector('#chrome-profile');
+    check('import page: profile chip, Chrome profile «Тест», CSV warning',
+      (await ip62.textContent('#import-to')).startsWith(L('dt_import_to').replace('%1$s', '')) &&
+      (await ip62.$$eval('#chrome-profile option', (o) => o.map((x) => x.textContent))).includes('Тест') && await ip62.isVisible('#csv-warning'));
+    check('history checkbox shown (built-in SQLite)', await ip62.isVisible('#imp-hist'));
+    await keyScreen('62-import-page', 'page');
+
+    // HTML закладок: 6 ссылок, javascript: и chrome:// пропущены.
+    await flush();
+    const bmBefore62 = (readJson('bookmarks')?.list ?? []).length;
+    await main((_e, p) => globalThis.osTest.importPath(p), join(FX, 'bookmarks.html'));
+    await ip62.click('#import-html');
+    const rep62 = await waitFor(async () => ((await ip62.$('#import-report')) ? ip62.textContent('#import-report') : null), 8000);
+    check('HTML: added 6 bookmarks, skipped 0 duplicates and 2 unsuitable', rep62?.includes(added62(6, 0, 0)) && rep62.includes(skipped62(0, 2)), rep62);
+    await flush();
+    const bm62 = readJson('bookmarks');
+    check('bookmarks.json: folder «Работа / Проекты», no javascript:', bm62.list.length === bmBefore62 + 6 && bm62.list.some((b) => b.f === 'Работа / Проекты') &&
+      !bm62.list.some((b) => b.u.startsWith('javascript:') || b.u.startsWith('chrome:')), JSON.stringify(bm62.list.slice(-6)));
+    await keyScreen('62-import-report', 'page');
+    await ip62.click('#import-html');
+    const rep62b = await waitFor(async () => { const x = await ip62.textContent('#import-report'); return x.includes(skipped62(6, 2)) ? x : null; }, 8000);
+    await flush();
+    check('HTML again: 0 added, 6 duplicates, bookmarks unchanged', rep62b?.includes(added62(0, 0, 0)) && readJson('bookmarks').list.length === bmBefore62 + 6, rep62b);
+
+    // CSV паролей: существующий пароль не перезаписывается, android:// и пустой пароль пропущены.
+    await main(() => globalThis.osTest.seed.password(1, 'https://bank.example', 'anna', 'OLD'));
+    await flush();
+    const p2Before62 = JSON.stringify(readJson('passwords')?.profiles?.['2'] ?? []);
+    await main((_e, p) => globalThis.osTest.importPath(p), join(FX, 'passwords.csv'));
+    await ip62.click('#import-csv');
+    const rep62c = await waitFor(async () => { const x = await ip62.textContent('#import-report'); return x.includes(added62(0, 1, 0)) ? x : null; }, 8000);
+    check('CSV: 1 password added, 1 duplicate, 2 unsuitable', rep62c?.includes(skipped62(1, 2)), rep62c ?? await ip62.textContent('#import-report'));
+    const bank62 = await main(() => { const l = globalThis.osTest.logins(1).find((x) => x.o === 'https://bank.example' && x.u === 'anna'); return l ? globalThis.osTest.password(1, l.g) : null; });
+    check('existing password is not overwritten by the CSV', bank62 === 'OLD', String(bank62));
+    const mail62 = await main(() => { const l = globalThis.osTest.logins(1).find((x) => x.o === 'https://mail.example' && x.u === 'bob'); return l ? globalThis.osTest.password(1, l.g) : null; });
+    check('new password saved and decrypts', mail62 === 'pa,ss"Csv-2', String(mail62));
+    await flush();
+    const pwText62 = readFileSync(join(userData, 'passwords.json'), 'utf8');
+    check('passwords.json has no plain text from the CSV, profile 2 untouched', !pwText62.includes('Csv-2') && !pwText62.includes('New-From-Csv-1') &&
+      !pwText62.includes('android') && JSON.stringify(readJson('passwords')?.profiles?.['2'] ?? []) === p2Before62);
+
+    // Профиль Chrome: закладки из Bookmarks (одна совпадает с HTML) и история из копии History.
+    await main(() => globalThis.osTest.importPath(null));
+    await ip62.check('#imp-bm');
+    await ip62.check('#imp-hist');
+    await ip62.click('#import-chrome-go');
+    const rep62d = await waitFor(async () => { const x = await ip62.textContent('#import-report'); return x.includes(added62(2, 0, 2)) ? x : null; }, 10000);
+    check('Chrome profile: 2 bookmarks and 2 history entries added, 1 duplicate, 1 unsuitable', rep62d?.includes(skipped62(1, 1)), rep62d ?? await ip62.textContent('#import-report'));
+    await flush();
+    const h62 = readJson('history')?.h?.['1'] ?? [];
+    check('history: hist-a and hist-b imported, no accounts.google.com, ordered by time',
+      h62.some((v) => v.u === 'https://hist-a.example/' && v.t === 'Hist A') && h62.some((v) => v.u === 'https://hist-b.example/') &&
+      !h62.some((v) => v.u.includes('accounts.google.com')) && h62.every((v, i) => i === 0 || h62[i - 1].d >= v.d), JSON.stringify(h62.slice(0, 5)));
+    check('temporary copy of History removed', !readdirSync(tmpdir()).some((f) => f.startsWith('os-chrome-')));
+    await ip62.click('#import-chrome-go');
+    const rep62e = await waitFor(async () => { const x = await ip62.textContent('#import-report'); return x.includes(added62(0, 0, 0)) ? x : null; }, 10000);
+    check('Chrome profile again: nothing added (3 + 2 duplicates)', rep62e?.includes(skipped62(5, 1)), rep62e ?? await ip62.textContent('#import-report'));
+
+    // Chrome не найден; слишком большой CSV; битый HTML.
+    const empty62 = join(tmp62, 'empty');
+    mkdirSync(empty62, { recursive: true });
+    await main((_e, dir) => globalThis.osTest.chromeRoot(dir), empty62);
+    await ip62.reload();
+    await waitFor(async () => (await ip62.$('#chrome-missing')) && !(await ip62.$('#import-report')), 8000);
+    check('no Chrome: «Chrome was not found» shown, file buttons stay', (await ip62.textContent('#chrome-missing')) === L('dt_import_not_found') && await ip62.isEnabled('#import-html'));
+    const bigCsv62 = join(tmp62, 'big.csv');
+    writeFileSync(bigCsv62, 'name,url,username,password\n' + 'x,https://big.example/,u,p\n'.repeat(5 * 1024 * 1024 / 25));
+    const pwCount62 = await main(() => globalThis.osTest.logins(1).length);
+    await main((_e, p) => globalThis.osTest.importPath(p), bigCsv62);
+    await ip62.click('#import-csv');
+    const toast62 = await waitFor(async () => ((await ip62.$('.toast')) ? ip62.textContent('.toast') : null), 5000);
+    check('CSV over 5 MB: «The file is too large», nothing added', toast62 === L('dt_import_big') && (await main(() => globalThis.osTest.logins(1).length)) === pwCount62, String(toast62));
+    const junk62 = join(tmp62, 'junk.html');
+    writeFileSync(junk62, Buffer.from(Array.from({ length: 4096 }, (_, i) => (i * 7919) & 255)));
+    await main((_e, p) => globalThis.osTest.importPath(p), junk62);
+    await ip62.click('#import-html');
+    const rep62f = await waitFor(async () => ((await ip62.$('#import-report')) ? ip62.textContent('#import-report') : null), 8000);
+    check('broken HTML: 0 added, no crash', rep62f?.includes(added62(0, 0, 0)), String(rep62f));
+    await main(() => { globalThis.osTest.importPath(null); globalThis.osTest.chromeRoot(null); });
+
+    // Инкогнито: экран и прямой вызов отказывают.
+    await main(() => globalThis.osTest.windows()[0].closePanel());
+    const nw62 = await main(() => globalThis.osTest.windows().length);
+    await key('Ctrl+Shift+N');
+    await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) > nw62);
+    const wi62 = await main(() => globalThis.osTest.windows().findIndex((w) => w.incognito));
+    await main((_e, wi) => globalThis.osTest.windows()[wi].openPanel('os://import/'), wi62);
+    // У первого окна свой os://import/?profile=1 — берём экран окна инкогнито (без профиля в адресе).
+    const inc62 = await waitFor(() => app.windows().find((p) => !p.isClosed() && p.url() === 'os://import/'));
+    await inc62.waitForSelector('#import-incognito');
+    check('incognito: «Import is unavailable in incognito»', (await inc62.textContent('#import-incognito')) === L('dt_import_incognito'));
+    const direct62 = await inc62.evaluate(() => Promise.all([window.os.call('importFile', 1, 'html'), window.os.call('importChrome', 1, 'Default', { bookmarks: true })]));
+    check('incognito: direct importFile/importChrome calls refused', direct62.every((x) => x === 'incognito'), JSON.stringify(direct62));
+    await main((_e, wi) => globalThis.osTest.windows()[wi].win.close(), wi62);
+    await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) === nw62);
+
+    // PIN-замок: общий шлюз IPC не пускает вызовы переноса.
+    await main(() => { const w = globalThis.osTest.windows()[0]; w.openPanel('os://import/?profile=1'); });
+    await main(() => globalThis.osTest.windows().forEach((w) => w.lock()));
+    const lp62 = await page('os://lock/');
+    const locked62 = await lp62.evaluate(() => window.os.call('importInfo', 1).then(() => 'ok', (e) => String(e.message)));
+    check('under the PIN lock import calls are refused', locked62.includes('locked'), locked62);
+    await unlockIfNeeded();
+    rmSync(tmp62, { recursive: true, force: true });
 
     // --- 57. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки; снимки страниц — только для человека (страница /tracked почти пустая). ---
     step('57. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');

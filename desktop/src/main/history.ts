@@ -1,5 +1,6 @@
 import { JsonFile } from './store';
 import * as Stats from './stats';
+import { mergeHistory } from './chromeparse';
 
 /** История посещений, отдельная для каждого профиля (History.kt). Инкогнито сюда не пишет. */
 export interface Visit { u: string; t: string; d: number }
@@ -15,6 +16,13 @@ export function add(profile: number, url: string): void {
   if (items[0]?.u === url) return;
   historyFile.update((d) => { d.h[profile] = [{ u: url, t: '', d: Date.now() }, ...items].slice(0, MAX); });
   Stats.page(profile);
+}
+
+/** Перенос из Chrome: без адресов, которые уже есть; итог — последние MAX по времени. Stats не меняется. */
+export function importMany(profile: number, visits: Visit[]): { added: number; duplicates: number; dropped: number } {
+  const r = mergeHistory(list(profile), visits, MAX);
+  if (r.added) historyFile.update((d) => { d.h[profile] = r.list; });
+  return { added: r.added, duplicates: r.duplicates, dropped: r.dropped };
 }
 
 /** Удалить одну запись (по адресу и времени). */

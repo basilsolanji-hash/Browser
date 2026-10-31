@@ -18,6 +18,7 @@ import { installNotifications, shownForTest, clickLastForTest } from './notify';
 import { installUploads } from './window';
 import { installAutofill } from './autofill';
 import { setTestPath } from './backup';
+import * as ChromeImport from './chromeimport';
 import { incomingUrl } from './defaultbrowser';
 import * as Updater from './updater';
 import { suspendAll } from './downloads';
@@ -122,6 +123,11 @@ if (process.env.OS_TEST === '1') {
     extensions: (profile: number) => Extensions.info(profileSession(profile), profile, 'en'),
     extensionFiles: (profile: number, id: string) => Extensions.hasFiles(profile, id),
     backupPath: (p: string | null) => setTestPath(p),
+    // Перенос из Chrome: свой корень User Data и файл вместо окна выбора.
+    chromeRoot: (dir: string | null) => ChromeImport.setTestRoot(dir),
+    importPath: (p: string | null) => ChromeImport.setTestPath(p),
+    password: (profile: number, guid: string) => Passwords.password(profile, guid),
+    logins: (profile: number) => Passwords.infos(profile),
     // Вопросы окном Windows («Покинуть страницу?»): заранее заданные ответы и список заданных вопросов.
     ask: AskHooks,
     // Контекстное меню вкладки (§23): подписи пунктов и нажатие пункта по подписи (подменю — через «/»).
