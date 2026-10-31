@@ -18,6 +18,7 @@ import * as Downloads from './downloads';
 import * as Bookmarks from './bookmarks';
 import * as Saved from './saved';
 import * as Perms from './permissions';
+import { installDisplayHandler } from './screenshare';
 import * as Privacy from './privacy';
 import * as Lock from './lock';
 import * as Reader from './reader';
@@ -176,6 +177,12 @@ function installPermissions(ses: Session, profile: number | null): void {
       }
       cb(allow);
     });
+  });
+  installDisplayHandler(ses, {
+    hostOf: (url) => (isWebUrl(url) ? hostOf(url) : ''),
+    windowOf: (wc) => [...windows].find((x) => x.owns(wc)),
+    mode: (host) => mode(host, 'display'),
+    blockedText: (host) => t('perm_blocked_for', t('dt_perm_display'), host),
   });
   ses.setPermissionCheckHandler((wc, permission, origin, details) => {
     if (SIMPLE_ALLOW.has(permission)) return true;
