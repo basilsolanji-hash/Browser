@@ -10,6 +10,7 @@ import { JsonFile } from './store';
 import { effectiveMime, viewableInOs } from '../shared/filetype';
 import * as DocView from './docview';
 import { t } from './i18n';
+import { markFromInternet } from './motw';
 
 /**
  * Загрузки (Downloads.kt / DownloadsActivity.kt): файлы — в «Загрузки/Ось», список — для экрана «Загрузки».
@@ -81,6 +82,8 @@ const partOf = (path: string) => join(dirname(path), `.${basename(path)}.osdownl
 
 const key = (profile: number | null) => (profile == null ? 'incognito' : String(profile));
 let seq = 0;
+/** Страница, с которой начата загрузка (для ReferrerUrl); только в памяти, на диск не попадает. */
+const referrers = new Map<string, string>();
 
 /** Подключить сессию: загрузки сохраняются в папку «Ось», если сайт может скачивать (разрешения сайта). */
 export function attach(ses: Session, profile: number | null): void {
@@ -117,6 +120,7 @@ export function attach(ses: Session, profile: number | null): void {
       state: 'progress', received: 0, profile, mime: item.getMimeType(), ...(answer === 'allow' ? {} : { pending: true }),
     };
     file.update((d) => { d.list = [entry, ...d.list].slice(0, MAX); });
+    if (wc) referrers.set(id, wc.getURL());
     track(id, item);
     onChange();
     // Пока вопрос висит, файл качается; «Запретить» — отмена и удаление.
@@ -206,9 +210,17 @@ function track(id: string, item: DownloadItem): void {
     const mine = live.get(id) === item;
     if (mine) live.delete(id);
     rates.delete(id);
+    const referrer = referrers.get(id);
+    referrers.delete(id);
     // Отказ в разрешении уже удалил запись и файл.
     if (quitting || !mine && !list().some((x) => x.id === id)) return;
     if (state !== 'interrupted') rmSync(partOf(item.getSavePath()), { force: true });
+    if (state === 'completed') {
+      // Файл из интернета: метка для Проводника и SmartScreen (в инкогнито — без адресов).
+      const d = list().find((x) => x.id === id);
+      const chain = item.getURLChain();
+      markFromInternet(item.getSavePath(), { referrer, host: d?.url || chain[chain.length - 1], incognito: d?.profile == null });
+    }
     if (state === 'completed') patch(id, { received: item.getReceivedBytes(), size: item.getTotalBytes() || item.getReceivedBytes(), state, resumable: false });
     else patch(id, { ...meta(), state });
   });

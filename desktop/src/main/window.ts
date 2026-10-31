@@ -905,7 +905,7 @@ export class OsWindow implements TabHost {
     const v = this.shown;
     if (!v || !isWebUrl(v.url()) || this.panel) return null;
     const pdf = await v.wc.printToPDF({ printBackground: true, generateDocumentOutline: true, generateTaggedPDF: true });
-    return Saved.store(v.wc.getTitle(), v.url(), pdf);
+    return Saved.store(v.wc.getTitle(), v.url(), pdf, this.incognito);
   }
 
   /** Сообщение в шапке (как Toast на Android). */
