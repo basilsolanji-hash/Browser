@@ -88,6 +88,8 @@ interface Prompt {
 interface ScreenPick {
   id: number; wcId: number; host: string; audio: boolean; systemAudio: boolean; sources: ShareSource[];
   resolve: (sourceId: string | null, audio: boolean) => void;
+  /** Снять слушатели вкладки (переход, закрытие). */
+  off: () => void;
 }
 export interface AskOptions { text?: string; keepOnNavigate?: boolean }
 /** Вопрос о пароле: сохранить после входа или выбрать аккаунт для подстановки. */
@@ -870,13 +872,14 @@ export class OsWindow implements TabHost {
   /** Открыть окно выбора. false — выбор уже открыт (новый запрос отклоняется). */
   askScreen(wc: WebContents, host: string, audio: boolean, sources: ShareSource[], resolve: (sourceId: string | null, audio: boolean) => void): boolean {
     if (this.screenPick || this.locked) return false;
-    const p: ScreenPick = { id: ++promptSeq, wcId: wc.id, host, audio, systemAudio: process.platform === 'win32', sources, resolve };
+    const p: ScreenPick = { id: ++promptSeq, wcId: wc.id, host, audio, systemAudio: process.platform === 'win32', sources, resolve, off: () => {} };
     this.screenPick = p;
     // Вкладку закрыли или увели на другой сайт — отказ.
     const cancel = () => this.answerScreen(p.id, null, false);
     const nav = (e: Electron.Event<Electron.WebContentsDidStartNavigationEventParams>) => {
       if (e.isMainFrame && !e.isSameDocument) { wc.off('did-start-navigation', nav); cancel(); }
     };
+    p.off = () => { wc.off('did-start-navigation', nav); wc.off('destroyed', cancel); };
     wc.once('destroyed', cancel);
     wc.on('did-start-navigation', nav);
     this.push();
@@ -887,6 +890,7 @@ export class OsWindow implements TabHost {
     const p = this.screenPick;
     if (!p || p.id !== id) return;
     this.screenPick = null;
+    p.off();
     // Выбрать можно только то, что было в списке этого запроса.
     p.resolve(sourceId != null && p.sources.some((x) => x.id === sourceId) ? sourceId : null, audio);
     this.push();

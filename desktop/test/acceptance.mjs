@@ -2665,6 +2665,31 @@ try {
         await waitFor(async () => (await state(0)).sharing, 5000);
         await pg63.evaluate(() => window.s.getTracks().forEach((t) => t.stop()));
         check('the site stopped the tracks itself: indicator removed', await waitFor(async () => !(await state(0)).sharing, 6000));
+        // Клон + остановка оригинала: показ идёт, индикатор остаётся; «Остановить показ» гасит и клон.
+        await pg63.click('#go');
+        await pickOf(0);
+        chosen63 = await choose(ui63);
+        await ui63.click('#share-go');
+        await result(pg63);
+        await waitFor(async () => (await state(0)).sharing, 5000);
+        await pg63.evaluate(() => { window.c = window.s.getVideoTracks()[0].clone(); window.cs = window.s.clone(); window.s.getTracks().forEach((t) => t.stop()); });
+        await sleep(1500);
+        check('clone + stop of the originals: indicator stays', (await state(0)).sharing === true && (await ui63.$('#share-chip')) !== null);
+        await ui63.click('#share-chip');
+        check('Stop sharing also ends the clones', await waitFor(() => pg63.evaluate(() => window.c.readyState === 'ended' && window.cs.getTracks().every((t) => t.readyState === 'ended')).catch(() => true), 6000));
+        check('indicator removed after stopping clones', await waitFor(async () => !(await state(0)).sharing, 6000));
+        // Подмена readyState/stop на треке страницей не снимает индикатор.
+        await pg63.click('#go');
+        await pickOf(0);
+        chosen63 = await choose(ui63);
+        await ui63.click('#share-go');
+        await result(pg63);
+        await waitFor(async () => (await state(0)).sharing, 5000);
+        await pg63.evaluate(() => { const t = window.s.getVideoTracks()[0]; Object.defineProperty(t, 'readyState', { value: 'ended' }); t.stop = () => {}; });
+        await sleep(1500);
+        check('forged readyState: indicator stays', (await state(0)).sharing === true);
+        await ui63.click('#share-chip');
+        check('Stop sharing works despite forged readyState/stop', await waitFor(async () => !(await state(0)).sharing, 6000));
         // 7a. PIN во время показа.
         await pg63.click('#go');
         await pickOf(0);
