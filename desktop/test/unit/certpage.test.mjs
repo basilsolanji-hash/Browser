@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { certHtml, CERT_CSP } from '../../src/main/certpage.ts';
 
 const P = { dark: false, bg: '#fff', surface: '#eee', border: '#ccc', text: '#111', muted: '#555', accent: '#06c', onAccent: '#fff' };
@@ -8,7 +9,9 @@ const info = (o = {}) => ({
   fp: 'sha256/' + Buffer.alloc(32, 0xab).toString('base64'), issuer: 'CN=Issuer', subject: 'CN=Subj', validFrom: 1700000000, validTo: 1800000000,
   selfSigned: false, canProceed: true, ...o,
 });
-const tr = (k) => k; // нет переводов: берутся временные английские строки
+// настоящие английские строки из src/i18n/en.json (их собирает npm run i18n из TrDesktop.kt)
+const EN = JSON.parse(readFileSync(new URL('../../src/i18n/en.json', import.meta.url), 'utf8'));
+const tr = (k, ...a) => { let i = 0; return (EN[k] ?? k).replace(/%s/g, () => String(a[i++] ?? '')); };
 
 test('страница без скриптов, с ссылками назад/перейти и деталями', () => {
   const h = certHtml(P, info(), 'TOK123', tr, false);

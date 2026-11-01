@@ -41,6 +41,7 @@
 | Конфиденциальность | `privacy_security` | privacy | конфиденциальность | privacidad | privacidade | confidentialité | Datenschutz | الخصوصية | गोपनीयता | gizlilik | 隐私 | канфідэнцыяльнасць | maxfiylik | купуялык | махфият | құпиялылық | գաղտնիություն |
 | Браузер | `default_browser` | browser | браузер | navegador | navegador | navigateur | browser | المتصفح | ब्राउज़र | tarayıcı | 浏览器 | браўзер | brauzer | серепчи | браузер | браузер | դիտարկիչ |
 | Файлы cookie | `cd_cookies` | cookies | файлы cookie | cookies | cookies | cookies | cookies | ملفات تعريف الارتباط | कुकी | çerezler | cookie | файлы cookie | cookie fayllari | cookie файлдары | файлҳои cookie | cookie файлдары | cookie ֆայլեր |
+| Сертификат безопасности | `dt_cert_word` | Certificate | Сертификат | Certificado | Certificado | Certificat | Zertifikat | الشهادة | प्रमाणपत्र | Sertifika | 证书 | Сертыфікат | Sertifikat | Сертификат | Сертификат | Сертификат | Վկայական |
 ## Запрещённые синонимы
 
 Строки с этими словами тест `GlossaryTest` не пропустит (поиск без учёта регистра, по всем строкам языка).

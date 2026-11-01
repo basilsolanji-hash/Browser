@@ -2,9 +2,6 @@ import { boot, h, icon, iconButton, os, svg, t } from '../shared/ui';
 import { MARK } from '../shared/icons';
 import type { ProfileInfo, ShareSource, StripTab, Suggestion, Tile, WindowState } from '../shared/types';
 
-/** Строка перевода; пока ключа нет в словаре (этап 5), показываем запасной английский текст. */
-const tr = (key: string, fallback: string) => { const s = t(key); return s === key ? fallback : s; };
-
 /**
  * Шапка браузера: верхний ряд (логотип, профиль, вкладки) и панель адреса. Выпадающие меню рисуются
  * здесь же: на время показа главный процесс растягивает шапку на всё окно (её фон прозрачный).
@@ -320,10 +317,10 @@ function renderRow2(): void {
   const lock = icon(st.url ? (st.secure ? 'lock' : 'info') : 'search', 16);
   if (st.secure) lock.classList.add('secure');
   if (st.certBypassed) lock.classList.add('bad');
-  lock.title = st.url ? (st.secure ? t('dt_secure') : st.certBypassed ? tr('dt_cert_bypassed', 'You opened this site despite a certificate error.') : t('dt_not_secure')) : '';
+  lock.title = st.url ? (st.secure ? t('dt_secure') : st.certBypassed ? t('dt_cert_bypassed') : t('dt_not_secure')) : '';
   // Бейдж «Не защищено» рядом со значком (как в Chrome) — только у сайта, открытого вопреки ошибке сертификата.
   const insecure = st.certBypassed
-    ? h('span', { class: 'insecure', title: lock.title }, tr('dt_cert_not_secure', 'Not secure'))
+    ? h('span', { class: 'insecure', title: lock.title }, t('dt_cert_not_secure'))
     : null;
   // При вводе слева — кружок выбранного поисковика (как в Chrome), без фокуса — замок у HTTPS.
   const badge = engineBadge(st.engine);

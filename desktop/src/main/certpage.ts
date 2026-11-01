@@ -4,34 +4,6 @@ import { fingerprintHex, nameFromCode, reasonKey, type PendingError } from './ce
 /** Перевод строки: (ключ, подстановки) → текст. Если ключа нет в словаре, возвращается сам ключ. */
 export type Tr = (key: string, ...args: unknown[]) => string;
 
-/**
- * Временные английские строки: настоящие dt_cert_* на 16 языков добавляются на этапе 5.
- * Пока ключа нет в TrDesktop.kt, t() вернёт сам ключ — тогда берём текст отсюда.
- */
-const EN: Record<string, string> = {
-  dt_cert_title: 'Your connection is not private',
-  dt_cert_lead: 'Attackers might be trying to steal your information from %s.',
-  dt_cert_back: 'Back to safety',
-  dt_cert_details: 'Details',
-  dt_cert_proceed: 'Continue to %s (unsafe)',
-  dt_cert_no_proceed: "This site requires a secure connection, so the error can't be bypassed.",
-  dt_cert_why_expired: "The site's certificate has expired or is not valid yet.",
-  dt_cert_why_name: 'The certificate was issued for a different address.',
-  dt_cert_why_authority: "Your computer doesn't trust the organization that issued this certificate.",
-  dt_cert_why_self: 'The certificate is self-signed: the site vouches for itself.',
-  dt_cert_why_revoked: 'The issuer has revoked this certificate.',
-  dt_cert_why_revcheck: "Couldn't check whether the certificate has been revoked.",
-  dt_cert_why_weak: 'The site uses outdated protection.',
-  dt_cert_why_invalid: "The certificate doesn't meet the requirements.",
-  dt_cert_why_other: "Couldn't verify that the site is safe.",
-  dt_cert_clock: 'Check that the date and time on your computer are correct.',
-  dt_cert_issuer: 'Issued by',
-  dt_cert_subject: 'Issued to',
-  dt_cert_valid: 'Valid from %s to %s',
-  dt_cert_fp: 'SHA-256 fingerprint',
-  dt_cert_code: 'Error code',
-};
-
 const MAX = 200;
 /** Всё, что пришло из сертификата и адреса, — недоверенный текст: обрезка и экранирование. */
 export const esc = (x: string) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -40,11 +12,6 @@ const safe = (x: string) => esc(clip(x));
 /** Управляющие символы и символы направления письма из чужого текста не показываем. */
 // eslint-disable-next-line no-control-regex
 const clean = (x: string) => x.replace(/[\u0000-\u001f\u007f‎‏‪-‮⁦-⁩]/g, ' ');
-
-function fmt(s: string, args: unknown[]): string {
-  let i = 0;
-  return s.replace(/%s/g, () => String(args[i++] ?? ''));
-}
 
 /** Красный акцент ошибки: ≥ 4,5:1 на фоне светлых и тёмных тем. */
 const bad = (p: Palette) => (p.dark ? '#ff8a80' : '#b3261e');
@@ -72,10 +39,7 @@ function address(url: string): string {
  * Часы компьютера: подсказка про дату — только для просроченного/ещё не начавшегося сертификата.
  */
 export function certHtml(p: Palette, info: PendingError, token: string, tr: Tr, rtl: boolean, locale = 'en'): string {
-  const T = (key: string, ...args: unknown[]) => {
-    const s = tr(key, ...args);
-    return s === key ? fmt(EN[key] ?? key, args) : s;
-  };
+  const T = tr;
   const why = reasonKey(info.code, info.selfSigned);
   const dir = rtl ? 'rtl' : 'ltr';
   const act = (a: string) => `os://error/act?t=${encodeURIComponent(token)}&amp;a=${a}`;
