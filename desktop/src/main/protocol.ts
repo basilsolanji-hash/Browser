@@ -2,6 +2,8 @@ import { protocol, type Session } from 'electron';
 import { readFile } from 'node:fs/promises';
 import { join, normalize, sep } from 'node:path';
 import { errorHtml, startHtml } from './startpage';
+import { CERT_CSP, certHtml } from './certpage';
+import { currentLang, isRtl, t } from './i18n';
 import { INCOGNITO_PALETTE, palette } from './themes';
 import { settings } from './settings';
 import { READER_CSP, readerHtml } from './reader';
@@ -65,11 +67,13 @@ export function handleWebSession(ses: Session, incognito: boolean): void {
     if (u.host === 'file') return serveDownload(u.pathname.split('/')[1] ?? '', ses);
     if (u.host === 'reader') return html(readerHtml(Number(u.searchParams.get('id')), themed(incognito)), READER_CSP);
     if (u.host === 'error') {
-      // Ошибка сертификата: данные по токену — только своей сессии (полная страница — этап 3, пока заглушка на общем тексте).
+      // Действие со страницы ошибки сертификата выполняет main в will-navigate; сам ответ пустой.
+      if (u.pathname === '/act') return new Response(null, { status: 204 });
+      // Ошибка сертификата: данные по токену — только своей сессии.
       const token = u.searchParams.get('cert');
       if (token) {
         const p = pending.forSession(token, sessionKey(ses));
-        if (p) return html(errorHtml(themed(incognito), p.code, p.url), START_CSP);
+        if (p) return html(certHtml(themed(incognito), p, token, t, isRtl(), currentLang()), CERT_CSP);
       }
       return html(errorHtml(themed(incognito), Number(u.searchParams.get('code')), u.searchParams.get('url') ?? ''), START_CSP);
     }
