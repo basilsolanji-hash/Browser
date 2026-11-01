@@ -10,7 +10,8 @@ import * as Diag from './diag';
 import * as Unload from './unload';
 import { linkMenu, linkTarget, mediaKeys, type LinkItem, type LinkTarget } from './linkmenu';
 import { askSync } from './ask';
-import { pending, sessionKey, takeInsecure, dropTab } from './certs';
+import { pending, sessionKey, takeInsecure, dropTab, exceptionsOf } from './certs';
+import { decideAct } from './certstore';
 
 /** «Мобильная версия» сайта: User-Agent Chrome для Android (без версии устройства). */
 const mobileUa = () => cleanUserAgent().replace(/\([^)]*\)/, '(Linux; Android 10; K)').replace(/ Safari\//, ' Mobile Safari/');
@@ -121,7 +122,23 @@ export class TabView {
       e.preventDefault();
       if (/^mailto:/i.test(url)) openExternal(url);
     };
-    wc.on('will-navigate', (e) => guard(e, e.url));
+    wc.on('will-navigate', (e) => {
+      // Кнопки страницы ошибки сертификата — ссылки os://error/act. Сайт этот адрес не открывает (guard), а здесь
+      // действие выполняется только со страницы ошибки этой вкладки и по её одноразовому токену.
+      const d = decideAct(pending, e.url, wc.getURL(), wc.id, sessionKey(ses));
+      if (d.kind !== 'none') {
+        e.preventDefault();
+        if (d.kind === 'back') {
+          if (wc.navigationHistory.canGoBack()) wc.navigationHistory.goBack();
+          else void wc.loadURL('os://start');
+        } else if (d.kind === 'proceed') {
+          exceptionsOf(ses).allow(d.info.host, d.info.port, d.info.fp);
+          void wc.loadURL(d.info.url);
+        }
+        return;
+      }
+      guard(e, e.url);
+    });
     wc.on('will-redirect', (e) => guard(e, e.url));
     // Встроенный просмотрщик PDF Chromium рисует документ во вложенной рамке своего расширения — её пропускаем.
     wc.on('will-frame-navigate', (e) => { if (!e.isMainFrame && !allowedFromSite(e.url) && !e.url.startsWith('data:') && !e.url.startsWith(PDF_VIEWER)) e.preventDefault(); });

@@ -55,6 +55,8 @@ export interface WindowState {
   canForward: boolean;
   loading: boolean;
   secure: boolean;
+  /** Сайт открыт вопреки ошибке сертификата («Перейти на сайт»): красный значок и «Не защищено». */
+  certBypassed: boolean;
   panel: string | null;
   panelTitle: string;
   panelCanBack: boolean;

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   reasonKey, isOverridable, codeFromName, nameFromCode, hostPort, CertExceptions, HstsStore, noteHsts,
-  isPreloaded, canProceed, makeToken, PendingErrors, fingerprintHex,
+  isPreloaded, canProceed, makeToken, PendingErrors, fingerprintHex, decideAct,
 } from '../../src/main/certstore.ts';
 
 test('reasonKey: все коды из таблицы проекта', () => {
@@ -127,4 +127,49 @@ test('PendingErrors.forSession: страница видна только в св
   assert.ok(p.forSession(t, 'persist:p1'));
   assert.equal(p.forSession(t, 'incognito_1'), null);
   assert.equal(p.forSession('nope', 'persist:p1'), null);
+});
+
+test('decideAct: действия страницы ошибки и все отказы', () => {
+  const mk = (over = {}) => {
+    const p = new PendingErrors();
+    const tok = p.add({ wcId: 7, sessionKey: 's1', url: 'https://a.test:8443/x', host: 'a.test', port: 8443, code: -202, fp: 'sha256/AA', issuer: 'i', subject: 's', validFrom: 0, validTo: 1, selfSigned: false, canProceed: true, ...over });
+    return { p, tok };
+  };
+  const act = (tok, a) => `os://error/act?t=${tok}&a=${a}`;
+  const page = 'os://error/?cert=x';
+  // не наш адрес — вызывающий пропускает его в guard
+  const { p, tok } = mk();
+  assert.equal(decideAct(p, 'https://a.test/', page, 7, 's1').kind, 'none');
+  assert.equal(decideAct(p, 'os://start', page, 7, 's1').kind, 'none');
+  assert.equal(decideAct(p, 'os://error/actx?t=1', page, 7, 's1').kind, 'none');
+  // со страницы сайта (текущий адрес не страница ошибки) — игнор, токен цел
+  assert.equal(decideAct(p, act(tok, 'proceed'), 'https://evil.test/', 7, 's1').kind, 'ignore');
+  assert.equal(decideAct(p, act(tok, 'proceed'), 'os://start', 7, 's1').kind, 'ignore');
+  assert.equal(decideAct(p, act(tok, 'proceed'), 'os://errorx/', 7, 's1').kind, 'ignore');
+  // чужая вкладка / чужая сессия / подбор / мусор — игнор, токен цел
+  assert.equal(decideAct(p, act(tok, 'proceed'), page, 8, 's1').kind, 'ignore');
+  assert.equal(decideAct(p, act(tok, 'proceed'), page, 7, 's2').kind, 'ignore');
+  assert.equal(decideAct(p, act('0'.repeat(32), 'proceed'), page, 7, 's1').kind, 'ignore');
+  assert.equal(decideAct(p, act(tok, 'delete'), page, 7, 's1').kind, 'ignore');
+  assert.equal(decideAct(p, 'os://error/act', page, 7, 's1').kind, 'ignore');
+  assert.equal(p.size, 1);
+  // успех и одноразовость
+  const d = decideAct(p, act(tok, 'proceed'), page, 7, 's1');
+  assert.equal(d.kind, 'proceed');
+  assert.equal(d.info.host, 'a.test');
+  assert.equal(d.info.port, 8443);
+  assert.equal(decideAct(p, act(tok, 'proceed'), page, 7, 's1').kind, 'ignore');
+  // «Назад» тоже одноразово
+  const b = mk();
+  assert.equal(decideAct(b.p, act(b.tok, 'back'), page, 7, 's1').kind, 'back');
+  assert.equal(decideAct(b.p, act(b.tok, 'back'), page, 7, 's1').kind, 'ignore');
+});
+
+test('decideAct: «Перейти» при canProceed=false отклоняется на действии, «Назад» работает', () => {
+  const p = new PendingErrors();
+  const tok = p.add({ wcId: 1, sessionKey: 's', url: 'https://hsts.test/', host: 'hsts.test', port: 443, code: -201, fp: 'f', issuer: '', subject: '', validFrom: 0, validTo: 0, selfSigned: false, canProceed: false });
+  const page = 'os://error/?cert=x';
+  assert.equal(decideAct(p, `os://error/act?t=${tok}&a=proceed`, page, 1, 's').kind, 'ignore');
+  assert.equal(p.size, 1);
+  assert.equal(decideAct(p, `os://error/act?t=${tok}&a=back`, page, 1, 's').kind, 'back');
 });

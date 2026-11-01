@@ -2,6 +2,9 @@ import { boot, h, icon, iconButton, os, svg, t } from '../shared/ui';
 import { MARK } from '../shared/icons';
 import type { ProfileInfo, ShareSource, StripTab, Suggestion, Tile, WindowState } from '../shared/types';
 
+/** Строка перевода; пока ключа нет в словаре (этап 5), показываем запасной английский текст. */
+const tr = (key: string, fallback: string) => { const s = t(key); return s === key ? fallback : s; };
+
 /**
  * Шапка браузера: верхний ряд (логотип, профиль, вкладки) и панель адреса. Выпадающие меню рисуются
  * здесь же: на время показа главный процесс растягивает шапку на всё окно (её фон прозрачный).
@@ -316,7 +319,12 @@ function renderRow2(): void {
   const home = iconButton('home', `${t('home')} (Alt+Home)`, () => void os.call('home'));
   const lock = icon(st.url ? (st.secure ? 'lock' : 'info') : 'search', 16);
   if (st.secure) lock.classList.add('secure');
-  lock.title = st.url ? (st.secure ? t('dt_secure') : t('dt_not_secure')) : '';
+  if (st.certBypassed) lock.classList.add('bad');
+  lock.title = st.url ? (st.secure ? t('dt_secure') : st.certBypassed ? tr('dt_cert_bypassed', 'You opened this site despite a certificate error.') : t('dt_not_secure')) : '';
+  // Бейдж «Не защищено» рядом со значком (как в Chrome) — только у сайта, открытого вопреки ошибке сертификата.
+  const insecure = st.certBypassed
+    ? h('span', { class: 'insecure', title: lock.title }, tr('dt_cert_not_secure', 'Not secure'))
+    : null;
   // При вводе слева — кружок выбранного поисковика (как в Chrome), без фокуса — замок у HTTPS.
   const badge = engineBadge(st.engine);
   badge.hidden = true;
@@ -353,6 +361,7 @@ function renderRow2(): void {
     input.classList.remove('rest');
     input.select();
     lock.hidden = true;
+    if (insecure) insecure.hidden = true;
     badge.hidden = false;
     clear.hidden = !input.value;
     typed = '';
@@ -395,7 +404,7 @@ function renderRow2(): void {
       paintSuggestions();
     }
   });
-  const addr = h('div', { id: 'addr', onmousedown: (e: MouseEvent) => { if (e.target !== input && !clear.contains(e.target as Node)) { e.preventDefault(); input.focus(); } } }, lock, badge, input, clear);
+  const addr = h('div', { id: 'addr', onmousedown: (e: MouseEvent) => { if (e.target !== input && !clear.contains(e.target as Node)) { e.preventDefault(); input.focus(); } } }, lock, ...(insecure ? [insecure] : []), badge, input, clear);
   clear.addEventListener('mousedown', (e) => e.preventDefault());
   const nodes: HTMLElement[] = [back, fwd, reload];
   if (!st.incognito) nodes.push(home);

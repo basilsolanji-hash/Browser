@@ -63,6 +63,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 #addr:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 #addr .ic { color: var(--muted); flex: none; }
 #addr .ic.secure { color: var(--text); }
+/* Сайт открыт вопреки ошибке сертификата: красный значок и бейдж. Красный один для всех тем (сигнал, не оформление):
+   тёмным темам — светлее, чтобы контраст к фону поверхности был не ниже 4.5:1. */
+#addr .ic.bad { color: #b3261e; }
+:root[data-dark="true"] #addr .ic.bad, :root[data-dark="true"] .insecure { color: #ff8a80; }
+.insecure { flex: none; font-size: 12px; font-weight: 600; color: #b3261e; white-space: nowrap; }
 #addr input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: 14px; }
 #addr input::placeholder { color: var(--muted); }
 #addr input.rest { text-align: start; }

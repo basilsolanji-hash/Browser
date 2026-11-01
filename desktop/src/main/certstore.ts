@@ -205,6 +205,39 @@ export class PendingErrors {
   get size(): number { return this.byToken.size; }
 }
 
+/** Решение по переходу на os://error/act: не наш адрес, заблокировать без действия или выполнить. */
+export type ActDecision =
+  | { kind: 'none' }
+  | { kind: 'ignore' }
+  | { kind: 'back' }
+  | { kind: 'proceed'; info: PendingError };
+
+const ERROR_PAGE = /^os:\/\/error(?:[/?#]|$)/;
+const ACT_URL = /^os:\/\/error\/act(?:[?#]|$)/;
+
+/**
+ * Правила действий страницы ошибки. Выполняются только если вкладка СЕЙЧАС показывает страницу ошибки
+ * (навигацию начала она сама), токен жив, принадлежит этой вкладке и сессии; токен одноразовый (забирается здесь),
+ * «Перейти» дополнительно требует canProceed — проверка на самом действии, а не на показе кнопки.
+ * Любой os://error/act возвращает не 'none': вызывающий обязан отменить навигацию.
+ */
+export function decideAct(
+  pend: PendingErrors, targetUrl: string, currentUrl: string, wcId: number, sessionKey: string,
+): ActDecision {
+  if (!ACT_URL.test(targetUrl)) return { kind: 'none' };
+  if (!ERROR_PAGE.test(currentUrl)) return { kind: 'ignore' };
+  let q: URLSearchParams;
+  try { q = new URL(targetUrl).searchParams; } catch { return { kind: 'ignore' }; }
+  const token = q.get('t') ?? '';
+  const act = q.get('a');
+  if ((act !== 'back' && act !== 'proceed') || !/^[0-9a-f]{32}$/.test(token)) return { kind: 'ignore' };
+  const info = pend.peek(token, wcId, sessionKey);
+  if (!info) return { kind: 'ignore' };
+  if (act === 'proceed' && !info.canProceed) return { kind: 'ignore' };
+  pend.take(token, wcId, sessionKey);
+  return act === 'back' ? { kind: 'back' } : { kind: 'proceed', info };
+}
+
 /** Отпечаток Electron «sha256/<base64>» → «AB:CD:…» для показа. Нераспознанное возвращается как есть. */
 export function fingerprintHex(fp: string): string {
   const m = /^sha256\/(.+)$/.exec(fp);
