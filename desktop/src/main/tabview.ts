@@ -10,6 +10,7 @@ import * as Diag from './diag';
 import * as Unload from './unload';
 import { linkMenu, linkTarget, mediaKeys, type LinkItem, type LinkTarget } from './linkmenu';
 import { askSync } from './ask';
+import { pending, sessionKey, takeInsecure, dropTab } from './certs';
 
 /** «Мобильная версия» сайта: User-Agent Chrome для Android (без версии устройства). */
 const mobileUa = () => cleanUserAgent().replace(/\([^)]*\)/, '(Linux; Android 10; K)').replace(/ Safari\//, ' Mobile Safari/');
@@ -92,6 +93,8 @@ export class TabView {
   private popup: BrowserWindow | null = null;
   /** Адрес, который не открылся (на экране — страница ошибки os://error). */
   failedUrl: string | null = null;
+  /** Страница открыта вопреки ошибке сертификата («Перейти на сайт»). */
+  insecureCert = false;
   /** Сайт открыт в мобильной версии (пункт меню с галочкой). */
   mobile = false;
   /** Когда пользователь последний раз щёлкал или печатал на странице (для «Покинуть страницу?»). */
@@ -126,10 +129,16 @@ export class TabView {
     wc.on('did-stop-loading', () => this.host.onTabUpdated(this));
     wc.on('dom-ready', () => suggestPasswords(wc));
     // Счётчик трекеров — с начала перехода: запросы страницы могут блокироваться раньше did-navigate.
-    wc.on('did-start-navigation', (e) => { if (e.isMainFrame && !e.isSameDocument) resetTab(wc.id); });
+    wc.on('did-start-navigation', (e) => {
+      if (!e.isMainFrame || e.isSameDocument) return;
+      resetTab(wc.id);
+      // Новая навигация убирает старые токены ошибки; саму страницу ошибки (os://error) это не касается.
+      if (!e.url.startsWith('os://error')) dropTab(wc.id);
+    });
     wc.on('did-navigate', (_e, url, code) => {
       Diag.log(this.id, `${code || ''} ${url.slice(0, 200)}`);
       if (!url.startsWith('os://error')) this.failedUrl = null;
+      this.insecureCert = takeInsecure(wc.id);
       this.favicon = null;
       this.host.onNavigated(this, url);
     });
@@ -141,6 +150,12 @@ export class TabView {
       if (!isMainFrame || code === -3 || !isWebUrl(url)) return;
       Diag.log(this.id, `error ${code} ${_desc} ${url.slice(0, 200)}`);
       this.failedUrl = url;
+      // Ошибка сертификата (-200..-299) с записью от certificate-error — своя страница с токеном.
+      const cert = code <= -200 && code >= -299 ? pending.latestFor(wc.id) : null;
+      if (cert && cert.p.sessionKey === sessionKey(ses)) {
+        void wc.loadURL(`os://error/?cert=${cert.token}`);
+        return;
+      }
       void wc.loadURL(`os://error/?code=${code}&url=${encodeURIComponent(url)}`);
     });
     wc.on('before-input-event', (e, input) => { if (this.host.shortcut(input, wc)) e.preventDefault(); });
@@ -152,7 +167,7 @@ export class TabView {
         defaultId: 0, cancelId: 1, noLink: true,
       }) === 0) e.preventDefault();
     });
-    wc.on('destroyed', () => Unload.forget(wc.id));
+    wc.on('destroyed', () => { Unload.forget(wc.id); dropTab(wc.id); });
     wc.on('context-menu', (_e, p) => this.contextMenu(p));
     wc.on('render-process-gone', (_e, d) => { Diag.log(this.id, `renderer ${d.reason}`); this.host.onTabUpdated(this); });
     wc.on('unresponsive', () => Diag.log(this.id, 'unresponsive'));

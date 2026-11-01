@@ -17,6 +17,7 @@ import { setBlockedListener } from './privacy';
 import { installNotifications, shownForTest, clickLastForTest } from './notify';
 import { installUploads } from './window';
 import { installAutofill } from './autofill';
+import { installCertHandling } from './certs';
 import { setTestPath } from './backup';
 import * as ChromeImport from './chromeimport';
 import { incomingUrl } from './defaultbrowser';
@@ -75,6 +76,7 @@ if (!app.requestSingleInstanceLock()) {
     installNotifications();
     installUploads();
     installAutofill();
+    installCertHandling();
     nativeTheme.on('updated', () => { for (const w of windows) w.refreshLook(); });
     // Счётчик заблокированных трекеров в адресной строке.
     setBlockedListener((wcId) => { for (const w of windows) if (w.liveTabs().some((v) => v.wc.id === wcId)) w.push(); });

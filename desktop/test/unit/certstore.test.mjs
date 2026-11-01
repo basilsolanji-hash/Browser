@@ -120,3 +120,11 @@ test('fingerprintHex: sha256/base64 → AB:CD', () => {
   assert.match(hex, /^(AB:){31}AB$/);
   assert.equal(fingerprintHex('weird'), 'weird');
 });
+
+test('PendingErrors.forSession: страница видна только в своей сессии', () => {
+  const p = new PendingErrors();
+  const t = p.add(sample());
+  assert.ok(p.forSession(t, 'persist:p1'));
+  assert.equal(p.forSession(t, 'incognito_1'), null);
+  assert.equal(p.forSession('nope', 'persist:p1'), null);
+});

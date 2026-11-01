@@ -4,6 +4,7 @@ import type { Session } from 'electron';
 import { settings } from './settings';
 import * as Stats from './stats';
 import * as Unload from './unload';
+import { noteHsts } from './certstore';
 
 /**
  * Защита от слежки (§4 этап 3): блокировка трекеров и майнеров по списку EasyPrivacy (уровень
@@ -128,6 +129,12 @@ export function protect(ses: Session): void {
     cb({});
   });
   ses.webRequest.onHeadersReceived({ urls: ['http://*/*', 'https://*/*'] }, (d, cb) => {
+    // HSTS: для таких сайтов страница ошибки сертификата не предлагает «Перейти» (один слушатель на сессию — наблюдаем здесь).
+    if (d.url.startsWith('https://') && d.responseHeaders) {
+      for (const [k, v] of Object.entries(d.responseHeaders)) {
+        if (k.toLowerCase() === 'strict-transport-security' && v[0]) noteHsts(hostOf(d.url), v[0]);
+      }
+    }
     if (settings.get().blockThirdPartyCookies && d.resourceType !== 'mainFrame' && thirdParty(hostOf(d.url), topHost(d)) && d.responseHeaders) {
       const headers: Record<string, string[]> = {};
       for (const [k, v] of Object.entries(d.responseHeaders)) if (k.toLowerCase() !== 'set-cookie') headers[k] = v;

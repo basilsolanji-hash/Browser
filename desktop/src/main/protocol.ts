@@ -6,6 +6,7 @@ import { INCOGNITO_PALETTE, palette } from './themes';
 import { settings } from './settings';
 import { READER_CSP, readerHtml } from './reader';
 import { serve as serveDownload } from './downloads';
+import { pending, sessionKey } from './certs';
 
 /**
  * Свои страницы — по схеме os:// (protocol.handle), со строгим CSP. В сессиях сайтов доступны только
@@ -64,6 +65,12 @@ export function handleWebSession(ses: Session, incognito: boolean): void {
     if (u.host === 'file') return serveDownload(u.pathname.split('/')[1] ?? '', ses);
     if (u.host === 'reader') return html(readerHtml(Number(u.searchParams.get('id')), themed(incognito)), READER_CSP);
     if (u.host === 'error') {
+      // Ошибка сертификата: данные по токену — только своей сессии (полная страница — этап 3, пока заглушка на общем тексте).
+      const token = u.searchParams.get('cert');
+      if (token) {
+        const p = pending.forSession(token, sessionKey(ses));
+        if (p) return html(errorHtml(themed(incognito), p.code, p.url), START_CSP);
+      }
       return html(errorHtml(themed(incognito), Number(u.searchParams.get('code')), u.searchParams.get('url') ?? ''), START_CSP);
     }
     return new Response('', { status: 404 });

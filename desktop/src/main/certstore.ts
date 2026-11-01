@@ -181,6 +181,11 @@ export class PendingErrors {
     const p = this.byToken.get(token);
     return p && p.wcId === wcId && p.sessionKey === sessionKey ? p : null;
   }
+  /** Для показа страницы протокол-обработчиком: у него нет вкладки, только сессия. */
+  forSession(token: string, sessionKey: string): PendingError | null {
+    const p = this.byToken.get(token);
+    return p && p.sessionKey === sessionKey ? p : null;
+  }
   /** Забрать для действия: одноразово; чужая вкладка/сессия — отказ без удаления. */
   take(token: string, wcId: number, sessionKey: string): PendingError | null {
     const p = this.peek(token, wcId, sessionKey);
