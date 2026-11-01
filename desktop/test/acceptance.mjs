@@ -2896,6 +2896,15 @@ try {
         check('cert: another host name (IP) on the same port → error again', isErr(u), u);
         u = await open64(`https://localhost:${PA}/other`);
         check('cert: same host and port, other path → still allowed (exception is per site)', u === `https://localhost:${PA}/other`, u);
+        // Исключение — только для главной рамки: субресурсы, iframe и fetch к тому же хосту:порту блокируются, сайт запросов не получает.
+        const hitsBefore = hits.a;
+        const subRes = await wcEval(`(async () => {
+          const f = await fetch('/sub-fetch').then(() => 'loaded', () => 'blocked');
+          const i = await new Promise((r) => { const e = document.createElement('iframe'); e.src = '/sub-frame'; document.body.append(e); setTimeout(() => r(e.contentDocument?.body?.innerText || 'empty'), 2500); });
+          return f + '|' + (i.includes('tls site') ? 'frame-loaded' : 'frame-blocked');
+        })()`);
+        check('cert: a subresource and an iframe of the excepted host are blocked', subRes === 'blocked|frame-blocked', subRes);
+        check('cert: the site got no request for the blocked subresources', hits.a === hitsBefore, `${hits.a} vs ${hitsBefore}`);
 
         // 5. Сайт не может «нажать» кнопку сам: переходы на os://error/act со страницы сайта отклоняются.
         await open64(`https://localhost:${PB}/`); // страница ошибки порта B с живым токеном
@@ -2988,6 +2997,18 @@ try {
         u = await open64(URL_A);
         check('cert: after restart (new session) the error is shown again', isErr(u), u);
         await keyScreen('64-cert-after-restart', 'tab');
+        // HSTS из прошлого запуска (хост hsts.localhost увиден в шаге 8) помнится на диске: «Перейти» нет и после перезапуска.
+        check('hsts: the host seen in the previous run is still known after restart', await main(() => globalThis.osTest.hstsKnown('hsts.localhost')));
+        u = await open64(`https://hsts.localhost:${PB}/after-restart`);
+        const noGo2 = isErr(u) ? await wcEval('!document.querySelector("a.go")') : false;
+        check('hsts: after restart the old HSTS host offers no «Proceed»', isErr(u) && noGo2, u);
+        // «Удалить данные» (история) стирает и память HSTS: диск и сессия.
+        await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=general'));
+        const ui64c = await page('os://settings/');
+        await ui64c.evaluate(() => window.os.call('clearData', 1, { history: true, range: 'range_all' }));
+        await flush();
+        check('hsts: «Delete data» clears the HSTS memory', !(await main(() => globalThis.osTest.hstsKnown('hsts.localhost'))) && !(readJson('hsts')?.h ?? []).length, JSON.stringify(readJson('hsts')));
+        await main(() => globalThis.osTest.windows()[0].closePanel());
 
         // 11. Спайк: уважает ли Electron callback(true) для HSTS-хоста (.dev — предзагруженный HSTS Chromium).
         const spike = await within(90000, 'HSTS spike', main(async ({ BrowserWindow, session, app: a }, { control, hsts }) => {

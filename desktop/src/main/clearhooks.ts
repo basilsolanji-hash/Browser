@@ -28,3 +28,19 @@ export function passwordCount(profile: number, since: number): number {
 export async function removePasswords(profile: number, since: number): Promise<void> {
   await store?.removeSince(profile, since);
 }
+
+/**
+ * Данные сайтов, не относящиеся к паролям (память HSTS страницы ошибки сертификата): модуль регистрирует очистку,
+ * «Удалить данные» (история, cookies и данные сайтов) и выход из профиля её вызывают.
+ */
+const siteDataClears: Array<() => void> = [];
+
+export function registerSiteDataClear(fn: () => void): void {
+  siteDataClears.push(fn);
+}
+
+export function clearSiteData(): void {
+  for (const fn of siteDataClears) {
+    try { fn(); } catch { /* очистка одного не мешает остальным */ }
+  }
+}

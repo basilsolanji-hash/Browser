@@ -10,7 +10,7 @@ import * as Diag from './diag';
 import * as Unload from './unload';
 import { linkMenu, linkTarget, mediaKeys, type LinkItem, type LinkTarget } from './linkmenu';
 import { askSync } from './ask';
-import { pending, sessionKey, takeInsecure, dropTab, exceptionsOf } from './certs';
+import { pending, sessionKey, takeInsecure, dropTab, exceptionsOf, checkCommitted } from './certs';
 import { decideAct } from './certstore';
 
 /** «Мобильная версия» сайта: User-Agent Chrome для Android (без версии устройства). */
@@ -94,6 +94,8 @@ export class TabView {
   private popup: BrowserWindow | null = null;
   /** Адрес, который не открылся (на экране — страница ошибки os://error). */
   failedUrl: string | null = null;
+  /** Время начала последней навигации главной рамки (для сверки со свежим вердиктом сертификата). */
+  navStart = 0;
   /** Страница открыта вопреки ошибке сертификата («Перейти на сайт»). */
   insecureCert = false;
   /** Сайт открыт в мобильной версии (пункт меню с галочкой). */
@@ -155,11 +157,15 @@ export class TabView {
     wc.on('did-start-navigation', (e) => {
       if (!e.isMainFrame || e.isSameDocument) return;
       resetTab(wc.id);
+      this.navStart = Date.now();
       // Новая навигация убирает старые токены ошибки; саму страницу ошибки (os://error) это не касается.
       if (!e.url.startsWith('os://error')) dropTab(wc.id);
     });
     wc.on('did-navigate', (_e, url, code) => {
       Diag.log(this.id, `${code || ''} ${url.slice(0, 200)}`);
+      // Chromium принял плохой сертификат без нашего события — останавливаем и показываем страницу ошибки.
+      const leak = checkCommitted(wc, url, this.navStart);
+      if (leak) { this.failedUrl = url; void wc.loadURL(`os://error/?cert=${leak}`); return; }
       if (!url.startsWith('os://error')) this.failedUrl = null;
       this.insecureCert = takeInsecure(wc.id);
       this.favicon = null;

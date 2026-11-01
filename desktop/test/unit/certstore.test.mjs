@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   reasonKey, isOverridable, codeFromName, nameFromCode, hostPort, CertExceptions, HstsStore, noteHsts,
-  isPreloaded, canProceed, makeToken, PendingErrors, fingerprintHex, decideAct,
+  isPreloaded, canProceed, makeToken, PendingErrors, fingerprintHex, decideAct, hstsKnown,
 } from '../../src/main/certstore.ts';
 
 test('reasonKey: все коды из таблицы проекта', () => {
@@ -172,4 +172,52 @@ test('decideAct: «Перейти» при canProceed=false отклоняетс
   assert.equal(decideAct(p, `os://error/act?t=${tok}&a=proceed`, page, 1, 's').kind, 'ignore');
   assert.equal(p.size, 1);
   assert.equal(decideAct(p, `os://error/act?t=${tok}&a=back`, page, 1, 's').kind, 'back');
+});
+
+test('decideAct: canProceed пересчитывается в момент действия (HSTS появился после показа страницы)', () => {
+  const p = new PendingErrors();
+  const tok = p.add({ wcId: 1, sessionKey: 's', url: 'https://late-hsts.test/', host: 'late-hsts.test', port: 443, code: -202, fp: 'f', issuer: '', subject: '', validFrom: 0, validTo: 0, selfSigned: true, canProceed: true });
+  noteHsts('late-hsts.test', 'max-age=1000');
+  assert.equal(decideAct(p, `os://error/act?t=${tok}&a=proceed`, 'os://error/?cert=x', 1, 's').kind, 'ignore');
+  noteHsts('late-hsts.test', 'max-age=0');
+  assert.equal(decideAct(p, `os://error/act?t=${tok}&a=proceed`, 'os://error/?cert=x', 1, 's').kind, 'proceed');
+});
+
+test('HSTS: лимит с вытеснением старых, срок, запись на диск и загрузка', () => {
+  const h = new HstsStore(3);
+  let changes = 0;
+  h.onChange = () => changes++;
+  const now = 1_000_000;
+  for (const n of ['a', 'b', 'c']) h.note(`${n}.test`, 'max-age=100', now);
+  h.note('a.test', 'max-age=100', now); // повторно: уходит в конец, на диск не пишем
+  assert.equal(changes, 3);
+  h.note('d.test', 'max-age=100', now);
+  assert.equal(h.size, 3);
+  assert.ok(!h.known('b.test', now + 1) && h.known('a.test', now + 1) && h.known('d.test', now + 1), 'вытеснен самый давний — b');
+  assert.ok(!h.known('a.test', now + 101_000), 'срок max-age вышел');
+  const copy = new HstsStore(3);
+  copy.load(JSON.parse(JSON.stringify(h.dump())));
+  assert.deepEqual(copy.dump(), h.dump());
+  copy.load([['x.test', 1, now + 5000], 'мусор', ['', 1, 1], ['y.test', 1, 'нет'], null]);
+  assert.equal(copy.size, 1);
+  assert.ok(copy.known('sub.x.test', now) && !copy.known('x.test.evil', now));
+  h.clear();
+  assert.equal(h.size, 0);
+  const big = new HstsStore(2);
+  big.load([['1.test', 0, now + 9], ['2.test', 0, now + 9], ['3.test', 0, now + 9]]);
+  assert.ok(big.size === 2 && !big.known('1.test', now));
+});
+
+test('HSTS: инкогнито отдельно (в память), общий вердикт hstsKnown', () => {
+  noteHsts('inc-only.test', 'max-age=100', true);
+  assert.ok(hstsKnown('inc-only.test') && !canProceed(-202, 'inc-only.test'));
+  noteHsts('inc-only.test', 'max-age=0', true);
+  assert.ok(!hstsKnown('inc-only.test'));
+});
+
+test('CertExceptions.hasHostPort: только точный хост и порт', () => {
+  const e = new CertExceptions();
+  e.allow('Example.com', 8443, 'sha256/A');
+  assert.ok(e.hasHostPort('example.com', 8443));
+  assert.ok(!e.hasHostPort('example.com', 443) && !e.hasHostPort('a.example.com', 8443) && !e.hasHostPort('127.0.0.1', 8443));
 });

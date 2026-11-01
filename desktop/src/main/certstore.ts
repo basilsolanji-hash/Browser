@@ -85,6 +85,10 @@ export class CertExceptions {
     if (!s) this.map.set(k, (s = new Set()));
     s.add(fp);
   }
+  /** Есть ли у точного хоста и порта хоть одно исключение (любой сертификат): для блокировки субресурсов. */
+  hasHostPort(host: string, port: number): boolean {
+    return (this.map.get(CertExceptions.key(CertExceptions.norm(host), port))?.size ?? 0) > 0;
+  }
   has(host: string, port: number, fp: string): boolean {
     if (!fp) return false;
     return this.map.get(CertExceptions.key(CertExceptions.norm(host), port))?.has(fp) === true;
@@ -106,31 +110,82 @@ function under(host: string, root: string): boolean {
   return host === root || host.endsWith(`.${root}`);
 }
 
-/** Памятка о заголовках Strict-Transport-Security, виденных в этом процессе. */
+/** Сколько HSTS-хостов помним на диске; старые вытесняются. */
+export const HSTS_MAX = 5000;
+
+/**
+ * Памятка о заголовках Strict-Transport-Security: хост → includeSubDomains и срок (max-age).
+ * Ограничена по размеру (самые давно виденные вытесняются); сохраняется на диск через `onChange` (обычные профили).
+ */
 export class HstsStore {
-  private exact = new Set<string>();
-  private subs = new Set<string>();
+  private map = new Map<string, { sub: boolean; exp: number }>();
+  private readonly max: number;
+  constructor(max = HSTS_MAX) { this.max = max; }
+  /** Вызывается после изменения набора (для записи на диск). */
+  onChange: (() => void) | null = null;
   /** Разобрать заголовок ответа https; max-age=0 снимает запись. */
-  note(host: string, header: string): void {
+  note(host: string, header: string, now = Date.now()): void {
     const h = host.toLowerCase().replace(/\.$/, '');
     if (!h) return;
     const m = /(?:^|;)\s*max-age\s*=\s*"?(\d+)"?/i.exec(header);
     if (!m) return;
-    if (Number(m[1]) <= 0) { this.exact.delete(h); this.subs.delete(h); return; }
-    this.exact.add(h);
-    if (/(?:^|;)\s*includeSubDomains\s*(?:;|$)/i.test(header)) this.subs.add(h);
+    const age = Number(m[1]);
+    if (!(age > 0)) {
+      if (this.map.delete(h)) this.onChange?.();
+      return;
+    }
+    const sub = /(?:^|;)\s*includeSubDomains\s*(?:;|$)/i.test(header);
+    const exp = now + Math.min(age, 2 * 365 * 86400) * 1000;
+    const old = this.map.get(h);
+    // Повторно виденный хост уходит в конец (самый свежий); на диск пишем, только если что-то изменилось.
+    this.map.delete(h);
+    this.map.set(h, { sub, exp });
+    while (this.map.size > this.max) this.map.delete(this.map.keys().next().value as string);
+    if (!old || old.sub !== sub || exp - old.exp > 3600_000) this.onChange?.();
   }
-  known(host: string): boolean {
-    const h = host.toLowerCase().replace(/\.$/, '');
-    if (this.exact.has(h)) return true;
-    for (const s of this.subs) if (under(h, s)) return true;
+  /** Хост под HSTS: сам, либо поддомен хоста с includeSubDomains. Просроченные записи не считаются. */
+  known(host: string, now = Date.now()): boolean {
+    let h = host.toLowerCase().replace(/\.$/, '');
+    const e = this.map.get(h);
+    if (e && e.exp > now) return true;
+    for (let i = h.indexOf('.'); i >= 0; i = h.indexOf('.')) {
+      h = h.slice(i + 1);
+      const p = this.map.get(h);
+      if (p && p.sub && p.exp > now) return true;
+    }
     return false;
   }
+  /** Для записи на диск: [хост, includeSubDomains (0/1), срок мс], старые первыми. */
+  dump(): Array<[string, number, number]> {
+    return [...this.map].map(([h, v]) => [h, v.sub ? 1 : 0, v.exp]);
+  }
+  /** Загрузить с диска (всё, что не похоже на запись, отбрасывается; лишнее сверх лимита — самое старое). */
+  load(list: unknown): void {
+    this.map.clear();
+    if (!Array.isArray(list)) return;
+    for (const r of list) {
+      if (!Array.isArray(r) || typeof r[0] !== 'string' || !r[0] || typeof r[2] !== 'number') continue;
+      this.map.set(r[0].toLowerCase(), { sub: r[1] === 1, exp: r[2] });
+    }
+    while (this.map.size > this.max) this.map.delete(this.map.keys().next().value as string);
+  }
+  clear(): void {
+    if (!this.map.size) return;
+    this.map.clear();
+    this.onChange?.();
+  }
+  get size(): number { return this.map.size; }
 }
 
+/** HSTS обычных профилей (на диске) и инкогнито (только память, пропадает с процессом). */
 export const hsts = new HstsStore();
+export const hstsIncognito = new HstsStore();
 /** Разбор заголовка Strict-Transport-Security для хоста (вызывается из onHeadersReceived). */
-export function noteHsts(host: string, header: string): void { hsts.note(host, header); }
+export function noteHsts(host: string, header: string, incognito = false): void {
+  (incognito ? hstsIncognito : hsts).note(host, header);
+}
+/** Хост известен как HSTS (профили или инкогнито). */
+export function hstsKnown(host: string): boolean { return hsts.known(host) || hstsIncognito.known(host); }
 
 /** Хост из preload-выборки (сам или поддомен) либо в зоне .dev/.app/.page/.new. */
 export function isPreloaded(host: string): boolean {
@@ -143,7 +198,7 @@ export function isPreloaded(host: string): boolean {
 /** Можно ли показать «Перейти на сайт»: ошибку нельзя обойти для HSTS/закреплённых хостов и неисправимых кодов. */
 export function canProceed(code: number, host: string): boolean {
   if (!isOverridable(code)) return false;
-  return !(hsts.known(host) || isPreloaded(host));
+  return !(hstsKnown(host) || isPreloaded(host));
 }
 
 /** 128-битный непредсказуемый одноразовый токен действий страницы ошибки. */
@@ -233,7 +288,8 @@ export function decideAct(
   if ((act !== 'back' && act !== 'proceed') || !/^[0-9a-f]{32}$/.test(token)) return { kind: 'ignore' };
   const info = pend.peek(token, wcId, sessionKey);
   if (!info) return { kind: 'ignore' };
-  if (act === 'proceed' && !info.canProceed) return { kind: 'ignore' };
+  // canProceed пересчитываем сейчас: HSTS мог появиться (в другой вкладке) между показом страницы и нажатием.
+  if (act === 'proceed' && !(info.canProceed && canProceed(info.code, info.host))) return { kind: 'ignore' };
   pend.take(token, wcId, sessionKey);
   return act === 'back' ? { kind: 'back' } : { kind: 'proceed', info };
 }

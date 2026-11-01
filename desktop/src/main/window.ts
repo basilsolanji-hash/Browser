@@ -335,7 +335,7 @@ export class OsWindow implements TabHost {
         hardenSession(this.incogSession);
         handleWebSession(this.incogSession, true);
         Downloads.attach(this.incogSession, null);
-        Privacy.protect(this.incogSession);
+        Privacy.protect(this.incogSession, true);
         installPermissions(this.incogSession, null);
       }
       return this.incogSession;

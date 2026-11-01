@@ -344,6 +344,8 @@ on(['page'], 'clearData', async (_w, profile, what) => {
   const since = sinceFor(str(o.range, 40), Date.now());
   const ses = profileSession(p);
   if (o.history === true) History.clearSince(p, since);
+  // Память HSTS страницы ошибки сертификата — часть истории и данных сайтов (не по периоду: стираем целиком).
+  if (o.history === true || o.cookies === true) ClearHooks.clearSiteData();
   // Cookies и данные сайтов — для всего профиля (движок не удаляет их за период).
   if (o.cookies === true) {
     await ses.clearStorageData();
@@ -503,7 +505,7 @@ on(['page'], 'clearCacheAll', async () => {
   for (let id = 1; id <= profileCount(); id++) await profileSession(id).clearCache();
   return true;
 });
-on(['page'], 'clearHistoryAll', () => { History.clearAll(); return true; });
+on(['page'], 'clearHistoryAll', () => { History.clearAll(); ClearHooks.clearSiteData(); return true; });
 
 // --- Первый запуск ---
 on(['page'], 'onboardingDone', (w) => { Onboarding.finish(); w.showHome(); });
@@ -791,6 +793,7 @@ async function clearProfile(id: number): Promise<void> {
   await ses.clearAuthCache();
   Tabs.forgetProfile(id);
   History.clear(id);
+  ClearHooks.clearSiteData();
   Profiles.forget(id);
 }
 

@@ -5,6 +5,7 @@ import { settings } from './settings';
 import * as Stats from './stats';
 import * as Unload from './unload';
 import { noteHsts } from './certstore';
+import { blocksSubresource, guardSession } from './certs';
 
 /**
  * Защита от слежки (§4 этап 3): блокировка трекеров и майнеров по списку EasyPrivacy (уровень
@@ -95,7 +96,8 @@ function countBlocked(wcId: number | undefined): void {
 export const totalBlocked = () => blockedTotal;
 
 /** Подключить защиту к сессии сайтов (профиль или инкогнито). */
-export function protect(ses: Session): void {
+export function protect(ses: Session, incognito = false): void {
+  guardSession(ses);
   ses.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*'] }, (d, cb) => {
     const s = settings.get();
     const host = hostOf(d.url);
@@ -107,6 +109,11 @@ export function protect(ses: Session): void {
         return;
       }
       cb({});
+      return;
+    }
+    // Исключение страницы ошибки сертификата — только для главной рамки: всё остальное с такого хоста не грузим.
+    if ((d.url.startsWith('https:') || d.url.startsWith('wss:')) && blocksSubresource(ses, d.url.replace(/^wss:/, 'https:'))) {
+      cb({ cancel: true });
       return;
     }
     if (s.trackingProtection && thirdParty(host, topHost(d)) && isTracker(host)) {
@@ -132,7 +139,7 @@ export function protect(ses: Session): void {
     // HSTS: для таких сайтов страница ошибки сертификата не предлагает «Перейти» (один слушатель на сессию — наблюдаем здесь).
     if (d.url.startsWith('https://') && d.responseHeaders) {
       for (const [k, v] of Object.entries(d.responseHeaders)) {
-        if (k.toLowerCase() === 'strict-transport-security' && v[0]) noteHsts(hostOf(d.url), v[0]);
+        if (k.toLowerCase() === 'strict-transport-security' && v[0]) noteHsts(hostOf(d.url), v[0], incognito);
       }
     }
     if (settings.get().blockThirdPartyCookies && d.resourceType !== 'mainFrame' && thirdParty(hostOf(d.url), topHost(d)) && d.responseHeaders) {
