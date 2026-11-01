@@ -112,6 +112,10 @@ interface DisplayRequest {
   audioRequested: boolean;
 }
 
+/** Для приёмки (OS_TEST=1): подмена списка источников; undefined — настоящие. Выбрать подменённый источник нельзя (отказ). */
+let fakeList: ShareSource[] | undefined;
+export const setFakeSources = (l: ShareSource[] | null | undefined): void => { fakeList = l === null ? [] : l; };
+
 /** Не больше стольких окон в списке (на Windows их бывают десятки). */
 const MAX_WINDOWS = 24;
 const dataUrl = (img: Electron.NativeImage): string | null => (img.isEmpty() ? null : 'data:image/jpeg;base64,' + img.toJPEG(70).toString('base64'));
@@ -142,7 +146,7 @@ async function handleDisplayMedia(host: ShareHost, request: DisplayRequest, call
     wc.once('destroyed', gone);
     let raw: DesktopCapturerSource[] = [];
     try {
-      raw = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 320, height: 200 }, fetchWindowIcons: true });
+      if (!fakeList) raw = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 320, height: 200 }, fetchWindowIcons: true });
     } catch { /* нет права на запись экрана или нет экрана — остаются вкладки */ }
     wc.off('destroyed', gone);
     // Пока ждали список — вкладку закрыли или заблокировали PIN-ом: отказ.
@@ -156,7 +160,8 @@ async function handleDisplayMedia(host: ShareHost, request: DisplayRequest, call
       real.set(s.id, s);
       list.push({ id: s.id, kind: 'window', name: s.name, thumb: dataUrl(s.thumbnail), icon: s.appIcon ? dataUrl(s.appIcon) : null });
     }
-    for (const tab of w.shareTabs()) {
+    if (fakeList) list.push(...fakeList);
+    else for (const tab of w.shareTabs()) {
       const id = 'tab:' + tab.id;
       tabs.set(id, tab.wc);
       list.push({ id, kind: 'tab', name: tab.wc === wc ? t('dt_share_this_tab') + ' — ' + tab.title : tab.title, thumb: null, icon: tab.favicon });
@@ -168,12 +173,13 @@ async function handleDisplayMedia(host: ShareHost, request: DisplayRequest, call
       if (kind === 'tab') {
         const twc = tabs.get(sourceId);
         if (!twc || twc.isDestroyed() || w.locked) return deny();
-        done({ video: twc.mainFrame, audio: plan.audio ? twc.mainFrame : undefined });
+        // Ключ audio без значения (undefined) Electron считает ошибкой запроса — его не должно быть вовсе.
+        done(plan.audio ? { video: twc.mainFrame, audio: twc.mainFrame } : { video: twc.mainFrame });
         return beginSharing(w, wc, site);
       }
       const src = real.get(sourceId);
       if (!src || w.locked) return deny();
-      done({ video: src, audio: plan.audio === 'loopback' ? 'loopback' : undefined });
+      done(plan.audio === 'loopback' ? { video: src, audio: 'loopback' } : { video: src });
       beginSharing(w, wc, site);
     });
     if (!opened) deny();

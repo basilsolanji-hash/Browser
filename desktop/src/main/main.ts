@@ -28,6 +28,8 @@ import * as Profiles from './profiles';
 import * as Extensions from './extensions';
 import { testHooks as AskHooks } from './ask';
 import { lastContextMenu, resetContextMenu } from './tabview';
+import { setFakeSources } from './screenshare';
+import type { ShareSource } from '../shared/types';
 
 /**
  * Ось Browser для Windows: главный процесс. Профили — изолированные партиции, вкладки — WebContentsView,
@@ -141,6 +143,7 @@ if (process.env.OS_TEST === '1') {
       item.click();
       return true;
     },
+    fakeSources: (l: ShareSource[] | null | undefined) => setFakeSources(l),
     setPerm: (profile: number, host: string, kind: string, mode: Perms.Mode | null) => Perms.set(profile, host, kind, mode),
     addHistory: (profile: number, url: string, title: string) => { History.add(profile, url); History.setTitle(profile, url, title); },
     // Данные для снимков магазина: заметки, избранное, пароль.

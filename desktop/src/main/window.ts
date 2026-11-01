@@ -151,6 +151,17 @@ function installPermissions(ses: Session, profile: number | null): void {
   });
   ses.setPermissionRequestHandler((wc, permission, cb, details) => {
     if (SIMPLE_ALLOW.has(permission)) return cb(true);
+    // getDisplayMedia сначала спрашивает разрешение «media» без типов (в части версий — 'display-capture'),
+    // потом вызывает обработчик показа экрана: он и решает (окно выбора, PIN, свой экран). Здесь только
+    // отказ для запрещённого сайта — с подсказкой. Камера и микрофон идут с mediaTypes ниже.
+    if (permission === 'display-capture' || (permission === 'media' && !(details as { mediaTypes?: string[] }).mediaTypes?.length)) {
+      const site = hostOf(wc?.getURL() ?? '');
+      if (!wc || !site || mode(site, 'display') === 'BLOCK') {
+        if (site) [...windows].find((x) => x.owns(wc))?.toast(t('perm_blocked_for', t('dt_perm_display'), site));
+        return cb(false);
+      }
+      return cb(true);
+    }
     const kinds = kindsFor(permission, details as { mediaTypes?: string[] });
     // Решение — за сайтом вкладки (как в Chrome), а не за встроенным фреймом: иначе рекламный iframe,
     // разрешённый один раз, получил бы доступ на любом сайте. Фрейму доступ даёт ещё и его allow=.
