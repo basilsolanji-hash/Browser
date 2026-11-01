@@ -129,7 +129,13 @@ export class TabView {
       if (d.kind !== 'none') {
         e.preventDefault();
         if (d.kind === 'back') {
-          if (wc.navigationHistory.canGoBack()) wc.navigationHistory.goBack();
+          // Назад — к последней странице до ошибки: записи самого адреса с ошибкой и страницы ошибки пропускаем
+          // (иначе «Назад» вернул бы тот же адрес и сразу показал ту же ошибку).
+          const nh = wc.navigationHistory;
+          const bad = (u: string) => u.startsWith('os://error') || u === this.failedUrl;
+          let to = -1;
+          for (let i = nh.getActiveIndex() - 1; i >= 0 && to < 0; i--) if (!bad(nh.getEntryAtIndex(i)?.url ?? '')) to = i;
+          if (to >= 0) nh.goToIndex(to);
           else void wc.loadURL('os://start');
         } else if (d.kind === 'proceed') {
           exceptionsOf(ses).allow(d.info.host, d.info.port, d.info.fp);

@@ -4,7 +4,8 @@
 // Запуск: npm run build && node test/acceptance.mjs [этап]
 import { _electron } from 'playwright';
 import { createServer } from 'node:http';
-import { createHash, generateKeyPairSync, createSign } from 'node:crypto';
+import { createHash, generateKeyPairSync, createSign, X509Certificate } from 'node:crypto';
+import { createServer as createHttpsServer } from 'node:https';
 import { crc32 } from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -34,6 +35,13 @@ function check(name, cond, detail = '') {
   return ok;
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+/** Не даём сценарию зависнуть: по истечении времени — ошибка вместо вечного ожидания. */
+function within(ms, what, p) {
+  let t;
+  return Promise.race([p, new Promise((_, rej) => { t = setTimeout(() => rej(new Error(`timeout ${ms} ms: ${what}`)), ms); })]).finally(() => clearTimeout(t));
+}
+// Общий сторож приёмки: если что-то повисло — выходим с ошибкой, а не ждём вечно.
+setTimeout(() => { console.error('WATCHDOG: acceptance exceeded 90 minutes'); try { appendFileSync(join(OUT, 'checks.txt'), 'FAIL watchdog — acceptance exceeded 90 minutes\n'); } catch { /* нет папки */ } process.exit(3); }, 90 * 60 * 1000).unref();
 
 async function waitFor(fn, timeout = 10000, every = 150) {
   const end = Date.now() + timeout;
@@ -237,6 +245,8 @@ const SITE = `http://127.0.0.1:${PORT}`;
 const userData = join(tmpdir(), `os-acceptance-${Date.now()}`);
 let app;
 let runNo = 0;
+// Доп. ключи запуска Electron (сценарий 64 — правило разрешения имён для проверки HSTS).
+let extraArgs = [];
 // Ошибки скриптов на своих страницах (os://…): каждая — повод разобраться.
 const ownPageErrors = [];
 
@@ -244,7 +254,7 @@ async function launch() {
   runNo++;
   app = await _electron.launch({
     executablePath: electronPath,
-    args: [root, ...(process.platform === 'linux' ? ['--no-sandbox'] : [])],
+    args: [root, ...(process.platform === 'linux' ? ['--no-sandbox'] : []), ...extraArgs],
     env: { ...process.env, OS_TEST: '1', OS_USER_DATA: userData, OS_TEST_DELAY: '1500', OS_TEST_BLOCK: 'pixel-tracker.localhost' },
     timeout: 60000,
   });
@@ -2791,6 +2801,230 @@ try {
       await unlockIfNeeded();
       await main(() => globalThis.osTest.windows()[0].closePanel());
     }
+
+    // --- 64. Страница ошибки сертификата (DESKTOP_TASKS №4): самоподписанный https-стенд, «Назад», «Подробнее», «Перейти», границы исключения ---
+    step('64. Ошибка сертификата: страница, «Назад», «Перейти», значок «Не защищено», поддомен/порт/сеанс/инкогнито, os://error/act с сайта, HSTS');
+    await within(480000, 'step 64', (async () => {
+      const tr64 = loadTr();
+      const T64 = (k, ...a) => { let i = 0; return tr64[k][0].replace(/%s/g, () => a[i++] ?? ''); };
+      // Сертификат и ключ — только для теста, во временной папке (в репозиторий не попадают).
+      const certDir = join(tmpdir(), `os-cert-${Date.now()}`);
+      mkdirSync(certDir, { recursive: true });
+      execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', join(certDir, 'k.pem'), '-out', join(certDir, 'c.pem'),
+        '-days', '2', '-subj', '/CN=localhost', '-addext', 'subjectAltName=DNS:localhost,DNS:*.localhost,DNS:hsts-test.dev,IP:127.0.0.1'], { stdio: 'ignore', timeout: 30000 });
+      const pem = readFileSync(join(certDir, 'c.pem'), 'utf8');
+      const fp64 = new X509Certificate(pem).fingerprint256.replace(/:/g, '').toLowerCase();
+      const hits = { a: 0, b: 0, c: 0 };
+      const mkTls = (name, hsts) => new Promise((res) => {
+        const s = createHttpsServer({ key: readFileSync(join(certDir, 'k.pem')), cert: pem }, (req, rs) => {
+          hits[name]++;
+          rs.setHeader('content-type', 'text/html; charset=utf-8');
+          if (hsts) rs.setHeader('strict-transport-security', 'max-age=31536000');
+          rs.end(`<title>Secure ${name}</title><h1 id="h">tls site ${name}</h1>`);
+        });
+        s.listen(0, '127.0.0.1', () => res(s));
+      });
+      const sa = await mkTls('a', false), sb = await mkTls('b', false), sc = await mkTls('c', true);
+      const PA = sa.address().port, PB = sb.address().port, PC = sc.address().port;
+      const URL_A = `https://localhost:${PA}/`;
+      const wcEval = (js, win = 0) => main((_e, { js, win }) => globalThis.osTest.windows()[win].activeWebContents().executeJavaScript(js), { js, win });
+      const urlOf = (win = 0) => main((_e, win) => globalThis.osTest.windows()[win].activeWebContents().getURL(), win);
+      const open64 = async (url, win = 0) => {
+        await main((_e, { url, win }) => globalThis.osTest.windows()[win].newTab(url), { url, win });
+        return waitFor(async () => { const u = await urlOf(win); return u.startsWith('os://error/?cert=') || (u.startsWith('https://') && u === url) ? u : null; }, 15000);
+      };
+      const isErr = (u) => !!u && u.startsWith('os://error/?cert=');
+      const click = (sel, win = 0) => wcEval(`document.querySelector(${JSON.stringify(sel)})?.click()`, win);
+      const uiPage = (win = 0) => app.windows().find((p) => !p.isClosed() && (win ? p.url().startsWith('os://ui/?incognito') : p.url().startsWith('os://ui/') && !p.url().includes('incognito')));
+      const setting = async (key, value) => {
+        await main(() => globalThis.osTest.windows()[0].openPanel('os://settings/?g=general'));
+        const st = await page('os://settings/');
+        await st.waitForSelector('#lang');
+        await st.evaluate(([k, v]) => window.os.call('setSetting', k, v), [key, value]);
+        await main(() => globalThis.osTest.windows()[0].closePanel());
+        await sleep(300);
+      };
+      try {
+        await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
+        await setting('lang', 'en');
+        await setting('theme', 'scarlet_light');
+
+        // 1. Страница ошибки вместо стандартной; адрес, причина, кнопка «Назад», без скриптов.
+        let u = await open64(URL_A);
+        check('cert: self-signed site opens our error page (os://error/?cert=)', isErr(u), u);
+        const body = await wcEval('document.body.innerText');
+        check('cert: title, reason «self-signed», Back button, Proceed link', body.includes(T64('dt_cert_title')) && body.includes(T64('dt_cert_why_self')) && body.includes(T64('dt_cert_back')) && body.includes(T64('dt_cert_proceed', 'localhost')), body.slice(0, 200));
+        check('cert: the page has no scripts and does not show the fingerprint until «Details»', (await wcEval('document.scripts.length')) === 0 && (await wcEval('document.querySelector("details").open')) === false);
+        check('cert: nothing was served by the site before the decision', hits.a === 0, String(hits.a));
+        await keyScreen('64-cert-error-light', 'tab');
+        await wcEval('document.querySelector("details").open = true');
+        const shown = (await wcEval('[...document.querySelectorAll("details code")].map((c) => c.textContent).join(" ")')).replace(/[^0-9a-f]/gi, '').toLowerCase();
+        check('cert: «Details» shows the SHA-256 fingerprint of the real certificate', shown.includes(fp64), fp64.slice(0, 16));
+        await keyScreen('64-cert-error-details', 'tab');
+        await windowShot('64-cert-error');
+
+        // 2. «Назад»: уходим со страницы, исключения нет.
+        await click('a.btn');
+        const left = await waitFor(async () => { const x = await urlOf(); return !isErr(x) && x; }, 8000);
+        check('cert: «Back to safety» leaves the error page without opening the site', !!left && !left.startsWith('https://localhost') && hits.a === 0, String(left));
+        u = await open64(URL_A);
+        check('cert: after «Back» the error appears again (no exception was created)', isErr(u), u);
+
+        // 3. «Перейти»: сайт открылся, значок «Не защищено».
+        const tok = new URL(u).searchParams.get('t') ?? new URL(u).searchParams.get('cert');
+        check('cert: token is 32 hex characters', /^[0-9a-f]{32}$/.test(tok ?? ''), tok);
+        await click('a.go');
+        const opened = await waitFor(async () => (await urlOf()) === URL_A && (await state()).title === 'Secure a', 12000);
+        const st64 = await state();
+        check('cert: «Proceed» opens the site', !!opened && hits.a >= 1, `${await urlOf()} ${st64.title}`);
+        check('cert: window state: certBypassed, not secure', st64.certBypassed === true && st64.secure === false, JSON.stringify({ b: st64.certBypassed, s: st64.secure }));
+        const ui64 = uiPage();
+        const badge = await waitFor(async () => (await ui64.$('.insecure')) && (await ui64.textContent('.insecure')), 5000);
+        check('cert: address bar shows the red «Not secure» badge', badge === T64('dt_cert_not_secure'), String(badge));
+        const lockCls = await ui64.evaluate(() => document.querySelector('.insecure')?.parentElement?.outerHTML ?? '');
+        check('cert: the lock icon is the warning one, not the padlock', /bad|info/.test(lockCls), lockCls.slice(0, 160));
+        await keyScreen('64-cert-bypassed-chrome', 'chrome');
+        await windowShot('64-cert-bypassed');
+
+        // 4. Исключение — только для этого хоста, порта и сертификата.
+        u = await open64(`https://localhost:${PB}/`);
+        check('cert: another port of the same host → error again', isErr(u), u);
+        const tokB = u;
+        u = await open64(`https://sub.localhost:${PA}/`);
+        check('cert: a subdomain → error again', isErr(u), u);
+        u = await open64(`https://127.0.0.1:${PA}/`);
+        check('cert: another host name (IP) on the same port → error again', isErr(u), u);
+        u = await open64(`https://localhost:${PA}/other`);
+        check('cert: same host and port, other path → still allowed (exception is per site)', u === `https://localhost:${PA}/other`, u);
+
+        // 5. Сайт не может «нажать» кнопку сам: переходы на os://error/act со страницы сайта отклоняются.
+        await open64(`https://localhost:${PB}/`); // страница ошибки порта B с живым токеном
+        const tokUrl = await urlOf();
+        const t5 = new URL(tokUrl).searchParams.get('cert');
+        await main((_e, url) => globalThis.osTest.windows()[0].newTab(url), `${SITE}/page/evil`);
+        await waitFor(async () => (await urlOf()) === `${SITE}/page/evil`, 8000);
+        const act = `os://error/act?t=${t5}&a=proceed`;
+        const tries = [`location.href = ${JSON.stringify(act)}`, `window.open(${JSON.stringify(act)})`,
+          `document.body.insertAdjacentHTML('beforeend', '<a id="x" href="${act}">x</a><iframe src="${act}"></iframe>'); document.getElementById('x').click()`,
+          `document.body.insertAdjacentHTML('beforeend', '<meta http-equiv="refresh" content="0;url=${act}">')`];
+        for (const js of tries) { await wcEval(js).catch(() => {}); await sleep(500); }
+        await sleep(800);
+        check('cert: a site cannot reach os://error/act (tab stays on the site)', (await urlOf()) === `${SITE}/page/evil`, await urlOf());
+        const wins64 = await main(() => globalThis.osTest.windows()[0].state().tabs.map((t) => t.url ?? '').join(' '));
+        check('cert: no tab was opened on os:// by the site', !/os:\/\/error\/act/.test(wins64), wins64.slice(0, 200));
+        u = await open64(`https://localhost:${PB}/`);
+        check('cert: the exception for port B was not created by the site', isErr(u) && hits.b === 0, `${u} ${hits.b}`);
+        void tokB;
+
+        // 6. Инкогнито — отдельная сессия: исключение профиля не действует, своё живёт до закрытия окна.
+        await key('Ctrl+Shift+N');
+        const wi64 = await waitFor(async () => { const i = await main(() => globalThis.osTest.windows().findIndex((w) => w.incognito)); return i >= 0 ? i : null; }, 10000);
+        u = await open64(URL_A, wi64);
+        check('cert: incognito window does not inherit the profile exception', isErr(u), u);
+        await keyScreen('64-cert-incognito', 'tab', wi64);
+        await click('a.go', wi64);
+        check('cert: «Proceed» in incognito opens the site', !!(await waitFor(async () => (await urlOf(wi64)) === URL_A, 12000)));
+        const flagsInc = await main((_e, wi) => globalThis.osTest.windows()[wi].state().certBypassed, wi64);
+        check('cert: incognito shows «Not secure» too', flagsInc === true);
+        const nw64 = await main(() => globalThis.osTest.windows().length);
+        await main((_e, wi) => globalThis.osTest.windows()[wi].win.close(), wi64);
+        await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) === nw64 - 1);
+        await key('Ctrl+Shift+N');
+        const wi64b = await waitFor(async () => { const i = await main(() => globalThis.osTest.windows().findIndex((w) => w.incognito)); return i >= 0 ? i : null; }, 10000);
+        u = await open64(URL_A, wi64b);
+        check('cert: a new incognito window asks again (exception died with the window)', isErr(u), u);
+        await main((_e, wi) => globalThis.osTest.windows()[wi].win.close(), wi64b);
+        await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) === nw64 - 1);
+        u = await open64(URL_A);
+        check('cert: the profile exception survived the incognito window', u === URL_A, u);
+
+        // 7. Тёмная тема и арабский (RTL): снимки.
+        await setting('theme', 'scarlet_dark');
+        await open64(`https://localhost:${PB}/dark`);
+        await keyScreen('64-cert-error-dark', 'tab');
+        await setting('lang', 'ar');
+        await open64(`https://localhost:${PB}/rtl`);
+        check('cert: Arabic page is right-to-left', (await wcEval('document.documentElement.dir')) === 'rtl');
+        await keyScreen('64-cert-error-rtl', 'tab');
+        await open64(URL_A);
+        await keyScreen('64-cert-bypassed-rtl-chrome', 'chrome');
+        await setting('lang', 'en');
+        await setting('theme', 'scarlet_light');
+
+        // 8. HSTS-сайт: после «Перейти» ответ с Strict-Transport-Security закрывает исключение, кнопки «Перейти» больше нет.
+        const URL_C = `https://hsts.localhost:${PC}/`;
+        u = await open64(URL_C);
+        check('hsts: first visit offers «Proceed»', isErr(u) && (await wcEval('!!document.querySelector("a.go")')));
+        await click('a.go');
+        await waitFor(async () => (await urlOf()) === URL_C, 12000);
+        await sleep(500);
+        check('hsts: the Strict-Transport-Security header of the site was noticed', await main(() => globalThis.osTest.hstsKnown('hsts.localhost')));
+        // Chromium помнит принятый сертификат в сеансе (certificate-error для него больше не приходит), а HSTS-заголовок по
+        // соединению с исключением он сам не учитывает; наша память HSTS закрывает «Перейти» для новых ошибок этого хоста.
+        u = await open64(`https://hsts.localhost:${PB}/`);
+        const noGo = isErr(u) ? await wcEval('!document.querySelector("a.go") && document.body.innerText.includes(' + JSON.stringify(T64('dt_cert_no_proceed')) + ')') : false;
+        check('hsts: after Strict-Transport-Security a new error of that host has no «Proceed»', isErr(u) && noGo, u);
+        await keyScreen('64-cert-hsts', 'tab');
+        if (isErr(u)) {
+          // Подделанная ссылка «proceed» на странице без кнопки отклоняется в main.
+          const t8 = new URL(u).searchParams.get('cert');
+          await wcEval(`(() => { const a = document.createElement('a'); a.href = 'os://error/act?t=${t8}&a=proceed'; document.body.append(a); a.click(); })()`);
+          await sleep(1200);
+          check('hsts: a forged «proceed» link is refused', isErr(await urlOf()) && hits.b === 0, `${await urlOf()} hits=${hits.b}`);
+        }
+
+        // 9. Исключений нет на диске.
+        await flush();
+        const leaked = readdirSync(userData).filter((f) => f.endsWith('.json') && readFileSync(join(userData, f), 'utf8').toLowerCase().includes(fp64));
+        check('cert: the exception and fingerprint are not written to disk', leaked.length === 0, leaked.join(','));
+        check('cert: error pages (os://error) are not in the history', !/os:\/\/error|cert=/.test(JSON.stringify(readJson('history') ?? {})));
+
+        // 10. Новый сеанс: после перезапуска ошибка снова. Заодно — спайк HSTS с host-resolver-rules (hsts-test.dev → наш стенд).
+        await app.close();
+        extraArgs = [`--host-resolver-rules=MAP hsts-test.dev 127.0.0.1:${PA}`, '--no-proxy-server'];
+        await launch();
+        await unlockIfNeeded();
+        await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
+        u = await open64(URL_A);
+        check('cert: after restart (new session) the error is shown again', isErr(u), u);
+        await keyScreen('64-cert-after-restart', 'tab');
+
+        // 11. Спайк: уважает ли Electron callback(true) для HSTS-хоста (.dev — предзагруженный HSTS Chromium).
+        const spike = await within(90000, 'HSTS spike', main(async ({ BrowserWindow, session, app: a }, { control, hsts }) => {
+          const ses = session.fromPartition('spike-hsts');
+          const bw = new BrowserWindow({ show: false, webPreferences: { session: ses } });
+          const id = bw.webContents.id;
+          const seen = [];
+          const h = (ev, wc, url, err, c, cb) => { if (wc.id !== id) return; seen.push(`${url} ${err}`); ev.preventDefault(); cb(true); };
+          // Свои обработчики приложения на время спайка снимаем: решение принимает только этот (иначе второй вызов callback(false) перебил бы его).
+          const saved = a.listeners('certificate-error');
+          a.removeAllListeners('certificate-error');
+          a.on('certificate-error', h);
+          const load = async (url) => {
+            try { await Promise.race([bw.loadURL(url), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout 20 s')), 20000))]); return `loaded ${bw.webContents.getTitle()}`; } catch (e) { return `failed ${e.code ?? ''} ${String(e.message).slice(0, 60)}`; }
+          };
+          const r = { control: await load(control), hsts: await load(hsts), seen: seen.join(' | ') };
+          a.removeListener('certificate-error', h);
+          for (const f of saved) a.on('certificate-error', f);
+          bw.destroy();
+          return r;
+        }, { control: URL_A, hsts: 'https://hsts-test.dev/' })).catch((e) => ({ error: String(e.message).slice(0, 200) }));
+        line('checks.txt', `note HSTS spike (callback(true) in a separate window): ${JSON.stringify(spike)}`);
+        line('steps.txt', `HSTS spike: ${JSON.stringify(spike)}`);
+        u = await open64('https://hsts-test.dev/');
+        const hstsGo = isErr(u) ? await wcEval('!!document.querySelector("a.go")') : null;
+        check('hsts: a preloaded HSTS host (.dev) offers no «Proceed»', isErr(u) && hstsGo === false, `${u} go=${hstsGo}`);
+        // Дальше приложение работает как обычно (с прокси среды): перезапуск без ключей спайка.
+        await app.close();
+        extraArgs = [];
+        await launch();
+        await unlockIfNeeded();
+      } finally {
+        sa.close(); sb.close(); sc.close();
+        rmSync(certDir, { recursive: true, force: true });
+        extraArgs = [];
+      }
+    })());
 
     // --- 57. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки; снимки страниц — только для человека (страница /tracked почти пустая). ---
     step('57. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');

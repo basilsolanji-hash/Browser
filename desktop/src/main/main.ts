@@ -18,6 +18,7 @@ import { installNotifications, shownForTest, clickLastForTest } from './notify';
 import { installUploads } from './window';
 import { installAutofill } from './autofill';
 import { installCertHandling } from './certs';
+import { hsts } from './certstore';
 import { setTestPath } from './backup';
 import * as ChromeImport from './chromeimport';
 import { incomingUrl } from './defaultbrowser';
@@ -118,6 +119,8 @@ if (process.env.OS_TEST === '1') {
   (globalThis as Record<string, unknown>).osTest = {
     windows: () => [...windows],
     flush: () => flushAll(),
+    // Приёмка ошибки сертификата: известен ли хост как HSTS (по заголовку, виденному в этом процессе).
+    hstsKnown: (host: string) => hsts.known(host),
     userData: () => app.getPath('userData'),
     dist: () => join(__dirname, '..'),
     notifications: () => shownForTest(),
