@@ -2815,9 +2815,17 @@ try {
       const pem = readFileSync(join(certDir, 'c.pem'), 'utf8');
       const fp64 = new X509Certificate(pem).fingerprint256.replace(/:/g, '').toLowerCase();
       const hits = { a: 0, b: 0, c: 0 };
+      const seenA = new Set();
       const mkTls = (name, hsts) => new Promise((res) => {
         const s = createHttpsServer({ key: readFileSync(join(certDir, 'k.pem')), cert: pem }, (req, rs) => {
           hits[name]++;
+          if (name === 'a') seenA.add(req.url);
+          if (req.url === '/s.css') { rs.setHeader('content-type', 'text/css'); rs.end('body{background:#123456}'); return; }
+          if (req.url === '/i.png') { rs.setHeader('content-type', 'image/png'); rs.end(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==', 'base64')); return; }
+          if (req.url === '/s.js') { rs.setHeader('content-type', 'text/javascript'); rs.end("fetch('/own-fetch').then((r) => r.text()).then((t) => { document.title = 'res ' + t; })"); return; }
+          if (req.url === '/own-fetch') { rs.setHeader('content-type', 'text/plain'); rs.end('ok'); return; }
+          if (req.url === '/res-page') { rs.setHeader('content-type', 'text/html; charset=utf-8'); rs.end('<title>res</title><link rel="stylesheet" href="/s.css"><img id="im" src="/i.png"><script src="/s.js"></script><iframe id="fr" src="/frame-own"></iframe>'); return; }
+          if (req.url === '/frame-own') { rs.setHeader('content-type', 'text/html; charset=utf-8'); rs.end('<p id="p">own frame</p>'); return; }
           rs.setHeader('content-type', 'text/html; charset=utf-8');
           if (hsts) rs.setHeader('strict-transport-security', 'max-age=31536000');
           rs.end(`<title>Secure ${name}</title><h1 id="h">tls site ${name}</h1>`);
@@ -2896,15 +2904,31 @@ try {
         check('cert: another host name (IP) on the same port → error again', isErr(u), u);
         u = await open64(`https://localhost:${PA}/other`);
         check('cert: same host and port, other path → still allowed (exception is per site)', u === `https://localhost:${PA}/other`, u);
-        // Исключение — только для главной рамки: субресурсы, iframe и fetch к тому же хосту:порту блокируются, сайт запросов не получает.
+        // Страница с исключением грузит собственные ресурсы: CSS, картинку, скрипт, fetch к своему адресу и свой iframe.
+        const own = await open64(`https://localhost:${PA}/res-page`);
+        const okTitle = await waitFor(async () => { const t = (await state()).title; return t === 'res ok' && t; }, 10000);
+        const ownInfo = await waitFor(async () => {
+          const r = await wcEval(`JSON.stringify({ css: getComputedStyle(document.body).backgroundColor, img: document.getElementById('im').naturalWidth, frame: document.getElementById('fr').contentDocument?.body?.innerText ?? '' })`);
+          const j = JSON.parse(r);
+          return j.css === 'rgb(18, 52, 86)' && j.img === 1 && j.frame.includes('own frame') ? j : null;
+        }, 10000);
+        check('cert: after «Proceed» the page loads its own CSS, image, script, fetch and iframe', own === `https://localhost:${PA}/res-page` && !!okTitle && !!ownInfo,
+          `${own} ${okTitle} ${JSON.stringify(ownInfo)}`);
+        check('cert: the site received those requests', ['/s.css', '/i.png', '/s.js', '/own-fetch', '/frame-own'].every((p) => seenA.has(p)), [...seenA].join(' '));
+        // Чужая страница (обычный сервер http://127.0.0.1, другая вкладка) к тому же адресу: img, fetch и iframe блокируются, сайт запросов не получает.
         const hitsBefore = hits.a;
-        const subRes = await wcEval(`(async () => {
-          const f = await fetch('/sub-fetch').then(() => 'loaded', () => 'blocked');
-          const i = await new Promise((r) => { const e = document.createElement('iframe'); e.src = '/sub-frame'; document.body.append(e); setTimeout(() => r(e.contentDocument?.body?.innerText || 'empty'), 2500); });
-          return f + '|' + (i.includes('tls site') ? 'frame-loaded' : 'frame-blocked');
+        await main((_e, url) => globalThis.osTest.windows()[0].newTab(url), `${SITE}/page/evil`);
+        await waitFor(async () => (await urlOf()) === `${SITE}/page/evil`, 8000);
+        const foreign = await wcEval(`(async () => {
+          const img = await new Promise((r) => { const e = new Image(); e.onload = () => r('loaded'); e.onerror = () => r('blocked'); e.src = 'https://localhost:${PA}/foreign-img'; setTimeout(() => r('timeout'), 4000); });
+          const f = await fetch('https://localhost:${PA}/foreign-fetch', { mode: 'no-cors' }).then(() => 'loaded', () => 'blocked');
+          const i = await new Promise((r) => { const e = document.createElement('iframe'); e.src = 'https://localhost:${PA}/foreign-frame'; document.body.append(e); setTimeout(() => r(e.contentDocument ? 'reachable' : 'blocked'), 2500); });
+          return img + '|' + f + '|' + i;
         })()`);
-        check('cert: a subresource and an iframe of the excepted host are blocked', subRes === 'blocked|frame-blocked', subRes);
-        check('cert: the site got no request for the blocked subresources', hits.a === hitsBefore, `${hits.a} vs ${hitsBefore}`);
+        check('cert: another site\'s img, fetch and iframe to the excepted address are blocked', foreign.startsWith('blocked|blocked|'), foreign);
+        check('cert: the site got no request from the foreign page', hits.a === hitsBefore && ![...seenA].some((p) => p.startsWith('/foreign')), `${hits.a} vs ${hitsBefore} ${[...seenA].join(' ')}`);
+        // Другая вкладка с самим сайтом A после перехода на другой хост: её ресурсы тоже не идут (главный кадр не на A).
+        await open64(`https://localhost:${PA}/other`);
 
         // 5. Сайт не может «нажать» кнопку сам: переходы на os://error/act со страницы сайта отклоняются.
         await open64(`https://localhost:${PB}/`); // страница ошибки порта B с живым токеном

@@ -5,7 +5,7 @@ import { settings } from './settings';
 import * as Stats from './stats';
 import * as Unload from './unload';
 import { noteHsts } from './certstore';
-import { blocksSubresource, guardSession } from './certs';
+import { blocksSubresource, guardSession, noteMainFrame } from './certs';
 
 /**
  * Защита от слежки (§4 этап 3): блокировка трекеров и майнеров по списку EasyPrivacy (уровень
@@ -102,6 +102,7 @@ export function protect(ses: Session, incognito = false): void {
     const s = settings.get();
     const host = hostOf(d.url);
     if (d.resourceType === 'mainFrame') {
+      noteMainFrame(ses, d.webContentsId, d.url);
       Unload.noteRequest(d.webContentsId, d.method, d.url, d.uploadData);
       // Только HTTPS: незащищённый адрес повышается; без HTTPS сайт не откроется.
       if (s.httpsOnly && d.url.startsWith('http://') && !isLocal(host)) {
@@ -111,8 +112,8 @@ export function protect(ses: Session, incognito = false): void {
       cb({});
       return;
     }
-    // Исключение страницы ошибки сертификата — только для главной рамки: всё остальное с такого хоста не грузим.
-    if ((d.url.startsWith('https:') || d.url.startsWith('wss:')) && blocksSubresource(ses, d.url.replace(/^wss:/, 'https:'))) {
+    // Исключение страницы ошибки сертификата: ресурсы этого хоста:порта грузит только его же страница в той же вкладке.
+    if ((d.url.startsWith('https:') || d.url.startsWith('wss:')) && blocksSubresource(ses, d.url.replace(/^wss:/, 'https:'), d.webContentsId, d.frame, d.referrer)) {
       cb({ cancel: true });
       return;
     }

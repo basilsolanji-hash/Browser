@@ -66,10 +66,46 @@ export function guardSession(ses: Session): void {
   });
 }
 
-/** Субресурс, iframe, worker и WebSocket к хосту:порту с исключением блокируются всегда: исключение — только для главной рамки. */
-export function blocksSubresource(ses: Session, url: string): boolean {
+/** Главный кадр вкладки (webContents), если он открыт на хосте:порту с исключением (пока не ушёл на другой адрес). */
+const mainHp = new Map<number, { host: string; port: number }>();
+
+/** Запрос главного кадра вкладки: запоминаем только адреса с исключением (состояние берём из самого запроса — он раньше did-navigate). */
+export function noteMainFrame(ses: Session, wcId: number | undefined, url: string): void {
+  if (wcId === undefined) return;
   const hp = hostPort(url);
-  return !!hp && exceptions.get(ses)?.hasHostPort(hp.host, hp.port) === true;
+  if (hp && url.startsWith('https:') && exceptions.get(ses)?.hasHostPort(hp.host, hp.port) === true) mainHp.set(wcId, hp);
+  else mainHp.delete(wcId);
+}
+
+const sameHp = (a: { host: string; port: number } | null | undefined, b: { host: string; port: number }) =>
+  !!a && a.host.toLowerCase() === b.host.toLowerCase() && a.port === b.port;
+
+/** Главный кадр этой вкладки сейчас на этом хосте:порту с исключением. */
+function tabOnExcepted(wcId: number | undefined, hp: { host: string; port: number }): boolean {
+  return wcId !== undefined && sameHp(mainHp.get(wcId), hp);
+}
+
+/**
+ * Субресурс, iframe, worker и WebSocket к хосту:порту с исключением: разрешены только со страницы этого же хоста:порта в
+ * главном кадре этой же вкладки (и из её рамок того же адреса); со страниц других сайтов, из чужих iframe и из других
+ * вкладок блокируются.
+ */
+export function blocksSubresource(
+  ses: Session, url: string, wcId: number | undefined, frame: Electron.WebFrameMain | null | undefined, referrer: string,
+): boolean {
+  const hp = hostPort(url);
+  if (!hp || exceptions.get(ses)?.hasHostPort(hp.host, hp.port) !== true) return false;
+  if (!tabOnExcepted(wcId, hp)) return true;
+  try {
+    if (frame) {
+      // Вся цепочка рамок от запросившей до главной должна быть на том же хосте:порту.
+      for (let f: Electron.WebFrameMain | null = frame; f; f = f.parent) {
+        if (f.url && !sameHp(hostPort(f.url), hp)) return true;
+      }
+      return false;
+    }
+  } catch { return true; }
+  return !sameHp(hostPort(referrer), hp);
 }
 
 function addPending(wc: WebContents, url: string, host: string, port: number, code: number, cert: Electron.Certificate): string {
@@ -120,11 +156,11 @@ function onCertError(
   if (!hp || code === null || !cert.fingerprint) { cb(false); return; }
   e.preventDefault();
   // Исключение — только главной рамке вкладки и только для точного хоста, порта и сертификата, в своей сессии.
-  // Субресурсы и iframe с плохим сертификатом отклоняются всегда.
-  if (isMainFrame && exceptionsOf(wc.session).has(hp.host, hp.port, cert.fingerprint)) {
-    insecure.add(wc.id);
-    cb(true);
-    return;
+  // Субресурсы того же хоста:порта:отпечатка — только со страницы этого же адреса в главном кадре той же вкладки, остальные отклоняются.
+  if (exceptionsOf(wc.session).has(hp.host, hp.port, cert.fingerprint)) {
+    if (isMainFrame) { insecure.add(wc.id); cb(true); return; }
+    // Новое соединение субресурса: тот же хост:порт:отпечаток и главный кадр этой вкладки на нём же (чужие отсечены в onBeforeRequest).
+    if (tabOnExcepted(wc.id, hp)) { cb(true); return; }
   }
   cb(false);
   if (!isMainFrame) return;
