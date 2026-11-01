@@ -69,6 +69,8 @@ export function hardenSession(ses: Session): void {
   ses.setPermissionRequestHandler((_wc, permission, callback) => callback(allowed.has(permission)));
   ses.setPermissionCheckHandler((_wc, permission) => allowed.has(permission));
   ses.setDevicePermissionHandler(() => false);
+  // Показ экрана — отказ, пока сессия не получила свой обработчик (installPermissions).
+  ses.setDisplayMediaRequestHandler((_r, cb) => (cb as () => void)());
   ses.on('select-hid-device', (e, _d, cb) => { e.preventDefault(); cb(''); });
   ses.on('select-serial-port', (e, _d, _wc, cb) => { e.preventDefault(); cb(''); });
   ses.on('select-usb-device', (e, _d, cb) => { e.preventDefault(); cb(); });

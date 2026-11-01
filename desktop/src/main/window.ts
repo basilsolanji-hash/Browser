@@ -18,13 +18,14 @@ import * as Downloads from './downloads';
 import * as Bookmarks from './bookmarks';
 import * as Saved from './saved';
 import * as Perms from './permissions';
+import { installDisplayHandler, isSharing, stopSharing, stopWindowSharing, endSharing } from './screenshare';
 import * as Privacy from './privacy';
 import * as Lock from './lock';
 import * as Reader from './reader';
 import * as Notes from './notes';
 import * as Extensions from './extensions';
 import { searchUrl as searchFor } from './settings';
-import type { Palette, ProfileInfo, StripTab, WindowState } from '../shared/types';
+import type { Palette, ProfileInfo, ShareSource, StripTab, WindowState } from '../shared/types';
 
 /** Высота шапки: верхний ряд (вкладки + кнопки окна) и панель адреса. */
 export const ROW1 = 40;
@@ -82,6 +83,13 @@ interface Prompt {
   id: number; wcId: number; host: string; kinds: string[]; resolve: (allow: boolean, remember: boolean) => void;
   /** Свой текст вопроса (скачивание: сайт и имя файла). */
   text?: string;
+}
+/** Окно выбора показа экрана: список (с миниатюрами) только в памяти. sourceId = null — отказ. */
+interface ScreenPick {
+  id: number; wcId: number; host: string; audio: boolean; systemAudio: boolean; sources: ShareSource[];
+  resolve: (sourceId: string | null, audio: boolean) => void;
+  /** Снять слушатели вкладки (переход, закрытие). */
+  off: () => void;
 }
 export interface AskOptions { text?: string; keepOnNavigate?: boolean }
 /** Вопрос о пароле: сохранить после входа или выбрать аккаунт для подстановки. */
@@ -145,6 +153,17 @@ function installPermissions(ses: Session, profile: number | null): void {
   });
   ses.setPermissionRequestHandler((wc, permission, cb, details) => {
     if (SIMPLE_ALLOW.has(permission)) return cb(true);
+    // getDisplayMedia сначала спрашивает разрешение «media» без типов (в части версий — 'display-capture'),
+    // потом вызывает обработчик показа экрана: он и решает (окно выбора, PIN, свой экран). Здесь только
+    // отказ для запрещённого сайта — с подсказкой. Камера и микрофон идут с mediaTypes ниже.
+    if (permission === 'display-capture' || (permission === 'media' && !(details as { mediaTypes?: string[] }).mediaTypes?.length)) {
+      const site = hostOf(wc?.getURL() ?? '');
+      if (!wc || !site || mode(site, 'display') === 'BLOCK') {
+        if (site) [...windows].find((x) => x.owns(wc))?.toast(t('perm_blocked_for', t('dt_perm_display'), site));
+        return cb(false);
+      }
+      return cb(true);
+    }
     const kinds = kindsFor(permission, details as { mediaTypes?: string[] });
     // Решение — за сайтом вкладки (как в Chrome), а не за встроенным фреймом: иначе рекламный iframe,
     // разрешённый один раз, получил бы доступ на любом сайте. Фрейму доступ даёт ещё и его allow=.
@@ -176,6 +195,12 @@ function installPermissions(ses: Session, profile: number | null): void {
       }
       cb(allow);
     });
+  });
+  installDisplayHandler(ses, {
+    hostOf: (url) => (isWebUrl(url) ? hostOf(url) : ''),
+    windowOf: (wc) => [...windows].find((x) => x.owns(wc)),
+    mode: (host) => mode(host, 'display'),
+    blockedText: (host) => t('perm_blocked_for', t('dt_perm_display'), host),
   });
   ses.setPermissionCheckHandler((wc, permission, origin, details) => {
     if (SIMPLE_ALLOW.has(permission)) return true;
@@ -209,6 +234,8 @@ export class OsWindow implements TabHost {
   /** Запросы разрешений сайтов, ждущие ответа пользователя. */
   private prompts: Prompt[] = [];
   private pwPrompts: PwPrompt[] = [];
+  /** Открытое окно выбора показа экрана (одно на окно). */
+  private screenPick: ScreenPick | null = null;
   /** Поиск на странице: текст и найденное (null — строка поиска закрыта). */
   private find: { text: string; active: number; matches: number } | null = null;
   /** Окно заблокировано PIN-ом: видно только os://lock. */
@@ -403,6 +430,8 @@ export class OsWindow implements TabHost {
       bookmarked: isWebUrl(url) && !!Bookmarks.findByUrl(url),
       prompt: this.currentPrompt(),
       pw: this.currentPw(),
+      screenPick: this.currentScreenPick(),
+      sharing: !!wc && isSharing(wc.id),
       blocked: wc ? Privacy.blockedOnTab(wc.id) : 0,
       locked: this.locked,
       lockEnabled: Lock.enabled(),
@@ -429,6 +458,7 @@ export class OsWindow implements TabHost {
         title: v?.wc.getTitle() && !v.wc.getURL().startsWith('os://start') ? v.wc.getTitle() : title,
         loading: !!v?.wc.isLoading(),
         favicon: v?.favicon ?? null,
+        sharing: !!v && isSharing(v.wc.id),
       };
     };
     if (this.incognito) return this.memTabs.map((m) => item(m.id, false, m.title || t('new_tab'), m.url, null));
@@ -529,6 +559,8 @@ export class OsWindow implements TabHost {
     this.panel = null;
     const key = this.key(id);
     let v = this.views.get(key);
+    // Выбор показа экрана привязан к вкладке, которая его запросила.
+    if (this.screenPick && v?.wc.id !== this.screenPick.wcId) this.cancelScreen();
     if (!v) {
       // Сайты без своего фона — на белом, как в Chrome.
       v = new TabView(key, id, this.session(), this, '#FFFFFF');
@@ -821,11 +853,77 @@ export class OsWindow implements TabHost {
     return { id: p.id, text, canRemember: !this.incognito, rememberDefault: !sensitive };
   }
 
+  // --- Показ экрана ---
+
+  /** Вкладки этого окна (та же сессия) — источники «Вкладка» в окне выбора. */
+  shareTabs(): { id: string; wc: WebContents; title: string; favicon: string | null }[] {
+    const titles = new Map(this.strip().map((x) => [x.id, x]));
+    return [...this.views.values()].filter((v) => !v.wc.isDestroyed() && !v.wc.getURL().startsWith('os://')).map((v) => ({
+      id: v.id, wc: v.wc, title: titles.get(v.id)?.title || v.wc.getTitle() || v.url(), favicon: v.favicon,
+    }));
+  }
+
+  /** Показать вкладку-инициатора (запрос идёт по жесту пользователя, но вкладка могла уйти в фон). */
+  showTabOf(wc: WebContents): void {
+    const v = this.tabOf(wc);
+    if (v && this.shown !== v) this.activate(v.id);
+  }
+
+  /** Открыть окно выбора. false — выбор уже открыт (новый запрос отклоняется). */
+  askScreen(wc: WebContents, host: string, audio: boolean, sources: ShareSource[], resolve: (sourceId: string | null, audio: boolean) => void): boolean {
+    if (this.screenPick || this.locked) return false;
+    const p: ScreenPick = { id: ++promptSeq, wcId: wc.id, host, audio, systemAudio: process.platform === 'win32', sources, resolve, off: () => {} };
+    this.screenPick = p;
+    // Вкладку закрыли или увели на другой сайт — отказ.
+    const cancel = () => this.answerScreen(p.id, null, false);
+    const nav = (e: Electron.Event<Electron.WebContentsDidStartNavigationEventParams>) => {
+      if (e.isMainFrame && !e.isSameDocument) { wc.off('did-start-navigation', nav); cancel(); }
+    };
+    p.off = () => { wc.off('did-start-navigation', nav); wc.off('destroyed', cancel); };
+    wc.once('destroyed', cancel);
+    wc.on('did-start-navigation', nav);
+    this.push();
+    return true;
+  }
+
+  answerScreen(id: number, sourceId: string | null, audio: boolean): void {
+    const p = this.screenPick;
+    if (!p || p.id !== id) return;
+    this.screenPick = null;
+    p.off();
+    // Выбрать можно только то, что было в списке этого запроса.
+    p.resolve(sourceId != null && p.sources.some((x) => x.id === sourceId) ? sourceId : null, audio);
+    this.push();
+  }
+
+  /** Кнопка «Остановить показ» у адресной строки: показ на видимой вкладке. */
+  stopShare(): void {
+    const wc = this.shown?.wc;
+    if (wc && !wc.isDestroyed()) stopSharing(wc);
+  }
+
+  cancelScreen(): void {
+    if (this.screenPick) this.answerScreen(this.screenPick.id, null, false);
+  }
+
+  /** Список для окна выбора (с миниатюрами) — отдельным вызовом, не в состоянии окна. */
+  screenSources(id: number): ShareSource[] {
+    return this.screenPick && this.screenPick.id === id && !this.locked ? this.screenPick.sources : [];
+  }
+
+  private currentScreenPick(): WindowState['screenPick'] {
+    const p = this.screenPick;
+    if (!p || this.locked || this.panel || this.shown?.wc.id !== p.wcId) return null;
+    return { id: p.id, host: p.host, audio: p.audio, systemAudio: p.systemAudio };
+  }
+
   // --- Блокировка ---
 
   lock(): void {
     if (!Lock.enabled() || this.locked) return;
     this.locked = true;
+    this.cancelScreen();
+    stopWindowSharing(this);
     this.overlay = false;
     void this.page.webContents.loadURL('os://lock/');
     this.layout();
@@ -1400,6 +1498,11 @@ Downloads.setGate(downloadGate);
  * окно выбора открывается (жест пользователя даёт главный процесс).
  */
 export function installUploads(): void {
+  // Preload вкладки сообщает, что все потоки показа экрана закончились (сайт остановил сам или кнопкой).
+  ipcMain.on('tab:share', (e, kind) => {
+    if (kind !== 'end' || e.senderFrame !== e.sender.mainFrame) return;
+    if ([...windows].some((w) => w.tabOf(e.sender))) endSharing(e.sender.id);
+  });
   ipcMain.on('tab:upload', (e) => {
     let mode: Perms.Mode = 'ALLOW';
     for (const w of windows) {

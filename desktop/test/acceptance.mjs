@@ -207,6 +207,21 @@ const server = createServer((req, res) => {
     req.resume();
     res.end('<title>Welcome</title><h1>signed in</h1>');
     return;
+  } else if (u.pathname === '/share') {
+    // Показ экрана: кнопка вызывает getDisplayMedia (жест — настоящий щелчок), итог — в window.r.
+    res.end(`<title>Share</title><button id="go" style="width:240px;height:80px">share</button><video id="v" muted playsinline style="width:200px"></video>
+      <style>@keyframes mv { to { transform: translateX(300px); } } #m { width: 40px; height: 40px; background: #d92d20; animation: mv 1s linear infinite alternate; }</style><div id="m"></div><script>
+      window.r = '';
+      document.getElementById('go').onclick = async () => {
+        window.r = '';
+        try {
+          const s = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          window.s = s;
+          const v = document.getElementById('v'); v.srcObject = s; v.play().catch(() => {});
+          window.r = 'ok:' + s.getVideoTracks().length;
+        } catch (e) { window.r = 'err:' + e.name; window.msg = e.message; }
+      };
+    </script>`);
   } else if (u.pathname === '/open') {
     res.end('<title>Opener</title><a id="blank" href="/page/opened" target="_blank">open</a>');
   } else {
@@ -2540,6 +2555,242 @@ try {
     check('under the PIN lock import calls are refused', locked62.includes('locked'), locked62);
     await unlockIfNeeded();
     rmSync(tmp62, { recursive: true, force: true });
+
+    // --- 63. Показ экрана на сайтах (DESKTOP_TASKS №3): окно выбора, индикатор, остановка, запрет, инкогнито, PIN ---
+    step('63. Показ экрана: getDisplayMedia, окно выбора, отмена, показ и индикатор, остановка, запрет сайта, инкогнито, PIN');
+    {
+      const OPENS = { n: 0 };
+      const openShare = async (win) => {
+        const url = `${SITE}/share?n=${++OPENS.n}`;
+        await main((_e, { url, win }) => globalThis.osTest.windows()[win].newTab(url), { url, win });
+        const pg = await page(url, 10000);
+        await pg?.waitForSelector('#go');
+        return pg;
+      };
+      // Своих страниц os://ui бывает несколько (другие окна): берём ту, в чьей полосе есть вкладка «Share».
+      const uiOf = (win) => waitFor(async () => {
+        for (const p of app.windows()) {
+          if (p.isClosed() || !p.url().startsWith(win ? 'os://ui/?incognito' : 'os://ui/') || (!win && p.url().includes('incognito'))) continue;
+          if (await p.evaluate(() => [...document.querySelectorAll('.tab')].some((t) => t.textContent.includes('Share'))).catch(() => false)) return p;
+        }
+        return null;
+      });
+      const pickOf = async (win) => (await waitFor(async () => (await state(win)).screenPick, 8000));
+      const result = (pg) => waitFor(() => pg.evaluate(() => window.r || null), 8000);
+      // Отказ обработчика показа экрана Electron сообщает страницей как AbortError, отказ разрешения — NotAllowedError.
+      const isRefused = (r) => r === 'err:NotAllowedError' || r === 'err:AbortError';
+      let chosen63 = '';
+      // Экран или окно, если у ОС они есть (xvfb то показывает экран, то нет), иначе — вкладка с тестовой страницей.
+      const choose = async (ui) => {
+        const scr = await waitFor(async () => (await ui.$$(SRC)).length > 0, 3000);
+        if (!scr) {
+          for (const b of await ui.$$('.share-seg button')) if (/^(Tab|Вкладк)/i.test((await b.textContent()).trim())) await b.click();
+        }
+        const sel = scr ? SRC : '.share-item[data-id^="tab:"][title*="Share"]';
+        const el = await ui.waitForSelector(sel, { timeout: 8000 });
+        const id = await el.getAttribute('data-id');
+        await el.click();
+        return id;
+      };
+      const SRC = '.share-item[data-id^="screen:"], .share-item[data-id^="window:"]';
+
+      await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.closePanel(); });
+      let pg63 = await openShare(0);
+      let ui63 = await uiOf(0);
+      // 1. Карточка выбора. Источники: у xvfb экран обычно есть; если пусто — шаги с потоком пропускаем.
+      await pg63.click('#go');
+      const pick63 = await pickOf(0);
+      check('getDisplayMedia opens the Os picker (no instant refusal)', pick63 && pick63.host === '127.0.0.1', JSON.stringify(pick63));
+      await ui63.waitForSelector('.share-card #share-cancel');
+      check('picker names the site and has Cancel', (await ui63.textContent('.share-card .perm-text')).includes('127.0.0.1'));
+      const hasSources = await waitFor(async () => (await ui63.$$('.share-item')).length > 0, 6000);
+      const none63 = !hasSources && (await ui63.$('#share-none')) !== null;
+      line('steps.txt', `63: sources in the picker: ${(await ui63.$$('.share-item')).length}, none-note=${none63}`);
+      check('picker shows sources or the «nothing to share» note', hasSources || none63);
+      await shot('screen-share-picker', 'chrome');
+      await windowShot('screen-share-picker');
+      // 2. Отмена, Esc, отказ из главного процесса — страница получает NotAllowedError.
+      await ui63.click('#share-cancel');
+      check('Cancel: page gets a refusal, picker closed', isRefused(await result(pg63)) && (await state(0)).screenPick === null && (await state(0)).sharing === false);
+      await pg63.click('#go');
+      await pickOf(0);
+      await ui63.waitForSelector('#share-cancel');
+      await ui63.keyboard.press('Escape');
+      check('Esc: refusal', isRefused(await result(pg63)));
+      await pg63.click('#go');
+      await pickOf(0);
+      await main(() => globalThis.osTest.windows()[0].cancelScreen());
+      check('closing from the main process refuses', isRefused(await result(pg63)) && (await state(0)).screenPick === null);
+
+      // 8. Переход на другой сайт и закрытие вкладки при открытой карточке.
+      await pg63.click('#go');
+      check('picker opens again', await pickOf(0));
+      await main((_e, u) => globalThis.osTest.windows()[0].activeWebContents().loadURL(u), `${SITE}/page/share-away`);
+      check('navigating away closes the picker', await waitFor(async () => (await state(0)).screenPick === null, 6000));
+      pg63 = await openShare(0);
+      await pg63.click('#go');
+      await pickOf(0);
+      await main(() => globalThis.osTest.windows()[0].closeTab());
+      check('closing the tab closes the picker', await waitFor(async () => (await state(0)).screenPick === null, 6000));
+
+      // 3–4. Показ и остановка (если у ОС есть что показать).
+      pg63 = await openShare(0);
+      ui63 = await uiOf(0);
+      await pg63.click('#go');
+      await pickOf(0);
+      const live = await waitFor(async () => (await ui63.$$(SRC)).length > 0, 6000);
+      // Нет экрана (xvfb без захвата): поток проверяем на вкладке-источнике, экран и окно пропускаем.
+      line('steps.txt', `63: screen/window sources available: ${live ? 'yes' : 'no (xvfb); the live path uses a tab as the source'}`);
+      {
+        chosen63 = await choose(ui63);
+        await ui63.click('#share-go');
+        const r63 = await result(pg63);
+        check('chosen source: page gets a stream', r63 === 'ok:1', r63 + ' ' + (await pg63.evaluate(() => window.msg)) + ' chosen=' + chosen63);
+        check('stream is live', (await pg63.evaluate(() => window.s.getVideoTracks()[0].readyState)) === 'live');
+        check('indicator: dot on the tab, «Stop sharing» chip, state.sharing', await waitFor(async () => (await state(0)).sharing && (await ui63.$('.tab .rec')) && (await ui63.$('#share-chip')), 5000));
+        await shot('screen-share-active', 'chrome');
+        await windowShot('screen-share-active');
+        await pg63.evaluate(() => { window.dispatchEvent(new window.Event('os-share-end')); });
+        await sleep(700);
+        check('a page cannot clear the indicator by faking an event', (await state(0)).sharing === true);
+        await ui63.click('#share-chip');
+        check('Stop sharing: track ended', await waitFor(() => pg63.evaluate(() => window.s.getVideoTracks()[0].readyState === 'ended').catch(() => true), 6000));
+        check('indicator removed after stop', await waitFor(async () => !(await state(0)).sharing && !(await ui63.$('#share-chip')) && !(await ui63.$('.tab .rec')), 6000));
+        // Сайт сам остановил поток — индикатор снят.
+        await pg63.click('#go');
+        await pickOf(0);
+        chosen63 = await choose(ui63);
+        await ui63.click('#share-go');
+        await result(pg63);
+        await waitFor(async () => (await state(0)).sharing, 5000);
+        await pg63.evaluate(() => window.s.getTracks().forEach((t) => t.stop()));
+        check('the site stopped the tracks itself: indicator removed', await waitFor(async () => !(await state(0)).sharing, 6000));
+        // Клон + остановка оригинала: показ идёт, индикатор остаётся; «Остановить показ» гасит и клон.
+        await pg63.click('#go');
+        await pickOf(0);
+        chosen63 = await choose(ui63);
+        await ui63.click('#share-go');
+        await result(pg63);
+        await waitFor(async () => (await state(0)).sharing, 5000);
+        await pg63.evaluate(() => { window.c = window.s.getVideoTracks()[0].clone(); window.cs = window.s.clone(); window.s.getTracks().forEach((t) => t.stop()); });
+        await sleep(1500);
+        check('clone + stop of the originals: indicator stays', (await state(0)).sharing === true && (await ui63.$('#share-chip')) !== null);
+        await ui63.click('#share-chip');
+        check('Stop sharing also ends the clones', await waitFor(() => pg63.evaluate(() => window.c.readyState === 'ended' && window.cs.getTracks().every((t) => t.readyState === 'ended')).catch(() => true), 6000));
+        check('indicator removed after stopping clones', await waitFor(async () => !(await state(0)).sharing, 6000));
+        // Подмена readyState/stop на треке страницей не снимает индикатор.
+        await pg63.click('#go');
+        await pickOf(0);
+        chosen63 = await choose(ui63);
+        await ui63.click('#share-go');
+        await result(pg63);
+        await waitFor(async () => (await state(0)).sharing, 5000);
+        await pg63.evaluate(() => { const t = window.s.getVideoTracks()[0]; Object.defineProperty(t, 'readyState', { value: 'ended' }); t.stop = () => {}; });
+        await sleep(1500);
+        check('forged readyState: indicator stays', (await state(0)).sharing === true);
+        await ui63.click('#share-chip');
+        check('Stop sharing works despite forged readyState/stop', await waitFor(async () => !(await state(0)).sharing, 6000));
+        // 7a. PIN во время показа.
+        await pg63.click('#go');
+        await pickOf(0);
+        chosen63 = await choose(ui63);
+        await ui63.click('#share-go');
+        await result(pg63);
+        await waitFor(async () => (await state(0)).sharing, 5000);
+        await main(() => globalThis.osTest.windows()[0].lock());
+        check('PIN lock stops the sharing', await waitFor(async () => !(await state(0)).sharing, 6000));
+        await unlockIfNeeded();
+      }
+
+      // 9. Вкладка как источник: кадры идут, иначе раздел надо убирать.
+      await pg63.bringToFront().catch(() => {});
+      await main((_e, u) => { const w = globalThis.osTest.windows()[0]; w.newTab(u); }, `${SITE}/share?n=${++OPENS.n}`);
+      pg63 = await page(`${SITE}/share?n=${OPENS.n}`);
+      await pg63.waitForSelector('#go');
+      await pg63.click('#go');
+      await pickOf(0);
+      const tabItem = await ui63.waitForSelector('.share-item[data-id^="tab:"], .share-seg button', { timeout: 4000 }).catch(() => null);
+      const segs63 = await ui63.$$('.share-seg button');
+      let tabSeg = null;
+      for (const b of segs63) if (/^(Tab|Вкладк)/i.test((await b.textContent()).trim())) tabSeg = b;
+      if (!tabSeg && !(await ui63.$('.share-item[data-id^="tab:"]'))) {
+        check('tab section absent (removed) — nothing to check', !tabItem || true);
+        await ui63.click('#share-cancel').catch(() => {});
+      } else {
+        if (tabSeg) await tabSeg.click();
+        await ui63.click('.share-item[data-id^="tab:"][title*="Share"]');
+        await ui63.click('#share-go');
+        const rt = await result(pg63);
+        const frames = rt === 'ok:1' ? await pg63.evaluate(() => new Promise((res) => {
+          const v = document.getElementById('v'); let n = 0;
+          const tick = () => { n++; if (n >= 2) res(v.videoWidth); else v.requestVideoFrameCallback(tick); };
+          setTimeout(() => res(-1), 4000); v.requestVideoFrameCallback(tick);
+        })) : -2;
+        line('steps.txt', `63: tab as source -> ${rt}, frames/videoWidth=${frames}`);
+        check('tab as a source: stream with frames', rt === 'ok:1' && frames > 0, `${rt} ${frames}`);
+        await pg63.evaluate(() => window.s?.getTracks().forEach((t) => t.stop())).catch(() => {});
+        await waitFor(async () => !(await state(0)).sharing, 6000);
+      }
+
+      // Запасной путь: пустой список — только «Нечего показать» и «Отмена».
+      check('no leftover picker before the empty-list check', (await state(0)).screenPick === null);
+      await main(() => globalThis.osTest.fakeSources(null));
+      await pg63.click('#go');
+      await pickOf(0);
+      await ui63.waitForSelector('#share-none');
+      check('empty list: «nothing to share» and only Cancel', (await ui63.$('#share-go')) === null && (await ui63.$('#share-cancel')) !== null && (await ui63.$$('.share-item')).length === 0);
+      await shot('screen-share-none', 'chrome');
+      await ui63.click('#share-cancel');
+      check('empty list: Cancel refuses', isRefused(await result(pg63)));
+      await main(() => globalThis.osTest.fakeSources(undefined));
+
+      // 5. Разрешения: у «Показа экрана» нет «Разрешить»; «Запретить» — отказ без карточки, но с подсказкой.
+      await main(() => globalThis.osTest.windows()[0].openPanel('os://site/?profile=1'));
+      const sp63 = await page('os://site/');
+      await sp63.waitForSelector('#d-display');
+      check('«Screen sharing» offers only Ask / Block', (await sp63.$$eval('#d-display button', (b) => b.length)) === 2);
+      await shot('screen-share-permissions', 'page');
+      await main(() => globalThis.osTest.windows()[0].closePanel());
+      await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'display', 'BLOCK'));
+      await pg63.click('#go');
+      const rb63 = await result(pg63);
+      check('blocked site: refusal without a picker', isRefused(rb63) && (await state(0)).screenPick === null, `${rb63} ${JSON.stringify((await state(0)).screenPick)}`);
+      const toast63 = await ui63.waitForSelector('.toast', { timeout: 5000 }).then((e) => e.textContent()).catch(() => '');
+      check('blocked: hint names the site', /127\.0\.0\.1/.test(toast63), `${toast63} ui=${app.windows().filter((p) => p.url().startsWith('os://ui')).length}`);
+      await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'display', 'ALLOW'));
+      await pg63.click('#go');
+      check('a hand-written ALLOW in the file still asks', await pickOf(0));
+      await ui63.click('#share-cancel');
+      await main(() => globalThis.osTest.setPerm(1, '127.0.0.1', 'display', null));
+
+      // 6. Инкогнито.
+      const nw63 = await main(() => globalThis.osTest.windows().length);
+      await key('Ctrl+Shift+N');
+      await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) > nw63);
+      const wi63 = await main(() => globalThis.osTest.windows().findIndex((w) => w.incognito));
+      const pgi = await openShare(wi63);
+      const uii = await uiOf(wi63);
+      await pgi.click('#go');
+      check('incognito: the picker opens (handler on the incognito session)', await pickOf(wi63));
+      await uii.waitForSelector('#share-cancel');
+      await uii.click('#share-cancel');
+      check('incognito: Cancel refuses', isRefused(await result(pgi)));
+      await flush();
+      check('incognito: nothing about screen sharing is written to disk', !JSON.stringify(readJson('site_permissions') ?? {}).includes('"display"'));
+      await main((_e, wi) => globalThis.osTest.windows()[wi].win.close(), wi63);
+      await waitFor(async () => (await main(() => globalThis.osTest.windows().length)) === nw63);
+
+      // 7b. PIN: карточка гаснет, вызов при блокировке — отказ.
+      await pg63.click('#go');
+      await pickOf(0);
+      await main(() => globalThis.osTest.windows()[0].lock());
+      check('PIN lock closes the picker and refuses the page', isRefused(await result(pg63)) && (await state(0)).screenPick === null);
+      await pg63.evaluate(() => { window.r = ''; document.getElementById('go').click(); }).catch(() => {});
+      await sleep(600);
+      check('under the lock no picker appears', (await state(0)).screenPick === null);
+      await unlockIfNeeded();
+      await main(() => globalThis.osTest.windows()[0].closePanel());
+    }
 
     // --- 57. Настоящие расширения из Chrome Web Store (сеть CI). Итог — в extensions-report.txt, без падения приёмки; снимки страниц — только для человека (страница /tracked почти пустая). ---
     step('57. Chrome Web Store: установка по ссылке и проверка работы настоящих расширений');

@@ -6,7 +6,9 @@ import { JsonFile } from './store';
  * В инкогнито решения не записываются на диск.
  */
 export type Mode = 'ASK' | 'ALLOW' | 'BLOCK';
-export interface Kind { key: string; titleKey: string; askKey: string; defaults: Mode[]; initial: Mode }
+export interface Kind { key: string; titleKey: string; askKey: string; defaults: Mode[]; initial: Mode;
+  /** Без «Разрешить всегда»: каждый раз отдельный выбор (показ экрана). */
+  noAlways?: boolean }
 
 export const KINDS: Kind[] = [
   { key: 'location', titleKey: 'perm_location', askKey: 'perm_q_location', defaults: ['ASK', 'ALLOW', 'BLOCK'], initial: 'ASK' },
@@ -18,6 +20,8 @@ export const KINDS: Kind[] = [
   // согласие, поэтому по умолчанию разрешено (можно запретить или спрашивать) — как в Android.
   { key: 'downloads', titleKey: 'perm_downloads', askKey: 'perm_q_downloads', defaults: ['ASK', 'ALLOW', 'BLOCK'], initial: 'ASK' },
   { key: 'uploads', titleKey: 'perm_uploads', askKey: 'perm_q_uploads', defaults: ['ALLOW', 'ASK', 'BLOCK'], initial: 'ALLOW' },
+  // Показ экрана: «разрешить всегда» нет — каждый раз выбор источника; сайту можно только запретить.
+  { key: 'display', titleKey: 'dt_perm_display', askKey: 'dt_share_title', defaults: ['ASK', 'BLOCK'], initial: 'ASK', noAlways: true },
 ];
 /** Чувствительные — для «Проверки безопасности». */
 export const SENSITIVE = ['location', 'camera', 'microphone', 'notifications'];
@@ -32,7 +36,8 @@ const file = new JsonFile<Data>('site_permissions', () => ({ sites: {}, defaults
 export const kind = (key: string) => KINDS.find((k) => k.key === key);
 
 export function get(profile: number, host: string, key: string): Mode | undefined {
-  return file.get().sites[profile]?.[host]?.[key];
+  const m = file.get().sites[profile]?.[host]?.[key];
+  return m === 'ALLOW' && kind(key)?.noAlways ? undefined : m;
 }
 
 /** Запомнить решение (null — забыть; ASK забывается, если и по умолчанию «спросить»). */

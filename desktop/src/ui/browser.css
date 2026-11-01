@@ -178,3 +178,34 @@ html[dir="rtl"] .sub-arrow .ic, html[dir="rtl"] [data-k="back-menu"] .ic { trans
 .menu .ext-pin-toggle.on { opacity: 1; color: var(--accent); }
 .menu .ext-pin-toggle:hover { opacity: 1; }
 .ext-pin img { display: block; border-radius: 3px; }
+
+.share-card { max-width: calc(100vw - 24px); }
+.share-seg { display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+.share-seg button { border: 0; background: none; color: var(--muted); padding: 6px 12px; border-radius: 6px 6px 0 0; border-bottom: 2px solid transparent; font: inherit; cursor: pointer; }
+.share-seg button.on { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+.share-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 8px; max-height: 300px; overflow: auto; margin-bottom: 10px; }
+.share-grid .empty-note { grid-column: 1 / -1; max-width: none; }
+.share-item { display: flex; flex-direction: column; gap: 6px; padding: 6px; border: 2px solid transparent; border-radius: 8px; background: none; color: var(--text); font: inherit; text-align: start; cursor: pointer; min-width: 0; }
+.share-item:hover { background: color-mix(in srgb, var(--text) 9%, transparent); }
+.share-item.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.share-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.share-pic { display: flex; align-items: center; justify-content: center; width: 100%; height: 100px; background: color-mix(in srgb, var(--text) 7%, transparent); border-radius: 6px; overflow: hidden; color: var(--muted); }
+.share-pic img { width: 100%; height: 100%; object-fit: contain; }
+.share-pic img.ico { width: 32px; height: 32px; }
+.share-name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-audio { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; }
+.share-audio[hidden] { display: none; }
+.share-audio input { accent-color: var(--accent); }
+.share-warn { color: var(--muted); font-size: 12px; margin-bottom: 12px; white-space: normal; }
+
+/* Показ экрана: красная точка на вкладке и кнопка «Остановить показ» внутри адресной строки (высота шапки не меняется).
+   Красный один для всех тем: это сигнал, а не оформление; граница и текст берутся из переменных темы. */
+.rec { width: 9px; height: 9px; border-radius: 50%; background: #E5484D; box-shadow: 0 0 0 2px color-mix(in srgb, #E5484D 30%, transparent); flex: none; animation: rec-pulse 1.6s ease-in-out infinite; }
+.share-chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; max-width: 170px; padding: 0 10px; border-radius: 12px; flex: none;
+  border: 1px solid color-mix(in srgb, #E5484D 70%, var(--border)); background: color-mix(in srgb, #E5484D 14%, var(--surface)); color: var(--text); font-size: 12px; font-weight: 600; }
+.share-chip:hover { background: color-mix(in srgb, #E5484D 26%, var(--surface)); }
+.share-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.share-chip-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+@keyframes rec-pulse { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .rec { animation: none; } }
+@media (max-width: 760px) { .share-chip-t { display: none; } .share-chip { padding: 0 8px; } }

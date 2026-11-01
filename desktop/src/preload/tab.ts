@@ -63,6 +63,82 @@ ipcRenderer.on('tab:notify-click', (_e, id: string) => {
 });
 
 /**
+ * Показ экрана (getDisplayMedia): обёртка запоминает полученные треки, чтобы вкладка могла сообщить, что показ
+ * закончился (сайт остановил сам, ушёл со страницы), и по команде кнопки «Остановить показ» остановить треки —
+ * из главного процесса поток остановить нельзя. События называются случайным именем, известным только этому
+ * preload: сайт не может ни подделать «показ закончился» (индикатор погасить), ни отключить остановку.
+ * Если остановка не сработала (кадр без preload), главный процесс перезагрузит вкладку.
+ */
+const shareKey = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, '0')).join('');
+contextBridge.executeInMainWorld({
+  func: (key: string) => {
+    const md = navigator.mediaDevices;
+    const proto = md && Object.getPrototypeOf(md);
+    if (!proto || typeof md.getDisplayMedia !== 'function') return;
+    // Всё нужное забираем до сценариев страницы, чтобы она не могла подменить.
+    const orig = md.getDisplayMedia;
+    const dispatch = EventTarget.prototype.dispatchEvent;
+    const listen = EventTarget.prototype.addEventListener;
+    const Ev = Event;
+    const setTick = window.setInterval.bind(window);
+    const clearTick = window.clearInterval.bind(window);
+    // Методы треков тоже забираем заранее: сайт не должен подменой readyState/stop/clone скрыть живой поток.
+    const TP = MediaStreamTrack.prototype;
+    const stateOf = Object.getOwnPropertyDescriptor(TP, 'readyState')?.get as (() => string) | undefined;
+    const stopTrack = TP.stop;
+    const cloneTrack = TP.clone;
+    const cloneStream = MediaStream.prototype.clone;
+    const streamTracks = MediaStream.prototype.getTracks;
+    if (!stateOf) return;
+    const ended = (t: MediaStreamTrack) => { try { return stateOf.call(t) === 'ended'; } catch { return true; } };
+    const tracks = new Set<MediaStreamTrack>();
+    let timer = 0;
+    const check = () => {
+      const had = tracks.size > 0;
+      for (const t of [...tracks]) if (ended(t)) tracks.delete(t);
+      if (tracks.size || !had) return;
+      clearTick(timer);
+      timer = 0;
+      dispatch.call(window, new Ev('os-share-end-' + key));
+    };
+    const add = (t: MediaStreamTrack) => {
+      tracks.add(t);
+      listen.call(t, 'ended', check);
+      if (!timer) timer = setTick(check, 500);
+    };
+    // Клоны (track.clone(), stream.clone()) — те же живые треки: учитываются, иначе остановкой оригиналов индикатор гасили бы.
+    Object.defineProperty(TP, 'clone', { value: function clone(this: MediaStreamTrack): MediaStreamTrack {
+      const c = Reflect.apply(cloneTrack, this, []) as MediaStreamTrack;
+      if (tracks.has(this)) add(c);
+      return c;
+    }, writable: true, configurable: true, enumerable: true });
+    Object.defineProperty(MediaStream.prototype, 'clone', { value: function clone(this: MediaStream): MediaStream {
+      const c = Reflect.apply(cloneStream, this, []) as MediaStream;
+      const mine = (Reflect.apply(streamTracks, this, []) as MediaStreamTrack[]).some((t) => tracks.has(t));
+      if (mine) for (const t of Reflect.apply(streamTracks, c, []) as MediaStreamTrack[]) add(t);
+      return c;
+    }, writable: true, configurable: true, enumerable: true });
+    const wrapped = async function getDisplayMedia(this: MediaDevices, ...args: unknown[]): Promise<MediaStream> {
+      const stream = await Reflect.apply(orig, this, args) as MediaStream;
+      // stop() у трека событие ended не вызывает — поэтому add() ещё и включает опрос.
+      for (const t of Reflect.apply(streamTracks, stream, []) as MediaStreamTrack[]) add(t);
+      return stream;
+    };
+    Object.defineProperty(proto, 'getDisplayMedia', { value: wrapped, writable: true, configurable: true, enumerable: true });
+    listen.call(window, 'os-share-stop-' + key, () => {
+      for (const t of [...tracks]) {
+        Reflect.apply(stopTrack, t, []);
+        dispatch.call(t, new Ev('ended'));
+      }
+      check();
+    });
+  },
+  args: [shareKey],
+});
+window.addEventListener('os-share-end-' + shareKey, () => ipcRenderer.send('tab:share', 'end'));
+ipcRenderer.on('tab:share-stop', () => window.dispatchEvent(new Event('os-share-stop-' + shareKey)));
+
+/**
  * Отправка файлов (<input type=file>): перед окном выбора спрашиваем разрешение сайта у главного процесса.
  * «Запретить» — окно не открывается; «Спросить» — после «Разрешить» в карточке окно открывается само.
  * Слушатель — в изолированном мире preload, сайт его не видит и не может снять.
