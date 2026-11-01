@@ -17,7 +17,7 @@ import { setBlockedListener } from './privacy';
 import { installNotifications, shownForTest, clickLastForTest } from './notify';
 import { installUploads } from './window';
 import { installAutofill } from './autofill';
-import { installCertHandling } from './certs';
+import { installCertHandling, certTrace } from './certs';
 import { hstsKnown } from './certstore';
 import { setTestPath } from './backup';
 import * as ChromeImport from './chromeimport';
@@ -121,6 +121,7 @@ if (process.env.OS_TEST === '1') {
     flush: () => flushAll(),
     // Приёмка ошибки сертификата: известен ли хост как HSTS (по заголовку, виденному в этом процессе).
     hstsKnown: (host: string) => hstsKnown(host),
+    certTrace: () => certTrace(),
     userData: () => app.getPath('userData'),
     dist: () => join(__dirname, '..'),
     notifications: () => shownForTest(),

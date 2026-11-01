@@ -165,7 +165,8 @@ export class TabView {
       Diag.log(this.id, `${code || ''} ${url.slice(0, 200)}`);
       // Chromium принял плохой сертификат без нашего события — останавливаем и показываем страницу ошибки.
       const leak = checkCommitted(wc, url, this.navStart);
-      if (leak) { this.failedUrl = url; void wc.loadURL(`os://error/?cert=${leak}`); return; }
+      if (leak === 'retry') { void wc.session.closeAllConnections().then(() => wc.loadURL(url)).catch(() => {}); return; }
+      if (leak) { this.failedUrl = url; void wc.loadURL(`os://error/?cert=${leak.token}`); return; }
       if (!url.startsWith('os://error')) this.failedUrl = null;
       this.insecureCert = takeInsecure(wc.id);
       this.favicon = null;

@@ -2839,7 +2839,10 @@ try {
       const urlOf = (win = 0) => main((_e, win) => globalThis.osTest.windows()[win].activeWebContents().getURL(), win);
       const open64 = async (url, win = 0) => {
         await main((_e, { url, win }) => globalThis.osTest.windows()[win].newTab(url), { url, win });
-        return waitFor(async () => { const u = await urlOf(win); return u.startsWith('os://error/?cert=') || (u.startsWith('https://') && u === url) ? u : null; }, 15000);
+        const first = await waitFor(async () => { const u = await urlOf(win); return u.startsWith('os://error/?cert=') || (u.startsWith('https://') && u === url) ? u : null; }, 20000);
+        // https-адрес может быть виден до того, как проверка сертификата заменит его страницей ошибки (перезагрузка после закрытия соединений) — ждём и читаем снова.
+        if (first && !first.startsWith('os://error')) { await sleep(2500); const again = await urlOf(win); if (again !== first) return waitFor(async () => { const u = await urlOf(win); return u.startsWith('os://error/?cert=') || u === url ? u : null; }, 10000); }
+        return first;
       };
       const isErr = (u) => !!u && u.startsWith('os://error/?cert=');
       const click = (sel, win = 0) => wcEval(`document.querySelector(${JSON.stringify(sel)})?.click()`, win);
@@ -2901,7 +2904,7 @@ try {
         u = await open64(`https://sub.localhost:${PA}/`);
         check('cert: a subdomain → error again', isErr(u), u);
         u = await open64(`https://127.0.0.1:${PA}/`);
-        check('cert: another host name (IP) on the same port → error again', isErr(u), u);
+        check('cert: another host name (IP) on the same port → error again', isErr(u), `${u} trace=${JSON.stringify(await main(() => globalThis.osTest.certTrace()).catch((e) => String(e)))}`);
         u = await open64(`https://localhost:${PA}/other`);
         check('cert: same host and port, other path → still allowed (exception is per site)', u === `https://localhost:${PA}/other`, u);
         // Страница с исключением грузит собственные ресурсы: CSS, картинку, скрипт, fetch к своему адресу и свой iframe.

@@ -131,20 +131,51 @@ function addPending(wc: WebContents, url: string, host: string, port: number, co
 
 const isCertCode = (c: number) => Number.isInteger(c) && c <= -200 && c >= -299;
 
+/** Трассировка решений checkCommitted (для приёмки и диагностики; только хост, порт и коды). */
+const trace: string[] = [];
+const note = (m: string) => { trace.push(m); if (trace.length > 60) trace.shift(); };
+export const certTrace = (): string[] => [...trace];
+
+/** Вкладка → адрес, который уже перезагружали с закрытием соединений (повтор — один раз). */
+const retried = new Map<number, string>();
+
+export type CommitCheck = { token: string } | 'retry' | null;
+
 /**
  * Страница главной рамки открылась (did-navigate). Если при этом соединении проверка сертификата хоста провалилась, а
  * исключения на этот хост:порт:отпечаток нет, значит Chromium принял сертификат без нашего события (запомненное решение):
  * останавливаем загрузку и возвращаем токен страницы ошибки. С исключением — только пометка «Не защищено».
+ * Если свежего вердикта нет (нет вовсе или старый плохой), Chromium мог переиспользовать уже установленное соединение
+ * (на Windows — тот же IP:порт под другим именем): вкладка один раз закрывает все соединения сессии и грузит адрес заново
+ * ('retry'); на повторе вердикт уже свежий. Хорошие вердикты (net::OK) запоминаются, такие хосты не перезагружаются.
  */
-export function checkCommitted(wc: WebContents, url: string, navStart: number): string | null {
+export function checkCommitted(wc: WebContents, url: string, navStart: number): CommitCheck {
   const hp = hostPort(url);
-  if (!hp || !url.startsWith('https:')) return null;
-  const v = verdicts.get(wc.session)?.get(hp.host);
-  // Вердикт должен быть свежим: относится к соединению этой навигации (старые — от других страниц и портов).
-  if (!v || v.ok || v.ts < navStart - 50 || !v.cert.fingerprint || !isCertCode(v.code)) return null;
-  if (exceptionsOf(wc.session).has(hp.host, hp.port, v.cert.fingerprint)) { insecure.add(wc.id); return null; }
-  wc.stop();
-  return addPending(wc, url, hp.host, hp.port, v.code, v.cert);
+  if (!hp || !url.startsWith('https:')) { retried.delete(wc.id); return null; }
+  const tag = `${hp.host}:${hp.port}`;
+  const v = verdicts.get(wc.session)?.get(hp.host.toLowerCase());
+  const fresh = !!v && v.ts >= navStart - 50;
+  if (v && v.ok) { retried.delete(wc.id); note(`${tag} ok${fresh ? '' : ' (old)'}`); return null; }
+  const excepted = !!v && !!v.cert.fingerprint && exceptionsOf(wc.session).has(hp.host, hp.port, v.cert.fingerprint);
+  if (v && fresh && v.cert.fingerprint && isCertCode(v.code)) {
+    retried.delete(wc.id);
+    if (excepted) { insecure.add(wc.id); note(`${tag} excepted ${v.code}`); return null; }
+    wc.stop();
+    note(`${tag} bad ${v.code} -> error page`);
+    return { token: addPending(wc, url, hp.host, hp.port, v.code, v.cert) };
+  }
+  // Свежего вердикта нет.
+  if (excepted) { retried.delete(wc.id); insecure.add(wc.id); note(`${tag} excepted (old verdict)`); return null; }
+  if (retried.get(wc.id) !== url) {
+    retried.set(wc.id, url);
+    note(`${tag} no fresh verdict (${v ? `old ${v.code}` : 'none'}) -> close connections, reload`);
+    Diag.log(String(wc.id), `cert recheck ${hp.host}`);
+    wc.stop();
+    return 'retry';
+  }
+  retried.delete(wc.id);
+  note(`${tag} still no verdict after reload (${v ? `old ${v.code}` : 'none'}) -> allowed`);
+  return null;
 }
 
 function onCertError(
