@@ -1,0 +1,59 @@
+# AGENTS.md — правила для агентов (Codex и др.)
+
+«Ось Browser» — приватный деловой браузер с изолированными профилями. Владелец пишет по-русски;
+отвечать ему **по-русски, коротко, простыми словами**: что сделано, ссылка на сборку, готовность в %.
+Подробное состояние и история — `docs/HANDOVER.md` (прочитать целиком перед работой).
+
+## Части репозитория
+| Папка | Что | Эталон / ТЗ |
+|---|---|---|
+| `app/` | Android (Kotlin, Mozilla GeckoView, без XML-разметки: UI в коде) | `docs/SPEC.md` |
+| `desktop/` | Windows (Electron + TypeScript) | `docs/SPEC_WINDOWS.md`, очередь `docs/DESKTOP_TASKS.md` |
+| `site/` | Сайт os-browser.com (Astro) | `docs/SPEC_SITE.md`, сервер `docs/SPEC_SERVER.md` |
+| `docs/play/` | Материалы Google Play (16 языков) | `docs/play/README.md` |
+
+Android — эталон поведения: Windows повторяет его по `docs/WINDOWS_SYNC.md` (§1–§23).
+
+## Жёсткие правила (решения владельца)
+1. **Никаких своих серверов, аналитики, рекламы, телеметрии.** Данные — только на устройстве.
+   Ничего не отправлять сторонним сервисам без решения владельца.
+2. **Языки — 16**, порядок столбцов во всех `Tr*.kt`: en, ru, es, pt, fr, de, ar (RTL), hi, tr, zh,
+   be, uz, ky, tg, kk, hy (`Tr.SUPPORTED`). Новая строка — сразу на все 16. Строки Windows — тоже в
+   `app/src/main/java/ru/multibrowser/TrDesktop.kt` (Windows берёт их через `desktop/scripts/gen-i18n.mjs`).
+3. **Термины — только из `docs/GLOSSARY.md`** (одно понятие — один термин на всех платформах и в магазине).
+   Тест `GlossaryTest` это проверяет; запрещённые синонимы перечислены там же.
+4. Неизменяемое: «Ось» / «Ось Browser», названия продуктов, адреса, подстановки `%s %d %1$d`.
+5. Задачи со статусом `[!]` и решения из `docs/SPEC_WINDOWS.md` §9 — только владелец. Сомнение — спросить.
+6. Секреты не печатать и не коммитить. Ключ подписи — только секреты CI (`OS_KEYSTORE*`).
+7. Не ослаблять тесты и не отключать проверки ради зелёного прогона.
+
+## Сборка и проверки
+**Android — только в CI** (локально нет Android SDK):
+- push в `feat/**` или `main` → `.github/workflows/build.yml`: юнит-тесты (≈2200) + APK/AAB.
+  Итог тестов — ветка `unit-results-<ветка>`, ошибки сборки — комментарий к коммиту.
+- Приёмка на эмуляторе: `gh workflow run acceptance.yml --ref <ветка>` (~25 мин).
+- Матрица сценариев (4 части): `gh workflow run scenarios.yml --ref <ветка>`; итоги — ветки
+  `scenario-results-<ветка>-<1..4>` (`summary.txt`, `checks.txt`, скриншоты).
+  Часть 3 (живые сайты) иногда падает на разных сайтах из-за программного GPU эмулятора — повторить
+  `gh run rerun <id> --failed`; одинаковый провал дважды — уже дефект.
+- Скриншоты магазина: `gh workflow run store-shots.yml --ref <ветка>`, сборка кадров —
+  `node docs/play/tools/compose.js` (см. `docs/play/README.md`).
+- Переводы новых языков: `python3 docs/i18n-new/check.py` (должно быть `PASS`).
+
+**Windows:** `cd desktop && npm ci && npm run check` (i18n + typecheck + lint + unit);
+приёмка `xvfb-run -a node test/acceptance.mjs`; CI — `desktop.yml` на windows-latest.
+
+## Ветки, коммиты, слияние
+- Android: ветка `feat/quick-search`; Windows: `feat/desktop-<задача>`; сайт: `feat/site-*`.
+- В `main` — только после зелёных юнит-тестов **и** зелёной приёмки: `git merge --no-ff`.
+  Релиз `build-N` (Android) / `desktop-N` (Windows) публикуется автоматически из `main`.
+- Не переписывать историю `main`, не force-push в общие ветки.
+- Каждую правку Android, которую должен повторить Windows, — новым параграфом в `docs/WINDOWS_SYNC.md`
+  и задачей в `docs/DESKTOP_TASKS.md`.
+- GitHub из облачных сессий — только REST (`gh api ...`), GraphQL может быть недоступен.
+
+## Где что в Android-коде
+- `BrowserActivity.kt` — браузер, вкладки, меню ⋮ (`BrowserMenu.kt`), меню ссылки (`LinkMenu.kt`, `Snack.kt`).
+- `Gecko.kt` — движок, сессии по профилям (изоляция cookies через contextId).
+- `Tr*.kt` — переводы; `Tabs.kt`, `Pins.kt`, `Profiles.kt`, `Bookmarks.kt`, `Passwords.kt`, `Downloads.kt` — данные.
+- Тесты: `app/src/test/java/ru/multibrowser/` (JUnit, без устройства); сценарии — `.github/scripts/*.sh`.
