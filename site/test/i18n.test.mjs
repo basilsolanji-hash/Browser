@@ -45,3 +45,16 @@ test('404 chooses each new language from URL, saved preference or browser', () =
     assert.equal(blocks.filter((b) => !b.hidden).length, 1);
   }
 });
+
+test('both privacy policies describe Windows DPAPI and distinguish Android encryption', () => {
+  for (const lang of ['ru', 'en']) {
+    const file = lang === 'ru' ? 'privacy.html' : 'privacy-en.html';
+    const html = readFileSync(new URL(`../public/${file}`, import.meta.url), 'utf8');
+    assert.match(html, /Windows/);
+    assert.match(html, /safeStorage/);
+    assert.match(html, /DPAPI/);
+    assert.match(html, /Android Keystore/);
+    assert.match(html, /GitHub/);
+    assert.match(html, /hello@os-browser\.com/);
+  }
+});

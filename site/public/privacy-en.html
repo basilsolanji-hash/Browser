@@ -16,9 +16,9 @@
 </head>
 <body>
 <h1>Privacy policy of the «Ось» (Os) app</h1>
-<p class="muted">Updated: October 25, 2026 · <a href="privacy.html">Русский</a></p>
+<p class="muted">Updated: November 7, 2026 · <a href="privacy.html">Русский</a></p>
 
-<p>Ось is a business browser for Android with isolated profiles. Its core principle: your data
+<p>Ось is a business browser for Android and Windows with isolated profiles. Its core principle: your data
 stays on your device. This page explains what is processed and how it is protected.</p>
 
 <h2>Data the developer collects</h2>
@@ -30,9 +30,10 @@ developer does not receive, store or share your personal data, history, password
   <li>Cookies, sign-ins and site data — separately for each profile.</li>
   <li>Profiles (names, descriptions, profile files), open tabs, tab sets and groups.</li>
   <li>Browsing history, favorites, notes, saved pages and the list of downloads.</li>
-  <li><b>Passwords</b> — encrypted with a key from the Android Keystore (AES-256-GCM); the key
-      never leaves the device. Showing or copying a password requires your fingerprint or the
-      phone's PIN.</li>
+  <li><b>Passwords</b> — on Android, encrypted with an Android Keystore key (AES-256-GCM);
+      on Windows, protected by Electron safeStorage using Windows DPAPI. Keys are not sent to
+      the developer. On Android, showing or copying a password requires your fingerprint or
+      the phone's PIN.</li>
   <li>Settings and usage statistics (counted on the device and never sent anywhere).</li>
 </ul>
 <p>You can delete all of this in the app (Clear data, Sign out and clear for a profile, deleting
@@ -44,9 +45,11 @@ passwords and tab sets in the Personal account) or by uninstalling the app.</p>
       their own policies.</li>
   <li>Searches typed in the address bar go to the search engine you choose (DuckDuckGo by default;
       can be changed in Settings).</li>
-  <li>Phishing and malware protection (Safe Browsing) in the built-in Mozilla GeckoView engine checks
+  <li>On Android, phishing and malware protection (Safe Browsing) in the built-in Mozilla GeckoView engine checks
       addresses against lists of dangerous sites using only short anonymous hash prefixes, not the
       addresses themselves and not your data.</li>
+  <li>The Windows version checks for updates in the project's GitHub releases. You can turn
+      this check off in Settings.</li>
   <li>Address bar suggestions and frequent-site tiles come only from your history and favorites on
       the device, with no network requests; site icons are not downloaded.</li>
 </ul>
@@ -67,7 +70,8 @@ and AES-256-GCM) and cannot be opened without it. The developer has no access to
 </ul>
 
 <h2>Protection</h2>
-<p>The app can be locked with the device fingerprint or PIN. You can block screenshots and screen
+<p>On Android, the app can be locked with the device fingerprint or PIN. On Windows, the browser
+can be locked with an app PIN. You can block screenshots and screen
 recording and hide the content in recent apps. Incognito tabs keep no history, cookies or passwords.</p>
 
 <h2>Children</h2>
