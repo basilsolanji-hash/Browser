@@ -11,6 +11,8 @@ import type { ProfileInfo } from '../shared/types';
  */
 interface Data { list: ProfileInfo[]; count: number; folders: string[]; collapsed: string[]; view: 'list' | 'grid' }
 let expanded = false;
+let query = '';
+let searchProfile: number | null = null;
 let data: Data | null = null;
 /** Фраза — новая при каждом открытии экрана, а не при каждой перерисовке. */
 let phrase: { greeting: string; phrase: string } | null | undefined;
@@ -22,6 +24,7 @@ async function render(): Promise<void> {
   data = await os.call<Data>('profiles');
   phrase ??= await os.call<{ greeting: string; phrase: string } | null>('phrase');
   const { list, view } = data;
+  if (!list.some((p) => p.id === searchProfile)) searchProfile = (list.find((p) => p.current) ?? list[0])?.id ?? null;
   const shown = visibleProfiles(list, expanded);
   const sections = byFolder(shown, (p) => p.folder, document.documentElement.lang);
   const hasFolders = sections.some((s) => s.folder);
@@ -54,6 +57,7 @@ async function render(): Promise<void> {
       h('div', { class: 'about' }, t('about_desc')),
       phrase ? h('div', { class: 'greet' }, phrase.greeting) : '',
       phrase?.phrase ? h('div', { class: 'phrase' }, phrase.phrase) : ''),
+    quickSearch(list),
     h('div', { class: 'quick' },
       h('a', { class: 'pill', href: 'os://notes/', style: 'text-decoration:none;color:inherit' }, icon('note', 16), t('notes')),
       h('a', { class: 'pill', href: 'os://saved/', style: 'text-decoration:none;color:inherit' }, icon('saved', 16), t('saved_pages')),
@@ -67,6 +71,28 @@ async function render(): Promise<void> {
         expanded ? t('profiles_fewer') : t('profiles_all', list.length))
       : '',
   );
+}
+
+/** MainActivity.quickSearch: выбранный профиль и новая вкладка, без подсказок из чужой истории. */
+function quickSearch(list: ProfileInfo[]): HTMLElement {
+  const input = h('input', { id: 'quick-query', type: 'text', autocomplete: 'off',
+    placeholder: t('address_hint'), 'aria-label': t('address_hint'), value: query,
+    oninput: (e: Event) => { query = (e.target as HTMLInputElement).value; } });
+  const go = h('button', { class: 'btn', id: 'quick-go', type: 'submit', disabled: searchProfile == null }, icon('forward', 18), t('qs_go'));
+  const select = h('select', { id: 'quick-profile', 'aria-label': t('qs_pick_profile'),
+    onchange: (e: Event) => { searchProfile = Number((e.target as HTMLSelectElement).value); } },
+  ...list.map((p) => h('option', { value: String(p.id), selected: p.id === searchProfile }, p.name)));
+  return h('form', { class: 'quick-search', id: 'quick-search',
+    onsubmit: async (e: Event) => {
+      e.preventDefault();
+      if (!query.trim() || searchProfile == null || go.disabled) return;
+      go.disabled = true;
+      try {
+        if (await os.call<boolean>('quickSearch', searchProfile, query)) { query = ''; input.value = ''; }
+      } finally { go.disabled = searchProfile == null; }
+    } },
+  h('div', { class: 'query-row' }, icon('search', 20), input, go),
+  h('label', { class: 'query-profile' }, h('span', null, t('qs_pick_profile')), select));
 }
 
 let dragId: number | null = null;
