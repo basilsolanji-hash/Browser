@@ -2023,19 +2023,24 @@ try {
 
     // --- 52. Ширина экранов-списков ---
     step('52. Экраны-списки не шире 720 px и по центру');
-    const widths = [];
-    for (const u of ['os://home/', 'os://settings/', 'os://downloads/', 'os://favorites/', 'os://site/?profile=1']) {
-      await main((_e, url) => globalThis.osTest.windows()[0].openPanel(url), u);
-      const p = await page(u.split('?')[0]);
-      await p.waitForSelector('#app > *');
-      widths.push(await p.evaluate(() => {
-        const a = document.getElementById('app');
-        const r = a.getBoundingClientRect();
-        const cs = window.getComputedStyle(a);
-        return [Math.round(r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)), Math.round(r.left + r.right - document.documentElement.clientWidth)];
-      }));
-    }
-    check('content ≤ 720 px, centered', widths.every(([w, off]) => w <= 720 && Math.abs(off) <= 2), JSON.stringify(widths));
+    const bounds52 = await main(() => globalThis.osTest.windows()[0].win.getBounds());
+    try {
+      for (const width52 of [1200, 560]) {
+        await main((_e, width) => globalThis.osTest.windows()[0].win.setBounds({ width }), width52);
+        const widths = [];
+        for (const u of ['os://home/', 'os://settings/', 'os://downloads/', 'os://favorites/', 'os://cabinet/?profile=1', 'os://site/?profile=1']) {
+          await main((_e, url) => globalThis.osTest.windows()[0].openPanel(url), u);
+          const p = await page(u.split('?')[0]);
+          await p.waitForSelector('#app > *');
+          widths.push(await p.evaluate(() => {
+            const a = document.getElementById('app'), r = a.getBoundingClientRect(), cs = window.getComputedStyle(a);
+            return [Math.round(r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)), Math.round(r.left + r.right - document.documentElement.clientWidth), r.width, document.documentElement.clientWidth];
+          }));
+          if (u.startsWith('os://cabinet')) await keyScreen(`52-cabinet-${width52}`, 'page');
+        }
+        check(`${width52}px: all six lists ≤720 px and centered; narrow fills width`, widths.every(([w, off, outer, viewport]) => w <= 720 && Math.abs(off) <= 2 && (width52 > 720 || Math.abs(outer - viewport) <= 1)), JSON.stringify(widths));
+      }
+    } finally { await main((_e, bounds) => globalThis.osTest.windows()[0].win.setBounds(bounds), bounds52); }
     await main(() => globalThis.osTest.windows()[0].openProfile(1));
     check('no script errors on own pages (os://) after the new screens', ownPageErrors.length === 0, ownPageErrors.slice(0, 5).join(' | '));
     void W;

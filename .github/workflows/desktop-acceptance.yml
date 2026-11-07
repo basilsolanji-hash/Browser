@@ -39,6 +39,15 @@ jobs:
       - name: Run scenarios
         run: node test/acceptance.mjs
 
+      - name: List layouts and screenshots
+        run: node test/layout.mjs
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: layout-results-${{ github.workflow }}-${{ github.run_number }}
+          path: desktop/layout-results/
+
       # Этап 5: установщик — тихая установка, регистрация браузера, запуск, удаление.
       - name: Installer check
         if: always()
