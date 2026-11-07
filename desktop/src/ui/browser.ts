@@ -690,30 +690,39 @@ function mainMenu(anchor: DOMRect): void {
     groups.push([
       { label: t('history'), icon: 'history', kbd: 'Ctrl+H', run: panel(`os://history/?profile=${id}`) },
       { label: t('clear_title'), icon: 'delete', kbd: 'Ctrl+Shift+Del', run: panel(`os://clear/?profile=${id}`) },
+      { k: 'permissions', label: t('site_permissions'), icon: 'shield', run: panel(`os://site/?profile=${id}${web ? `&host=${encodeURIComponent(host(st.url))}` : ''}`) },
     ]);
     groups.push([
       { k: 'cabinet', label: t('cabinet'), icon: 'account', run: panel(`os://cabinet/?profile=${id}`) },
       { label: t('dl_title'), icon: 'download', kbd: 'Ctrl+J', run: panel('os://downloads/') },
       { label: t('favorites'), icon: 'star', kbd: 'Ctrl+Shift+O', run: panel('os://favorites/') },
       { label: t('tabs'), icon: 'tabs', kbd: 'Ctrl+Shift+A', run: panel(`os://tabs/?profile=${id}`) },
+      { k: 'saved', label: t('saved_pages'), icon: 'saved', run: panel('os://saved/') },
+      { k: 'notes', label: t('notes'), icon: 'note', run: panel('os://notes/') },
     ]);
   } else {
     groups.push([{ label: t('dl_title'), icon: 'download', kbd: 'Ctrl+J', run: panel('os://downloads/') }]);
   }
+  groups.push([{ el: zoomRow }]);
   groups.push([
-    { el: zoomRow },
+    { k: 'share', label: t('share'), icon: 'share', disabled: !web, run: () => shareMenu(anchor) },
     { label: t('find_in_page'), icon: 'search', kbd: 'Ctrl+F', disabled: !web, run: () => void os.call('findOpen') },
     { label: st.reader ? t('reader_exit') : t('reader_mode'), icon: 'book', kbd: 'Ctrl+Alt+R', disabled: !web, run: () => void os.call('reader') },
+    { label: t('copy_link'), icon: 'link', disabled: !web, run: () => { void os.call('copy', st!.url); toast(t('link_copied')); } },
+    { label: t('open_external'), icon: 'external', disabled: !web, run: () => void browsersMenu(anchor) },
+    { k: 'mobile', label: t('dt_mobile_site'), icon: 'phone', disabled: !web, checked: !!st.mobile, run: () => void os.call('mobileSite') },
     { label: st.fullscreen ? t('exit_full_screen') : t('full_screen'), icon: 'fullscreen', kbd: 'F11', run: () => void os.call('fullscreen') },
-    { k: 'more-tools', label: t('dt_more_tools'), icon: 'more', sub: true, run: () => moreTools(anchor, web, id) },
   ]);
+  const tools: Item = { k: 'more-tools', label: t('dt_more_tools'), icon: 'more', sub: true, run: () => moreTools(anchor, web, id) };
   if (!st.incognito) {
     groups.push([
       { label: t('settings'), icon: 'settings', run: panel('os://settings/') },
       { label: t('help_feedback'), icon: 'help', run: panel('os://help/') },
-      ...(st.isDefault ? [] : [{ label: t('default_make'), icon: 'globe', run: () => void os.call('makeDefault') }]),
+      { k: 'diag', label: t('diagnostics'), icon: 'bug', run: () => void diagnostics(anchor) },
+      tools,
     ]);
-  }
+    if (!st.isDefault) groups.push([{ label: t('default_make'), icon: 'globe', run: () => void os.call('makeDefault') }]);
+  } else groups.push([{ k: 'diag', label: t('diagnostics'), icon: 'bug', run: () => void diagnostics(anchor) }, tools]);
   const items: Item[] = [{ el: top }];
   for (const g of groups) items.push({ sep: true }, ...g);
   const box = menu(items);
@@ -726,21 +735,8 @@ function moreTools(anchor: DOMRect, web: boolean, id: number | undefined): void 
   const items: Item[] = [
     { k: 'back-menu', label: t('dt_more_tools'), icon: 'back', run: () => mainMenu(anchor) },
     { sep: true },
-    ...(id != null ? [
-      { label: t('saved_pages'), icon: 'saved', run: () => void os.call('openPanel', 'os://saved/') },
-      { label: t('notes'), icon: 'note', run: () => void os.call('openPanel', 'os://notes/') },
-      { k: 'extensions', label: t('dt_extensions'), icon: 'extension', run: () => void os.call('openPanel', `os://extensions/?profile=${id}`) },
-      // Разрешения сайта — ещё и по значку замка в адресной строке; здесь, чтобы меню влезало с «Новым окном».
-      { label: t('site_permissions'), icon: 'shield', disabled: !web, run: () => void os.call('openPanel', `os://site/?profile=${id}&host=${encodeURIComponent(host(st!.url))}`) },
-      { sep: true },
-    ] : []),
-    { k: 'share', label: t('share'), icon: 'share', disabled: !web, run: () => shareMenu(anchor) },
-    { label: t('copy_link'), icon: 'link', disabled: !web, run: () => { void os.call('copy', st!.url); toast(t('link_copied')); } },
-    { label: t('open_external'), icon: 'external', disabled: !web, run: () => void browsersMenu(anchor) },
-    { k: 'mobile', label: t('dt_mobile_site'), icon: 'phone', disabled: !web, checked: !!st?.mobile, run: () => void os.call('mobileSite') },
+    ...(id != null ? [{ k: 'extensions', label: t('dt_extensions'), icon: 'extension', run: () => void os.call('openPanel', `os://extensions/?profile=${id}`) }] : []),
     { label: t('dt_print'), icon: 'file', kbd: 'Ctrl+P', disabled: !web, run: () => void os.call('print') },
-    { sep: true },
-    { k: 'diag', label: t('diagnostics'), icon: 'bug', run: () => void diagnostics(anchor) },
     ...(st?.lockEnabled ? [{ label: t('dt_lock_now'), icon: 'lock', run: () => void os.call('lockNow') }] : []),
   ];
   const box = menu(items);

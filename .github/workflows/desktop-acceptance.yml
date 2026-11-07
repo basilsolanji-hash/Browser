@@ -39,6 +39,15 @@ jobs:
       - name: Run scenarios
         run: node test/acceptance.mjs
 
+      - name: Menu scenarios (16 languages) and screenshots
+        run: node test/menu.mjs
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: menu-results-${{ github.workflow }}-${{ github.run_number }}
+          path: desktop/menu-results/
+
       # Этап 5: установщик — тихая установка, регистрация браузера, запуск, удаление.
       - name: Installer check
         if: always()
