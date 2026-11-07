@@ -1,0 +1,16 @@
+Performing Streamed Install
+Success
+shot 00-onboarding-1
+shot 00-onboarding-2
+shot 00-onboarding-3
+shot 00-onboarding-4
+shot 00-onboarding-5
+shot 00-onboarding-6
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 01-main
+shot 01b-start
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 02-example
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+shot 03-wikipedia
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
