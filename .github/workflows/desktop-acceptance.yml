@@ -48,6 +48,15 @@ jobs:
           name: menu-results-${{ github.workflow }}-${{ github.run_number }}
           path: desktop/menu-results/
 
+      - name: Selection and touch panel stability
+        run: node test/selection.mjs
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selection-results-${{ github.workflow }}-${{ github.run_number }}
+          path: desktop/selection-results/
+
       # Этап 5: установщик — тихая установка, регистрация браузера, запуск, удаление.
       - name: Installer check
         if: always()
