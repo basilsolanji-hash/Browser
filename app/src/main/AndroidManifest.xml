@@ -10,6 +10,8 @@
     <!-- Запрашиваются только когда сайт попросил и пользователь разрешил ему (SitePermissions). -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <!-- Звонки и голосовые сообщения на сайтах (WebRTC): переключение режима звука. Без запроса пользователю. -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -31,6 +33,9 @@
         android:icon="@mipmap/ic_launcher"
         android:label="Ось Browser"
         android:theme="@style/Theme.MultiBrowser">
+
+        <service android:name=".MicrophoneCallService" android:exported="false"
+            android:foregroundServiceType="microphone" />
 
         <activity
             android:name=".MainActivity"

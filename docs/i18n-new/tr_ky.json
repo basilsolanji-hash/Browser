@@ -720,5 +720,8 @@
  "dt_import_no_profile": "Chrome профили табылган жок",
  "dt_import_nocrypto": "Сырсөздөрдү шифрлөө жеткиликсиз",
  "dt_import_incognito": "Инкогнитодо көчүрүү жеткиликсиз",
- "dt_import_other": "Башка кыстармалар"
+ "dt_import_other": "Башка кыстармалар",
+ "call_background_active": "Микрофон колдонулууда. Чалууга кайтуу үчүн басыңыз.",
+ "call_end": "Чалууну бүтүрүү",
+ "call_background_unavailable": "Фондо чалуу үзүлүшү мүмкүн. Бул баракты ачык калтырыңыз."
 }

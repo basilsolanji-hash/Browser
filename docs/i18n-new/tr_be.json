@@ -720,5 +720,8 @@
  "dt_import_no_profile": "Профіль Chrome не знойдзены",
  "dt_import_nocrypto": "Шыфраванне пароляў недаступнае",
  "dt_import_incognito": "Перанос недаступны ў інкогніта",
- "dt_import_other": "Іншыя закладкі"
+ "dt_import_other": "Іншыя закладкі",
+ "call_background_active": "Мікрафон выкарыстоўваецца. Націсніце, каб вярнуцца да званка.",
+ "call_end": "Завяршыць званок",
+ "call_background_unavailable": "У фоне званок можа перарвацца. Пакіньце гэту старонку адкрытай."
 }

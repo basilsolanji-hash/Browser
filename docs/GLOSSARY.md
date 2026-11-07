@@ -16,6 +16,7 @@
 
 | Понятие | Ключ | en | ru | es | pt | fr | de | ar | hi | tr | zh | be | uz | ky | tg | kk | hy |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Завершить звонок | `call_end` | End call | Завершить звонок | Finalizar llamada | Encerrar chamada | Terminer l’appel | Anruf beenden | إنهاء المكالمة | कॉल समाप्त करें | Aramayı bitir | 结束通话 | Завяршыць званок | Qoʻngʻiroqni tugatish | Чалууну бүтүрүү | Анҷом додани занг | Қоңырауды аяқтау | Ավարտել զանգը |
 | Профиль / профили | `profiles` | Profiles | Профили | Perfiles | Perfis | Profils | Profile | الملفات | प्रोफ़ाइल | Profiller | 配置文件 | Профілі | Profillar | Профилдер | Профилҳо | Профильдер | Պրոֆիլներ |
 | Вкладка / вкладки | `tabs` | Tabs | Вкладки | Pestañas | Abas | Onglets | Tabs | علامات التبويب | टैब | Sekmeler | 标签页 | Укладкі | Varaqlar | Өтмөктөр | Варақаҳо | Қойындылар | Ներդիրներ |
 | Закреплённые вкладки | `pinned_tabs` | Pinned tabs | Закреплённые вкладки | Pestañas fijadas | Abas fixadas | Onglets épinglés | Angepinnte Tabs | علامات تبويب مثبتة | पिन किए टैब | Sabitlenen sekmeler | 固定标签 | Замацаваныя ўкладкі | Qadalgan varaqlar | Кадалган өтмөктөр | Варақаҳои васлшуда | Бекітілген қойындылар | Ամրացված ներդիրներ |

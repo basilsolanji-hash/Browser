@@ -2886,5 +2886,17 @@
  "dt_import_other": {
   "en": "Other favorites",
   "ru": "Другое избранное"
+ },
+ "call_background_active": {
+  "en": "Microphone in use. Tap to return to the call.",
+  "ru": "Микрофон используется. Нажмите, чтобы вернуться к звонку."
+ },
+ "call_end": {
+  "en": "End call",
+  "ru": "Завершить звонок"
+ },
+ "call_background_unavailable": {
+  "en": "The call may stop in the background. Keep this page open.",
+  "ru": "В фоне звонок может прерваться. Оставьте эту страницу открытой."
  }
 }

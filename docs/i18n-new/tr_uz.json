@@ -720,5 +720,8 @@
  "dt_import_no_profile": "Chrome profili topilmadi",
  "dt_import_nocrypto": "Parollarni shifrlash mavjud emas",
  "dt_import_incognito": "Inkognito rejimida koʻchirish mavjud emas",
- "dt_import_other": "Boshqa xatchoʻplar"
+ "dt_import_other": "Boshqa xatchoʻplar",
+ "call_background_active": "Mikrofon ishlatilmoqda. Qoʻngʻiroqqa qaytish uchun bosing.",
+ "call_end": "Qoʻngʻiroqni tugatish",
+ "call_background_unavailable": "Fonda qoʻngʻiroq uzilishi mumkin. Bu sahifani ochiq qoldiring."
 }

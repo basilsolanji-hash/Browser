@@ -3,6 +3,9 @@
 set -eu
 OUT=${OUT:-results}
 PKG=${PKG:-ru.multibrowser.test}
+mkdir -p "$OUT"
+retention_run=$(python3 -c 'import secrets; print(secrets.token_hex(16))')
+export PROFILE_RETENTION_RUN="$retention_run"
 python3 .github/scripts/fixtures/profile-retention.py > "$OUT/profile-retention-server.log" 2>&1 &
 retention_pid=$!
 trap 'kill "$retention_pid" 2>/dev/null || true' EXIT
@@ -29,9 +32,30 @@ else:
     raise SystemExit(f'Fixture did not reach expected state {key}/{expected}: {last}')
 WAIT
 }
+# DOM autofocus alone does not route Android IME keys to the web input.
+tap_draft() {
+  python3 - "$OUT" <<'FOCUS'
+import re, subprocess, sys, xml.etree.ElementTree as ET
+from pathlib import Path
+for attempt in range(4):
+    subprocess.run(['adb','shell','uiautomator','dump','/sdcard/retention-focus.xml'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=30)
+    content=subprocess.check_output(['adb','exec-out','cat','/sdcard/retention-focus.xml'],timeout=30)
+    Path(sys.argv[1],'retention-focus.xml').write_bytes(content)
+    for node in ET.fromstring(content).iter('node'):
+        if "System UI" in node.get('text','') and "responding" in node.get('text',''):
+            raise SystemExit('BLOCKED: System UI is unresponsive')
+        if node.get('resource-id','').split('/')[-1] != 'draft': continue
+        bounds=list(map(int,re.findall(r'\d+',node.get('bounds',''))))
+        if len(bounds)==4 and bounds[2]>bounds[0] and bounds[3]>bounds[1]:
+            subprocess.run(['adb','shell','input','tap',str((bounds[0]+bounds[2])//2),str((bounds[1]+bounds[3])//2)],check=True,timeout=30)
+            raise SystemExit(0)
+raise SystemExit('Missing accessible draft input')
+FOCUS
+}
 for id in 8 9 10 11 12 13 14; do
-  adb shell am start -n "$PKG/ru.multibrowser.BrowserActivity" --ei profile "$id" --es site gmail --es url "http://localhost:8767/page?id=$id" >/dev/null
+  adb shell am start -n "$PKG/ru.multibrowser.BrowserActivity" --ei profile "$id" --es site gmail --es url "http://localhost:8767/page/$retention_run?id=$id" >/dev/null
   wait_state "$id" FOCUSED
+  tap_draft
   adb shell input text "draft$id"
   wait_state "$id" "draft$id"
   adb shell input keyevent 4
@@ -69,8 +93,9 @@ raise SystemExit('Missing UI action: '+label)
 TAP
 }
 for id in 8 9; do
-  adb shell am start -n "$PKG/ru.multibrowser.BrowserActivity" --ei profile "$id" --es action new_tab --es url "http://localhost:8767/page?id=10$id" >/dev/null
+  adb shell am start -n "$PKG/ru.multibrowser.BrowserActivity" --ei profile "$id" --es action new_tab --es url "http://localhost:8767/page/$retention_run?id=10$id" >/dev/null
   wait_state "10$id" FOCUSED
+  tap_draft
   adb shell input text "draft10$id"
   wait_state "10$id" "draft10$id"
   adb shell input keyevent 4

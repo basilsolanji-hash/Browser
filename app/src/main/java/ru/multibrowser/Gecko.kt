@@ -25,6 +25,7 @@ object Gecko {
     private val CHROME_UA_HOSTS = setOf("mail.google.com")
 
     private var runtime: GeckoRuntime? = null
+    private lateinit var appContext: Context
     private val sessions = LinkedHashMap<String, GeckoSession>(16, 0.75f, true)
     private val lastSessionByProfile = HashMap<Int, String>()
     val canGoBack = HashMap<String, Boolean>()
@@ -66,6 +67,7 @@ object Gecko {
             .build(),
     ).also {
         runtime = it
+        appContext = ctx.applicationContext
         installReader(it)
         installPasswordSuggest(it)
         it.webNotificationDelegate = Notify.delegate(ctx)
@@ -138,6 +140,7 @@ object Gecko {
             .build()
         val s = GeckoSession(settings)
         s.open(runtime(ctx))
+        BackgroundCalls.watch(ctx, s)
         loadUrl(s, url)
         return s
     }
@@ -176,6 +179,7 @@ object Gecko {
             .build()
         val session = GeckoSession(settings)
         session.open(runtime(ctx))
+        BackgroundCalls.watch(ctx, session, id, pin.id)
         loadUrl(session, url)
         sessions[key] = session
 
@@ -186,7 +190,7 @@ object Gecko {
         while (sessions.size > Settings.keepAlive(ctx)) {
             val victim = SessionRetention.evictionCandidate(
                 sessions.keys.toList(), lastSessionByProfile.values.toSet(),
-            ) { isSignInPage(tabUrls[it]) } ?: break
+            ) { isSignInPage(tabUrls[it]) || BackgroundCalls.isRecording(sessions[it]) } ?: break
             drop(victim)
         }
         return session
@@ -221,8 +225,19 @@ object Gecko {
     /** Закрыть обычную вкладку профиля: выгрузить её сессию. */
     fun close(id: Int, tabId: String) = drop("$id:$tabId")
 
+    fun closeSession(session: GeckoSession) {
+        val key = sessions.entries.firstOrNull { it.value === session }?.key
+        if (key != null) drop(key) else {
+            BackgroundCalls.forget(appContext, session)
+            session.close()
+        }
+    }
+
     private fun drop(key: String) {
-        sessions.remove(key)?.close()
+        sessions.remove(key)?.let { session ->
+            BackgroundCalls.forget(appContext, session)
+            session.close()
+        }
         lastSessionByProfile.entries.removeAll { it.value == key }
         canGoBack.remove(key)
         canGoForward.remove(key)

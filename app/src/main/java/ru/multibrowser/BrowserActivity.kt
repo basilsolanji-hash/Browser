@@ -200,6 +200,11 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun openTab(intent: Intent) {
+        if (intent.getStringExtra(EXTRA_ACTION) == BackgroundCalls.RESUME &&
+            !intent.hasExtra(EXTRA_PROFILE) && incognito && BackgroundCalls.isRecording(incognitoSession)) {
+            intent.removeExtra(EXTRA_ACTION)
+            return
+        }
         // Открыли из уведомления сайта — передаём клик сайту (после открытия его вкладки ниже).
         intent.getStringExtra(Notify.EXTRA_TAG)?.let { tag ->
             intent.removeExtra(Notify.EXTRA_TAG)
@@ -593,7 +598,11 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun exitIncognito() {
-        incognitoSession?.let { attached.remove(it); it.close() }
+        incognitoSession?.let {
+            attached.remove(it)
+            BackgroundCalls.forget(this, it)
+            it.close()
+        }
         incognitoSession = null
         incognito = false
         Passwords.activeProfile = profileId
@@ -640,6 +649,8 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
         s.contentDelegate = object : GeckoSession.ContentDelegate {
+            override fun onCrash(session: GeckoSession) { BackgroundCalls.forget(this@BrowserActivity, session) }
+            override fun onKill(session: GeckoSession) { BackgroundCalls.forget(this@BrowserActivity, session) }
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
                 Downloads.request(this@BrowserActivity, currentUrl.takeIf { it.startsWith("http") } ?: response.uri, response, privateMode = true)
             }
