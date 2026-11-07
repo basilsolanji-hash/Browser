@@ -14,7 +14,7 @@ export class JsonFile<T> {
   private dirty = false;
 
   // Файл читается при первом обращении: путь userData задаётся в main.ts уже после импорта модулей.
-  constructor(private readonly name: string, private readonly fallback: () => T) {
+  constructor(private readonly name: string, private readonly fallback: () => T, private readonly snapshot: (data: T) => T = (data) => data) {
     files.set(name, this as JsonFile<unknown>);
   }
 
@@ -63,7 +63,7 @@ export class JsonFile<T> {
     this.dirty = false;
     mkdirSync(app.getPath('userData'), { recursive: true });
     const tmp = this.path + '.tmp';
-    writeFileSync(tmp, JSON.stringify(this.get(), null, 1));
+    writeFileSync(tmp, JSON.stringify(this.snapshot(this.get()), null, 1));
     renameSync(tmp, this.path);
   }
 }

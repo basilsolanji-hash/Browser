@@ -1,5 +1,7 @@
 import { JsonFile } from './store';
 import { t } from './i18n';
+import { persistedTabs } from './tabstorage';
+import { isSignInPage } from './signin';
 import { START, host } from './urls';
 import type { TabGroup } from '../shared/types';
 
@@ -17,12 +19,12 @@ interface ProfileTabs {
   pinState: Record<string, { url: string; title: string }>;
 }
 
-interface TabsData {
+export interface TabsData {
   profiles: Record<string, ProfileTabs>;
   lastProfile: number | null;
 }
 
-export const tabsFile = new JsonFile<TabsData>('tabs', () => ({ profiles: {}, lastProfile: null }));
+export const tabsFile = new JsonFile<TabsData>('tabs', () => ({ profiles: {}, lastProfile: null }), persistedTabs);
 
 export const GROUP_COLORS = ['#E53935', '#FB8C00', '#FDD835', '#43A047', '#00ACC1', '#1E88E5', '#8E24AA', '#757575'];
 const MAX_CLOSED = 25;
@@ -36,14 +38,26 @@ function newId(prefix: string): string {
   return prefix + last;
 }
 
+let loaded = false;
+function stored(): TabsData {
+  if (!loaded) {
+    loaded = true;
+    const original = tabsFile.get(), safe = persistedTabs(original);
+    // Старые сохранения тоже не должны повторно открывать форму входа после обновления.
+    if (JSON.stringify(original) !== JSON.stringify(safe)) tabsFile.update((d) => { Object.assign(d, safe); });
+  }
+  return tabsFile.get();
+}
+
 function of(profile: number): ProfileTabs {
-  const d = tabsFile.get();
+  const d = stored();
   const p = d.profiles[profile];
   if (p) return p;
   return { tabs: [], groups: [], active: null, closed: [], pinState: {} };
 }
 
 function edit(profile: number, fn: (p: ProfileTabs) => void): void {
+  stored();
   tabsFile.update((d) => {
     const p = (d.profiles[profile] ??= { tabs: [], groups: [], active: null, closed: [], pinState: {} });
     p.closed ??= [];
@@ -97,7 +111,7 @@ export function pinState(profile: number, pinId: string) {
 
 export function setPinState(profile: number, pinId: string, url: string, title: string): void {
   // Страницы входа не запоминаем, чтобы вкладка не открывалась на форме логина.
-  if (!/^https?:/.test(url) || url.includes('accounts.google.com')) return;
+  if (!/^https?:/.test(url) || isSignInPage(url)) return;
   const cur = of(profile).pinState?.[pinId];
   if (cur && cur.url === url && cur.title === title) return;
   edit(profile, (p) => { p.pinState[pinId] = { url, title }; });
