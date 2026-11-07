@@ -1,0 +1,722 @@
+ok all 8 pages built in en
+ok all 8 pages built in ru
+ok all 8 pages built in es
+ok all 8 pages built in pt
+ok all 8 pages built in fr
+ok all 8 pages built in de
+ok all 8 pages built in ar
+ok all 8 pages built in hi
+ok all 8 pages built in tr
+ok all 8 pages built in zh
+ok all 8 pages built in be
+ok all 8 pages built in uz
+ok all 8 pages built in ky
+ok all 8 pages built in tg
+ok all 8 pages built in kk
+ok all 8 pages built in hy
+ok privacy.html kept at the old address
+ok sitemap present
+ok no inline scripts and no third-party resources in any page
+ok feature names match the app on all languages
+ok JS budget ≤ 30 KB gzip (all scripts together) — 3.3 KB
+ok internal links resolve
+ok /en/ @390
+ok /en/ @768
+ok /en/ @1440
+ok axe /en/ @1440
+ok axe /en/ @390
+ok /en/download/ @390
+ok /en/download/ @768
+ok /en/download/ @1440
+ok axe /en/download/ @1440
+ok axe /en/download/ @390
+ok /en/features/ @390
+ok /en/features/ @768
+ok /en/features/ @1440
+ok axe /en/features/ @1440
+ok axe /en/features/ @390
+ok /en/privacy-security/ @390
+ok /en/privacy-security/ @768
+ok /en/privacy-security/ @1440
+ok axe /en/privacy-security/ @1440
+ok axe /en/privacy-security/ @390
+ok /en/business/ @390
+ok /en/business/ @768
+ok /en/business/ @1440
+ok axe /en/business/ @1440
+ok axe /en/business/ @390
+ok /en/changelog/ @390
+ok /en/changelog/ @768
+ok /en/changelog/ @1440
+ok axe /en/changelog/ @1440
+ok axe /en/changelog/ @390
+ok /en/help/ @390
+ok /en/help/ @768
+ok /en/help/ @1440
+ok axe /en/help/ @1440
+ok axe /en/help/ @390
+ok /en/press/ @390
+ok /en/press/ @768
+ok /en/press/ @1440
+ok axe /en/press/ @1440
+ok axe /en/press/ @390
+ok /ru/ @390
+ok /ru/ @768
+ok /ru/ @1440
+ok axe /ru/ @1440
+ok axe /ru/ @390
+ok /ru/download/ @390
+ok /ru/download/ @768
+ok /ru/download/ @1440
+ok axe /ru/download/ @1440
+ok axe /ru/download/ @390
+ok /ru/features/ @390
+ok /ru/features/ @768
+ok /ru/features/ @1440
+ok axe /ru/features/ @1440
+ok axe /ru/features/ @390
+ok /ru/privacy-security/ @390
+ok /ru/privacy-security/ @768
+ok /ru/privacy-security/ @1440
+ok axe /ru/privacy-security/ @1440
+ok axe /ru/privacy-security/ @390
+ok /ru/business/ @390
+ok /ru/business/ @768
+ok /ru/business/ @1440
+ok axe /ru/business/ @1440
+ok axe /ru/business/ @390
+ok /ru/changelog/ @390
+ok /ru/changelog/ @768
+ok /ru/changelog/ @1440
+ok axe /ru/changelog/ @1440
+ok axe /ru/changelog/ @390
+ok /ru/help/ @390
+ok /ru/help/ @768
+ok /ru/help/ @1440
+ok axe /ru/help/ @1440
+ok axe /ru/help/ @390
+ok /ru/press/ @390
+ok /ru/press/ @768
+ok /ru/press/ @1440
+ok axe /ru/press/ @1440
+ok axe /ru/press/ @390
+ok /es/ @390
+ok /es/ @768
+ok /es/ @1440
+ok axe /es/ @1440
+ok axe /es/ @390
+ok /es/download/ @390
+ok /es/download/ @768
+ok /es/download/ @1440
+ok axe /es/download/ @1440
+ok axe /es/download/ @390
+ok /es/features/ @390
+ok /es/features/ @768
+ok /es/features/ @1440
+ok axe /es/features/ @1440
+ok axe /es/features/ @390
+ok /es/privacy-security/ @390
+ok /es/privacy-security/ @768
+ok /es/privacy-security/ @1440
+ok axe /es/privacy-security/ @1440
+ok axe /es/privacy-security/ @390
+ok /es/business/ @390
+ok /es/business/ @768
+ok /es/business/ @1440
+ok axe /es/business/ @1440
+ok axe /es/business/ @390
+ok /es/changelog/ @390
+ok /es/changelog/ @768
+ok /es/changelog/ @1440
+ok axe /es/changelog/ @1440
+ok axe /es/changelog/ @390
+ok /es/help/ @390
+ok /es/help/ @768
+ok /es/help/ @1440
+ok axe /es/help/ @1440
+ok axe /es/help/ @390
+ok /es/press/ @390
+ok /es/press/ @768
+ok /es/press/ @1440
+ok axe /es/press/ @1440
+ok axe /es/press/ @390
+ok /pt/ @390
+ok /pt/ @768
+ok /pt/ @1440
+ok axe /pt/ @1440
+ok axe /pt/ @390
+ok /pt/download/ @390
+ok /pt/download/ @768
+ok /pt/download/ @1440
+ok axe /pt/download/ @1440
+ok axe /pt/download/ @390
+ok /pt/features/ @390
+ok /pt/features/ @768
+ok /pt/features/ @1440
+ok axe /pt/features/ @1440
+ok axe /pt/features/ @390
+ok /pt/privacy-security/ @390
+ok /pt/privacy-security/ @768
+ok /pt/privacy-security/ @1440
+ok axe /pt/privacy-security/ @1440
+ok axe /pt/privacy-security/ @390
+ok /pt/business/ @390
+ok /pt/business/ @768
+ok /pt/business/ @1440
+ok axe /pt/business/ @1440
+ok axe /pt/business/ @390
+ok /pt/changelog/ @390
+ok /pt/changelog/ @768
+ok /pt/changelog/ @1440
+ok axe /pt/changelog/ @1440
+ok axe /pt/changelog/ @390
+ok /pt/help/ @390
+ok /pt/help/ @768
+ok /pt/help/ @1440
+ok axe /pt/help/ @1440
+ok axe /pt/help/ @390
+ok /pt/press/ @390
+ok /pt/press/ @768
+ok /pt/press/ @1440
+ok axe /pt/press/ @1440
+ok axe /pt/press/ @390
+ok /fr/ @390
+ok /fr/ @768
+ok /fr/ @1440
+ok axe /fr/ @1440
+ok axe /fr/ @390
+ok /fr/download/ @390
+ok /fr/download/ @768
+ok /fr/download/ @1440
+ok axe /fr/download/ @1440
+ok axe /fr/download/ @390
+ok /fr/features/ @390
+ok /fr/features/ @768
+ok /fr/features/ @1440
+ok axe /fr/features/ @1440
+ok axe /fr/features/ @390
+ok /fr/privacy-security/ @390
+ok /fr/privacy-security/ @768
+ok /fr/privacy-security/ @1440
+ok axe /fr/privacy-security/ @1440
+ok axe /fr/privacy-security/ @390
+ok /fr/business/ @390
+ok /fr/business/ @768
+ok /fr/business/ @1440
+ok axe /fr/business/ @1440
+ok axe /fr/business/ @390
+ok /fr/changelog/ @390
+ok /fr/changelog/ @768
+ok /fr/changelog/ @1440
+ok axe /fr/changelog/ @1440
+ok axe /fr/changelog/ @390
+ok /fr/help/ @390
+ok /fr/help/ @768
+ok /fr/help/ @1440
+ok axe /fr/help/ @1440
+ok axe /fr/help/ @390
+ok /fr/press/ @390
+ok /fr/press/ @768
+ok /fr/press/ @1440
+ok axe /fr/press/ @1440
+ok axe /fr/press/ @390
+ok /de/ @390
+ok /de/ @768
+ok /de/ @1440
+ok axe /de/ @1440
+ok axe /de/ @390
+ok /de/download/ @390
+ok /de/download/ @768
+ok /de/download/ @1440
+ok axe /de/download/ @1440
+ok axe /de/download/ @390
+ok /de/features/ @390
+ok /de/features/ @768
+ok /de/features/ @1440
+ok axe /de/features/ @1440
+ok axe /de/features/ @390
+ok /de/privacy-security/ @390
+ok /de/privacy-security/ @768
+ok /de/privacy-security/ @1440
+ok axe /de/privacy-security/ @1440
+ok axe /de/privacy-security/ @390
+ok /de/business/ @390
+ok /de/business/ @768
+ok /de/business/ @1440
+ok axe /de/business/ @1440
+ok axe /de/business/ @390
+ok /de/changelog/ @390
+ok /de/changelog/ @768
+ok /de/changelog/ @1440
+ok axe /de/changelog/ @1440
+ok axe /de/changelog/ @390
+ok /de/help/ @390
+ok /de/help/ @768
+ok /de/help/ @1440
+ok axe /de/help/ @1440
+ok axe /de/help/ @390
+ok /de/press/ @390
+ok /de/press/ @768
+ok /de/press/ @1440
+ok axe /de/press/ @1440
+ok axe /de/press/ @390
+ok /ar/ @390
+ok /ar/ @390 is RTL
+ok /ar/ @768
+ok /ar/ @768 is RTL
+ok /ar/ @1440
+ok /ar/ @1440 is RTL
+ok axe /ar/ @1440
+ok axe /ar/ @390
+ok /ar/download/ @390
+ok /ar/download/ @390 is RTL
+ok /ar/download/ @768
+ok /ar/download/ @768 is RTL
+ok /ar/download/ @1440
+ok /ar/download/ @1440 is RTL
+ok axe /ar/download/ @1440
+ok axe /ar/download/ @390
+ok /ar/features/ @390
+ok /ar/features/ @390 is RTL
+ok /ar/features/ @768
+ok /ar/features/ @768 is RTL
+ok /ar/features/ @1440
+ok /ar/features/ @1440 is RTL
+ok axe /ar/features/ @1440
+ok axe /ar/features/ @390
+ok /ar/privacy-security/ @390
+ok /ar/privacy-security/ @390 is RTL
+ok /ar/privacy-security/ @768
+ok /ar/privacy-security/ @768 is RTL
+ok /ar/privacy-security/ @1440
+ok /ar/privacy-security/ @1440 is RTL
+ok axe /ar/privacy-security/ @1440
+ok axe /ar/privacy-security/ @390
+ok /ar/business/ @390
+ok /ar/business/ @390 is RTL
+ok /ar/business/ @768
+ok /ar/business/ @768 is RTL
+ok /ar/business/ @1440
+ok /ar/business/ @1440 is RTL
+ok axe /ar/business/ @1440
+ok axe /ar/business/ @390
+ok /ar/changelog/ @390
+ok /ar/changelog/ @390 is RTL
+ok /ar/changelog/ @768
+ok /ar/changelog/ @768 is RTL
+ok /ar/changelog/ @1440
+ok /ar/changelog/ @1440 is RTL
+ok axe /ar/changelog/ @1440
+ok axe /ar/changelog/ @390
+ok /ar/help/ @390
+ok /ar/help/ @390 is RTL
+ok /ar/help/ @768
+ok /ar/help/ @768 is RTL
+ok /ar/help/ @1440
+ok /ar/help/ @1440 is RTL
+ok axe /ar/help/ @1440
+ok axe /ar/help/ @390
+ok /ar/press/ @390
+ok /ar/press/ @390 is RTL
+ok /ar/press/ @768
+ok /ar/press/ @768 is RTL
+ok /ar/press/ @1440
+ok /ar/press/ @1440 is RTL
+ok axe /ar/press/ @1440
+ok axe /ar/press/ @390
+ok /hi/ @390
+ok /hi/ @768
+ok /hi/ @1440
+ok axe /hi/ @1440
+ok axe /hi/ @390
+ok /hi/download/ @390
+ok /hi/download/ @768
+ok /hi/download/ @1440
+ok axe /hi/download/ @1440
+ok axe /hi/download/ @390
+ok /hi/features/ @390
+ok /hi/features/ @768
+ok /hi/features/ @1440
+ok axe /hi/features/ @1440
+ok axe /hi/features/ @390
+ok /hi/privacy-security/ @390
+ok /hi/privacy-security/ @768
+ok /hi/privacy-security/ @1440
+ok axe /hi/privacy-security/ @1440
+ok axe /hi/privacy-security/ @390
+ok /hi/business/ @390
+ok /hi/business/ @768
+ok /hi/business/ @1440
+ok axe /hi/business/ @1440
+ok axe /hi/business/ @390
+ok /hi/changelog/ @390
+ok /hi/changelog/ @768
+ok /hi/changelog/ @1440
+ok axe /hi/changelog/ @1440
+ok axe /hi/changelog/ @390
+ok /hi/help/ @390
+ok /hi/help/ @768
+ok /hi/help/ @1440
+ok axe /hi/help/ @1440
+ok axe /hi/help/ @390
+ok /hi/press/ @390
+ok /hi/press/ @768
+ok /hi/press/ @1440
+ok axe /hi/press/ @1440
+ok axe /hi/press/ @390
+ok /tr/ @390
+ok /tr/ @768
+ok /tr/ @1440
+ok axe /tr/ @1440
+ok axe /tr/ @390
+ok /tr/download/ @390
+ok /tr/download/ @768
+ok /tr/download/ @1440
+ok axe /tr/download/ @1440
+ok axe /tr/download/ @390
+ok /tr/features/ @390
+ok /tr/features/ @768
+ok /tr/features/ @1440
+ok axe /tr/features/ @1440
+ok axe /tr/features/ @390
+ok /tr/privacy-security/ @390
+ok /tr/privacy-security/ @768
+ok /tr/privacy-security/ @1440
+ok axe /tr/privacy-security/ @1440
+ok axe /tr/privacy-security/ @390
+ok /tr/business/ @390
+ok /tr/business/ @768
+ok /tr/business/ @1440
+ok axe /tr/business/ @1440
+ok axe /tr/business/ @390
+ok /tr/changelog/ @390
+ok /tr/changelog/ @768
+ok /tr/changelog/ @1440
+ok axe /tr/changelog/ @1440
+ok axe /tr/changelog/ @390
+ok /tr/help/ @390
+ok /tr/help/ @768
+ok /tr/help/ @1440
+ok axe /tr/help/ @1440
+ok axe /tr/help/ @390
+ok /tr/press/ @390
+ok /tr/press/ @768
+ok /tr/press/ @1440
+ok axe /tr/press/ @1440
+ok axe /tr/press/ @390
+ok /zh/ @390
+ok /zh/ @768
+ok /zh/ @1440
+ok axe /zh/ @1440
+ok axe /zh/ @390
+ok /zh/download/ @390
+ok /zh/download/ @768
+ok /zh/download/ @1440
+ok axe /zh/download/ @1440
+ok axe /zh/download/ @390
+ok /zh/features/ @390
+ok /zh/features/ @768
+ok /zh/features/ @1440
+ok axe /zh/features/ @1440
+ok axe /zh/features/ @390
+ok /zh/privacy-security/ @390
+ok /zh/privacy-security/ @768
+ok /zh/privacy-security/ @1440
+ok axe /zh/privacy-security/ @1440
+ok axe /zh/privacy-security/ @390
+ok /zh/business/ @390
+ok /zh/business/ @768
+ok /zh/business/ @1440
+ok axe /zh/business/ @1440
+ok axe /zh/business/ @390
+ok /zh/changelog/ @390
+ok /zh/changelog/ @768
+ok /zh/changelog/ @1440
+ok axe /zh/changelog/ @1440
+ok axe /zh/changelog/ @390
+ok /zh/help/ @390
+ok /zh/help/ @768
+ok /zh/help/ @1440
+ok axe /zh/help/ @1440
+ok axe /zh/help/ @390
+ok /zh/press/ @390
+ok /zh/press/ @768
+ok /zh/press/ @1440
+ok axe /zh/press/ @1440
+ok axe /zh/press/ @390
+ok /be/ @390
+ok /be/ @768
+ok /be/ @1440
+ok axe /be/ @1440
+ok axe /be/ @390
+ok /be/download/ @390
+ok /be/download/ @768
+ok /be/download/ @1440
+ok axe /be/download/ @1440
+ok axe /be/download/ @390
+ok /be/features/ @390
+ok /be/features/ @768
+ok /be/features/ @1440
+ok axe /be/features/ @1440
+ok axe /be/features/ @390
+ok /be/privacy-security/ @390
+ok /be/privacy-security/ @768
+ok /be/privacy-security/ @1440
+ok axe /be/privacy-security/ @1440
+ok axe /be/privacy-security/ @390
+ok /be/business/ @390
+ok /be/business/ @768
+ok /be/business/ @1440
+ok axe /be/business/ @1440
+ok axe /be/business/ @390
+ok /be/changelog/ @390
+ok /be/changelog/ @768
+ok /be/changelog/ @1440
+ok axe /be/changelog/ @1440
+ok axe /be/changelog/ @390
+ok /be/help/ @390
+ok /be/help/ @768
+ok /be/help/ @1440
+ok axe /be/help/ @1440
+ok axe /be/help/ @390
+ok /be/press/ @390
+ok /be/press/ @768
+ok /be/press/ @1440
+ok axe /be/press/ @1440
+ok axe /be/press/ @390
+ok /uz/ @390
+ok /uz/ @768
+ok /uz/ @1440
+ok axe /uz/ @1440
+ok axe /uz/ @390
+ok /uz/download/ @390
+ok /uz/download/ @768
+ok /uz/download/ @1440
+ok axe /uz/download/ @1440
+ok axe /uz/download/ @390
+ok /uz/features/ @390
+ok /uz/features/ @768
+ok /uz/features/ @1440
+ok axe /uz/features/ @1440
+ok axe /uz/features/ @390
+ok /uz/privacy-security/ @390
+ok /uz/privacy-security/ @768
+ok /uz/privacy-security/ @1440
+ok axe /uz/privacy-security/ @1440
+ok axe /uz/privacy-security/ @390
+ok /uz/business/ @390
+ok /uz/business/ @768
+ok /uz/business/ @1440
+ok axe /uz/business/ @1440
+ok axe /uz/business/ @390
+ok /uz/changelog/ @390
+ok /uz/changelog/ @768
+ok /uz/changelog/ @1440
+ok axe /uz/changelog/ @1440
+ok axe /uz/changelog/ @390
+ok /uz/help/ @390
+ok /uz/help/ @768
+ok /uz/help/ @1440
+ok axe /uz/help/ @1440
+ok axe /uz/help/ @390
+ok /uz/press/ @390
+ok /uz/press/ @768
+ok /uz/press/ @1440
+ok axe /uz/press/ @1440
+ok axe /uz/press/ @390
+ok /ky/ @390
+ok /ky/ @768
+ok /ky/ @1440
+ok axe /ky/ @1440
+ok axe /ky/ @390
+ok /ky/download/ @390
+ok /ky/download/ @768
+ok /ky/download/ @1440
+ok axe /ky/download/ @1440
+ok axe /ky/download/ @390
+ok /ky/features/ @390
+ok /ky/features/ @768
+ok /ky/features/ @1440
+ok axe /ky/features/ @1440
+ok axe /ky/features/ @390
+ok /ky/privacy-security/ @390
+ok /ky/privacy-security/ @768
+ok /ky/privacy-security/ @1440
+ok axe /ky/privacy-security/ @1440
+ok axe /ky/privacy-security/ @390
+ok /ky/business/ @390
+ok /ky/business/ @768
+ok /ky/business/ @1440
+ok axe /ky/business/ @1440
+ok axe /ky/business/ @390
+ok /ky/changelog/ @390
+ok /ky/changelog/ @768
+ok /ky/changelog/ @1440
+ok axe /ky/changelog/ @1440
+ok axe /ky/changelog/ @390
+ok /ky/help/ @390
+ok /ky/help/ @768
+ok /ky/help/ @1440
+ok axe /ky/help/ @1440
+ok axe /ky/help/ @390
+ok /ky/press/ @390
+ok /ky/press/ @768
+ok /ky/press/ @1440
+ok axe /ky/press/ @1440
+ok axe /ky/press/ @390
+ok /tg/ @390
+ok /tg/ @768
+ok /tg/ @1440
+ok axe /tg/ @1440
+ok axe /tg/ @390
+ok /tg/download/ @390
+ok /tg/download/ @768
+ok /tg/download/ @1440
+ok axe /tg/download/ @1440
+ok axe /tg/download/ @390
+ok /tg/features/ @390
+ok /tg/features/ @768
+ok /tg/features/ @1440
+ok axe /tg/features/ @1440
+ok axe /tg/features/ @390
+ok /tg/privacy-security/ @390
+ok /tg/privacy-security/ @768
+ok /tg/privacy-security/ @1440
+ok axe /tg/privacy-security/ @1440
+ok axe /tg/privacy-security/ @390
+ok /tg/business/ @390
+ok /tg/business/ @768
+ok /tg/business/ @1440
+ok axe /tg/business/ @1440
+ok axe /tg/business/ @390
+ok /tg/changelog/ @390
+ok /tg/changelog/ @768
+ok /tg/changelog/ @1440
+ok axe /tg/changelog/ @1440
+ok axe /tg/changelog/ @390
+ok /tg/help/ @390
+ok /tg/help/ @768
+ok /tg/help/ @1440
+ok axe /tg/help/ @1440
+ok axe /tg/help/ @390
+ok /tg/press/ @390
+ok /tg/press/ @768
+ok /tg/press/ @1440
+ok axe /tg/press/ @1440
+ok axe /tg/press/ @390
+ok /kk/ @390
+ok /kk/ @768
+ok /kk/ @1440
+ok axe /kk/ @1440
+ok axe /kk/ @390
+ok /kk/download/ @390
+ok /kk/download/ @768
+ok /kk/download/ @1440
+ok axe /kk/download/ @1440
+ok axe /kk/download/ @390
+ok /kk/features/ @390
+ok /kk/features/ @768
+ok /kk/features/ @1440
+ok axe /kk/features/ @1440
+ok axe /kk/features/ @390
+ok /kk/privacy-security/ @390
+ok /kk/privacy-security/ @768
+ok /kk/privacy-security/ @1440
+ok axe /kk/privacy-security/ @1440
+ok axe /kk/privacy-security/ @390
+ok /kk/business/ @390
+ok /kk/business/ @768
+ok /kk/business/ @1440
+ok axe /kk/business/ @1440
+ok axe /kk/business/ @390
+ok /kk/changelog/ @390
+ok /kk/changelog/ @768
+ok /kk/changelog/ @1440
+ok axe /kk/changelog/ @1440
+ok axe /kk/changelog/ @390
+ok /kk/help/ @390
+ok /kk/help/ @768
+ok /kk/help/ @1440
+ok axe /kk/help/ @1440
+ok axe /kk/help/ @390
+ok /kk/press/ @390
+ok /kk/press/ @768
+ok /kk/press/ @1440
+ok axe /kk/press/ @1440
+ok axe /kk/press/ @390
+ok /hy/ @390
+ok /hy/ @768
+ok /hy/ @1440
+ok axe /hy/ @1440
+ok axe /hy/ @390
+ok /hy/download/ @390
+ok /hy/download/ @768
+ok /hy/download/ @1440
+ok axe /hy/download/ @1440
+ok axe /hy/download/ @390
+ok /hy/features/ @390
+ok /hy/features/ @768
+ok /hy/features/ @1440
+ok axe /hy/features/ @1440
+ok axe /hy/features/ @390
+ok /hy/privacy-security/ @390
+ok /hy/privacy-security/ @768
+ok /hy/privacy-security/ @1440
+ok axe /hy/privacy-security/ @1440
+ok axe /hy/privacy-security/ @390
+ok /hy/business/ @390
+ok /hy/business/ @768
+ok /hy/business/ @1440
+ok axe /hy/business/ @1440
+ok axe /hy/business/ @390
+ok /hy/changelog/ @390
+ok /hy/changelog/ @768
+ok /hy/changelog/ @1440
+ok axe /hy/changelog/ @1440
+ok axe /hy/changelog/ @390
+ok /hy/help/ @390
+ok /hy/help/ @768
+ok /hy/help/ @1440
+ok axe /hy/help/ @1440
+ok axe /hy/help/ @390
+ok /hy/press/ @390
+ok /hy/press/ @768
+ok /hy/press/ @1440
+ok axe /hy/press/ @1440
+ok axe /hy/press/ @390
+ok reveal animation: all sections visible after scrolling — 0 hidden
+ok hero mock is animated — 16 animations
+ok platform detection: android — {"platform":"android","panel":"android","card":"android"}
+ok platform detection: windows — {"platform":"windows","panel":"windows","card":"windows"}
+ok platform detection: ios — {"platform":"ios","panel":"ios","card":"ios"}
+ok platform detection: mac — {"platform":"mac","panel":"mac","card":"mac"}
+ok platform detection: iPad with desktop UA
+ok manual platform switch shows Windows build
+ok anchor #mac selects macOS
+ok download works without JavaScript
+ok root without JavaScript opens English
+ok first visit with ru-RU → ru — http://127.0.0.1:38495/ru/ lang=ru
+ok first visit with kk-KZ → kk — http://127.0.0.1:38495/kk/ lang=kk
+ok first visit with be-BY → be — http://127.0.0.1:38495/be/ lang=be
+ok first visit with uz-UZ → uz — http://127.0.0.1:38495/uz/ lang=uz
+ok first visit with ky-KG → ky — http://127.0.0.1:38495/ky/ lang=ky
+ok first visit with tg-TJ → tg — http://127.0.0.1:38495/tg/ lang=tg
+ok first visit with hy-AM → hy — http://127.0.0.1:38495/hy/ lang=hy
+ok first visit with de-DE → de — http://127.0.0.1:38495/de/ lang=de
+ok first visit with ar-EG → ar — http://127.0.0.1:38495/ar/ lang=ar
+ok first visit with zh-CN → zh — http://127.0.0.1:38495/zh/ lang=zh
+ok first visit with pt-BR → pt — http://127.0.0.1:38495/pt/ lang=pt
+ok first visit with ja-JP → en — http://127.0.0.1:38495/ lang=en
+ok first visit with en-US → en — http://127.0.0.1:38495/ lang=en
+ok chosen language is remembered (localStorage, no cookies) — http://127.0.0.1:38495/tr/
+ok 404 page in the language from the address — ru
+ok releases.json has Android APK and Windows installer
+ok download exists: Os-Browser-build-298.apk — HEAD 302 → GET 206, size 199071800
+ok download page links Os-Browser-build-298.apk
+ok download exists: Os-Browser-Portable-0.1.101.zip — HEAD 302 → GET 206, size 154023882
+ok download page links Os-Browser-Portable-0.1.101.zip
+ok download exists: Os-Browser-Setup-0.1.101.exe — HEAD 302 → GET 206, size 121062942
+ok download page links Os-Browser-Setup-0.1.101.exe
+ok HTML valid (html-validate) — 0 files with errors
+
+Итог: 720 ok, 0 FAIL
