@@ -10,8 +10,12 @@ android {
         applicationId = "ru.multibrowser"
         minSdk = 26
         targetSdk = 36
-        // Номер сборки GitHub Actions: каждая сборка новее предыдущей.
-        val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        // Ручная/контейнерная сборка: номер задаётся явно, без GitHub Actions.
+        // Старое имя оставлено для совместимости с историческими сборками.
+        val number = System.getenv("OS_BUILD_NUMBER") ?: System.getenv("GITHUB_RUN_NUMBER")
+        val build = if (number == null) 1 else number.toIntOrNull()
+            ?: error("OS_BUILD_NUMBER must be an integer")
+        require(build in 1..2_100_000_000) { "Build number is outside Android's supported range" }
         versionCode = build
         versionName = "0.8.$build"
         ndk { abiFilters += listOf("arm64-v8a") }

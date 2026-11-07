@@ -51,7 +51,7 @@ Android — эталон поведения: Windows повторяет его �
 как описание прежних проверок, их наличие не разрешает запуск.
 
 **Android — локально/в контейнере:** JDK 17, Android SDK для compileSdk проекта,
-`./gradlew testDebugUnitTest assembleDebug --no-daemon`. Сверять XML test-results.
+`./gradlew testDebugUnitTest assembleDebug --no-daemon`. Номер ручного APK задаётся `OS_BUILD_NUMBER`. Сверять XML test-results.
 Приёмка — на устройстве/локальном эмуляторе; фиксировать непроверенные сценарии.
 Рабочий SDK сессии: `/workspace/work/android-local/sdk` (платформа android-37.0);
 Docker-прокси и CA настраивать по инструкции окружения, TLS-проверки не отключать.
