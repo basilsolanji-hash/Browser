@@ -365,7 +365,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun setBarsHidden(hidden: Boolean) {
         if (hidden == barsHidden) return
         barsHidden = hidden
-        chrome.forEach { it.visibility = if (hidden) View.GONE else View.VISIBLE }
+        ChromeVisibility.autoHidden(chrome, hidden)
     }
 
     private fun setFullScreen(on: Boolean) {
