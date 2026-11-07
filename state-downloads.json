@@ -1,0 +1,82 @@
+{
+ "list": [
+  {
+   "id": "d17940160892301",
+   "name": "os-doc.pdf",
+   "path": "C:\\Users\\runneradmin\\Downloads\\Ось\\os-doc.pdf",
+   "url": "http://127.0.0.1:60106/pdf-attach",
+   "time": 1794016089230,
+   "size": 550,
+   "state": "completed",
+   "received": 550,
+   "profile": 1,
+   "mime": "application/pdf",
+   "urlChain": [
+    "http://127.0.0.1:60106/pdf-attach"
+   ],
+   "etag": "",
+   "lastModified": "",
+   "start": 1794016089.221514,
+   "resumable": false
+  },
+  {
+   "id": "d17940160878530",
+   "name": "os-photo.png",
+   "path": "C:\\Users\\runneradmin\\Downloads\\Ось\\os-photo.png",
+   "url": "http://127.0.0.1:60106/photo.bin",
+   "time": 1794016087853,
+   "size": 70,
+   "state": "completed",
+   "received": 70,
+   "profile": 1,
+   "mime": "application/octet-stream",
+   "urlChain": [
+    "http://127.0.0.1:60106/photo.bin"
+   ],
+   "etag": "",
+   "lastModified": "",
+   "start": 1794016087.851916,
+   "resumable": false
+  },
+  {
+   "id": "d17940160383481",
+   "name": "os-big.bin",
+   "path": "C:\\Users\\runneradmin\\Downloads\\Ось\\os-big.bin",
+   "url": "http://127.0.0.1:60106/big.bin",
+   "time": 1794016038348,
+   "size": 6291456,
+   "state": "completed",
+   "received": 6291456,
+   "profile": 4,
+   "mime": "application/octet-stream",
+   "pending": false,
+   "urlChain": [
+    "http://127.0.0.1:60106/big.bin"
+   ],
+   "etag": "\"os-v1\"",
+   "lastModified": "Wed, 21 Oct 2026 07:28:00 GMT",
+   "start": 1794016038.347493,
+   "resumable": false
+  },
+  {
+   "id": "d17940160125890",
+   "name": "os-test-7772.txt",
+   "path": "C:\\Users\\runneradmin\\Downloads\\Ось\\os-test-7772.txt",
+   "url": "http://127.0.0.1:60106/file.txt",
+   "time": 1794016012589,
+   "size": 20,
+   "state": "completed",
+   "received": 20,
+   "profile": 1,
+   "mime": "text/plain",
+   "pending": false,
+   "urlChain": [
+    "http://127.0.0.1:60106/file.txt"
+   ],
+   "etag": "",
+   "lastModified": "",
+   "start": 1794016012.57593,
+   "resumable": false
+  }
+ ]
+}

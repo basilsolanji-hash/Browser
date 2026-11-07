@@ -1,0 +1,153 @@
+[run 1 err] Debugger ending on ws://127.0.0.1:60107/40d227b5-38c5-40dd-ac12-d03ee61feca3
+For help, see: https://nodejs.org/learn/getting-started/debugging
+[run 2 err] (node:3932) electron: Failed to load URL: https://os-https-test.invalid/ with error: ERR_NAME_NOT_RESOLVED
+(Use `electron --trace-warnings ...` to show where the warning was created)
+[run 2 err] Debugger ending on ws://127.0.0.1:55392/d39aa14e-f9d5-4ec2-a66a-9f0fa4755cec
+For help, see: https://nodejs.org/learn/getting-started/debugging
+[run 3 err] [7648:1107/014724.766:ERROR:mojo\public\cpp\bindings\lib\interface_endpoint_client.cc:748] Message 4 rejected by interface blink.mojom.WidgetHost
+[run 3 err] [7648:1107/014808.883:ERROR:mojo\public\cpp\bindings\lib\interface_endpoint_client.cc:748] Message 0 rejected by interface blink.mojom.WidgetHost
+[run 3 err] [7648:1107/014820.619:ERROR:mojo\public\cpp\bindings\lib\interface_endpoint_client.cc:748] Message 1 rejected by interface blink.mojom.WidgetHost
+[run 3 err] [7648:1107/014824.634:ERROR:mojo\public\cpp\bindings\lib\interface_endpoint_client.cc:748] Message 0 rejected by interface blink.mojom.WidgetHost
+[run 3 err] [7648:1107/014824.897:ERROR:mojo\public\cpp\bindings\lib\interface_endpoint_client.cc:748] Message 0 rejected by interface blink.mojom.WidgetHost
+[run 3 err] [7648:1107/014825.158:ERROR:mojo\public\cpp\bindings\lib\interface_endpoint_client.cc:748] Message 0 rejected by interface blink.mojom.WidgetHost
+[run 3 err] Debugger ending on ws://127.0.0.1:54128/8a255ed8-77f7-4fd0-97ae-4b9a7572e9c9
+For help, see: https://nodejs.org/learn/getting-started/debugging
+[run 4 err] [6684:1107/014836.862:ERROR:mojo\public\cpp\bindings\lib\interface_endpoint_client.cc:748] Message 4 rejected by interface blink.mojom.WidgetHost
+[run 4 err] Debugger ending on ws://127.0.0.1:55153/83c66499-d4c7-461d-8878-258dfb91b56c
+For help, see: https://nodejs.org/learn/getting-started/debugging
+[run 5 err] [8052:1107/014839.679:ERROR:mojo\public\cpp\bindings\lib\interface_endpoint_client.cc:748] Message 4 rejected by interface blink.mojom.WidgetHost
+[run 5 err] Debugger ending on ws://127.0.0.1:50071/03c542f7-a9af-4cb4-87cd-f2550ae3ff9f
+For help, see: https://nodejs.org/learn/getting-started/debugging
+[run 6 err] [6996:1107/014844.346:ERROR:mojo\public\cpp\bindings\lib\interface_endpoint_client.cc:748] Message 4 rejected by interface blink.mojom.WidgetHost
+[run 6 err] Error occurred in handler for 'os': Error: locked
+    at D:\a\Browser\Browser\desktop\dist\main\main.js:22292:13
+    at Session.<anonymous> (node:electron/js2c/browser_init:1:119048)
+    at Session.emit (node:events:514:28)
+[run 6 err] Error occurred in handler for 'os': Error: locked
+    at D:\a\Browser\Browser\desktop\dist\main\main.js:22292:13
+    at Session.<anonymous> (node:electron/js2c/browser_init:1:119048)
+    at Session.emit (node:events:514:28)
+[run 6 err] (node:6996) ExtensionLoadWarning: Warnings loading extension at C:\Users\RUNNER~1\AppData\Local\Temp\os-acceptance-1794015976994\extensions\3\eimadpbcbfnmbkopoojfekhnkhdbieeh:
+  Permission 'fontSettings' is unknown.
+  Permission 'contextMenus' is unknown.
+
+(Use `electron --trace-warnings ...` to show where the warning was created)
+[run 6 err] [6996:1107/014924.393:ERROR:extensions\browser\extensions_browser_client.cc:93] Extension Error:
+  OTR:     false
+  Level:   2
+  Source:  
+  Message: Unrecognized Content-Security-Policy directive 'navigate-to'.
+  ID:      eimadpbcbfnmbkopoojfekhnkhdbieeh
+  Type:    RuntimeError
+  Context: 
+  Stack Trace: 
+    {
+      Line:     0
+      Column:   1
+      URL:      
+      Function: (anonymous function)
+    }
+[run 6 err] [6996:1107/014924.414:ERROR:extensions\browser\extensions_browser_client.cc:93] Extension Error:
+  OTR:     false
+  Level:   2
+  Source:  chrome-extension://eimadpbcbfnmbkopoojfekhnkhdbieeh/background/index.js
+  Message: Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'onRemoved')
+  ID:      eimadpbcbfnmbkopoojfekhnkhdbieeh
+  Type:    RuntimeError
+  Context: chrome-extension://eimadpbcbfnmbkopoojfekhnkhdbieeh/background/index.js
+  Stack Trace: 
+    {
+      Line:     6324
+      Column:   1
+      URL:      chrome-extension://eimadpbcbfnmbkopoojfekhnkhdbieeh/background/index.js
+      Function: (anonymous function)
+    }
+[run 6 err] [6996:1107/014936.959:ERROR:extensions\browser\extensions_browser_client.cc:93] Extension Error:
+  OTR:     false
+  Level:   2
+  Source:  chrome-extension://ddkjiahejlhfcafbddmgiahcphecmpfh/js/background.js
+  Message: Uncaught TypeError: Cannot read properties of undefined (reading 'onRemoved')
+  ID:      ddkjiahejlhfcafbddmgiahcphecmpfh
+  Type:    RuntimeError
+  Context: chrome-extension://ddkjiahejlhfcafbddmgiahcphecmpfh/js/background.js
+  Stack Trace: 
+    {
+      Line:     879
+      Column:   1
+      URL:      chrome-extension://ddkjiahejlhfcafbddmgiahcphecmpfh/js/background.js
+      Function: (anonymous function)
+    }
+[run 6 err] [6996:1107/014936.960:ERROR:extensions\browser\extensions_browser_client.cc:93] Extension Error:
+  OTR:     false
+  Level:   1
+  Source:  manifest.json
+  Message: Service worker registration failed. Status code: 15
+  ID:      ddkjiahejlhfcafbddmgiahcphecmpfh
+  Type:    ManifestError
+[run 6 err] [6996:1107/014937.580:ERROR:extensions\browser\extensions_browser_client.cc:93] Extension Error:
+  OTR:     false
+  Level:   2
+  Source:  chrome-extension://ddkjiahejlhfcafbddmgiahcphecmpfh/js/background.js
+  Message: Uncaught TypeError: Cannot read properties of undefined (reading 'onRemoved')
+  ID:      ddkjiahejlhfcafbddmgiahcphecmpfh
+  Type:    RuntimeError
+  Context: chrome-extension://ddkjiahejlhfcafbddmgiahcphecmpfh/js/background.js
+  Stack Trace: 
+    {
+      Line:     879
+      Column:   1
+      URL:      chrome-extension://ddkjiahejlhfcafbddmgiahcphecmpfh/js/background.js
+      Function: (anonymous function)
+    }
+[run 6 err] [6996:1107/014937.581:ERROR:extensions\browser\extensions_browser_client.cc:93] Extension Error:
+  OTR:     false
+  Level:   1
+  Source:  manifest.json
+  Message: Service worker registration failed. Status code: 15
+  ID:      ddkjiahejlhfcafbddmgiahcphecmpfh
+  Type:    ManifestError
+[run 6 err] [6996:1107/014937.806:ERROR:extensions\browser\extensions_browser_client.cc:93] Extension Error:
+  OTR:     false
+  Level:   2
+  Source:  chrome-extension://ddkjiahejlhfcafbddmgiahcphecmpfh/js/ext-utils.js
+  Message: Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'getAll')
+  ID:      ddkjiahejlhfcafbddmgiahcphecmpfh
+  Type:    RuntimeError
+  Context: chrome-extension://ddkjiahejlhfcafbddmgiahcphecmpfh/js/ext-utils.js
+  Stack Trace: 
+    {
+      Line:     34
+      Column:   1
+      URL:      chrome-extension://ddkjiahejlhfcafbddmgiahcphecmpfh/js/ext-utils.js
+      Function: (anonymous function)
+    }
+[run 6 err] (node:6996) ExtensionLoadWarning: Warnings loading extension at C:\Users\RUNNER~1\AppData\Local\Temp\os-acceptance-1794015976994\extensions\3\nngceckbapebfimnlniiiahkandclblb:
+  Permission 'contextMenus' is unknown.
+  Permission 'sidePanel' is unknown.
+  Permission 'webNavigation' is unknown.
+  Permission 'notifications' is unknown.
+  Permission 'privacy' is unknown.
+[run 6 err] [6996:1107/014947.564:ERROR:extensions\browser\extensions_browser_client.cc:93] Extension Error:
+  OTR:     false
+  Level:   2
+  Source:  chrome-extension://nngceckbapebfimnlniiiahkandclblb/background.js
+  Message: Uncaught TypeError: Cannot read properties of undefined (reading 'onCommitted')
+  ID:      nngceckbapebfimnlniiiahkandclblb
+  Type:    RuntimeError
+  Context: chrome-extension://nngceckbapebfimnlniiiahkandclblb/background.js
+  Stack Trace: 
+    {
+      Line:     2
+      Column:   1
+      URL:      chrome-extension://nngceckbapebfimnlniiiahkandclblb/background.js
+      Function: (anonymous function)
+    }
+[run 6 err] [6996:1107/014947.575:ERROR:extensions\browser\extensions_browser_client.cc:93] Extension Error:
+  OTR:     false
+  Level:   1
+  Source:  manifest.json
+  Message: Service worker registration failed. Status code: 15
+  ID:      nngceckbapebfimnlniiiahkandclblb
+  Type:    ManifestError
+[run 6 err] Debugger ending on ws://127.0.0.1:61183/be4f41f7-6aab-4dbc-9e9a-091c4b8ed2ca
+For help, see: https://nodejs.org/learn/getting-started/debugging

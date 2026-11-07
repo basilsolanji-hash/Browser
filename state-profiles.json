@@ -1,0 +1,37 @@
+{
+ "order": [
+  3,
+  1,
+  2,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15
+ ],
+ "names": {
+  "1": "@ex_personal_name",
+  "2": "@ex_work_name",
+  "3": "@ex_shopping_name",
+  "4": "@ex_social_name"
+ },
+ "desc": {
+  "1": "@ex_personal_desc",
+  "2": "@ex_work_desc",
+  "3": "@ex_shopping_desc",
+  "4": "@ex_social_desc"
+ },
+ "email": {},
+ "unread": {},
+ "pinned": [],
+ "folders": {},
+ "collapsed": [],
+ "view": "list"
+}

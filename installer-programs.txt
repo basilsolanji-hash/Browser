@@ -1,0 +1,17 @@
+Os Browser
+shortcut /c/Users/runneradmin/Desktop/Ось Browser.lnk -> 
+shortcut /c/Users/runneradmin/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Ось Browser.lnk -> 
+== latin (ps): C:\OsTest\OsBrowser
+total 327661
+drwxr-xr-x 1 runneradmin 197121         0 Nov  7 01:54 .
+drwxr-xr-x 1 runneradmin 197121         0 Nov  7 01:53 ..
+-rw-r--r-- 1 runneradmin 197121      1096 Nov  7 01:52 LICENSE.electron.txt
+-rw-r--r-- 1 runneradmin 197121  20477229 Nov  7 01:52 LICENSES.chromium.html
+OsBrowser
+== cyrillic (ps): C:\Тест\Программы\ОсьБраузер
+total 327661
+drwxr-xr-x 1 runneradmin 197121         0 Nov  7 01:54 .
+drwxr-xr-x 1 runneradmin 197121         0 Nov  7 01:54 ..
+-rw-r--r-- 1 runneradmin 197121      1096 Nov  7 01:52 LICENSE.electron.txt
+-rw-r--r-- 1 runneradmin 197121  20477229 Nov  7 01:52 LICENSES.chromium.html
+ОсьБраузер

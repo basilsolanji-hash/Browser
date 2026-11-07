@@ -1,0 +1,19 @@
+{
+ "lang": "ru",
+ "theme": "scarlet_dark",
+ "engine": "ddg",
+ "profileCount": 15,
+ "homeMode": "OS",
+ "homeUrl": "",
+ "zoom": 100,
+ "trackingProtection": true,
+ "httpsOnly": true,
+ "blockThirdPartyCookies": true,
+ "hideContent": true,
+ "lock": {
+  "salt": "2115c8d18605a6a3ae4238e0443bbbd9",
+  "hash": "71dac18dfca2ff16083cd069d6bf3cda3c43386a83484b9cb6748c6b2e9714fa"
+ },
+ "autoUpdate": true,
+ "toolbarButton": "find"
+}

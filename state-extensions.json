@@ -1,0 +1,35 @@
+{
+ "profiles": {
+  "1": [],
+  "3": [
+   {
+    "id": "eimadpbcbfnmbkopoojfekhnkhdbieeh",
+    "name": "Dark Reader",
+    "version": "4.9.135",
+    "enabled": true,
+    "time": 1794016164228
+   },
+   {
+    "id": "bcjindcccaagfpapjjmafapmmgkkhgoa",
+    "name": "JSON Formatter",
+    "version": "0.10.2",
+    "enabled": true,
+    "time": 1794016173084
+   },
+   {
+    "id": "ddkjiahejlhfcafbddmgiahcphecmpfh",
+    "name": "uBlock Origin Lite",
+    "version": "2026.1103.1743",
+    "enabled": true,
+    "time": 1794016176236
+   },
+   {
+    "id": "nngceckbapebfimnlniiiahkandclblb",
+    "name": "Bitwarden Password Manager",
+    "version": "2026.10.2",
+    "enabled": true,
+    "time": 1794016186872
+   }
+  ]
+ }
+}
