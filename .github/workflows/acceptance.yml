@@ -41,7 +41,7 @@ jobs:
               x.tag='localPackage'
               for child in list(x):
                   if child.tag in ['archives','channelRef']: x.remove(child)
-              root=E.Element('repository',{'xmlns:'+k:v for k,v in ns.items() if k})
+              root=E.Element('delivery:repository',{'xmlns:delivery':'http://schemas.android.com/repository/android/common/02',**{'xmlns:'+k:v for k,v in ns.items() if k}})
               for license in r.findall('license'): root.append(license)
               root.append(x)
               E.ElementTree(root).write(dest/'package.xml',encoding='utf-8',xml_declaration=True)
@@ -52,7 +52,18 @@ jobs:
       - name: Build APK only
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --console=plain
+          set -o pipefail
+          ./gradlew assembleDebug --no-daemon --console=plain 2>&1 | tee "$RUNNER_TEMP/build311.log"
+      - name: Report build failure
+        if: failure()
+        run: |
+          python3 - <<'PYLOG'
+          import os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'build311.log'
+          if p.exists():
+              t='\n'.join(p.read_text().splitlines()[-65:])
+              print('::error::'+t.replace('%','%25').replace('\r','%0D').replace('\n','%0A'))
+          PYLOG
       - name: Verify and publish existing release
         env:
           GH_TOKEN: ${{ github.token }}
