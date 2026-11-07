@@ -61,7 +61,9 @@ jobs:
           import os,pathlib
           p=pathlib.Path(os.environ['RUNNER_TEMP'])/'build311.log'
           if p.exists():
-              t='\n'.join(p.read_text().splitlines()[-65:])
+              lines=p.read_text().splitlines()
+              selected=[l for l in lines if not l.lstrip().startswith('at ') and not l.lstrip().startswith('... ')]
+              t='\n'.join(selected[-100:])[-3800:]
               print('::error::'+t.replace('%','%25').replace('\r','%0D').replace('\n','%0A'))
           PYLOG
       - name: Verify and publish existing release
