@@ -4,9 +4,9 @@ import { existsSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import { applyLanguage, currentLang, isRtl, strings, t } from './i18n';
 import { greeting, next } from './phrases';
-import { engine, settings, toolbarButton, TOOLBAR_BUTTONS, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
+import { engine, settings, toolbarButton, searchUrl, TOOLBAR_BUTTONS, ENGINES, MIN_PROFILES, MAX_PROFILES, profileCount } from './settings';
 import { THEME_IDS, themeNameKey } from './themes';
-import { OsWindow, byWebContents, mainWindow, openExtensionWindow, openIncognito, openWindow, profileInfo, profileSession, saveWithToast, windows } from './window';
+import { OsWindow, byWebContents, mainWindow, ownerOf, openExtensionWindow, openIncognito, openWindow, profileInfo, profileSession, saveWithToast, windows } from './window';
 import { fromInput, isWebUrl } from './urls';
 import * as Profiles from './profiles';
 import * as Pins from './pins';
@@ -375,6 +375,21 @@ on(['page'], 'profiles', () => ({
   collapsed: Profiles.collapsed(),
   view: Profiles.view(),
 }));
+// Новая вкладка всегда в выбранном профиле, включая профиль в другом окне.
+on(['page'], 'quickSearch', (w, profile, input) => {
+  if (w.incognito) return false;
+  const id = profileArg(profile);
+  const text = str(input, 8000).trim();
+  if (!text) return false;
+  const url = fromInput(text) ?? searchUrl(text);
+  if (!isWebUrl(url)) return false;
+  const target = ownerOf(id) ?? w;
+  if (target.locked) { target.focus(); return false; }
+  target.openProfile(id);
+  target.newTab(url);
+  target.focus();
+  return true;
+});
 on(['page'], 'setPinned', (_w, id, on) => { Profiles.setPinned(profileArg(id), on === true); broadcast(); });
 on(['page'], 'setFolder', (_w, id, name) => { Profiles.setFolder(profileArg(id), str(name, 60)); broadcast(); });
 on(['page'], 'renameFolder', (_w, from, to) => { Profiles.renameFolder(str(from, 60), str(to, 60)); broadcast(); });

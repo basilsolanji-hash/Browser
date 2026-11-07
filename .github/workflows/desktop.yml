@@ -36,6 +36,15 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Home search profile isolation and screenshot
+        run: node test/quicksearch.mjs
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quicksearch-results-${{ github.workflow }}-${{ github.run_number }}
+          path: desktop/quicksearch-results/
+
       - name: Installer
         run: npx electron-builder --win --publish never -c.extraMetadata.version=0.1.${{ github.run_number }}
 
