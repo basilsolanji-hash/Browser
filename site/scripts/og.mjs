@@ -16,6 +16,8 @@ const css = `
 @font-face{font-family:Inter;font-weight:400;src:url(${font('inter-cyrillic-wght-normal.woff2')});unicode-range:U+0400-045F}
 @font-face{font-family:Unbounded;font-weight:700;src:url(${font('unbounded-latin-700-normal.woff2')})}
 @font-face{font-family:Unbounded;font-weight:700;src:url(${font('unbounded-cyrillic-700-normal.woff2')});unicode-range:U+0400-045F}
+@font-face{font-family:Inter;font-weight:400;src:url(${font('inter-cyrillic-ext-wght-normal.woff2')});unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F}
+@font-face{font-family:Unbounded;font-weight:700;src:url(${font('unbounded-cyrillic-ext-700-normal.woff2')});unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F}
 *{box-sizing:border-box}body{margin:0;width:1200px;height:630px;background:#F6F5F4;color:#1B1A19;font-family:Inter,'Noto Sans','Noto Sans Devanagari','Noto Sans Arabic','WenQuanYi Zen Hei',sans-serif}
 .w{position:absolute;inset:0;padding:72px 80px;display:flex;flex-direction:column;justify-content:space-between}
 .bar{position:absolute;left:0;right:0;bottom:0;height:14px;background:#D92D20}
@@ -23,7 +25,7 @@ h1{margin:0;font:700 64px/1.12 Unbounded,'Noto Sans Devanagari','Noto Sans Arabi
 :lang(ar) h1,:lang(hi) h1,:lang(zh) h1{font-family:'Noto Sans Arabic','Noto Sans Devanagari','WenQuanYi Zen Hei',sans-serif;font-weight:700}
 h1 em{font-style:normal;color:#D92D20}
 p{margin:0;font-size:28px;color:#615D57}`;
-const b = await chromium.launch();
+const b = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined });
 const page = await b.newPage({ viewport: { width: 1200, height: 630 } });
 mkdirSync(join(pub, 'og'), { recursive: true });
 const logo = readFileSync(join(pub, 'press/os-logo-light-bg.svg'), 'utf8').replace('width="1200" height="360"', 'width="300" height="90"');

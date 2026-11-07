@@ -1,4 +1,4 @@
-// Приёмка сайта (§7 ТЗ): все страницы × 10 языков × ширины 390/768/1440 без ошибок в консоли
+// Приёмка сайта (§7 ТЗ): все страницы × 16 языков × ширины 390/768/1440 без ошибок в консоли
 // и без горизонтальной прокрутки, axe-core без нарушений, определение платформы, выбор языка,
 // HEAD-проверка файлов из releases.json, бюджеты JS, CSP без встроенных скриптов, внутренние ссылки.
 // Результаты — test-results/: checks.txt (ok/FAIL), screenshots/*.jpg. Любой FAIL — код выхода 1.
@@ -32,13 +32,13 @@ const WIDTHS = [390, 768, 1440];
 const releases = JSON.parse(readFileSync(join(root, 'src/data/releases.json'), 'utf8'));
 const { server, origin } = await serve(DIST, BASE);
 const url = (p) => origin + BASE + p;
-const browser = await chromium.launch();
+const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined });
 
 // --- 1. Статика: файлы сборки ---
 const files = [];
 (function walk(d) { for (const f of readdirSync(d)) { const p = join(d, f); statSync(p).isDirectory() ? walk(p) : files.push(p); } })(DIST);
 const htmls = files.filter((f) => f.endsWith('.html'));
-check('pages built: 8 × 10 languages + root + 404', htmls.filter((f) => /\/(en|ru|es|pt|fr|de|ar|hi|tr|zh)\//.test(f)).length === 80, `${htmls.length} html`);
+for (const lang of LANGS) check(`all ${PAGES.length} pages built in ${lang}`, PAGES.every((page) => files.includes(join(DIST, lang, page, 'index.html'))));
 check('privacy.html kept at the old address', files.includes(join(DIST, 'privacy.html')));
 check('sitemap present', files.some((f) => /sitemap.*\.xml$/.test(f)));
 for (const f of htmls) {
@@ -179,7 +179,7 @@ for (const [want, ua] of Object.entries(UAS)) {
 }
 
 // --- 4. Язык при первом заходе ---
-const LOCALE_CASES = [['ru-RU', 'ru'], ['kk-KZ', 'ru'], ['be-BY', 'ru'], ['uz-UZ', 'ru'], ['de-DE', 'de'], ['ar-EG', 'ar'], ['zh-CN', 'zh'], ['pt-BR', 'pt'], ['ja-JP', 'en'], ['en-US', 'en']];
+const LOCALE_CASES = [['ru-RU', 'ru'], ['kk-KZ', 'kk'], ['be-BY', 'be'], ['uz-UZ', 'uz'], ['ky-KG', 'ky'], ['tg-TJ', 'tg'], ['hy-AM', 'hy'], ['de-DE', 'de'], ['ar-EG', 'ar'], ['zh-CN', 'zh'], ['pt-BR', 'pt'], ['ja-JP', 'en'], ['en-US', 'en']];
 for (const [locale, want] of LOCALE_CASES) {
   const c = await browser.newContext({ locale });
   const pg = await c.newPage();

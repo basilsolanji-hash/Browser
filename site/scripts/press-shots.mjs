@@ -1,4 +1,4 @@
-// Скриншоты настольной Оси для пресс-кита на всех 10 языках: текст на картинках — на языке страницы.
+// Скриншоты настольной Оси для пресс-кита на всех 16 языках: текст на картинках — на языке страницы.
 // Запуск (нужны собранный desktop/ и X-сервер): cd desktop && npm run build; xvfb-run -a -s "-screen 0 1280x800x24" node ../site/scripts/press-shots.mjs
 // Пишет public/press/shots/<lang>/<экран>.png.
 import { createRequire } from 'node:module';

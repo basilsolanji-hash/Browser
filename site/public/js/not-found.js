@@ -6,7 +6,7 @@
   var saved = null;
   try { saved = localStorage.getItem('os-lang'); } catch (e) {}
   var nav = String(navigator.language || 'en').toLowerCase().split('-')[0];
-  if (['kk', 'be', 'uz', 'ky', 'tg', 'uk', 'hy', 'az', 'tt', 'ba', 'mn'].indexOf(nav) >= 0) nav = 'ru';
+  if (['uk', 'az', 'tt', 'ba', 'mn'].indexOf(nav) >= 0) nav = 'ru';
   var lang = [m && m[1], saved, nav, 'en'].filter(function (l) { return l && have.indexOf(l) >= 0; })[0];
   blocks.forEach(function (b) {
     var on = b.getAttribute('data-nf') === lang;
