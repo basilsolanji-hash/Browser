@@ -4,7 +4,7 @@
 
 | § | Статус | Доказательство: код | Доказательство: тест и пробел |
 |---|---|---|---|
-| 1 | Частично | `desktop/src/ui/browser.ts`: `mainMenu`, `moreTools`; `browser.css`: `.main-menu`, `.toprow` | `desktop/test/acceptance.mjs`, сценарий 34: пять круглых кнопок, группы, размеры, мобильный UA, диагностика. Разрешения, сохранённые страницы, заметки, поделиться и диагностика перенесены в подменю; порядок групп отличается от §1. |
+| 1 | Сделано (07.11, CI) | `desktop/src/ui/browser.ts`: `mainMenu`, `moreTools`; `browser.css`: `.main-menu`, `.toprow` | `desktop/test/acceptance.mjs`, сценарий 34: пять круглых кнопок, группы, размеры, мобильный UA, диагностика. Пункты возвращены в основные группы; `test/menu.mjs` — 49 проверок на 16 языках. CI Windows 42321426976 и полная приёмка 42321426999 зелёные. |
 | 3 | Сделано | `desktop/src/ui/browser.ts`: `ENGINE_BADGES`, `suggest`, `pageCard`, `paintSuggestions`; `main/addrpanel.ts`, `main/query.ts` | `desktop/test/unit/query.test.mjs`, `addrpanel.test.mjs`; приёмка 35: значок поисковика, очистка, карточка, до восьми сайтов, прошлые запросы, подстановка. |
 | 6 | Сделано | `desktop/src/main/settings.ts`: `TOOLBAR_BUTTONS`, значение `downloads`; `pages/settings.ts`: `toolbar-button`; `ui/browser.ts`: `toolbarItem` | Приёмка 38: смена Downloads → Find, открытие поиска. Все восемь вариантов присутствуют в коде; отдельного прохода по каждому нет. Кнопка загрузок появляется после первой загрузки. |
 | 9 | Частично | `desktop/src/main/notify.ts`, `main/onboarding.ts`, `pages/onboarding.ts`, `pages/stats.ts`, `main/window.ts`, `main/downloads.ts` | Приёмка 1, 2, 8, 13, 15, 22, 23, 26: обучение, вкладки, языки, загрузки, статистика, уведомления, F11. В `pages/home.ts` блок `.quick` содержит только ссылки на заметки/страницы/о приложении: поиска с выбором профиля нет, теста нет. |
@@ -23,3 +23,5 @@
 `signin.test.mjs`, `unload.test.mjs`, `langs.test.mjs`, `linkmenu.test.mjs` через
 `node --import ./test/unit/ts-resolve.mjs --test …`: **17/17 PASS**.
 Это не заменяет запуск приёмки на windows-latest.
+
+Обновление 07.11.2026: после исправления §1 — 6 параграфов сделаны, 6 частично. Исторический итог выше относится к базе f42cfe3.

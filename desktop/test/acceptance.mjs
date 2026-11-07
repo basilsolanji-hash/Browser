@@ -1245,7 +1245,9 @@ try {
         groups: m.querySelectorAll('.sep').length,
         icons: [...m.querySelectorAll(':scope > button')].every((b) => b.querySelector('.ic svg')),
         fits: r.bottom <= window.innerHeight + 1 && r.right <= window.innerWidth + 1 && r.width < window.innerWidth,
-        height: m.scrollHeight,
+        height: r.height,
+        scrollable: m.scrollHeight > m.clientHeight,
+        grouped: [...m.children].reduce((out, el) => { if (el.classList.contains("sep")) out.push([]); else if (out.length && el.matches("button")) out[out.length - 1].push(el.querySelector(".grow")?.textContent); return out; }, []),
         cut: [...m.querySelectorAll('.grow')].filter((g) => g.scrollWidth > g.clientWidth + 1).map((g) => g.textContent),
         labels: [...m.querySelectorAll('.toprow .round')].every((b) => b.getAttribute('aria-label')),
       };
@@ -1254,7 +1256,20 @@ try {
     check('menu: row of 5 round buttons with labels', shape.round === 5 && shape.labels, JSON.stringify(shape));
     check('menu: Back disabled when there is nowhere to go', shape.backDisabled === !s34.canBack);
     check('menu: groups divided by lines, every item has an icon', shape.groups >= 5 && shape.icons, JSON.stringify(shape));
-    check('menu: fits a 768 px laptop screen (rare items under «More tools»)', shape.height <= 660, `height=${shape.height}`);
+    check('menu: visible card fits a 768 px laptop screen', shape.height <= 660, `height=${shape.height}`);
+    check('menu: long menu scrolls rather than hiding required actions in a submenu', shape.scrollable);
+    const menuTr = loadTr();
+    const menuCol = ['en', 'ru', 'es', 'pt', 'fr', 'de', 'ar', 'hi', 'tr', 'zh', 'be', 'uz', 'ky', 'tg', 'kk', 'hy'].indexOf(appLang);
+    const menuLabels = (keys) => keys.map((k) => menuTr[k][menuCol]);
+    check('menu: history, clear and permissions share the second group', JSON.stringify(shape.grouped[1]) === JSON.stringify(menuLabels(['history', 'clear_title', 'site_permissions'])));
+    check('menu: saved pages and notes in the main library group', JSON.stringify(shape.grouped[2]) === JSON.stringify(menuLabels(['cabinet', 'dl_title', 'favorites', 'tabs', 'saved_pages', 'notes'])));
+    check('menu: separate zoom group', shape.grouped[3].length === 0);
+    check('menu: page actions follow Android order', JSON.stringify(shape.grouped[4]) === JSON.stringify(menuLabels(['share', 'find_in_page', 'reader_mode', 'copy_link', 'open_external', 'dt_mobile_site', 'full_screen'])));
+    check('menu: settings, help and diagnostics in the main menu', JSON.stringify(shape.grouped[5].slice(0, 3)) === JSON.stringify(menuLabels(['settings', 'help_feedback', 'diagnostics'])));
+    await mui.evaluate(() => { const m = document.querySelector('.main-menu'); m.scrollTop = m.scrollHeight; });
+    await keyScreen('39-menu-bottom', 'chrome');
+    check('menu: diagnostics reachable by scrolling', await mui.isVisible('.main-menu [data-k="diag"]'));
+    await mui.evaluate(() => { document.querySelector('.main-menu').scrollTop = 0; });
     check('menu: labels are not cut off', shape.cut.length === 0, shape.cut.join(' | '));
     check('menu: card at the corner, not full screen, fits the window', shape.fits);
     await keyScreen('39-menu', 'chrome');
@@ -1265,14 +1280,15 @@ try {
     const openMore = async () => { await openMenu(); await mui.click('.main-menu [data-k="more-tools"]'); await mui.waitForSelector('.main-menu [data-k="back-menu"]'); };
     await openMore();
     await keyScreen('39-more-tools', 'chrome');
+    await mui.click('.main-menu [data-k="back-menu"]');
     await mui.click('.main-menu [data-k="mobile"]');
     const tabPage = await page(`${SITE}/set?p=menu`);
     check('menu: mobile site switches the User-Agent', await waitFor(async () => /Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => ''))));
-    await openMore();
+    await openMenu();
     check('menu: mobile site item is checked', (await mui.getAttribute('.main-menu [data-k="mobile"]', 'aria-checked')) === 'true');
     await mui.click('.main-menu [data-k="mobile"]');
     check('menu: mobile site off restores the desktop User-Agent', await waitFor(async () => !/Mobile/.test(await tabPage.evaluate(() => window.navigator.userAgent).catch(() => 'Mobile'))));
-    await openMore();
+    await openMenu();
     await mui.click('.main-menu [data-k="diag"]');
     const diag = await mui.waitForSelector('#diag-text').then((e) => e.textContent()).catch(() => '');
     check('menu: diagnostics shows version and page log', diag.includes('p=menu') && /Ось \d/.test(diag), diag.slice(0, 200));
@@ -2313,7 +2329,7 @@ try {
       await ui59.waitForSelector('.main-menu');
       const m59 = await ui59.evaluate(() => {
         const m = document.querySelector('.main-menu');
-        return { height: m.scrollHeight, cut: [...m.querySelectorAll('.grow')].filter((g) => g.scrollWidth > g.clientWidth + 1).map((g) => g.textContent) };
+        return { height: m.getBoundingClientRect().height, cut: [...m.querySelectorAll('.grow')].filter((g) => g.scrollWidth > g.clientWidth + 1).map((g) => g.textContent) };
       });
       check(`${l}: menu labels are not cut off and the menu fits`, m59.cut.length === 0 && m59.height <= 660, `${m59.height} ${m59.cut.join(' | ')}`);
       if (l === 'kk' || l === 'hy') await keyScreen(`59-menu-${l}`, 'chrome');

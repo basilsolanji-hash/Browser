@@ -119,7 +119,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 html[dir="rtl"] [data-k="back"] .ic, html[dir="rtl"] [data-k="fwd"] .ic { transform: scaleX(-1); }
 
 /* Меню ⋮ как в Chrome: карточка у правого угла, прокручивается, если выше окна. */
-.menu.main-menu { max-height: calc(100vh - 96px); overflow-y: auto; padding-top: 4px; }
+.menu.main-menu { max-height: min(660px, calc(100vh - 96px)); overflow-y: auto; padding-top: 4px; }
 .menu .toprow { display: flex; justify-content: space-around; padding: 4px 4px 2px; }
 .menu .toprow .icon-btn.round { width: 36px; height: 36px; border-radius: 50%; padding: 0; justify-content: center; }
 .menu .toprow .icon-btn.round.on .ic { color: var(--accent); }
