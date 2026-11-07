@@ -75,8 +75,12 @@ export class AnalyticsStore {
     date(since); date(until);
     if (since > until) throw new TypeError('Invalid date range');
     this.purge();
+    // Never expose a live day's count: successive 20→21 observations reveal one person's action.
+    // Events cannot carry a date; ingest only writes the server's current UTC day.
+    const today = new Date(this.#clock()).toISOString().slice(0, 10);
     return this.#db.prepare(`SELECT day, platform, feature, count FROM usage_counts
-      WHERE day BETWEEN ? AND ? AND publishable = 1 ORDER BY day, platform, feature`).all(since, until);
+      WHERE day BETWEEN ? AND ? AND day < ? AND publishable = 1
+      ORDER BY day, platform, feature`).all(since, until, today);
   }
   purge() {
     const now = this.#clock();

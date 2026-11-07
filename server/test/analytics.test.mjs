@@ -80,8 +80,10 @@ test('one user cannot inflate the unique-participant privacy threshold', (t) => 
   assert.deepEqual(store.summary(day, day), []);
 });
 test('twenty distinct consenting accounts reveal only aggregate counts', (t) => {
-  const { store, path } = fixture(t);
+  const { store, path, clock } = fixture(t);
   for (let i = 0; i < 20; i++) store.ingest(batch(), context(`private-person-${i}`));
+  assert.deepEqual(store.summary(day, day), []);
+  clock.now += 86400000;
   const rows = store.summary(day, day);
   assert.equal(rows.length, 1);
   assert.deepEqual({ ...rows[0] }, { day, platform: 'android', feature: 'notes_open', count: 20 });
@@ -110,4 +112,25 @@ test('invalid ranges/dates are refused', (t) => {
   for (const [a, b] of [['2026-02-30', day], [day, '2026-11-01'], ['any', day]]) {
     assert.throws(() => store.summary(a, b), TypeError);
   }
+});
+
+
+test('live days never appear, including the twenty to twenty-one participant transition', (t) => {
+  const { store, clock } = fixture(t);
+  for (let i = 0; i < 20; i++) store.ingest(batch(), context(`person-${i}`));
+  assert.deepEqual(store.summary(day, day), []);
+  store.ingest(batch(), context('person-20'));
+  assert.deepEqual(store.summary(day, '2026-12-31'), []);
+  clock.now += 86400000;
+  assert.equal(store.summary(day, day)[0].count, 21);
+});
+
+test('new current-day activity cannot change a closed day', (t) => {
+  const { store, clock } = fixture(t);
+  for (let i = 0; i < 20; i++) store.ingest(batch(), context(`person-${i}`));
+  clock.now += 86400000; const closed = store.summary(day, day);
+  for (let i = 0; i < 25; i++) store.ingest(batch(), context(`later-${i}`));
+  assert.deepEqual(store.summary(day, '2026-12-31'), closed);
+  assert.throws(() => store.ingest({ ...batch(), day }, context('backdate')), TypeError);
+  assert.deepEqual(store.summary(day, day), closed);
 });

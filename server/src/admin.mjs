@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const publicRoot = new URL('../public/', import.meta.url);
 const MAX_BODY = 2048;
 const SESSION_MS = 15 * 60 * 1000;
-const metricKeys = ['users', 'devices', 'storageBytes', 'syncErrors'];
+const metricKeys = ['users', 'devices', 'storageBytes', 'syncErrors', 'syncSuccesses'];
 const hash = (value) => createHash('sha256').update(value).digest();
 
 async function jsonBody(req) {
@@ -33,14 +33,35 @@ export function createAdminServer({ origin, secret, analytics, metrics = async (
   const expected = hash(secret);
   const sessions = new Map();
   const cookieName = local ? 'os_admin_local' : '__Host-os_admin';
-  let attempts = 0, attemptWindow = clock();
+  // Bounded temporary abuse state, never persisted/logged. Do not trust client X-Forwarded-For.
+  // The valid high-entropy owner key is never locked out by another client's failures,
+  // including when a reverse proxy makes multiple clients share one network peer.
+  const failedLogins = new Map();
+  const failedAttempt = (req, now) => {
+    for (const [peer, entry] of failedLogins) if (entry.until <= now) failedLogins.delete(peer);
+    const peer = req.socket.remoteAddress ?? 'unknown';
+    let entry = failedLogins.get(peer);
+    if (!entry) {
+      if (failedLogins.size >= 1024) return 429;
+      entry = { count: 0, until: now + 60000 };
+      failedLogins.set(peer, entry);
+    }
+    return ++entry.count > 10 ? 429 : 401;
+  };
   const cookie = (value, age) => `${cookieName}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${local ? '' : '; Secure'}`;
-  const authorized = (req) => {
+  const sessionExpiration = (req) => {
     const cookies = (req.headers.cookie ?? '').split(';').map((x) => x.trim()).filter((x) => x.startsWith(`${cookieName}=`));
     if (cookies.length !== 1) return false;
     const token = cookies[0].slice(cookieName.length + 1);
     const expiration = sessions.get(token);
     if (!expiration || expiration <= clock()) { sessions.delete(token); return false; }
+    return expiration;
+  };
+  const authorized = (req) => Boolean(sessionExpiration(req));
+  const sessionHeader = (req, res) => {
+    const until = sessionExpiration(req);
+    if (!until) return false;
+    res.setHeader('X-Admin-Session-TTL', String(Math.max(0, until - clock())));
     return true;
   };
   const server = createServer(async (req, res) => {
@@ -60,18 +81,19 @@ export function createAdminServer({ origin, secret, analytics, metrics = async (
       if (req.method === 'POST' && target.pathname === '/admin/session') {
         if (req.headers.origin !== origin) return send(403, { error: 'forbidden' });
         const now = clock();
-        if (now - attemptWindow >= 60000) { attempts = 0; attemptWindow = now; }
-        if (++attempts > 10) return send(429, { error: 'rate_limit' });
         const body = await jsonBody(req);
         if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length !== 1 ||
             typeof body.token !== 'string' || body.token.length > 128 || !timingSafeEqual(hash(body.token), expected)) {
-          return send(401, { error: 'unauthorized' });
+          const status = failedAttempt(req, now);
+          return send(status, { error: status === 429 ? 'rate_limit' : 'unauthorized' });
         }
+        failedLogins.delete(req.socket.remoteAddress ?? 'unknown');
         for (const [token, until] of sessions) if (until <= now) sessions.delete(token);
         if (sessions.size >= 32) return send(429, { error: 'rate_limit' });
         const token = randomBytes(32).toString('hex');
         sessions.set(token, now + SESSION_MS);
         res.setHeader('Set-Cookie', cookie(token, SESSION_MS / 1000));
+        res.setHeader('X-Admin-Session-TTL', String(SESSION_MS));
         return send(204);
       }
       if (req.method === 'DELETE' && target.pathname === '/admin/session') {
@@ -90,10 +112,12 @@ export function createAdminServer({ origin, secret, analytics, metrics = async (
         try { usage = analytics.summary(since, until); }
         catch { return send(400, { error: 'invalid_range' }); }
         const current = await metrics();
-        const service = current === null ? null : Object.fromEntries(metricKeys.map((key) => {
+        const service = current === null ? null : { ...Object.fromEntries(metricKeys.map((key) => {
           const n = current[key];
           return [key, Number.isSafeInteger(n) && n >= 0 ? n : null];
-        }));
+        })), health: ['healthy', 'degraded', 'unavailable'].includes(current.health) ? current.health : null };
+        // A logout/expiry can happen while the asynchronous provider is pending.
+        if (!sessionHeader(req, res)) return send(401, { error: 'unauthorized' });
         return send(200, { service, usage, minimumParticipants: 20 });
       }
       if (req.method === 'GET') {
@@ -120,6 +144,6 @@ export function createAdminServer({ origin, secret, analytics, metrics = async (
   server.headersTimeout = 10000;
   server.maxHeadersCount = 40;
   server.keepAliveTimeout = 5000;
-  server.on('close', () => sessions.clear());
+  server.on('close', () => { sessions.clear(); failedLogins.clear(); });
   return server;
 }

@@ -26,7 +26,13 @@
     "dl_title": "Downloads",
     "refresh": "Reload",
     "search": "Search",
-    "language": "Language"
+    "language": "Language",
+    "syncSuccesses": "Successful syncs",
+    "health": "Service status",
+    "health_healthy": "Operational",
+    "health_degraded": "Service disrupted",
+    "health_unavailable": "Service is unavailable",
+    "reportClosed": "Only completed UTC days are shown."
   },
   "ru": {
     "title": "Панель управления",
@@ -55,7 +61,13 @@
     "dl_title": "Скачанные файлы",
     "refresh": "Обновить",
     "search": "Поиск",
-    "language": "Язык"
+    "language": "Язык",
+    "syncSuccesses": "Успешные синхронизации",
+    "health": "Состояние сервиса",
+    "health_healthy": "Работает",
+    "health_degraded": "Работает с перебоями",
+    "health_unavailable": "Сервис недоступен",
+    "reportClosed": "Показаны только завершённые дни UTC."
   },
   "es": {
     "title": "Panel de control",
@@ -84,7 +96,13 @@
     "dl_title": "Descargas",
     "refresh": "Recargar",
     "search": "Buscar",
-    "language": "Idioma"
+    "language": "Idioma",
+    "syncSuccesses": "Sincronizaciones correctas",
+    "health": "Estado del servicio",
+    "health_healthy": "En funcionamiento",
+    "health_degraded": "Servicio con interrupciones",
+    "health_unavailable": "El servicio no está disponible",
+    "reportClosed": "Solo se muestran días UTC completos."
   },
   "pt": {
     "title": "Painel de controle",
@@ -113,7 +131,13 @@
     "dl_title": "Downloads",
     "refresh": "Recarregar",
     "search": "Pesquisar",
-    "language": "Idioma"
+    "language": "Idioma",
+    "syncSuccesses": "Sincronizações bem-sucedidas",
+    "health": "Estado do serviço",
+    "health_healthy": "Operacional",
+    "health_degraded": "Serviço com interrupções",
+    "health_unavailable": "Serviço indisponível",
+    "reportClosed": "Somente dias UTC concluídos são exibidos."
   },
   "fr": {
     "title": "Tableau de bord",
@@ -142,7 +166,13 @@
     "dl_title": "Téléchargements",
     "refresh": "Actualiser",
     "search": "Rechercher",
-    "language": "Langue"
+    "language": "Langue",
+    "syncSuccesses": "Synchronisations réussies",
+    "health": "État du service",
+    "health_healthy": "Opérationnel",
+    "health_degraded": "Service perturbé",
+    "health_unavailable": "Service indisponible",
+    "reportClosed": "Seules les journées UTC terminées sont affichées."
   },
   "de": {
     "title": "Verwaltung",
@@ -171,7 +201,13 @@
     "dl_title": "Downloads",
     "refresh": "Neu laden",
     "search": "Suchen",
-    "language": "Sprache"
+    "language": "Sprache",
+    "syncSuccesses": "Erfolgreiche Synchronisierungen",
+    "health": "Dienststatus",
+    "health_healthy": "Betriebsbereit",
+    "health_degraded": "Dienst beeinträchtigt",
+    "health_unavailable": "Dienst nicht verfügbar",
+    "reportClosed": "Es werden nur abgeschlossene UTC-Tage angezeigt."
   },
   "ar": {
     "title": "لوحة التحكم",
@@ -200,7 +236,13 @@
     "dl_title": "التنزيلات",
     "refresh": "تحديث",
     "search": "بحث",
-    "language": "اللغة"
+    "language": "اللغة",
+    "syncSuccesses": "عمليات المزامنة الناجحة",
+    "health": "حالة الخدمة",
+    "health_healthy": "تعمل",
+    "health_degraded": "اضطراب في الخدمة",
+    "health_unavailable": "الخدمة غير متاحة",
+    "reportClosed": "تُعرض أيام UTC المكتملة فقط."
   },
   "hi": {
     "title": "नियंत्रण पैनल",
@@ -229,7 +271,13 @@
     "dl_title": "डाउनलोड",
     "refresh": "रीलोड",
     "search": "खोजें",
-    "language": "भाषा"
+    "language": "भाषा",
+    "syncSuccesses": "सफल सिंक",
+    "health": "सेवा की स्थिति",
+    "health_healthy": "काम कर रही है",
+    "health_degraded": "सेवा में बाधा है",
+    "health_unavailable": "सेवा उपलब्ध नहीं है",
+    "reportClosed": "केवल पूरे हो चुके UTC दिन दिखाए जाते हैं।"
   },
   "tr": {
     "title": "Yönetim paneli",
@@ -258,7 +306,13 @@
     "dl_title": "İndirilenler",
     "refresh": "Yenile",
     "search": "Ara",
-    "language": "Dil"
+    "language": "Dil",
+    "syncSuccesses": "Başarılı eşitlemeler",
+    "health": "Hizmet durumu",
+    "health_healthy": "Çalışıyor",
+    "health_degraded": "Hizmette aksama var",
+    "health_unavailable": "Hizmet kullanılamıyor",
+    "reportClosed": "Yalnızca tamamlanmış UTC günleri gösterilir."
   },
   "zh": {
     "title": "控制面板",
@@ -287,7 +341,13 @@
     "dl_title": "下载内容",
     "refresh": "刷新",
     "search": "搜索",
-    "language": "语言"
+    "language": "语言",
+    "syncSuccesses": "同步成功次数",
+    "health": "服务状态",
+    "health_healthy": "正常运行",
+    "health_degraded": "服务受到影响",
+    "health_unavailable": "服务不可用",
+    "reportClosed": "仅显示已结束的UTC日期。"
   },
   "be": {
     "title": "Панэль кіравання",
@@ -316,7 +376,13 @@
     "dl_title": "Спампаваныя файлы",
     "refresh": "Абнавіць",
     "search": "Пошук",
-    "language": "Мова"
+    "language": "Мова",
+    "syncSuccesses": "Паспяховыя сінхранізацыі",
+    "health": "Стан сэрвісу",
+    "health_healthy": "Працуе",
+    "health_degraded": "Працуе з перабоямі",
+    "health_unavailable": "Сэрвіс недаступны",
+    "reportClosed": "Паказваюцца толькі завершаныя дні UTC."
   },
   "uz": {
     "title": "Boshqaruv paneli",
@@ -345,7 +411,13 @@
     "dl_title": "Yuklanmalar",
     "refresh": "Yangilash",
     "search": "Qidirish",
-    "language": "Til"
+    "language": "Til",
+    "syncSuccesses": "Muvaffaqiyatli sinxronlashlar",
+    "health": "Xizmat holati",
+    "health_healthy": "Ishlayapti",
+    "health_degraded": "Xizmatda uzilishlar bor",
+    "health_unavailable": "Xizmat mavjud emas",
+    "reportClosed": "Faqat yakunlangan UTC kunlari koʻrsatiladi."
   },
   "ky": {
     "title": "Башкаруу панели",
@@ -374,7 +446,13 @@
     "dl_title": "Жүктөлүп алынгандар",
     "refresh": "Жаңыртуу",
     "search": "Издөө",
-    "language": "Тил"
+    "language": "Тил",
+    "syncSuccesses": "Ийгиликтүү шайкештештирүүлөр",
+    "health": "Кызматтын абалы",
+    "health_healthy": "Иштеп жатат",
+    "health_degraded": "Кызмат үзгүлтүк менен иштейт",
+    "health_unavailable": "Кызмат жеткиликсиз",
+    "reportClosed": "Аяктаган UTC күндөрү гана көрсөтүлөт."
   },
   "tg": {
     "title": "Панели идоракунӣ",
@@ -403,7 +481,13 @@
     "dl_title": "Файлҳои боргиришуда",
     "refresh": "Навсозӣ",
     "search": "Ҷустуҷӯ",
-    "language": "Забон"
+    "language": "Забон",
+    "syncSuccesses": "Ҳамоҳангсозиҳои муваффақ",
+    "health": "Ҳолати хидмат",
+    "health_healthy": "Кор мекунад",
+    "health_degraded": "Хидмат бо халал кор мекунад",
+    "health_unavailable": "Хидмат дастнорас аст",
+    "reportClosed": "Танҳо рӯзҳои анҷомёфтаи UTC нишон дода мешаванд."
   },
   "kk": {
     "title": "Басқару тақтасы",
@@ -432,7 +516,13 @@
     "dl_title": "Жүктеп алынған файлдар",
     "refresh": "Жаңарту",
     "search": "Іздеу",
-    "language": "Тіл"
+    "language": "Тіл",
+    "syncSuccesses": "Сәтті синхрондаулар",
+    "health": "Қызмет күйі",
+    "health_healthy": "Жұмыс істеп тұр",
+    "health_degraded": "Қызметте іркілістер бар",
+    "health_unavailable": "Қызмет қолжетімсіз",
+    "reportClosed": "Тек аяқталған UTC күндері көрсетіледі."
   },
   "hy": {
     "title": "Կառավարման վահանակ",
@@ -461,6 +551,12 @@
     "dl_title": "Ներբեռնված ֆայլեր",
     "refresh": "Թարմացնել",
     "search": "Որոնում",
-    "language": "Լեզու"
+    "language": "Լեզու",
+    "syncSuccesses": "Հաջող համաժամացումներ",
+    "health": "Ծառայության վիճակ",
+    "health_healthy": "Աշխատում է",
+    "health_degraded": "Ծառայությունն աշխատում է խափանումներով",
+    "health_unavailable": "Ծառայությունն անհասանելի է",
+    "reportClosed": "Ցուցադրվում են միայն ավարտված UTC օրերը։"
   }
 }

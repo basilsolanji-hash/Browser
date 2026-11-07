@@ -71,15 +71,18 @@ test('a session expires after fifteen minutes', async (t) => {
 test('login attempts are bounded without storing an IP-address history', async (t) => {
   const { login, clock } = await fixture(t);
   for (let i = 0; i < 10; i++) assert.equal((await login('bad')).response.status, 401);
-  assert.equal((await login()).response.status, 429);
-  clock.now += 60000; assert.equal((await login()).response.status, 204);
+  assert.equal((await login('bad')).response.status, 429);
+  // Valid owner key still works when nginx makes clients share a loopback peer.
+  assert.equal((await login()).response.status, 204);
+  for (let i = 0; i < 11; i++) await login('bad');
+  clock.now += 60000; assert.equal((await login('bad')).response.status, 401);
 });
 test('service data is whitelisted; malformed values and private properties cannot leak', async (t) => {
   const { origin, login } = await fixture(t, { metrics: async () => ({ users: 5, devices: 8,
     storageBytes: -1, syncErrors: 'private-message', passwords: ['SECRET'], notes: ['PRIVATE'] }) });
   const { cookie } = await login();
   const r = await fetch(origin + path, { headers: { Cookie: cookie } });
-  assert.deepEqual((await r.json()).service, { users: 5, devices: 8, storageBytes: null, syncErrors: null });
+  assert.deepEqual((await r.json()).service, { users: 5, devices: 8, storageBytes: null, syncErrors: null, syncSuccesses: null, health: null });
 });
 test('unsafe body sizes and content types are refused', async (t) => {
   const { origin } = await fixture(t);
@@ -97,4 +100,59 @@ test('unexpected Host is refused before exposing even a login page', async (t) =
     req.on('error', reject); req.end();
   });
   assert.equal(status, 403);
+});
+
+
+test('revocation while metrics is pending prevents a late private response', async (t) => {
+  let started, release;
+  const entered = new Promise((r) => { started = r; });
+  const { origin, login } = await fixture(t, { metrics: async () => { started(); return new Promise((r) => { release = r; }); } });
+  const { cookie } = await login(); const pending = fetch(origin + path, { headers: { Cookie: cookie } });
+  await entered;
+  assert.equal((await fetch(origin + '/admin/session', { method: 'DELETE', headers: { Cookie: cookie, Origin: origin } })).status, 204);
+  release({ users: 123 }); const response = await pending;
+  assert.equal(response.status, 401); assert.equal((await response.text()).includes('123'), false);
+});
+
+test('waiting on a provider never extends an expired session', async (t) => {
+  let started, release;
+  const entered = new Promise((r) => { started = r; });
+  const { origin, login, clock } = await fixture(t, { metrics: async () => { started(); return new Promise((r) => { release = r; }); } });
+  const { cookie } = await login(); const pending = fetch(origin + path, { headers: { Cookie: cookie } });
+  await entered; clock.now += 15 * 60000; release({ users: 321 });
+  assert.equal((await pending).status, 401);
+});
+
+test('successful syncs and service health are whitelisted provider values', async (t) => {
+  let health = 'healthy';
+  const { origin, login } = await fixture(t, { metrics: async () => ({ users: 5, devices: 8, storageBytes: 4096, syncErrors: 2, syncSuccesses: 19, health }) });
+  const { cookie } = await login();
+  for (const state of ['healthy', 'degraded', 'unavailable', 'private traceback', 1, {}, null]) {
+    health = state; const response = await fetch(origin + path, { headers: { Cookie: cookie } });
+    assert.equal(response.status, 200); assert.ok(Number(response.headers.get('X-Admin-Session-TTL')) > 0);
+    const body = await response.json(); assert.equal(body.service.syncSuccesses, 19);
+    assert.deepEqual(body.service.health, ['healthy', 'degraded', 'unavailable'].includes(state) ? state : null);
+  }
+});
+
+test('provider failure stays an error instead of fake zero metrics', async (t) => {
+  const { origin, login } = await fixture(t, { metrics: async () => { throw new Error('PRIVATE PROVIDER DETAILS'); } });
+  const { cookie } = await login(); const response = await fetch(origin + path, { headers: { Cookie: cookie } });
+  assert.equal(response.status, 503); assert.deepEqual(await response.json(), { error: 'unavailable' });
+});
+
+test('one peer exhausting failed attempts does not consume another peer budget', async (t) => {
+  const { origin, login } = await fixture(t);
+  for (let i = 0; i < 11; i++) await login('bad');
+  assert.equal((await login('bad')).response.status, 429);
+  const { request } = await import('node:http');
+  const body = JSON.stringify({ token: 'bad' });
+  const status = await new Promise((resolve, reject) => {
+    const req = request(origin + '/admin/session', { method: 'POST', localAddress: '127.0.0.2',
+      headers: { Origin: origin, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } },
+    (res) => { res.resume(); resolve(res.statusCode); });
+    req.on('error', reject); req.end(body);
+  });
+  assert.equal(status, 401);
+  assert.equal((await login()).response.status, 204);
 });
