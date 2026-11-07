@@ -140,10 +140,17 @@ object Profiles {
     }
 
     /** Последняя открытая вкладка — с неё стартует профиль. */
-    fun lastPinId(ctx: Context): String? = prefs(ctx).getString("pin", null)
+    fun lastPinId(ctx: Context, profile: Int? = null): String? {
+        val p = prefs(ctx)
+        if (profile == null) return p.getString("pin", null)
+        return p.getString("last_pin_$profile", null)
+            ?: p.getString("pin", null).takeIf { lastProfile(ctx) == profile }
+    }
 
-    fun saveLastPinId(ctx: Context, pinId: String) {
-        prefs(ctx).edit().putString("pin", pinId).apply()
+    fun saveLastPinId(ctx: Context, pinId: String, profile: Int? = null) {
+        prefs(ctx).edit().putString("pin", pinId).apply {
+            if (profile != null) putString("last_pin_$profile", pinId)
+        }.apply()
     }
 
     /** Профиль, которым пользовались последним (быстрый поиск на главном открывает в нём). */

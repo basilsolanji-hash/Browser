@@ -213,7 +213,7 @@ class BrowserActivity : AppCompatActivity() {
             newTab(id, url, intent.getStringExtra(EXTRA_GROUP))
             return
         }
-        val pinId = intent.getStringExtra(EXTRA_SITE) ?: Profiles.lastPinId(this)
+        val pinId = intent.getStringExtra(EXTRA_SITE) ?: Profiles.lastPinId(this, id)
         // Последнюю вкладку могли закрыть — тогда открываем последнюю из оставшихся.
         val target = if (Tabs.isTab(pinId) && Tabs.byId(this, id, pinId) == null && intent.getStringExtra(EXTRA_SITE) == null)
             Tabs.list(this, id).lastOrNull()?.let { Tabs.pin(this, it) } ?: Pins.all(this, id).first()
@@ -285,7 +285,7 @@ class BrowserActivity : AppCompatActivity() {
         geckoView.releaseSession()
         profileId = id
         pin = newPin
-        Profiles.saveLastPinId(this, newPin.id)
+        Profiles.saveLastPinId(this, newPin.id, id)
         Profiles.saveLastProfile(this, id)
         Passwords.activeProfile = id
 
@@ -537,6 +537,12 @@ class BrowserActivity : AppCompatActivity() {
         attached += s
     }
 
+    private fun lastTabForProfile(id: Int): Pin {
+        val saved = Profiles.lastPinId(this, id)
+        val fallback = pin.id.takeUnless { Tabs.isTab(it) }
+        return Tabs.resolve(this, id, saved ?: fallback)
+    }
+
     private fun renderSwitcher() {
         switcher.removeAllViews()
         Profiles.all(this).forEach { p ->
@@ -550,11 +556,9 @@ class BrowserActivity : AppCompatActivity() {
                 background = if (current) Ui.oval(p.color, dp(2), Ui.TEXT) else Ui.oval(p.color)
                 alpha = if (current || Gecko.isActive(this@BrowserActivity, p.id)) 1f else 0.55f
                 contentDescription = p.name
-                // Обычные вкладки свои у каждого профиля, поэтому в другом профиле — его закреплённая
-                // (та же, если есть в его наборе, иначе первая).
+                // Возвращаем именно последнюю выбранную вкладку целевого профиля.
                 setOnClickListener {
-                    openTab(p.id, if (Tabs.isTab(pin.id)) Pins.all(this@BrowserActivity, p.id).first()
-                        else Pins.resolve(this@BrowserActivity, pin.id, p.id))
+                    openTab(p.id, lastTabForProfile(p.id))
                 }
             }, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(8) })
         }
@@ -793,8 +797,7 @@ class BrowserActivity : AppCompatActivity() {
                     if (onPick != null) return@setOnClickListener onPick(p)
                     if (current) return@setOnClickListener
                     exitIncognito()
-                    openTab(p.id, if (Tabs.isTab(pin.id)) Pins.all(this@BrowserActivity, p.id).first()
-                        else Pins.resolve(this@BrowserActivity, pin.id, p.id))
+                    openTab(p.id, lastTabForProfile(p.id))
                 }
                 addView(TextView(context).apply {
                     text = p.name.take(1).uppercase()

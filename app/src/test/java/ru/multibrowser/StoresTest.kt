@@ -26,6 +26,34 @@ class StoresTest {
     // --- Профили ---
 
     @Test
+    fun selectedTabIsRememberedPerProfile() {
+        Profiles.saveLastPinId(ctx, "tab-first", 1)
+        Profiles.saveLastProfile(ctx, 1)
+        Profiles.saveLastPinId(ctx, "tab-second", 2)
+        Profiles.saveLastProfile(ctx, 2)
+        assertEquals("tab-first", Profiles.lastPinId(ctx, 1))
+        assertEquals("tab-second", Profiles.lastPinId(ctx, 2))
+        assertNull(Profiles.lastPinId(ctx, 3))
+    }
+
+    @Test
+    fun legacySelectedTabMigratesOnlyToItsLastProfile() {
+        Profiles.saveLastPinId(ctx, "tab-legacy")
+        Profiles.saveLastProfile(ctx, 2)
+        assertEquals("tab-legacy", Profiles.lastPinId(ctx, 2))
+        assertNull(Profiles.lastPinId(ctx, 1))
+    }
+
+    @Test
+    fun closedSelectedTabFallsBackWithoutCrossingProfiles() {
+        val tab = Tabs.add(ctx, 1, "https://example.com")
+        Profiles.saveLastPinId(ctx, tab.id, 1)
+        Tabs.close(ctx, 1, listOf(tab.id))
+        assertEquals(Pins.all(ctx, 1).first().id, Tabs.resolve(ctx, 1, Profiles.lastPinId(ctx, 1)).id)
+    }
+
+
+    @Test
     fun defaultOrderIsSequential() = assertEquals((1..Settings.profileCount(ctx)).toList(), Profiles.order(ctx))
 
     @Test
