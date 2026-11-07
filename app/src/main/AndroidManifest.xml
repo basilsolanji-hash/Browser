@@ -18,6 +18,12 @@
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <uses-feature android:name="android.hardware.location" android:required="false" />
 
+    <!-- Только web-handlers для явного «Открыть в приложении»; не QUERY_ALL_PACKAGES. -->
+    <queries>
+        <intent><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="http" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="https" /></intent>
+    </queries>
+
     <application
         android:name=".App"
         android:supportsRtl="true"

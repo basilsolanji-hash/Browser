@@ -1,7 +1,7 @@
 """Local emulator fixture: counts real document loads and records live input values."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit, parse_qs
-import json
+import json, time
 
 state = {}
 class Handler(BaseHTTPRequestHandler):
@@ -18,10 +18,15 @@ class Handler(BaseHTTPRequestHandler):
             body = b'''<!doctype html><meta name="viewport" content="width=device-width"><title>Profile draft</title>
 <body style="background:#203050;color:white;font:24px sans-serif"><h1>Profile draft</h1>
 <label>Draft <input id="draft" autofocus style="font-size:24px;width:90%"></label>
-<script>setInterval(()=>fetch('/state'+location.search+'&value='+encodeURIComponent(document.querySelector('input').value),{cache:'no-store'}),250);</script>'''
+<script>const input=document.querySelector('input');function report(){fetch('/state'+location.search+'&value='+encodeURIComponent(input.value)+'&ready='+(document.readyState==='complete')+'&focused='+(document.activeElement===input)+'&visible='+(document.visibilityState==='visible'),{cache:'no-store'}).catch(()=>{});}setInterval(report,250);document.addEventListener('visibilitychange',report);input.addEventListener('input',report);</script>'''
             content_type = 'text/html; charset=utf-8'
         elif url.path == '/state':
-            state.setdefault(key, {'loads': 0, 'value': ''})['value'] = query.get('value', [''])[0]
+            item = state.setdefault(key, {'loads': 0, 'value': ''})
+            item['value'] = query.get('value', [''])[0]
+            item['ready'] = query.get('ready') == ['true']
+            item['focused'] = query.get('focused') == ['true']
+            item['visible'] = query.get('visible') == ['true']
+            item['updated'] = time.monotonic()
             body = b'OK'
             content_type = 'text/plain'
         elif url.path == '/snapshot':

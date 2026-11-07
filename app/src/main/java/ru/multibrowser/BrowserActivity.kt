@@ -181,6 +181,7 @@ class BrowserActivity : AppCompatActivity() {
         Tabs.list(this, profileId).lastOrNull()?.let { Tabs.pin(this, it) } ?: Pins.all(this, profileId).first()
 
     override fun onDestroy() {
+        ExternalApps.dismiss(this)
         exitIncognito()
         geckoView.releaseSession()
         attached.forEach {
@@ -190,6 +191,7 @@ class BrowserActivity : AppCompatActivity() {
             it.promptDelegate = null
             it.selectionActionDelegate = null
             it.permissionDelegate = null
+            it.contentBlockingDelegate = null
         }
         attached.clear()
         pendingFile?.let { (prompt, result) -> result.complete(prompt.dismiss()) }
@@ -470,17 +472,22 @@ class BrowserActivity : AppCompatActivity() {
             // Окна входа (Google и др.) — настоящим попапом, иначе вход зацикливается;
             // остальные ссылки «в новом окне» открываем в той же вкладке.
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
+                if (ExternalApps.intercepts(uri)) return null
                 if (Popups.isAuthPopup(uri)) return Popups.open(this@BrowserActivity, session, uri)
                 if (uri.isBlank()) return hiddenWindow(session, pageUrls[k], privateMode = false)
                 session.loadUri(uri)
                 return null
             }
 
+            override fun onSubframeLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
+                if (ExternalApps.intercepts(request.uri)) GeckoResult.deny() else null
+
             // Переключаем User-Agent между страницами входа и остальными сайтами (см. Gecko.userAgentFor).
             override fun onLoadRequest(
                 session: GeckoSession,
                 request: GeckoSession.NavigationDelegate.LoadRequest,
             ): GeckoResult<AllowOrDeny>? {
+                if (ExternalApps.dispatch(this@BrowserActivity, session, request, visible)) return GeckoResult.deny()
                 val ua = Gecko.userAgentFor(request.uri)
                 if (ua == session.settings.userAgentOverride) return null
                 Diag.log(k, "смена UA (${if (ua == null) "Firefox" else "Chrome"}): ${request.uri}")
@@ -615,11 +622,16 @@ class BrowserActivity : AppCompatActivity() {
             override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) { Gecko.canGoBack["incognito"] = canGoBack; if (incognito) updateNavButtons() }
             override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) { Gecko.canGoForward["incognito"] = canGoForward; if (incognito) updateNavButtons() }
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
+                if (ExternalApps.intercepts(uri)) return null
                 if (Popups.isAuthPopup(uri)) return Popups.open(this@BrowserActivity, session, uri)
                 if (uri.isBlank()) return hiddenWindow(session, currentUrl, privateMode = true)
                 session.loadUri(uri); return null
             }
+            override fun onSubframeLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
+                if (ExternalApps.intercepts(request.uri)) GeckoResult.deny() else null
+
             override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? {
+                if (ExternalApps.dispatch(this@BrowserActivity, session, request) { incognito && session === incognitoSession }) return GeckoResult.deny()
                 val ua = Gecko.userAgentFor(request.uri)
                 if (ua == session.settings.userAgentOverride) return null
                 session.settings.userAgentOverride = ua
@@ -721,6 +733,7 @@ class BrowserActivity : AppCompatActivity() {
                 item(R.drawable.ic_find, Tr.t("find_in_page"), web) { findBar.show() },
                 item(R.drawable.ic_book, tools.readerTitle(), web) { tools.toggleReader() },
                 item(R.drawable.ic_link, Tr.t("copy_link"), web) { copyUrl() },
+                item(R.drawable.ic_open_external, Tr.t("open_app"), web) { ExternalApps.openWebLink(this, currentUrl) },
                 item(R.drawable.ic_open_external, Tr.t("open_external"), web) { openExternally() },
                 item(R.drawable.ic_desktop, Tr.t("desktop_site"), web, Gecko.desktop.contains(key)) { toggleDesktop() },
                 item(R.drawable.ic_fullscreen, Tr.t("full_screen")) { setUserFullScreen(true) },
@@ -1337,6 +1350,11 @@ class BrowserActivity : AppCompatActivity() {
         }
         // Адрес появляется раньше, чем станет ясно, файл это или страница: ждём конца загрузки.
         hidden.navigationDelegate = object : GeckoSession.NavigationDelegate {
+            // Hidden windows never have a visible user action that authorizes another app.
+            override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
+                if (ExternalApps.intercepts(request.uri)) GeckoResult.deny() else null
+            override fun onSubframeLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
+                if (ExternalApps.intercepts(request.uri)) GeckoResult.deny() else null
             override fun onLocationChange(
                 session: GeckoSession,
                 url: String?,
