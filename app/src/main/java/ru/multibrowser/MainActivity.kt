@@ -261,7 +261,7 @@ class MainActivity : AppCompatActivity() {
     private fun tile(p: Profile, current: Boolean) = FrameLayout(this).apply {
         background = if (current) Ui.rounded(Ui.SURFACE, dpf(12), dp(2), Ui.ACCENT) else Ui.rounded(Ui.SURFACE, dpf(12), dp(1))
         contentDescription = p.name
-        setOnClickListener { openPin(p, Pins.all(this@MainActivity, p.id).first()) }
+        setOnClickListener { openPin(p, Tabs.resolve(this@MainActivity, p.id, Profiles.lastPinId(this@MainActivity, p.id))) }
         setOnLongClickListener { profileMenu(p); true }
         addView(LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -420,7 +420,7 @@ class MainActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
             ).apply { topMargin = dp(8) }
             setTag(R.id.profile_row, p.id)
-            setOnClickListener { openPin(p, Pins.all(this@MainActivity, p.id).first()) }
+            setOnClickListener { openPin(p, Tabs.resolve(this@MainActivity, p.id, Profiles.lastPinId(this@MainActivity, p.id))) }
         }
         var lastY = 0f
         row.setOnLongClickListener { startDrag(row, lastY); true }

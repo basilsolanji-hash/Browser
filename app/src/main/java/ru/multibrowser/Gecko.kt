@@ -15,7 +15,7 @@ import org.mozilla.geckoview.StorageController
  * поэтому cookies и хранилища профилей не пересекаются и сохраняются между запусками.
  */
 object Gecko {
-    // Сколько вкладок держать в памяти — Settings.keepAlive; остальные «спят» и перезагружаются при открытии.
+    // Лимит — для неактивных вкладок. Последняя вкладка каждого профиля остаётся живой.
 
     // Gmail отдаёт незнакомым браузерам устаревшую «простую» версию, поэтому только для него
     // представляемся мобильным Chrome. Остальным сайтам (вход Google, Claude с защитой Cloudflare)
@@ -26,6 +26,7 @@ object Gecko {
 
     private var runtime: GeckoRuntime? = null
     private val sessions = LinkedHashMap<String, GeckoSession>(16, 0.75f, true)
+    private val lastSessionByProfile = HashMap<Int, String>()
     val canGoBack = HashMap<String, Boolean>()
     val canGoForward = HashMap<String, Boolean>()
 
@@ -162,6 +163,7 @@ object Gecko {
     /** @param initialUrl — если задан, открываем его вместо последней/домашней страницы (один load, без гонки). */
     fun session(ctx: Context, id: Int, pin: Pin, initialUrl: String? = null): GeckoSession {
         val key = key(id, pin)
+        lastSessionByProfile[id] = key
         sessions[key]?.let { existing ->
             if (initialUrl != null) existing.loadUri(initialUrl)
             return existing
@@ -177,11 +179,15 @@ object Gecko {
         loadUrl(session, url)
         sessions[key] = session
 
-        // Сначала выгружаем давно не открытые вкладки, но не страницы входа: при перезагрузке такая
-        // страница заново отправляет код подтверждения (SMS), и сайт может временно заблокировать вход.
+        // Переключение профиля не должно выгружать его последнюю страницу и терять форму.
+        // Страницы входа тоже сохраняем: повторная загрузка может повторно отправить SMS.
+        // Это мягкий лимит: защищённые сессии могут его превышать; закрытие вкладки и
+        // очистка профиля по-прежнему явно освобождают память.
         while (sessions.size > Settings.keepAlive(ctx)) {
-            val keys = sessions.keys.toList()
-            drop(keys.firstOrNull { it != key && !isSignInPage(tabUrls[it]) } ?: keys.first())
+            val victim = SessionRetention.evictionCandidate(
+                sessions.keys.toList(), lastSessionByProfile.values.toSet(),
+            ) { isSignInPage(tabUrls[it]) } ?: break
+            drop(victim)
         }
         return session
     }
@@ -217,6 +223,7 @@ object Gecko {
 
     private fun drop(key: String) {
         sessions.remove(key)?.close()
+        lastSessionByProfile.entries.removeAll { it.value == key }
         canGoBack.remove(key)
         canGoForward.remove(key)
     }

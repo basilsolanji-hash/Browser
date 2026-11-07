@@ -13,6 +13,7 @@ import android.content.res.ColorStateList
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoSessionSettings
@@ -94,9 +95,15 @@ object Popups {
                 if (url != null) title.text = Uri.parse(url).host ?: url
             }
 
+            override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
+                if (ExternalApps.dispatch(activity, session, request) { dialog.isShowing }) GeckoResult.deny() else null
+
+            override fun onSubframeLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
+                if (ExternalApps.intercepts(request.uri)) GeckoResult.deny() else null
+
             // Вложенные окна внутри попапа открываем в нём же.
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
-                session.loadUri(uri)
+                if (!ExternalApps.intercepts(uri)) session.loadUri(uri)
                 return null
             }
         }

@@ -2698,5 +2698,193 @@
  "ctx_opened_in_profile": {
   "en": "Opened in profile «%s»",
   "ru": "Открыто в профиле «%s»"
+ },
+ "open_app": {
+  "en": "Open in app",
+  "ru": "Открыть в приложении"
+ },
+ "open_app_question": {
+  "en": "Open this link in another app? That app will receive the link.",
+  "ru": "Открыть ссылку в другом приложении? Это приложение получит ссылку."
+ },
+ "app_not_found": {
+  "en": "No app is available to open this link.",
+  "ru": "Нет приложения, которое может открыть эту ссылку."
+ },
+ "dt_new_window": {
+  "en": "New window",
+  "ru": "Новое окно"
+ },
+ "dt_perm_display": {
+  "en": "Screen sharing",
+  "ru": "Показ экрана"
+ },
+ "dt_share_title": {
+  "en": "Choose what to share with %s",
+  "ru": "Выберите, что показать на %s"
+ },
+ "dt_share_screens": {
+  "en": "Entire screen",
+  "ru": "Весь экран"
+ },
+ "dt_share_windows": {
+  "en": "Window",
+  "ru": "Окно"
+ },
+ "dt_share_tabs": {
+  "en": "Tab",
+  "ru": "Вкладка"
+ },
+ "dt_share_screen_n": {
+  "en": "Screen %d",
+  "ru": "Экран %d"
+ },
+ "dt_share_this_tab": {
+  "en": "This tab",
+  "ru": "Эта вкладка"
+ },
+ "dt_share_audio_system": {
+  "en": "Share system audio",
+  "ru": "Поделиться звуком системы"
+ },
+ "dt_share_audio_tab": {
+  "en": "Share tab audio",
+  "ru": "Поделиться звуком вкладки"
+ },
+ "dt_share_warn": {
+  "en": "%s will see everything shown in the selected area.",
+  "ru": "%s увидит всё, что показано в выбранной области."
+ },
+ "dt_share_go": {
+  "en": "Share",
+  "ru": "Поделиться"
+ },
+ "dt_share_none": {
+  "en": "Nothing to share: no screens or windows found.",
+  "ru": "Нечего показать: экраны и окна не найдены."
+ },
+ "dt_share_active": {
+  "en": "Screen sharing is on",
+  "ru": "Идёт показ экрана"
+ },
+ "dt_share_stop": {
+  "en": "Stop sharing",
+  "ru": "Остановить показ"
+ },
+ "dt_share_started": {
+  "en": "Screen sharing started",
+  "ru": "Показ экрана начался"
+ },
+ "dt_share_stopped": {
+  "en": "Screen sharing stopped",
+  "ru": "Показ экрана остановлен"
+ },
+ "dt_import_chrome": {
+  "en": "Import from Chrome",
+  "ru": "Перенести из Chrome"
+ },
+ "dt_import_chrome_desc": {
+  "en": "Favorites, passwords and history — from this computer, offline",
+  "ru": "Избранное, пароли и история — с этого компьютера, без интернета"
+ },
+ "dt_import_to": {
+  "en": "To profile: %1$s",
+  "ru": "В профиль: %1$s"
+ },
+ "dt_import_local": {
+  "en": "Chrome on this computer",
+  "ru": "Chrome на этом компьютере"
+ },
+ "dt_import_not_found": {
+  "en": "Chrome was not found on this computer",
+  "ru": "Chrome на этом компьютере не найден"
+ },
+ "dt_import_chrome_profile": {
+  "en": "Chrome profile",
+  "ru": "Профиль Chrome"
+ },
+ "dt_import_bookmarks": {
+  "en": "Favorites",
+  "ru": "Избранное"
+ },
+ "dt_import_history": {
+  "en": "History",
+  "ru": "История"
+ },
+ "dt_import_go": {
+  "en": "Import",
+  "ru": "Перенести"
+ },
+ "dt_import_pw_hint": {
+  "en": "Chrome keeps passwords encrypted — import them from a CSV file below",
+  "ru": "Пароли Chrome хранит зашифрованными — перенесите их из файла CSV ниже"
+ },
+ "dt_import_history_limit": {
+  "en": "The last 1000 sites of history are imported",
+  "ru": "Переносятся последние 1000 сайтов истории"
+ },
+ "dt_import_html": {
+  "en": "Favorites file (HTML)",
+  "ru": "Файл избранного (HTML)"
+ },
+ "dt_import_html_hint": {
+  "en": "Chrome: Ctrl+Shift+O → ⋮ → export to HTML file",
+  "ru": "Chrome: Ctrl+Shift+O → ⋮ → экспорт в HTML-файл"
+ },
+ "dt_import_csv": {
+  "en": "Passwords file (CSV)",
+  "ru": "Файл паролей (CSV)"
+ },
+ "dt_import_csv_hint": {
+  "en": "Chrome: Settings → Password Manager → Settings → Export passwords",
+  "ru": "Chrome: Настройки → Менеджер паролей → Настройки → Экспорт паролей"
+ },
+ "dt_import_csv_warning": {
+  "en": "The CSV file holds passwords in plain text — delete it after importing",
+  "ru": "В файле CSV пароли открытым текстом — удалите его после переноса"
+ },
+ "dt_import_pick": {
+  "en": "Choose file…",
+  "ru": "Выбрать файл…"
+ },
+ "dt_import_common": {
+  "en": "Favorites are shared by all profiles",
+  "ru": "Избранное общее для всех профилей"
+ },
+ "dt_import_added": {
+  "en": "Added: %1$d favorites, %2$d passwords, %3$d history entries",
+  "ru": "Добавлено: %1$d в избранном, %2$d паролей, %3$d записей истории"
+ },
+ "dt_import_skipped": {
+  "en": "Skipped: %1$d duplicates, %2$d unsuitable entries",
+  "ru": "Пропущено: %1$d дубликатов, %2$d неподходящих записей"
+ },
+ "dt_import_big": {
+  "en": "The file is too large",
+  "ru": "Файл слишком большой"
+ },
+ "dt_import_bad": {
+  "en": "Could not read the file",
+  "ru": "Не удалось прочитать файл"
+ },
+ "dt_import_busy": {
+  "en": "Close Chrome and try again",
+  "ru": "Закройте Chrome и повторите"
+ },
+ "dt_import_no_profile": {
+  "en": "Chrome profile not found",
+  "ru": "Профиль Chrome не найден"
+ },
+ "dt_import_nocrypto": {
+  "en": "Password encryption is unavailable",
+  "ru": "Шифрование паролей недоступно"
+ },
+ "dt_import_incognito": {
+  "en": "Import is unavailable in incognito",
+  "ru": "Перенос недоступен в инкогнито"
+ },
+ "dt_import_other": {
+  "en": "Other favorites",
+  "ru": "Другое избранное"
  }
 }

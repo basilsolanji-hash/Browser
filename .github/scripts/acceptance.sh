@@ -392,6 +392,29 @@ sleep 3; tap_any "report.bin" || { adb shell input tap 28 48; sleep 2; tap_any "
 sleep 6;                                                                    shot 69g-upload-done 1
 kill "$NWPID" 2>/dev/null || true
 
+# Regression: seven profiles exceed the default six-session limit; drafts must survive.
+bash .github/scripts/profile-retention.sh
+# Fixed bottom action: Notes replaces Refresh; Refresh remains in the menu.
+tap_text "Notes"; sleep 2
+adb shell dumpsys activity activities > "$OUT/notes-action-activity.txt"
+if grep -E 'mResumedActivity.*NotesActivity' "$OUT/notes-action-activity.txt"; then
+  echo "ok   Bottom Notes action opens NotesActivity" >> "$OUT/checks.txt"
+else
+  echo "FAIL Bottom Notes action did not open NotesActivity" >> "$OUT/checks.txt"
+fi
+shot profile-notes-action 1
+back
+tap_text "Menu"; sleep 1
+adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+adb exec-out cat /sdcard/ui.xml > "$OUT/notes-refresh-menu.xml"
+if grep -q 'content-desc="Refresh"' "$OUT/notes-refresh-menu.xml"; then
+  echo "ok   Refresh remains accessible in the menu" >> "$OUT/checks.txt"
+else
+  echo "FAIL Refresh missing from menu" >> "$OUT/checks.txt"
+fi
+shot profile-refresh-in-menu 1
+back
+
 # Смена языка: сразу меняются и настройки, и главный экран под ними (и имена профилей-примеров).
 settings --es group general; sleep 4
 xtap "System"; sleep 2; xtap "Русский"; sleep 4;                    shot 67-lang-settings-ru 1

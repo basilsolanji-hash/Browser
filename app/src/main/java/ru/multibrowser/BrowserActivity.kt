@@ -181,6 +181,7 @@ class BrowserActivity : AppCompatActivity() {
         Tabs.list(this, profileId).lastOrNull()?.let { Tabs.pin(this, it) } ?: Pins.all(this, profileId).first()
 
     override fun onDestroy() {
+        ExternalApps.dismiss(this)
         exitIncognito()
         geckoView.releaseSession()
         attached.forEach {
@@ -190,6 +191,7 @@ class BrowserActivity : AppCompatActivity() {
             it.promptDelegate = null
             it.selectionActionDelegate = null
             it.permissionDelegate = null
+            it.contentBlockingDelegate = null
         }
         attached.clear()
         pendingFile?.let { (prompt, result) -> result.complete(prompt.dismiss()) }
@@ -213,7 +215,7 @@ class BrowserActivity : AppCompatActivity() {
             newTab(id, url, intent.getStringExtra(EXTRA_GROUP))
             return
         }
-        val pinId = intent.getStringExtra(EXTRA_SITE) ?: Profiles.lastPinId(this)
+        val pinId = intent.getStringExtra(EXTRA_SITE) ?: Profiles.lastPinId(this, id)
         // Последнюю вкладку могли закрыть — тогда открываем последнюю из оставшихся.
         val target = if (Tabs.isTab(pinId) && Tabs.byId(this, id, pinId) == null && intent.getStringExtra(EXTRA_SITE) == null)
             Tabs.list(this, id).lastOrNull()?.let { Tabs.pin(this, it) } ?: Pins.all(this, id).first()
@@ -285,7 +287,7 @@ class BrowserActivity : AppCompatActivity() {
         geckoView.releaseSession()
         profileId = id
         pin = newPin
-        Profiles.saveLastPinId(this, newPin.id)
+        Profiles.saveLastPinId(this, newPin.id, id)
         Profiles.saveLastProfile(this, id)
         Passwords.activeProfile = id
 
@@ -470,17 +472,22 @@ class BrowserActivity : AppCompatActivity() {
             // Окна входа (Google и др.) — настоящим попапом, иначе вход зацикливается;
             // остальные ссылки «в новом окне» открываем в той же вкладке.
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
+                if (ExternalApps.intercepts(uri)) return null
                 if (Popups.isAuthPopup(uri)) return Popups.open(this@BrowserActivity, session, uri)
                 if (uri.isBlank()) return hiddenWindow(session, pageUrls[k], privateMode = false)
                 session.loadUri(uri)
                 return null
             }
 
+            override fun onSubframeLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
+                if (ExternalApps.intercepts(request.uri)) GeckoResult.deny() else null
+
             // Переключаем User-Agent между страницами входа и остальными сайтами (см. Gecko.userAgentFor).
             override fun onLoadRequest(
                 session: GeckoSession,
                 request: GeckoSession.NavigationDelegate.LoadRequest,
             ): GeckoResult<AllowOrDeny>? {
+                if (ExternalApps.dispatch(this@BrowserActivity, session, request, visible)) return GeckoResult.deny()
                 val ua = Gecko.userAgentFor(request.uri)
                 if (ua == session.settings.userAgentOverride) return null
                 Diag.log(k, "смена UA (${if (ua == null) "Firefox" else "Chrome"}): ${request.uri}")
@@ -537,6 +544,12 @@ class BrowserActivity : AppCompatActivity() {
         attached += s
     }
 
+    private fun lastTabForProfile(id: Int): Pin {
+        val saved = Profiles.lastPinId(this, id)
+        val fallback = pin.id.takeUnless { Tabs.isTab(it) }
+        return Tabs.resolve(this, id, saved ?: fallback)
+    }
+
     private fun renderSwitcher() {
         switcher.removeAllViews()
         Profiles.all(this).forEach { p ->
@@ -550,11 +563,9 @@ class BrowserActivity : AppCompatActivity() {
                 background = if (current) Ui.oval(p.color, dp(2), Ui.TEXT) else Ui.oval(p.color)
                 alpha = if (current || Gecko.isActive(this@BrowserActivity, p.id)) 1f else 0.55f
                 contentDescription = p.name
-                // Обычные вкладки свои у каждого профиля, поэтому в другом профиле — его закреплённая
-                // (та же, если есть в его наборе, иначе первая).
+                // Возвращаем именно последнюю выбранную вкладку целевого профиля.
                 setOnClickListener {
-                    openTab(p.id, if (Tabs.isTab(pin.id)) Pins.all(this@BrowserActivity, p.id).first()
-                        else Pins.resolve(this@BrowserActivity, pin.id, p.id))
+                    openTab(p.id, lastTabForProfile(p.id))
                 }
             }, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(8) })
         }
@@ -611,11 +622,16 @@ class BrowserActivity : AppCompatActivity() {
             override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) { Gecko.canGoBack["incognito"] = canGoBack; if (incognito) updateNavButtons() }
             override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) { Gecko.canGoForward["incognito"] = canGoForward; if (incognito) updateNavButtons() }
             override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
+                if (ExternalApps.intercepts(uri)) return null
                 if (Popups.isAuthPopup(uri)) return Popups.open(this@BrowserActivity, session, uri)
                 if (uri.isBlank()) return hiddenWindow(session, currentUrl, privateMode = true)
                 session.loadUri(uri); return null
             }
+            override fun onSubframeLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
+                if (ExternalApps.intercepts(request.uri)) GeckoResult.deny() else null
+
             override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? {
+                if (ExternalApps.dispatch(this@BrowserActivity, session, request) { incognito && session === incognitoSession }) return GeckoResult.deny()
                 val ua = Gecko.userAgentFor(request.uri)
                 if (ua == session.settings.userAgentOverride) return null
                 session.settings.userAgentOverride = ua
@@ -717,6 +733,7 @@ class BrowserActivity : AppCompatActivity() {
                 item(R.drawable.ic_find, Tr.t("find_in_page"), web) { findBar.show() },
                 item(R.drawable.ic_book, tools.readerTitle(), web) { tools.toggleReader() },
                 item(R.drawable.ic_link, Tr.t("copy_link"), web) { copyUrl() },
+                item(R.drawable.ic_open_external, Tr.t("open_app"), web) { ExternalApps.openWebLink(this, currentUrl) },
                 item(R.drawable.ic_open_external, Tr.t("open_external"), web) { openExternally() },
                 item(R.drawable.ic_desktop, Tr.t("desktop_site"), web, Gecko.desktop.contains(key)) { toggleDesktop() },
                 item(R.drawable.ic_fullscreen, Tr.t("full_screen")) { setUserFullScreen(true) },
@@ -793,8 +810,7 @@ class BrowserActivity : AppCompatActivity() {
                     if (onPick != null) return@setOnClickListener onPick(p)
                     if (current) return@setOnClickListener
                     exitIncognito()
-                    openTab(p.id, if (Tabs.isTab(pin.id)) Pins.all(this@BrowserActivity, p.id).first()
-                        else Pins.resolve(this@BrowserActivity, pin.id, p.id))
+                    openTab(p.id, lastTabForProfile(p.id))
                 }
                 addView(TextView(context).apply {
                     text = p.name.take(1).uppercase()
@@ -1206,7 +1222,7 @@ class BrowserActivity : AppCompatActivity() {
         // Настраиваемая кнопка (по умолчанию — скачанные файлы).
         val (bottomIcon, bottomLabel) = bottomButtonLook(Settings.bottomButton(this))
         action(bottomIcon, bottomLabel) { bottomButtonAction(Settings.bottomButton(this)) }
-        action(R.drawable.ic_refresh, Tr.t("refresh")) { session?.reload() }
+        action(R.drawable.ic_note, Tr.t("notes")) { startActivity(Intent(this, NotesActivity::class.java)) }
 
         // Нижняя полоса: быстрое переключение между профилями без возврата к списку.
         switcher = LinearLayout(this).apply {
@@ -1334,6 +1350,11 @@ class BrowserActivity : AppCompatActivity() {
         }
         // Адрес появляется раньше, чем станет ясно, файл это или страница: ждём конца загрузки.
         hidden.navigationDelegate = object : GeckoSession.NavigationDelegate {
+            // Hidden windows never have a visible user action that authorizes another app.
+            override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
+                if (ExternalApps.intercepts(request.uri)) GeckoResult.deny() else null
+            override fun onSubframeLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? =
+                if (ExternalApps.intercepts(request.uri)) GeckoResult.deny() else null
             override fun onLocationChange(
                 session: GeckoSession,
                 url: String?,
