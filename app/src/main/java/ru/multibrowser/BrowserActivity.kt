@@ -1206,7 +1206,7 @@ class BrowserActivity : AppCompatActivity() {
         // Настраиваемая кнопка (по умолчанию — скачанные файлы).
         val (bottomIcon, bottomLabel) = bottomButtonLook(Settings.bottomButton(this))
         action(bottomIcon, bottomLabel) { bottomButtonAction(Settings.bottomButton(this)) }
-        action(R.drawable.ic_refresh, Tr.t("refresh")) { session?.reload() }
+        action(R.drawable.ic_note, Tr.t("notes")) { startActivity(Intent(this, NotesActivity::class.java)) }
 
         // Нижняя полоса: быстрое переключение между профилями без возврата к списку.
         switcher = LinearLayout(this).apply {
