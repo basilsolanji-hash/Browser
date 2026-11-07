@@ -1,54 +1,78 @@
-name: Acceptance
-
+name: Deliver APK 311 manually
 on:
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
-  emulator:
+  deliver:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
+    env:
+      OS_BUILD_NUMBER: '311'
     steps:
       - uses: actions/checkout@v4
-
+        with:
+          ref: 6c92cc3ca8698532af04c5fa9ab71d81bd4eade0
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
-
+          java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-
-      - name: Build test APK
-        run: ./gradlew assembleDebug --no-daemon
-
-      - name: Enable KVM
+      - name: Prepare SDK without analytics CLI
+        shell: bash
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Run scenarios on emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          target: google_apis
-          arch: x86_64
-          disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
-          script: bash .github/scripts/acceptance.sh
-
-      # Результаты — в отдельную ветку, чтобы их можно было забрать через git.
-      # Для main — ветка acceptance-results, для feat/x — acceptance-results-feat-x (параллельные прогоны не мешают).
-      - name: Publish results
-        if: always()
+          python3 - <<'PY'
+          import urllib.request, xml.etree.ElementTree as E, pathlib, zipfile, io, shutil, os, hashlib
+          data=urllib.request.urlopen('https://dl.google.com/android/repository/repository2-3.xml').read()
+          r=E.fromstring(data)
+          ns=dict(x for _,x in E.iterparse(io.BytesIO(data),events=['start-ns']))
+          sdk=pathlib.Path(os.environ['RUNNER_TEMP'])/'sdk311'; sdk.mkdir()
+          for package,folder in [('platforms;android-37.0','platforms/android-37.0'),('build-tools;36.0.0','build-tools/36.0.0')]:
+              x=next(x for x in r.findall('remotePackage') if x.attrib['path']==package)
+              a=next(a for a in x.findall('archives/archive') if a.findtext('host-os') in [None,'linux'])
+              archive=urllib.request.urlopen('https://dl.google.com/android/repository/'+a.findtext('complete/url')).read()
+              c=a.find('complete/checksum')
+              if c is not None: assert hashlib.new(c.attrib.get('type','sha1'),archive).hexdigest()==c.text.strip()
+              temp=sdk/('unpack-'+folder.split('/')[0]); temp.mkdir()
+              with zipfile.ZipFile(io.BytesIO(archive)) as z: z.extractall(temp)
+              dest=sdk/folder; dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.move(str(next(temp.iterdir())),str(dest))
+              x.tag='localPackage'
+              for child in list(x):
+                  if child.tag in ['archives','channelRef']: x.remove(child)
+              root=E.Element('repository',{'xmlns:'+k:v for k,v in ns.items() if k})
+              for license in r.findall('license'): root.append(license)
+              root.append(x)
+              E.ElementTree(root).write(dest/'package.xml',encoding='utf-8',xml_declaration=True)
+              for file in dest.rglob('*'):
+                  if file.is_file() and not file.suffix: file.chmod(0o755)
+          (pathlib.Path.cwd()/'local.properties').write_text('sdk.dir='+str(sdk)+'\n')
+          PY
+      - name: Build APK only
         run: |
-          BR=acceptance-results
-          [ "${{ github.ref_name }}" != main ] && BR="acceptance-results-$(echo '${{ github.ref_name }}' | tr '/' '-')"
-          mkdir -p results
-          cd results
-          git init -q -b "$BR"
-          git add -A
-          git -c user.name=ci -c user.email=ci@localhost commit -q -m "Acceptance ${{ github.run_number }} (${{ github.sha }})"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/$BR"
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --console=plain
+      - name: Verify and publish existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          SDK="$RUNNER_TEMP/sdk311"
+          "$SDK/build-tools/36.0.0/apksigner" verify --print-certs "$APK" | tee "$RUNNER_TEMP/signature.txt"
+          grep -q 'ed9ea1fe143839500e0d4915be0c5f9baba9cbe5d26cb2a5095d3c656123d6df' "$RUNNER_TEMP/signature.txt"
+          "$SDK/build-tools/36.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/badging.txt"
+          grep -q "package: name='ru.multibrowser.test' versionCode='311' versionName='0.8.311'" "$RUNNER_TEMP/badging.txt"
+          cp "$APK" Os-Browser-test-311.apk
+          sha256sum Os-Browser-test-311.apk > Os-Browser-test-311.apk.sha256
+          gh api repos/basilsolanji-hash/Browser/releases/437804183 --jq '.tag_name' | grep -qx android-test-311
+          gh release upload android-test-311 Os-Browser-test-311.apk Os-Browser-test-311.apk.sha256 --clobber --repo basilsolanji-hash/Browser
+          python3 - <<'PY'
+          import json,pathlib
+          sha=pathlib.Path('Os-Browser-test-311.apk.sha256').read_text().split()[0]
+          body='Отдельный пакет ru.multibrowser.test, версия 0.8.311. НЕ обновляет основное приложение ru.multibrowser.\n\nСборка точного коммита 6c92cc3ca8698532af04c5fa9ab71d81bd4eade0. По новому указанию владельца APK собран и опубликован через GitHub Actions. Дополнительные тесты и эмулятор не запускались. Подпись и сведения о пакете проверены.\n\nИзменения: сохранение живых страниц профилей, нижняя кнопка «Заметки», исходящие ссылки в приложения, геометрия при скрытии панелей, поддержка активного микрофона в фоне. Строки на 16 языках.\n\nРеальный разговор ChatGPT в фоне на телефоне НЕ подтверждён. В main изменения не слиты.\n\nSHA256: '+sha
+          pathlib.Path('release311.json').write_text(json.dumps({'draft':False,'prerelease':True,'make_latest':'false','body':body},ensure_ascii=False))
+          PY
+          gh api --method PATCH repos/basilsolanji-hash/Browser/releases/437804183 --input release311.json --jq '.html_url'
