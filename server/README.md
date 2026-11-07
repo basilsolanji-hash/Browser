@@ -78,3 +78,46 @@ OS_ADMIN_ORIGIN (точный HTTPS origin) и OS_ADMIN_SECRET (64 случай�
 редирект. До выкладки нужно проверить фактический nginx -T: ни дефолтный vhost, ни
 reverse proxy не должны сохранять IP/URI ошибок до выбора location. Локальный тест
 шаблона проверяет наличие этой политики; он не заменяет проверку конфигурации VPS.
+
+## Внутренний SyncStore — отдельный следующий срез
+
+`src/sync-store.mjs` реализует транзакционное SQLite-хранилище по
+`SPEC_SYNC_PROTOCOL.md` §7/§9, **не подключённое к HTTP, main.mjs, панели или аналитике**.
+Нет регистрации/шифрования/расшифрования, vault key серверу не передаётся.
+
+- Только scope из UUIDv4 account/vault/device. `authorize(scope,operation)` — синхронный
+  hook будущего доверенного слоя: строго true либо запрет, включая undefined/false/Promise/
+  исключение. Он проверяется внутри транзакции перед receipt, но сам по себе не является
+  готовой авторизацией. Адаптер должен читать актуальное подтверждение/отзыв и полномочия
+  по авторитетному транзакционному состоянию, а не брать scope из клиентского JSON.
+- Одно активное vault аккаунта; атомарные CAS/preconditions, sequence на каждое изменение,
+  строгая схема/UTF-8/UUID и форма JWE/header с привязкой контекста. Проверка формы dir/A256GCM,
+  IV/tag/base64url не проверяет GCM tag и расшифрованную схему; это ответственность JOSE-клиента.
+- Exact-byte SHA-256 request receipt фиксируется с изменениями. Replay переживает рестарт,
+  не увеличивает charges/sequence; изменённые байты с тем же ID запрещены. Current — указатель
+  на единственную immutable version JWE. Все версии и receipts charged и не истекают по таймеру.
+- Согласованные пределы: account 4096 ID/100MiB main/16MiB reserve; global 16384 ID/256MiB
+  main/64MiB reserve. При admission нового ID бронируются 4096 байт. Live JWE ≤256KiB,
+  terminal tombstone ≤2048, пакет ≤100 changes/1MiB. Unknown-ID delete и undelete запрещены.
+  Только первый delete-only live→tombstone расходует reserve, receipt ≤512 байт/ID.
+  Full main не мешает чистому удалению/eraseVault; смешанный пакет может конфликтовать с quota.
+- Charged = сохранённые UTF-8 JWE/result, 32 байта хеша/36 байт mutationId и фиксированные
+  allowances (version512, current256, receipt256). Current не дублирует JWE. Это логический
+  учёт, не обещание физического SQLite/WAL/backup-места и не гарантия исправного диска.
+- `changes` использует persistent opaque UUID upper-sequence anchor плюс отдельный `after`.
+  Повтор страницы стабилен после записи/рестарта. Anchor привязан к устройству, максимум32,
+  TTL24часа; после полного цикла клиент вызывает closeCursor. Пул metadata заранее charged
+  при provision (512+32×512 байт по умолчанию), поэтому чтение не требует свободной квоты.
+  Страницы ≤100 записей/1MiB, запись не режется; snapshot-пейджи не копируются вне journal.
+  Истёкший cursor означает новый согласованный цикл, не продвижение локального состояния.
+
+Ещё не реализованы: HTTP/auth/device enrollment/recovery, 60 requests/minute, атомарная
+регистрация первого устройства, клиентские outbox/UUID-миграции, JOSE interop, full snapshot/
+compaction API для старых курсоров, inline conflict-ciphertext response, metrics adapter,
+backup deletion journal/эксплуатация VPS. eraseVault вызывается только будущим lifecycle
+после сильного подтверждения/отзыва; сам модуль это подтверждение не реализует.
+Фикстуры — произвольные opaque байты wire-формы, **не криптографические JWE vectors**.
+Тесты реальной SQLite проверяют tenant isolation, exact replay/mismatch, deny/Promise/throw/
+revocation, CAS rollback, два concurrent worker-соединения, cursor/restart/expiry, page/body/
+account/global limits, retained history charges и terminal delete при full main. Запуск —
+`npm test`; сеть, GitHub Actions и браузерные проверки для этого среза не требуются.
