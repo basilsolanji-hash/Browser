@@ -1,0 +1,24 @@
+[Unit]
+Description=Os Browser owner panel
+After=network.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+WorkingDirectory=/opt/os-browser/server
+ExecStart=/usr/bin/node src/main.mjs
+Environment=OS_SERVICE_DATA=/var/lib/os-browser
+EnvironmentFile=/etc/os-browser/service.env
+StateDirectory=os-browser
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
