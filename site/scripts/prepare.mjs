@@ -10,8 +10,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 // Только нужные начертания и подмножества — каждый файл грузится по unicode-range.
 const fonts = [];
 // Inter — переменный: один файл на подмножество вместо трёх начертаний (быстрее первый экран).
-for (const s of ['latin', 'latin-ext', 'cyrillic']) fonts.push(`../@fontsource-variable/inter/files/inter-${s}-wght-normal.woff2`);
-for (const s of ['latin', 'latin-ext', 'cyrillic']) fonts.push(`unbounded/files/unbounded-${s}-700-normal.woff2`);
+for (const s of ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext']) fonts.push(`../@fontsource-variable/inter/files/inter-${s}-wght-normal.woff2`);
+for (const s of ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext']) fonts.push(`unbounded/files/unbounded-${s}-700-normal.woff2`);
 mkdirSync(join(root, 'public/fonts'), { recursive: true });
 for (const f of fonts) copyFileSync(join(root, 'node_modules/@fontsource', f), join(root, 'public/fonts', f.split('/').pop()));
 

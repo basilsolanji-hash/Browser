@@ -1,8 +1,8 @@
 // Первый заход на корень сайта: язык по сохранённому выбору или по языкам браузера.
-// Казахский, белорусский, узбекский, киргизский, таджикский, украинский и армянский → русская версия.
+// Поддержанные языки открывают свою версию; остальные языки региона — русскую.
 (function () {
-  var LANGS = ['en', 'ru', 'es', 'pt', 'fr', 'de', 'ar', 'hi', 'tr', 'zh'];
-  var TO_RU = ['kk', 'be', 'uz', 'ky', 'tg', 'uk', 'hy', 'az', 'tt', 'ba', 'mn'];
+  var LANGS = ['en', 'ru', 'es', 'pt', 'fr', 'de', 'ar', 'hi', 'tr', 'zh', 'be', 'uz', 'ky', 'tg', 'kk', 'hy'];
+  var TO_RU = ['uk', 'az', 'tt', 'ba', 'mn'];
   var saved = null;
   try { saved = localStorage.getItem('os-lang'); } catch (e) {}
   function pick() {

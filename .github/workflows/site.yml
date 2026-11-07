@@ -27,6 +27,9 @@ concurrency:
   group: site-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  ASTRO_TELEMETRY_DISABLED: 1
+
 jobs:
   build-test:
     # После релиза — только если сам релиз собрался.
@@ -49,6 +52,9 @@ jobs:
 
       # Chromium нужен и для OG-картинок, и для приёмки, и для Lighthouse — ставим один раз.
       - run: npx playwright install --with-deps chromium
+
+      - name: Language detection unit tests
+        run: node --test test/i18n.test.mjs
 
       - name: Prepare (fonts, app strings)
         run: node scripts/prepare.mjs
