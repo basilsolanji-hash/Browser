@@ -1548,7 +1548,8 @@ try {
     step('40. Личный кабинет: наборы вкладок без стартовых страниц');
     await main(() => { const w = globalThis.osTest.windows()[0]; w.openProfile(1); w.newTab(); });
     await flush();
-    const open1 = readJson('tabs').profiles['1'].tabs;
+    // Cabinet acts on live tabs; persisted snapshots deliberately remove sign-in URLs.
+    const open1 = await main(() => globalThis.osTest.liveTabs(1));
     const web1 = open1.filter((x) => /^https?:/.test(x.url));
     check('Личный кабинет: profile 1 has a start page tab open (os://)', open1.some((x) => x.url.startsWith('os://')));
     await main(() => globalThis.osTest.windows()[0].openPanel('os://cabinet/?profile=1'));

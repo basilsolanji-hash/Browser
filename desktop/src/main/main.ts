@@ -116,6 +116,7 @@ if (process.env.OS_TEST === '1') {
   (globalThis as Record<string, unknown>).osTest = {
     windows: () => [...windows],
     flush: () => flushAll(),
+    liveTabs: (profile: number) => Tabs.list(profile),
     userData: () => app.getPath('userData'),
     dist: () => join(__dirname, '..'),
     notifications: () => shownForTest(),
