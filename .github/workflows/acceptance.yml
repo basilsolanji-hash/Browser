@@ -41,7 +41,7 @@ jobs:
               x.tag='localPackage'
               for child in list(x):
                   if child.tag in ['archives','channelRef']: x.remove(child)
-              root=E.Element('delivery:repository',{'xmlns:delivery':'http://schemas.android.com/repository/android/common/02',**{'xmlns:'+k:v for k,v in ns.items() if k}})
+              root=E.Element('delivery:repository',{'xmlns:delivery':'http://schemas.android.com/repository/android/common/02',**{'xmlns:'+k:v for k,v in ns.items() if k and k != 'xsi'}})
               for license in r.findall('license'): root.append(license)
               root.append(x)
               E.ElementTree(root).write(dest/'package.xml',encoding='utf-8',xml_declaration=True)
