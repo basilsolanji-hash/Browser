@@ -192,7 +192,25 @@ export async function installFromStore(ses: Session, profile: number, input: str
     // Адрес ответа после переадресаций (если Electron его сообщает) — тоже только HTTPS; целостность даёт подпись CRX.
     if (!res.ok || (res.url && !res.url.startsWith('https://'))) return { ok: false, error: 'network' };
     if (Number(res.headers.get('content-length') ?? 0) > 200 * 1024 * 1024) return { ok: false, error: 'bad', detail: 'too big' };
-    crx = Buffer.from(await res.arrayBuffer());
+    if (!res.body) return { ok: false, error: 'network' };
+    const reader = res.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let length = 0;
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        length += value.byteLength;
+        if (length > 200 * 1024 * 1024) {
+          await reader.cancel().catch(() => {});
+          return { ok: false, error: 'bad', detail: 'too big' };
+        }
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    crx = Buffer.concat(chunks, length);
   } catch {
     return { ok: false, error: 'network' };
   }
