@@ -1507,9 +1507,14 @@ class BrowserActivity : AppCompatActivity() {
             val option = request.options.firstOrNull() ?: return null
             val host = Uri.parse(option.value.origin).host.orEmpty()
             val id = profileId
-            if (incognito || id == 0 || !Passwords.offer(this@BrowserActivity) || host in Passwords.never(this@BrowserActivity, id)) {
+            if (incognito || id == 0) return GeckoResult.fromValue(request.dismiss())
+            val offer = Passwords.readOffer(this@BrowserActivity)
+            val excludedSites = Passwords.readNever(this@BrowserActivity, id)
+            if (offer == null || excludedSites == null) {
+                Toast.makeText(this@BrowserActivity, Tr.t("password_storage_unavailable"), Toast.LENGTH_LONG).show()
                 return GeckoResult.fromValue(request.dismiss())
             }
+            if (!offer || host in excludedSites) return GeckoResult.fromValue(request.dismiss())
             val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
             var answered = false
             dialog(Tr.t("password_save_q", host), option.value.username?.takeIf { it.isNotBlank() })
@@ -1520,7 +1525,9 @@ class BrowserActivity : AppCompatActivity() {
                 }
                 .setNeutralButton(Tr.t("password_never")) { _, _ ->
                     answered = true
-                    Passwords.setNever(this@BrowserActivity, id, host, true)
+                    if (!Passwords.setNever(this@BrowserActivity, id, host, true)) {
+                        Toast.makeText(this@BrowserActivity, Tr.t("password_storage_unavailable"), Toast.LENGTH_LONG).show()
+                    }
                     result.complete(request.dismiss())
                 }
                 .setNegativeButton(Tr.t("not_now")) { _, _ -> answered = true; result.complete(request.dismiss()) }

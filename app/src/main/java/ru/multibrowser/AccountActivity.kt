@@ -74,23 +74,31 @@ class AccountActivity : AppCompatActivity() {
         list.addView(ExtrasUi.hint(this, Tr.t("cabinet_desc")))
 
         // --- Пароли ---
-        val logins = Passwords.list(this, profile).sortedBy { Uri.parse(it.origin).host }
-        list.addView(sectionTitle(Tr.t("passwords") + " · " + logins.size))
-        if (logins.isEmpty()) list.addView(ExtrasUi.hint(this, Tr.t("passwords_empty")))
+        val loadedLogins = Passwords.read(this, profile)
+        val logins = loadedLogins.orEmpty().sortedBy { Uri.parse(it.origin).host }
+        list.addView(sectionTitle(Tr.t("passwords") + (loadedLogins?.let { " · " + it.size } ?: "")))
+        if (loadedLogins == null) list.addView(ExtrasUi.hint(this, Tr.t("password_storage_unavailable")))
+        else if (logins.isEmpty()) list.addView(ExtrasUi.hint(this, Tr.t("passwords_empty")))
         logins.forEach { l ->
             list.addView(ExtrasUi.card(this, Uri.parse(l.origin).host.orEmpty(), l.username.ifEmpty { "—" }, onMenu = { loginMenu(l) }) { loginMenu(l) })
         }
         list.addView(ExtrasUi.button(this, Tr.t("password_add")) { editLogin(null) })
         list.addView(ExtrasUi.button(this, Tr.t("pw_generator")) { generatorDialog() })
-        list.addView(ExtrasUi.segmented(this, listOf(true, false), Passwords.offer(this),
-            { if (it) Tr.t("pw_offer_on") else Tr.t("pw_offer_off") }) { Passwords.setOffer(this, it); render() },
+        val offerSetting = Passwords.readOffer(this)
+        val excludedSites = Passwords.readNever(this, profile)
+        if (loadedLogins != null && (offerSetting == null || excludedSites == null)) {
+            list.addView(ExtrasUi.hint(this, Tr.t("password_storage_unavailable")))
+        }
+        if (loadedLogins != null && offerSetting != null) list.addView(ExtrasUi.segmented(this, listOf(true, false), offerSetting,
+            { if (it) Tr.t("pw_offer_on") else Tr.t("pw_offer_off") }) { if (!Passwords.setOffer(this, it)) Toast.makeText(this, Tr.t("password_storage_unavailable"), Toast.LENGTH_LONG).show(); render() },
             LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(8) })
-        val never = Passwords.never(this, profile).sorted()
+        val never = if (loadedLogins != null) excludedSites.orEmpty().sorted() else emptyList()
         if (never.isNotEmpty()) {
             list.addView(ExtrasUi.hint(this, Tr.t("never_sites")))
             never.forEach { host ->
                 list.addView(ExtrasUi.card(this, host, null, onMenu = {
-                    Passwords.setNever(this, profile, host, false); render()
+                    if (!Passwords.setNever(this, profile, host, false)) Toast.makeText(this, Tr.t("password_storage_unavailable"), Toast.LENGTH_LONG).show()
+                    render()
                 }))
             }
         }
@@ -98,12 +106,14 @@ class AccountActivity : AppCompatActivity() {
 
         // --- Наборы вкладок ---
         list.addView(sectionTitle(Tr.t("tab_sets")))
-        val open = Tabs.list(this, profile).count { it.url.startsWith("http") }
-        list.addView(ExtrasUi.button(this, Tr.t("tab_set_save", open)) { saveTabSet() })
-        val sets = TabSets.list(this, profile)
-        if (sets.isEmpty()) list.addView(ExtrasUi.hint(this, Tr.t("tab_set_empty")))
+        val open = Tabs.readForTabSets(this, profile)
+        if (open == null) list.addView(ExtrasUi.hint(this, Tr.t("open_tabs_storage_unavailable")))
+        else list.addView(ExtrasUi.button(this, Tr.t("tab_set_save", open.count { it.url.startsWith("http") })) { saveTabSet() })
+        val sets = TabSets.read(this, profile)
+        if (sets == null) list.addView(ExtrasUi.hint(this, Tr.t("tab_sets_storage_unavailable")))
+        else if (sets.isEmpty()) list.addView(ExtrasUi.hint(this, Tr.t("tab_set_empty")))
         val fmt = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-        sets.forEach { s ->
+        sets.orEmpty().forEach { s ->
             list.addView(ExtrasUi.card(this, s.name, Tr.t("tabs_n", s.tabs.size) + " · " + fmt.format(Date(s.time)),
                 onMenu = { tabSetMenu(s) }) { openSet(s) })
         }
@@ -161,8 +171,8 @@ class AccountActivity : AppCompatActivity() {
         list.addView(sectionTitle(Tr.t("profiles")))
         Profiles.all(this).forEach { p ->
             val sub = listOf(
-                Tr.t("passwords") + ": " + Passwords.count(this, p.id),
-                Tr.t("tab_sets") + ": " + TabSets.list(this, p.id).size,
+                Tr.t("passwords") + ": " + (Passwords.read(this, p.id)?.size?.toString() ?: Tr.t("password_storage_unavailable")),
+                Tr.t("tab_sets") + ": " + (TabSets.read(this, p.id)?.size?.toString() ?: Tr.t("tab_sets_storage_unavailable")),
                 Tr.t("profile_files") + ": " + ProfileFiles.count(this, p.id),
             ).joinToString(" · ")
             list.addView(ExtrasUi.card(this, p.name, sub) { profile = p.id; render() })
@@ -180,10 +190,15 @@ class AccountActivity : AppCompatActivity() {
         }
         fun show(q: String) {
             results.removeAllViews()
-            val all = Profiles.all(this).flatMap { p -> Passwords.list(this, p.id).map { p to it } }
+            val profiles = Profiles.all(this)
+            val snapshots = profiles.map { it to Passwords.read(this, it.id) }
+            if (snapshots.any { it.second == null }) {
+                results.addView(ExtrasUi.hint(this, Tr.t("password_storage_unavailable")))
+            }
+            val all = snapshots.flatMap { (p, entries) -> entries.orEmpty().map { p to it } }
                 .filter { (_, l) -> q.isBlank() || l.origin.contains(q, true) || l.username.contains(q, true) }
                 .sortedBy { (_, l) -> Uri.parse(l.origin).host }
-            if (all.isEmpty()) results.addView(ExtrasUi.hint(this, Tr.t(if (q.isBlank()) "passwords_empty" else "nothing_found")))
+            if (all.isEmpty() && snapshots.none { it.second == null }) results.addView(ExtrasUi.hint(this, Tr.t(if (q.isBlank()) "passwords_empty" else "nothing_found")))
             all.take(200).forEach { (p, l) ->
                 results.addView(ExtrasUi.card(this, Uri.parse(l.origin).host.orEmpty(), "${l.username.ifEmpty { "—" }} · ${p.name}",
                     onMenu = { profile = p.id; loginMenu(l) }) { profile = p.id; loginMenu(l) })
@@ -271,7 +286,7 @@ class AccountActivity : AppCompatActivity() {
             Tr.t("edit") to { reveal { editLogin(l) } },
             Tr.t("delete") to {
                 AlertDialog.Builder(this).setTitle(Tr.t("delete") + "?").setMessage(Uri.parse(l.origin).host)
-                    .setPositiveButton(Tr.t("delete")) { _, _ -> Passwords.remove(this, profile, l.guid); render() }
+                    .setPositiveButton(Tr.t("delete")) { _, _ -> if (!Passwords.remove(this, profile, l.guid)) Toast.makeText(this, Tr.t("password_storage_unavailable"), Toast.LENGTH_LONG).show(); render() }
                     .setNegativeButton(Tr.t("cancel"), null).show()
             },
         )
@@ -328,40 +343,60 @@ class AccountActivity : AppCompatActivity() {
                 setOnClickListener { pass.setText(PasswordGen.generate()) }
             })
         }
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(if (l == null) Tr.t("password_add") else Tr.t("edit"))
             .setView(box)
-            .setPositiveButton(Tr.t("save")) { _, _ ->
-                val url = site.text.toString().trim().let { if (it.contains("://")) it else "https://$it" }
-                if (site.text.isNotBlank() && pass.text.isNotEmpty()) {
-                    Passwords.upsert(this, profile, url, user.text.toString().trim(), pass.text.toString(), l?.guid)
-                }
-                render()
-            }
+            .setPositiveButton(Tr.t("save"), null)
             .setNegativeButton(Tr.t("cancel"), null)
-            .show()
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val url = site.text.toString().trim().let { if (it.contains("://")) it else "https://$it" }
+                // Use the same address rules as the password store, including IDN support.
+                val validSite = site.text.isNotBlank() && runCatching { Passwords.originOf(url) != null }.getOrDefault(false)
+                if (!validSite || pass.text.isEmpty()) {
+                    Toast.makeText(this, Tr.t("dt_pw_bad_site"), Toast.LENGTH_LONG).show()
+                } else if (!Passwords.upsert(this, profile, url, user.text.toString().trim(), pass.text.toString(), l?.guid)) {
+                    // Keep the entered credentials available for retry or copying.
+                    Toast.makeText(this, Tr.t("password_storage_unavailable"), Toast.LENGTH_LONG).show()
+                } else {
+                    dialog.dismiss()
+                    render()
+                }
+            }
+        }
+        dialog.show()
     }
 
     private fun saveTabSet() {
         val name = field(Tr.t("tab_set_name_q"), SimpleDateFormat("dd.MM HH:mm", Locale.getDefault()).format(Date()), InputType.TYPE_CLASS_TEXT)
         val box = LinearLayout(this).apply { setPadding(dp(20), dp(8), dp(20), 0); addView(name, LinearLayout.LayoutParams(-1, -2)) }
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(Tr.t("tab_set_name_q"))
             .setView(box)
-            .setPositiveButton(Tr.t("save")) { _, _ ->
-                if (TabSets.saveOpen(this, profile, name.text.toString()) == null) {
-                    Toast.makeText(this, Tr.t("tab_sets_none"), Toast.LENGTH_SHORT).show()
-                }
-                render()
-            }
+            .setPositiveButton(Tr.t("save"), null)
             .setNegativeButton(Tr.t("cancel"), null)
-            .show()
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                when (TabSets.saveOpenResult(this, profile, name.text.toString())) {
+                    is TabSets.SaveOpenResult.Saved -> { dialog.dismiss(); render() }
+                    TabSets.SaveOpenResult.NoTabs -> Toast.makeText(this, Tr.t("tab_sets_none"), Toast.LENGTH_SHORT).show()
+                    TabSets.SaveOpenResult.Unavailable -> Toast.makeText(this, Tr.t("tab_sets_storage_unavailable"), Toast.LENGTH_LONG).show()
+                    TabSets.SaveOpenResult.TabsUnavailable -> Toast.makeText(this, Tr.t("open_tabs_storage_unavailable"), Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+        dialog.show()
     }
 
     private fun tabSetMenu(s: TabSet) {
         val actions = listOf<Pair<String, () -> Unit>>(
             Tr.t("open") to { openSet(s) },
-            Tr.t("delete") to { TabSets.remove(this, profile, s.id); render() },
+            Tr.t("delete") to {
+                if (!TabSets.remove(this, profile, s.id)) Toast.makeText(this, Tr.t("tab_sets_storage_unavailable"), Toast.LENGTH_LONG).show()
+                render()
+            },
         )
         AlertDialog.Builder(this)
             .setTitle(s.name)
@@ -370,7 +405,10 @@ class AccountActivity : AppCompatActivity() {
     }
 
     private fun openSet(s: TabSet) {
-        val first = TabSets.restore(this, profile, s) ?: return
+        val first = try { TabSets.restore(this, profile, s) } catch (_: Tabs.Unavailable) {
+            Toast.makeText(this, Tr.t("open_tabs_storage_unavailable"), Toast.LENGTH_LONG).show()
+            return
+        } ?: return
         startActivity(Intent(this, BrowserActivity::class.java)
             .putExtra(BrowserActivity.EXTRA_PROFILE, profile)
             .putExtra(BrowserActivity.EXTRA_SITE, first))
@@ -404,7 +442,26 @@ class AccountActivity : AppCompatActivity() {
     private fun writeBackup(uri: Uri) {
         val pw = backupPassword
         backupPassword = ""
-        val data = if (profile == 0) Backup.collectAll(this) else Backup.collect(this, profile)
+        // The activity can be recreated while the file picker is open; never export with a lost password.
+        if (pw.length < 6) {
+            Toast.makeText(this, Tr.t("backup_pw_short"), Toast.LENGTH_LONG).show()
+            return
+        }
+        val data = try {
+            if (profile == 0) Backup.collectAll(this) else Backup.collect(this, profile)
+        } catch (_: Passwords.Unavailable) {
+            Toast.makeText(this, Tr.t("password_storage_unavailable"), Toast.LENGTH_LONG).show()
+            return
+        } catch (_: Notes.Unavailable) {
+            Toast.makeText(this, Tr.t("notes_storage_unavailable"), Toast.LENGTH_LONG).show()
+            return
+        } catch (_: Bookmarks.Unavailable) {
+            Toast.makeText(this, Tr.t("favorites_storage_unavailable"), Toast.LENGTH_LONG).show()
+            return
+        } catch (_: TabSets.Unavailable) {
+            Toast.makeText(this, Tr.t("tab_sets_storage_unavailable"), Toast.LENGTH_LONG).show()
+            return
+        }
         Thread {
             val ok = runCatching {
                 val text = Backup.encrypt(data, pw)
@@ -422,7 +479,17 @@ class AccountActivity : AppCompatActivity() {
                 if (data == null) {
                     Toast.makeText(this, Tr.t("backup_bad"), Toast.LENGTH_LONG).show()
                 } else {
-                    val r = Backup.applyAny(this, if (profile == 0) Profiles.lastProfile(this) else profile, data)
+                    val r = try {
+                        Backup.applyAny(this, if (profile == 0) Profiles.lastProfile(this) else profile, data)
+                    } catch (_: Notes.Full) {
+                        Toast.makeText(this, Tr.t("notes_limit_reached") + " " + Tr.t("backup_restore_incomplete"), Toast.LENGTH_LONG).show()
+                        render()
+                        return@runOnUiThread
+                    } catch (_: Exception) {
+                        Toast.makeText(this, Tr.t("backup_restore_incomplete"), Toast.LENGTH_LONG).show()
+                        render()
+                        return@runOnUiThread
+                    }
                     AlertDialog.Builder(this)
                         .setTitle(Tr.t("backup"))
                         .setMessage(Tr.t("backup_restored", r.passwords, r.tabSets, r.favorites, r.notes))

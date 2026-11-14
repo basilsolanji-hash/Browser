@@ -150,8 +150,15 @@ private class TextActions(private val activity: Activity, private val pageUrl: (
             }
             SEARCH -> mSession?.loadUri(Search.queryUrl(activity, text))
             NOTE -> {
-                Notes.add(activity, text, Reader.original(pageUrl()).takeIf { it.startsWith("http") } ?: "")
-                Toast.makeText(activity, Tr.t("note_added"), Toast.LENGTH_SHORT).show()
+                val result = Notes.add(activity, text, Reader.original(pageUrl()).takeIf { it.startsWith("http") } ?: "")
+                val message = when (result) {
+                    Notes.AddResult.SAVED -> "note_added"
+                    Notes.AddResult.FULL -> "notes_limit_reached"
+                    else -> "notes_storage_unavailable"
+                }
+                Toast.makeText(activity, Tr.t(message),
+                    if (result == Notes.AddResult.SAVED) Toast.LENGTH_SHORT else Toast.LENGTH_LONG).show()
+                if (result != Notes.AddResult.SAVED) return true
             }
         }
         runCatching { mSelection?.unselect() }

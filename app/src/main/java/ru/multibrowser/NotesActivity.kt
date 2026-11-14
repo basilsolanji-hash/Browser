@@ -7,6 +7,7 @@ import android.text.InputType
 import android.view.Gravity
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import java.text.SimpleDateFormat
@@ -36,7 +37,11 @@ class NotesActivity : AppCompatActivity() {
         list.addView(ExtrasUi.header(this, Tr.t("notes"),
             ExtrasUi.headerAction(this, "+", Tr.t("new_note")) { editDialog(null) }))
         list.addView(ExtrasUi.hint(this, Tr.t("notes_local")))
-        val notes = Notes.list(this)
+        val notes = Notes.read(this)
+        if (notes == null) {
+            list.addView(ExtrasUi.hint(this, Tr.t("notes_storage_unavailable")))
+            return
+        }
         if (notes.isEmpty()) {
             list.addView(ExtrasUi.empty(this, Tr.t("notes_empty")))
             return
@@ -67,7 +72,10 @@ class NotesActivity : AppCompatActivity() {
         actions += Tr.t("delete") to {
             AlertDialog.Builder(this)
                 .setTitle(Tr.t("delete_note_q"))
-                .setPositiveButton(Tr.t("delete")) { _, _ -> Notes.remove(this, n.id); render() }
+                .setPositiveButton(Tr.t("delete")) { _, _ ->
+                    if (!Notes.remove(this, n.id)) Toast.makeText(this, Tr.t("notes_storage_unavailable"), Toast.LENGTH_LONG).show()
+                    render()
+                }
                 .setNegativeButton(Tr.t("cancel"), null)
                 .show()
         }
@@ -92,15 +100,31 @@ class NotesActivity : AppCompatActivity() {
             setPadding(dp(20), dp(8), dp(20), 0)
             addView(input, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         }
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(if (n == null) Tr.t("new_note") else Tr.t("notes"))
             .setView(box)
-            .setPositiveButton(Tr.t("save")) { _, _ ->
-                val text = input.text.toString()
-                if (n == null) Notes.add(this, text) else Notes.update(this, n.id, text)
-                render()
-            }
+            .setPositiveButton(Tr.t("save"), null)
             .setNegativeButton(Tr.t("cancel"), null)
-            .show()
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val text = input.text.toString()
+                if (n == null && text.isBlank()) {
+                    dialog.dismiss()
+                } else {
+                    val result = if (n == null) Notes.add(this, text)
+                        else if (Notes.update(this, n.id, text)) Notes.AddResult.SAVED else Notes.AddResult.UNAVAILABLE
+                    if (result == Notes.AddResult.SAVED) {
+                        dialog.dismiss()
+                        render()
+                    } else {
+                        // Keep the editor open so the entered text is not discarded.
+                        val error = if (result == Notes.AddResult.FULL) "notes_limit_reached" else "notes_storage_unavailable"
+                        Toast.makeText(this, Tr.t(error), Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+        dialog.show()
     }
 }

@@ -126,7 +126,8 @@ class AddressPanel(
         val visits = History.list(a, profile)
         val queries = visits.mapNotNull { Search.queryOf(it.url) }
             .filter { it.contains(q, true) && !it.equals(q, true) }.distinctBy { it.lowercase() }.take(4)
-        val marks = Bookmarks.all(a).filter { it.title.contains(q, true) || it.url.contains(q, true) }
+        val favorites = Bookmarks.read(a)
+        val marks = favorites?.items.orEmpty().filter { it.title.contains(q, true) || it.url.contains(q, true) }
             .map { Triple(R.drawable.ic_star, it.title, it.url) }
         val pages = visits.filter { Search.queryOf(it.url) == null && (it.title.contains(q, true) || it.url.contains(q, true)) }
             .map { Triple(R.drawable.ic_history, it.title, it.url) }
@@ -140,6 +141,7 @@ class AddressPanel(
                 LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, a.dp(2)))
             card.addView(row)
         }
+        if (favorites == null) add(ExtrasUi.hint(a, Tr.t("favorites_storage_unavailable")))
         // Первая строка — сам запрос: поиск или переход по адресу.
         val target = Search.toUrl(a, q)
         add(suggestionRow(R.drawable.ic_search, q, target, fill = null) { onOpen(target) })

@@ -73,14 +73,14 @@ class ClearDataActivity : AppCompatActivity() {
         val s = since()
         val history = History.countSince(this, profile, s)
         val tabs = Tabs.count(this, profile)
-        val passwords = Passwords.list(this, profile).count { s == 0L || it.time >= s }
+        val passwords = Passwords.read(this, profile)?.count { s == 0L || it.time >= s }
         val sites = SitePermissions.sites(this).size
         val items = listOf(
             Triple(R.drawable.ic_history, Tr.t("history"), Tr.t("cd_history_n", history)),
             Triple(R.drawable.ic_shield, Tr.t("cd_cookies"), Tr.t("cd_cookies_desc")),
             Triple(R.drawable.ic_image, Tr.t("cd_cache"), Tr.t("cd_cache_desc")),
             Triple(R.drawable.ic_tabs, Tr.t("tabs"), Tr.t("cd_tabs_n", tabs)),
-            Triple(R.drawable.ic_lock, Tr.t("passwords"), Tr.t("cd_passwords_n", passwords)),
+            Triple(R.drawable.ic_lock, Tr.t("passwords"), passwords?.let { Tr.t("cd_passwords_n", it) } ?: Tr.t("password_storage_unavailable")),
             Triple(R.drawable.ic_settings, Tr.t("site_settings"), Tr.t("cd_sites_n", sites)),
         )
         val card = LinearLayout(this).apply {
@@ -120,6 +120,11 @@ class ClearDataActivity : AppCompatActivity() {
 
     private fun clear() {
         val s = since()
+        // Abort before clearing other categories if the password store cannot be read.
+        if (checked[4] && !Passwords.removeSince(this, profile, s)) {
+            Toast.makeText(this, Tr.t("password_storage_unavailable"), Toast.LENGTH_LONG).show()
+            return
+        }
         if (checked[0]) History.clearSince(this, profile, s)
         // Cookies и данные сайтов — для всего профиля (движок не умеет удалять их за период).
         if (checked[1]) {
@@ -131,7 +136,6 @@ class ClearDataActivity : AppCompatActivity() {
             Tabs.list(this, profile).forEach { Gecko.close(profile, it.id) }
             Tabs.closeAll(this, profile)
         }
-        if (checked[4]) Passwords.removeSince(this, profile, s)
         if (checked[5]) SitePermissions.clearAll(this)
         Toast.makeText(this, Tr.t("done"), Toast.LENGTH_SHORT).show()
         finish()

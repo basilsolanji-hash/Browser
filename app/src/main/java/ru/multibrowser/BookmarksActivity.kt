@@ -43,17 +43,23 @@ class BookmarksActivity : AppCompatActivity() {
         private fun bookmarkable(url: String) = url.startsWith("https://") || url.startsWith("http://")
 
         /** Подпись пункта меню браузера: добавить или убрать текущую страницу. */
-        fun menuLabel(ctx: Context, url: String) =
-            if (bookmarkable(url) && Bookmarks.contains(ctx, url)) Tr.t("fav_remove") else Tr.t("add_favorite")
+        fun menuLabel(ctx: Context, url: String): String {
+            if (!bookmarkable(url)) return Tr.t("add_favorite")
+            val snapshot = Bookmarks.read(ctx) ?: return Tr.t("favorites_storage_unavailable")
+            return Tr.t(if (snapshot.items.any { it.url == url }) "fav_remove" else "add_favorite")
+        }
 
         /** Добавить текущую страницу в избранное или убрать её оттуда. */
         fun toggle(ctx: Context, url: String, title: String) {
+            val snapshot = Bookmarks.read(ctx)
             val msg = when {
                 !bookmarkable(url) -> Tr.t("fav_unavailable")
-                Bookmarks.contains(ctx, url) -> { Bookmarks.removeByUrl(ctx, url); Tr.t("fav_removed") }
-                else -> {
-                    Bookmarks.add(ctx, title.ifBlank { Uri.parse(url).host ?: url }, url)
-                    Tr.t("added_favorite")
+                snapshot == null -> Tr.t("favorites_storage_unavailable")
+                snapshot.items.any { it.url == url } ->
+                    Tr.t(if (Bookmarks.removeByUrl(ctx, url)) "fav_removed" else "favorites_storage_unavailable")
+                else -> when (Bookmarks.addIfAbsent(ctx, title.ifBlank { Uri.parse(url).host ?: url }, url)) {
+                    Bookmarks.AddResult.ADDED, Bookmarks.AddResult.EXISTS -> Tr.t("added_favorite")
+                    Bookmarks.AddResult.UNAVAILABLE -> Tr.t("favorites_storage_unavailable")
                 }
             }
             Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show()
@@ -147,7 +153,13 @@ class BookmarksActivity : AppCompatActivity() {
         addView(folderMenuButton, LinearLayout.LayoutParams(dp(40), dp(40)))
         newFolderButton = iconButton(R.drawable.ic_folder_add, Tr.t("new_folder")) {
             folderNameDialog(Tr.t("new_folder"), "") { name ->
-                if (Bookmarks.addFolder(this@BookmarksActivity, name)) render() else toast(Tr.t("fav_folder_exists"))
+                if (Bookmarks.addFolder(this@BookmarksActivity, name)) {
+                    render()
+                    true
+                } else {
+                    toast(Tr.t(if (Bookmarks.read(this@BookmarksActivity) == null) "favorites_storage_unavailable" else "fav_folder_exists"))
+                    false
+                }
             }
         }
         addView(newFolderButton, LinearLayout.LayoutParams(dp(40), dp(40)))
@@ -183,7 +195,16 @@ class BookmarksActivity : AppCompatActivity() {
 
     private fun render() {
         if (!::list.isInitialized) return
-        if (folder != Bookmarks.ROOT && folder !in Bookmarks.folders(this)) folder = Bookmarks.ROOT
+        val snapshot = Bookmarks.read(this)
+        if (snapshot == null) {
+            list.removeAllViews()
+            titleView.text = Tr.t("favorites")
+            folderMenuButton.visibility = View.GONE
+            newFolderButton.visibility = View.GONE
+            list.addView(ExtrasUi.hint(this, Tr.t("favorites_storage_unavailable")))
+            return
+        }
+        if (folder != Bookmarks.ROOT && folder !in snapshot.folders) folder = Bookmarks.ROOT
         val inFolder = folder != Bookmarks.ROOT
         titleView.text = if (inFolder) folder else Tr.t("favorites")
         folderMenuButton.visibility = if (inFolder) View.VISIBLE else View.GONE
@@ -192,7 +213,7 @@ class BookmarksActivity : AppCompatActivity() {
 
         if (query.isNotEmpty()) {
             val q = query.lowercase()
-            val found = Bookmarks.all(this).filter {
+            val found = snapshot.items.filter {
                 it.title.lowercase().contains(q) || it.url.lowercase().contains(q) || it.folder.lowercase().contains(q)
             }
             if (found.isEmpty()) emptyState(R.drawable.ic_search, Tr.t("fav_nothing_found"), null)
@@ -201,14 +222,14 @@ class BookmarksActivity : AppCompatActivity() {
         }
 
         if (inFolder) {
-            val items = Bookmarks.inFolder(this, folder)
+            val items = snapshot.items.filter { it.folder == folder }
             if (items.isEmpty()) emptyState(R.drawable.ic_folder, Tr.t("fav_folder_empty"), Tr.t("fav_folder_empty_hint"))
             else items.asReversed().forEach { list.addView(bookmarkRow(it, showFolder = false)) }
             return
         }
 
-        val all = Bookmarks.all(this)
-        val folders = Bookmarks.folders(this)
+        val all = snapshot.items
+        val folders = snapshot.folders
         val items = all.filter { it.folder == Bookmarks.ROOT }
         if (folders.isEmpty() && items.isEmpty()) {
             emptyState(R.drawable.ic_star, Tr.t("favorites_empty"), Tr.t("fav_empty_hint"))
@@ -320,7 +341,10 @@ class BookmarksActivity : AppCompatActivity() {
             Tr.t("delete") to {
                 AlertDialog.Builder(this)
                     .setTitle(Tr.t("fav_delete_q", b.title))
-                    .setPositiveButton(Tr.t("delete")) { _, _ -> Bookmarks.remove(this, b.id); render() }
+                    .setPositiveButton(Tr.t("delete")) { _, _ ->
+                        if (!Bookmarks.remove(this, b.id)) toast(Tr.t("favorites_storage_unavailable"))
+                        render()
+                    }
                     .setNegativeButton(Tr.t("cancel"), null)
                     .show()
             },
@@ -333,16 +357,26 @@ class BookmarksActivity : AppCompatActivity() {
 
     private fun renameDialog(b: Bookmark) {
         val input = textInput(Tr.t("fav_page_name"), b.title)
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(Tr.t("rename"))
             .setView(wrap(input))
-            .setPositiveButton(Tr.t("save")) { _, _ -> Bookmarks.rename(this, b.id, input.text.toString().trim()); render() }
+            .setPositiveButton(Tr.t("save"), null)
             .setNegativeButton(Tr.t("cancel"), null)
-            .show()
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                if (Bookmarks.rename(this, b.id, input.text.toString().trim())) {
+                    dialog.dismiss()
+                    render()
+                } else toast(Tr.t("favorites_storage_unavailable"))
+            }
+        }
+        dialog.show()
     }
 
     private fun moveDialog(b: Bookmark) {
-        val folders = Bookmarks.folders(this)
+        val snapshot = Bookmarks.read(this) ?: run { toast(Tr.t("favorites_storage_unavailable")); return }
+        val folders = snapshot.folders
         val targets = listOf(Bookmarks.ROOT) + folders
         val labels = targets.map { if (it == Bookmarks.ROOT) Tr.t("no_folder") else it } + ("+ " + Tr.t("new_folder"))
         AlertDialog.Builder(this)
@@ -351,18 +385,23 @@ class BookmarksActivity : AppCompatActivity() {
                 d.dismiss()
                 if (i < targets.size) moveTo(b, targets[i])
                 else folderNameDialog(Tr.t("new_folder"), "") { name ->
-                    if (Bookmarks.addFolder(this, name)) moveTo(b, name) else toast(Tr.t("fav_folder_exists"))
+                    if (folders.any { it.equals(name, ignoreCase = true) }) {
+                        toast(Tr.t("fav_folder_exists"))
+                        false
+                    } else moveTo(b, name)
                 }
             }
             .setNegativeButton(Tr.t("cancel"), null)
             .show()
     }
 
-    private fun moveTo(b: Bookmark, target: String) {
-        if (target == b.folder) return
-        Bookmarks.move(this, b.id, target)
-        toast(Tr.t("fav_moved", if (target == Bookmarks.ROOT) Tr.t("no_folder") else target))
+    private fun moveTo(b: Bookmark, target: String): Boolean {
+        if (target == b.folder) return true
+        val saved = Bookmarks.move(this, b.id, target)
+        if (saved) toast(Tr.t("fav_moved", if (target == Bookmarks.ROOT) Tr.t("no_folder") else target))
+        else toast(Tr.t("favorites_storage_unavailable"))
         render()
+        return saved
     }
 
     private fun folderActions(name: String) {
@@ -374,8 +413,10 @@ class BookmarksActivity : AppCompatActivity() {
                     if (Bookmarks.renameFolder(this, name, to)) {
                         if (folder == name) folder = to.trim()
                         render()
+                        true
                     } else {
-                        toast(Tr.t("fav_folder_exists"))
+                        toast(Tr.t(if (Bookmarks.read(this) == null) "favorites_storage_unavailable" else "fav_folder_exists"))
+                        false
                     }
                 }
             },
@@ -388,9 +429,13 @@ class BookmarksActivity : AppCompatActivity() {
     }
 
     private fun deleteFolderDialog(name: String) {
-        val count = Bookmarks.inFolder(this, name).size
-        val done = { keep: Boolean ->
-            Bookmarks.removeFolder(this, name, keep)
+        val snapshot = Bookmarks.read(this) ?: run { toast(Tr.t("favorites_storage_unavailable")); return }
+        val count = snapshot.items.count { it.folder == name }
+        val done = done@{ keep: Boolean ->
+            if (!Bookmarks.removeFolder(this, name, keep)) {
+                toast(Tr.t("favorites_storage_unavailable"))
+                return@done
+            }
             if (folder == name) folder = Bookmarks.ROOT
             render()
         }
@@ -407,17 +452,21 @@ class BookmarksActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun folderNameDialog(title: String, current: String, onSave: (String) -> Unit) {
+    private fun folderNameDialog(title: String, current: String, onSave: (String) -> Boolean) {
         val input = textInput(Tr.t("fav_folder_name"), current)
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(title)
             .setView(wrap(input))
-            .setPositiveButton(Tr.t("save")) { _, _ ->
-                val name = input.text.toString().trim()
-                if (name.isNotEmpty()) onSave(name)
-            }
+            .setPositiveButton(Tr.t("save"), null)
             .setNegativeButton(Tr.t("cancel"), null)
-            .show()
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val name = input.text.toString().trim()
+                if (name.isNotEmpty() && onSave(name)) dialog.dismiss()
+            }
+        }
+        dialog.show()
     }
 
     private fun textInput(hintText: String, value: String) = EditText(this).apply {

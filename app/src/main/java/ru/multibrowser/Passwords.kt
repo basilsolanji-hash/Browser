@@ -36,39 +36,72 @@ object Passwords {
     /** Профиль открытой вкладки; 0 — инкогнито или браузер не открыт. */
     @Volatile var activeProfile = 0
 
+    // The file is shared by all profiles and password settings.
+    private var writeUncertain = false
+
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("passwords", Context.MODE_PRIVATE)
 
-    fun list(ctx: Context, profile: Int): List<Login> {
-        val stored = prefs(ctx).getString("p_$profile", null) ?: return emptyList()
-        return runCatching { parse(codec.decrypt(stored)) }.getOrDefault(emptyList())
+    /** Null means unreadable, never an empty authoritative store. */
+    @Synchronized internal fun read(ctx: Context, profile: Int): List<Login>? {
+        if (writeUncertain) return null
+        return runCatching {
+            val stored = prefs(ctx).getString("p_$profile", null) ?: return@runCatching emptyList()
+            parse(codec.decrypt(stored))
+        }.getOrNull()
     }
+
+    fun list(ctx: Context, profile: Int): List<Login> = requireReadable(ctx, profile)
+
+    class Unavailable : IllegalStateException("Password storage unavailable")
+    fun requireReadable(ctx: Context, profile: Int): List<Login> = read(ctx, profile) ?: throw Unavailable()
 
     fun count(ctx: Context, profile: Int) = list(ctx, profile).size
 
     private fun save(ctx: Context, profile: Int, items: List<Login>) {
-        prefs(ctx).edit().putString("p_$profile", codec.encrypt(toJson(items).toString())).apply()
+        // Do not create a replacement key if encrypted data survives without its original key.
+        if (codec === KeystoreCodec && !KeystoreCodec.keyExists() && prefs(ctx).all.keys.any { it.startsWith("p_") }) {
+            throw Unavailable()
+        }
+        val encrypted = codec.encrypt(toJson(items).toString())
+        if (!commitSafely { prefs(ctx).edit().putString("p_$profile", encrypted).commit() }) throw Unavailable()
     }
 
     /** Добавить или обновить: тот же guid или тот же сайт с тем же логином. */
-    fun upsert(ctx: Context, profile: Int, origin: String, username: String, password: String, guid: String? = null) {
-        val site = originOf(origin) ?: return
-        val items = list(ctx, profile).toMutableList()
+    @Synchronized fun upsert(ctx: Context, profile: Int, origin: String, username: String, password: String, guid: String? = null): Boolean {
+        val site = originOf(origin) ?: return false
+        val items = read(ctx, profile)?.toMutableList() ?: return false
         val i = items.indexOfFirst { (guid != null && it.guid == guid) || (it.origin == site && it.username == username) }
         val login = Login(if (i >= 0) items[i].guid else guid ?: newGuid(), site, username, password, System.currentTimeMillis())
         if (i >= 0) items[i] = login else items += login
-        save(ctx, profile, items)
+        return runCatching { save(ctx, profile, items) }.isSuccess
+    }
+
+    internal enum class InsertResult { ADDED, EXISTS, UNAVAILABLE }
+
+    /** Import never replaces an existing site/login; check and write under the same lock. */
+    @Synchronized internal fun insertIfAbsent(ctx: Context, profile: Int, origin: String, username: String, password: String): InsertResult {
+        val site = originOf(origin) ?: return InsertResult.UNAVAILABLE
+        val items = read(ctx, profile)?.toMutableList() ?: return InsertResult.UNAVAILABLE
+        if (items.any { it.origin == site && it.username == username }) return InsertResult.EXISTS
+        items += Login(newGuid(), site, username, password, System.currentTimeMillis())
+        return if (runCatching { save(ctx, profile, items) }.isSuccess) InsertResult.ADDED else InsertResult.UNAVAILABLE
     }
 
     /** Удалить пароли, сохранённые или изменённые начиная с [since] (мс); 0 — все. */
-    fun removeSince(ctx: Context, profile: Int, since: Long) =
-        save(ctx, profile, list(ctx, profile).filter { since > 0 && it.time < since })
+    @Synchronized fun removeSince(ctx: Context, profile: Int, since: Long): Boolean {
+        val items = read(ctx, profile) ?: return false
+        return runCatching { save(ctx, profile, items.filter { since > 0 && it.time < since }) }.isSuccess
+    }
 
-    fun remove(ctx: Context, profile: Int, guid: String) = save(ctx, profile, list(ctx, profile).filterNot { it.guid == guid })
+    @Synchronized fun remove(ctx: Context, profile: Int, guid: String): Boolean {
+        val items = read(ctx, profile) ?: return false
+        return runCatching { save(ctx, profile, items.filterNot { it.guid == guid }) }.isSuccess
+    }
 
     /** Пароли профиля для сайта: тот же хост или его поддомен. */
     fun forDomain(ctx: Context, profile: Int, domain: String): List<Login> {
         val d = domain.lowercase().removePrefix("www.")
-        return list(ctx, profile).filter { login ->
+        return (read(ctx, profile) ?: return emptyList()).filter { login ->
             val host = Uri.parse(login.origin).host.orEmpty().lowercase().removePrefix("www.")
             host == d || host.endsWith(".$d") || d.endsWith(".$host")
         }
@@ -76,19 +109,47 @@ object Passwords {
 
     // --- Сайты, где пароли не предлагаем сохранять ---
 
-    fun never(ctx: Context, profile: Int): Set<String> =
-        prefs(ctx).getStringSet("never_$profile", emptySet()).orEmpty()
+    @Synchronized internal fun readNever(ctx: Context, profile: Int): Set<String>? {
+        if (writeUncertain) return null
+        return try {
+            val all = prefs(ctx).all
+            val name = "never_$profile"
+            if (!all.containsKey(name)) emptySet()
+            else (all[name] as? Set<*>)?.takeIf { set -> set.all { it is String } }?.filterIsInstance<String>()?.toSet()
+        } catch (_: ClassCastException) { null } catch (_: SecurityException) { null }
+    }
 
-    fun setNever(ctx: Context, profile: Int, host: String, on: Boolean) {
-        val set = never(ctx, profile).toMutableSet()
+    // Compatibility helpers are not used by the UI or Gecko when settings are unreadable.
+    fun never(ctx: Context, profile: Int): Set<String> = readNever(ctx, profile).orEmpty()
+
+    @Synchronized fun setNever(ctx: Context, profile: Int, host: String, on: Boolean): Boolean {
+        val set = readNever(ctx, profile)?.toMutableSet() ?: return false
         if (on) set += host else set -= host
-        prefs(ctx).edit().putStringSet("never_$profile", set).apply()
+        return commitSafely { prefs(ctx).edit().putStringSet("never_$profile", set).commit() }
+    }
+
+    @Synchronized internal fun readOffer(ctx: Context): Boolean? {
+        if (writeUncertain) return null
+        return try {
+            val all = prefs(ctx).all
+            if (!all.containsKey("offer")) true else all["offer"] as? Boolean
+        } catch (_: ClassCastException) { null } catch (_: SecurityException) { null }
     }
 
     /** Предлагать сохранять пароли (по умолчанию да). */
-    fun offer(ctx: Context) = prefs(ctx).getBoolean("offer", true)
+    fun offer(ctx: Context) = readOffer(ctx) ?: false
 
-    fun setOffer(ctx: Context, on: Boolean) = prefs(ctx).edit().putBoolean("offer", on).apply()
+    @Synchronized fun setOffer(ctx: Context, on: Boolean): Boolean {
+        if (readOffer(ctx) == null) return false
+        return commitSafely { prefs(ctx).edit().putBoolean("offer", on).commit() }
+    }
+
+    private fun commitSafely(write: () -> Boolean): Boolean {
+        if (writeUncertain) return false
+        val ok = runCatching { write() }.getOrDefault(false)
+        if (!ok) writeUncertain = true
+        return ok
+    }
 
     // --- Для движка ---
 
@@ -103,7 +164,11 @@ object Passwords {
             val profile = activeProfile
             val user = login.username ?: ""
             val pass = login.password ?: return
-            if (profile != 0) upsert(ctx, profile, login.origin, user, pass, login.guid)
+            if (profile != 0 && !upsert(ctx, profile, login.origin, user, pass, login.guid)) {
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    android.widget.Toast.makeText(ctx, Tr.t("password_storage_unavailable"), android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
@@ -143,9 +208,12 @@ object Passwords {
     private object KeystoreCodec : Codec {
         private const val ALIAS = "os_passwords"
 
-        private fun key(): SecretKey {
+        fun keyExists(): Boolean = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.containsAlias(ALIAS)
+
+        private fun key(create: Boolean): SecretKey {
             val ks = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
             (ks.getKey(ALIAS, null) as? SecretKey)?.let { return it }
+            if (!create || ks.containsAlias(ALIAS)) throw IllegalStateException("Password key unavailable")
             return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").apply {
                 init(KeyGenParameterSpec.Builder(ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
@@ -156,14 +224,14 @@ object Passwords {
         }
 
         override fun encrypt(plain: String): String {
-            val c = Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.ENCRYPT_MODE, key()) }
+            val c = Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.ENCRYPT_MODE, key(create = true)) }
             return Base64.encodeToString(c.iv + c.doFinal(plain.toByteArray(Charsets.UTF_8)), Base64.NO_WRAP)
         }
 
         override fun decrypt(stored: String): String {
             val raw = Base64.decode(stored, Base64.NO_WRAP)
             val c = Cipher.getInstance("AES/GCM/NoPadding")
-            c.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, raw, 0, 12))
+            c.init(Cipher.DECRYPT_MODE, key(create = false), GCMParameterSpec(128, raw, 0, 12))
             return String(c.doFinal(raw, 12, raw.size - 12), Charsets.UTF_8)
         }
     }

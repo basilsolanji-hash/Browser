@@ -28,6 +28,24 @@ object Tabs {
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("tabs", Context.MODE_PRIVATE)
 
+    class Unavailable : IllegalStateException("Open tabs storage unavailable")
+
+    /** Read-only snapshot for tab-set actions; null means that stored tabs cannot be read. */
+    internal fun readForTabSets(ctx: Context, profile: Int): List<OpenTab>? = runCatching {
+        val raw = prefs(ctx).getString("list_$profile", null) ?: return@runCatching emptyList()
+        val arr = JSONArray(raw)
+        val ids = HashSet<String>()
+        (0 until arr.length()).map {
+            val o = arr.getJSONObject(it)
+            val id = o.opt("id") as? String ?: error("Invalid open tab")
+            if (id.isBlank() || !ids.add(id) || listOf("title", "url", "group").any { key ->
+                    o.has(key) && o.opt(key) !is String
+                }) error("Invalid open tab")
+            OpenTab(id, o.optString("title"), o.optString("url", Pins.START),
+                o.optString("group").ifEmpty { null })
+        }
+    }.getOrNull()
+
     private var seq = 0L
     private fun newId(prefix: String): String {
         val now = System.currentTimeMillis()

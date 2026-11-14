@@ -68,7 +68,7 @@ class StatsActivity : AppCompatActivity() {
         content.addView(sectionTitle(Tr.t("my_library")))
         val saved = SavedPages.list(this)
         val files = profiles.flatMap { ProfileFiles.list(this, it.id) }
-        content.addView(ExtrasUi.card(this, Tr.t("notes"), Notes.list(this).size.toString()))
+        content.addView(ExtrasUi.card(this, Tr.t("notes"), (Notes.read(this)?.size?.toString() ?: Tr.t("notes_storage_unavailable"))))
         content.addView(ExtrasUi.card(this, Tr.t("saved_pages"),
             "${saved.size} · ${Formatter.formatShortFileSize(this, saved.sumOf { it.size })}"))
         content.addView(ExtrasUi.card(this, Tr.t("downloads"), DownloadLog.list(this).size.toString()))
