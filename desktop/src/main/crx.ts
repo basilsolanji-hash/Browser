@@ -140,6 +140,7 @@ export function unzip(zip: Buffer): Map<string, Buffer> {
 }
 
 export function safePath(name: string): boolean {
-  return !!name && !name.startsWith('/') && !/^[a-z]:/i.test(name) && !name.includes('\0') &&
+  // На Windows двоеточие в любом компоненте может обозначать альтернативный поток файла.
+  return !!name && !name.startsWith('/') && !name.includes(':') && !name.includes('\0') &&
     name.split('/').every((part) => part !== '..' && part !== '.' && part !== '');
 }
