@@ -1,6 +1,7 @@
 import { BrowserWindow, WebContentsView, clipboard, dialog, ipcMain, screen, session, systemPreferences, type Session, type WebContents } from 'electron';
 import { join } from 'node:path';
 import { JsonFile } from './store';
+import { guardStorageBeforeExit } from './exitguard';
 import { WEB_PREFS, hardenSession, openExternal, openSystemSettings } from './security';
 import { handleUiSession, handleWebSession, isPanelUrl } from './protocol';
 import { INCOGNITO_PALETTE, palette } from './themes';
@@ -294,6 +295,9 @@ export class OsWindow implements TabHost {
     });
     this.win.once('ready-to-show', () => this.win.show());
     this.chrome.webContents.once('did-finish-load', () => this.win.show());
+    this.win.on('close', (event) => {
+      if (windows.size === 1 && !guardStorageBeforeExit()) event.preventDefault();
+    });
     this.win.on('closed', () => this.destroyAll());
     windows.add(this);
     if (this.incognito) this.newTab();
@@ -635,6 +639,11 @@ export class OsWindow implements TabHost {
 
   closeTab(id: string | null = this.activeId()): void {
     if (!id) return;
+    // Дать обработчику окна отменить закрытие, пока последняя приватная вкладка ещё жива.
+    if (this.incognito && this.memTabs.length === 1 && this.memTabs[0].id === id) {
+      this.win.close();
+      return;
+    }
     const strip = this.strip();
     const idx = strip.findIndex((s) => s.id === id);
     const key = this.key(id);

@@ -11,6 +11,7 @@ import * as Bookmarks from './bookmarks';
 import * as Passwords from './passwords';
 import { applyLanguage } from './i18n';
 import { flushAll } from './store';
+import { guardStorageBeforeExit } from './exitguard';
 import { installIpc, applyTheme } from './ipc';
 import { OsWindow, lockAll, profileSession, windowFor, windows } from './window';
 import { setBlockedListener } from './privacy';
@@ -51,6 +52,16 @@ if (process.env.OS_TEST === '1' && process.env.OS_TEST_HOSTS) app.commandLine.ap
 
 registerScheme();
 
+let reopenScheduled = false;
+function reopenIfNoWindows(): void {
+  if (reopenScheduled || windows.size !== 0 || !app.isReady()) return;
+  reopenScheduled = true;
+  setImmediate(() => {
+    reopenScheduled = false;
+    if (windows.size === 0) createMain();
+  });
+}
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
@@ -90,8 +101,25 @@ if (!app.requestSingleInstanceLock()) {
 
   app.on('window-all-closed', () => app.quit());
   // Незаконченные загрузки запоминаем, чтобы после перезапуска продолжить их с того же места.
-  app.on('before-quit', () => { suspendAll(); flushAll(); });
-  app.on('will-quit', () => flushAll());
+  app.on('before-quit', (event) => {
+    if (!guardStorageBeforeExit()) {
+      event.preventDefault();
+      // При закрытии последнего окна оно уже может быть уничтожено.
+      reopenIfNoWindows();
+      return;
+    }
+    suspendAll();
+    if (!guardStorageBeforeExit()) {
+      event.preventDefault();
+      reopenIfNoWindows();
+    }
+  });
+  app.on('will-quit', (event) => {
+    if (!guardStorageBeforeExit()) {
+      event.preventDefault();
+      reopenIfNoWindows();
+    }
+  });
 }
 
 function createMain(): OsWindow {

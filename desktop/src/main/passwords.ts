@@ -58,6 +58,15 @@ export function list(profile: number): Login[] {
   return out;
 }
 
+/** Резервная копия должна включать все пароли или завершаться с ошибкой. */
+export function listForBackup(profile: number): Login[] {
+  return raw(profile).map((s) => {
+    const p = open(s.p);
+    if (p == null) throw new Error('Unable to decrypt saved password for backup');
+    return { ...s, p };
+  });
+}
+
 export function password(profile: number, guid: string): string | null {
   const s = raw(profile).find((x) => x.g === guid);
   return s ? open(s.p) : null;

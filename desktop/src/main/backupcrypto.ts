@@ -122,38 +122,84 @@ export function decrypt(file: string, password: string): BackupFile | null {
   }
 }
 
-const s = (x: unknown) => (typeof x === 'string' ? x : '');
-const arr = (x: unknown): Record<string, unknown>[] => (Array.isArray(x) ? x.filter((i) => i && typeof i === 'object') : []);
-
-/** v2 (все профили) или v1 (один профиль), как Backup.applyAny: есть массив profiles — значит v2. */
-export function normalizeFile(o: unknown): BackupFile | null {
-  if (!o || typeof o !== 'object') return null;
-  const all = (o as Record<string, unknown>).profiles;
-  if (!Array.isArray(all)) return normalize(o);
-  const profiles: BackupAll['profiles'] = [];
-  for (const p of arr(all)) {
-    const id = Math.trunc(Number(p.id));
-    const data = normalize(p.data);
-    if (Number.isInteger(id) && id > 0 && data) profiles.push({ id, data });
-  }
-  return { v: 2, profiles };
+// Отсутствующие необязательные поля совместимы со старыми копиями. Ошибочный
+// присутствующий элемент не подменяем пустым: это скрыло бы потерю данных.
+function object(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid backup object');
+  return value as Record<string, unknown>;
 }
 
-/** Привести расшифрованный JSON к типам (как optString/optJSONArray в Android): лишнее отбрасываем. */
-export function normalize(o: unknown): BackupData | null {
-  if (!o || typeof o !== 'object') return null;
-  const d = o as Record<string, unknown>;
+function optionalText(value: unknown): string {
+  if (value === undefined) return '';
+  if (typeof value !== 'string') throw new Error('Invalid backup text');
+  return value;
+}
+
+function requiredText(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim()) throw new Error('Missing backup text');
+  return value;
+}
+
+function optionalNumber(value: unknown, fallback: number): number {
+  if (value === undefined) return fallback;
+  if (typeof value !== 'number' && !(typeof value === 'string' && value.trim())) throw new Error('Invalid backup number');
+  const number = Number(value);
+  if (!Number.isFinite(number)) throw new Error('Invalid backup number');
+  return number;
+}
+
+function objects(value: unknown): Record<string, unknown>[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new Error('Invalid backup array');
+  return value.map(object);
+}
+
+function parseProfile(value: unknown): BackupData {
+  const d = object(value);
   return {
-    v: Number(d.v) || 1,
-    name: s(d.name),
-    desc: s(d.desc),
-    passwords: arr(d.passwords).filter((l) => s(l.o) && typeof l.p === 'string')
-      .map((l) => ({ g: s(l.g), o: s(l.o), u: s(l.u), p: s(l.p), t: Number(l.t) || 0 })),
-    tabSets: arr(d.tabSets).filter((x) => s(x.id))
-      .map((x) => ({ id: s(x.id), n: s(x.n), t: Number(x.t) || 0, tabs: arr(x.tabs).filter((tb) => s(tb.url)).map((tb) => ({ title: s(tb.title), url: s(tb.url) })) })),
-    favorites: arr(d.favorites).map((f) => ({ title: s(f.title), url: s(f.url), folder: s(f.folder) })),
-    notes: arr(d.notes).map((n) => ({ text: s(n.text), url: s(n.url) })),
+    v: optionalNumber(d.v, 1) || 1,
+    name: optionalText(d.name),
+    desc: optionalText(d.desc),
+    passwords: objects(d.passwords).map((l) => {
+      const origin = requiredText(l.o);
+      if (typeof l.p !== 'string' || !l.p.length) throw new Error('Missing backup password');
+      const password = l.p;
+      if (!originOf(origin)) throw new Error('Invalid backup login');
+      return { g: optionalText(l.g), o: origin, u: optionalText(l.u), p: password, t: optionalNumber(l.t, 0) };
+    }),
+    tabSets: objects(d.tabSets).map((set) => {
+      const tabs = objects(set.tabs).map((tab) => ({ title: optionalText(tab.title), url: requiredText(tab.url) }));
+      if (!tabs.length) throw new Error('Empty backup tab set');
+      return { id: requiredText(set.id), n: optionalText(set.n), t: optionalNumber(set.t, 0), tabs };
+    }),
+    favorites: objects(d.favorites).map((f) => ({ title: optionalText(f.title), url: requiredText(f.url), folder: optionalText(f.folder) })),
+    notes: objects(d.notes).map((n) => ({ text: requiredText(n.text), url: optionalText(n.url) })),
   };
+}
+
+/** Validate the complete payload before any profile can be changed. */
+export function normalizeFile(value: unknown): BackupFile | null {
+  try {
+    const root = object(value);
+    if (!Object.hasOwn(root, 'profiles')) return parseProfile(root);
+    if (!Array.isArray(root.profiles)) throw new Error('Invalid backup profiles');
+    const seen = new Set<number>();
+    const profiles = root.profiles.map((entry) => {
+      const p = object(entry);
+      const id = optionalNumber(p.id, NaN);
+      if (!Number.isSafeInteger(id) || id < 1 || seen.has(id)) throw new Error('Invalid backup profile id');
+      seen.add(id);
+      return { id, data: parseProfile(p.data) };
+    });
+    return { v: 2, profiles };
+  } catch {
+    return null;
+  }
+}
+
+/** Normalize a single profile, rejecting invalid entries instead of silently dropping them. */
+export function normalize(value: unknown): BackupData | null {
+  try { return parseProfile(value); } catch { return null; }
 }
 
 // --- Восстановление: добавить недостающее без дублей ---

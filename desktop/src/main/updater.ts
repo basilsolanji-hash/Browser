@@ -1,6 +1,7 @@
 import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { settings } from './settings';
+import { guardStorageBeforeExit } from './exitguard';
 
 /**
  * Автообновление (этап 5): electron-updater из GitHub Releases, только по HTTPS. Источник — постоянный
@@ -57,5 +58,5 @@ export function start(): void {
 }
 
 export function restartAndInstall(): void {
-  if (state === 'downloaded') autoUpdater.quitAndInstall();
+  if (state === 'downloaded' && guardStorageBeforeExit()) autoUpdater.quitAndInstall();
 }

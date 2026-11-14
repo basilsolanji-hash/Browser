@@ -593,52 +593,69 @@ const extArg = (x: unknown) => {
   if (!Extensions.isExtId(id)) throw new Error('bad extension');
   return id;
 };
-on(['page'], 'extensions', async (_w, profile) => {
-  const p = profileArg(profile);
+const extensionProfile = (w: OsWindow, value: unknown): number => {
+  if (w.incognito) throw new Error('Extensions are unavailable in private windows');
+  const p = profileArg(value);
+  if (w.profile !== p) throw new Error('Extension profile changed');
+  return p;
+};
+const extensionsChanged = (profile: number) => {
+  broadcast();
+  for (const w of windows) {
+    if (!w.incognito && w.profile === profile) w.chrome.webContents.send('os:event', 'extPins', null);
+  }
+};
+on(['page'], 'extensions', async (w, profile) => {
+  const p = extensionProfile(w, profile);
   const ses = profileSession(p);
   await Extensions.ready(p);
+  extensionProfile(w, p);
   return { profile: profileInfo(p), list: Extensions.info(ses, p, currentLang()) };
 });
-on(['page'], 'extInstall', async (_w, profile, text) => {
-  const p = profileArg(profile);
-  const r = await Extensions.installFromStore(profileSession(p), p, str(text, 500));
-  broadcast();
-  return r;
+on(['page'], 'extInstall', async (w, profile, text) => {
+  const p = extensionProfile(w, profile);
+  try { return await Extensions.installFromStore(profileSession(p), p, str(text, 500)); }
+  finally { extensionsChanged(p); }
 });
-on(['page'], 'extEnable', async (_w, profile, id, enabled) => {
-  const p = profileArg(profile);
-  const ok = await Extensions.setEnabled(profileSession(p), p, extArg(id), enabled === true);
-  broadcast();
-  return ok;
+on(['page'], 'extEnable', async (w, profile, id, enabled) => {
+  const p = extensionProfile(w, profile);
+  try { return await Extensions.setEnabled(profileSession(p), p, extArg(id), enabled === true); }
+  finally { extensionsChanged(p); }
 });
-on(['page'], 'extRemove', async (_w, profile, id) => {
-  const p = profileArg(profile);
-  await Extensions.remove(profileSession(p), p, extArg(id));
-  broadcast();
+on(['page'], 'extRemove', async (w, profile, id) => {
+  const p = extensionProfile(w, profile);
+  try { await Extensions.remove(profileSession(p), p, extArg(id)); }
+  finally { extensionsChanged(p); }
+});
+on(['page'], 'extPrepareRecovery', async (w, profile, id) => {
+  const p = extensionProfile(w, profile);
+  try { await Extensions.prepareRecovery(profileSession(p), p, extArg(id)); }
+  finally { extensionsChanged(p); }
 });
 on(['page'], 'extOptions', (w, profile, id) => {
-  const p = profileArg(profile);
+  const p = extensionProfile(w, profile);
   const url = Extensions.pageUrl(profileSession(p), p, extArg(id), 'options');
   if (url) openExtensionWindow(w, p, url, null);
   return !!url;
 });
 // Кнопка расширений в шапке: только профиль, открытый в этом окне (в инкогнито расширений нет).
-on(['chrome'], 'extMenu', async (w) => {
-  if (w.incognito || w.profile == null) return [];
+on(['chrome'], 'extMenu', async (w, expectedProfile) => {
+  if (w.incognito || w.profile == null || int(expectedProfile) !== w.profile) return null;
   const p = w.profile;
   await Extensions.ready(p);
-  return Extensions.info(profileSession(p), p, currentLang()).filter((e) => e.enabled && e.loaded)
+  if (w.incognito || w.profile !== p) return null;
+  return Extensions.info(profileSession(p), p, currentLang()).filter((e) => e.enabled && e.loaded && !e.recovery && e.error !== 'recover' && e.error !== 'running')
     .map((e) => ({ id: e.id, name: e.name, icon: e.icon, popup: !!e.popup, pinned: !!e.pinned }));
 });
-on(['chrome'], 'extPin', (w, id, pinned) => {
-  if (w.incognito || w.profile == null) return false;
+on(['chrome'], 'extPin', (w, id, pinned, expectedProfile) => {
+  if (w.incognito || w.profile == null || int(expectedProfile) !== w.profile) return false;
   const ok = Extensions.setPinned(w.profile, extArg(id), pinned === true);
   // Панель всех окон этого профиля перерисуется с новым набором значков.
   for (const x of windows) x.chrome.webContents.send('os:event', 'extPins', null);
   return ok;
 });
-on(['chrome'], 'extPopup', (w, id, left, right, bottom) => {
-  if (w.incognito || w.profile == null) return false;
+on(['chrome'], 'extPopup', (w, id, left, right, bottom, expectedProfile) => {
+  if (w.incognito || w.profile == null || int(expectedProfile) !== w.profile) return false;
   const url = Extensions.pageUrl(profileSession(w.profile), w.profile, extArg(id), 'popup');
   if (url) openExtensionWindow(w, w.profile, url, { left: num(left), right: num(right), bottom: num(bottom) });
   return !!url;

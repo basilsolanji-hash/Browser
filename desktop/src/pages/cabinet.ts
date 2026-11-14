@@ -214,7 +214,7 @@ async function exportBackup(): Promise<void> {
   if (r[0] !== r[1]) { toast(t('backup_pw_mismatch')); return; }
   const res = await os.call<string>('backupExport', id, r[0], r[1]);
   if (res === 'ok') toast(t('backup_done'));
-  else if (res !== 'cancel') toast(t('backup_bad'));
+  else if (res !== 'cancel') toast(t('dt_backup_export_failed'));
 }
 
 async function importBackup(): Promise<void> {
@@ -224,9 +224,10 @@ async function importBackup(): Promise<void> {
   if (r[0].length < 6) { toast(t('backup_pw_short')); return; }
   // В общем кабинете копия одного профиля (v1) восстанавливается в последний открытый профиль, как в Android.
   const target = id || (await os.call<{ last: number }>('cabinetAll')).last;
-  const res = await os.call<Restored | 'bad' | 'cancel'>('backupImport', target, r[0]);
+  const res = await os.call<Restored | 'bad' | 'cancel' | 'error'>('backupImport', target, r[0]);
   if (res === 'cancel') return;
   if (res === 'bad') { toast(t('backup_bad')); return; }
+  if (res === 'error') { toast(t('dt_backup_restore_failed')); return; }
   await render();
   modal((close) => [
     h('h3', null, t('backup')),

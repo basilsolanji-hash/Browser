@@ -411,10 +411,11 @@ function renderRow2(): void {
   }
   if (st.zoom !== 100) nodes.push(h('button', { class: 'zoom', title: t('reset'), onclick: () => void os.call('zoom', 0) }, st.zoom + '%'));
   if (st.profile && !st.incognito) {
-    for (const e of pinnedExts(st.profile.id)) {
+    const profile = st.profile.id;
+    for (const e of pinnedExts(profile)) {
       const b = h('button', {
         class: 'icon-btn ext-pin', 'data-ext': e.id, title: e.popup ? e.name : `${e.name} — ${t('dt_ext_no_popup')}`, 'aria-label': e.name,
-        onclick: () => openExt(e, b.getBoundingClientRect()),
+        onclick: () => openExt(e, b.getBoundingClientRect(), profile),
       }, e.icon ? h('img', { src: e.icon, alt: '', width: 18, height: 18 }) : icon('extension', 18));
       nodes.push(b);
     }
@@ -602,30 +603,43 @@ interface ExtItem { id: string; name: string; icon: string | null; popup: boolea
 /** Расширения профиля для панели: читаются один раз на профиль и после закрепления. */
 let extCache: { profile: number; list: ExtItem[] } | null = null;
 let extLoading = false;
+let extCacheRevision = 0;
 
 function pinnedExts(profile: number): ExtItem[] {
   if (extCache?.profile !== profile) {
     // Под PIN главный процесс не отвечает: спросим после разблокировки (придёт новое состояние окна).
     if (!extLoading && !st?.locked) {
       extLoading = true;
-      void os.call<ExtItem[]>('extMenu').then((list) => { extCache = { profile, list }; render(); }).catch(() => {}).finally(() => { extLoading = false; });
+      const revision = extCacheRevision;
+      void os.call<ExtItem[] | null>('extMenu', profile).then((list) => {
+        if (list && revision === extCacheRevision && st?.profile?.id === profile) {
+          extCache = { profile, list };
+          render();
+        }
+      }).catch(() => {}).finally(() => {
+        extLoading = false;
+        if (revision !== extCacheRevision || st?.profile?.id !== profile) render();
+      });
     }
     return [];
   }
   return extCache.list.filter((e) => e.pinned);
 }
 
-function openExt(e: ExtItem, anchor: DOMRect): void {
+function openExt(e: ExtItem, anchor: DOMRect, profile: number): void {
   hideDrop();
-  if (e.popup) void os.call('extPopup', e.id, anchor.left, anchor.right, anchor.bottom);
-  else void os.call('openPanel', `os://extensions/?profile=${st?.profile?.id}`);
+  if (st?.profile?.id !== profile || st.incognito) return;
+  if (e.popup) void os.call('extPopup', e.id, anchor.left, anchor.right, anchor.bottom, profile);
+  else void os.call('openPanel', `os://extensions/?profile=${profile}`);
 }
 
 /** Расширения профиля: всплывающие окна (action.default_popup), закрепление на панели и «Управление расширениями». */
 async function extMenu(anchor: DOMRect): Promise<void> {
   if (!st?.profile) return;
   const id = st.profile.id;
-  const list = await os.call<ExtItem[]>('extMenu');
+  const revision = extCacheRevision;
+  const list = await os.call<ExtItem[] | null>('extMenu', id);
+  if (!list || revision !== extCacheRevision || st?.profile?.id !== id) return;
   extCache = { profile: id, list };
   const items: Item[] = [{ head: t('dt_extensions') }];
   if (!list.length) items.push({ el: h('div', { class: 'empty-note' }, t('dt_ext_empty')) });
@@ -636,20 +650,22 @@ async function extMenu(anchor: DOMRect): Promise<void> {
       title: e.pinned ? t('profile_unpin') : t('profile_pin'), 'aria-label': `${e.pinned ? t('profile_unpin') : t('profile_pin')}: ${e.name}`, 'aria-pressed': String(e.pinned),
       onclick: (ev: MouseEvent) => {
         ev.stopPropagation();
-        void os.call('extPin', e.id, !e.pinned).then(() => { hideDrop(); extCache = null; render(); });
+        void os.call('extPin', e.id, !e.pinned, id).then(() => { hideDrop(); extCache = null; render(); });
       },
     }, icon('pin', 16));
     items.push({
       el: h('div', { class: 'ext-row' },
         h('button', {
           role: 'menuitem', 'data-ext': e.id, title: e.popup ? e.name : t('dt_ext_no_popup'),
-          onclick: () => openExt(e, anchor),
+          onclick: () => openExt(e, anchor, id),
         }, pic, h('span', { class: 'grow' }, e.name, e.popup ? null : h('span', { class: 'sub' }, '  ' + t('dt_ext_no_popup')))),
         pin),
     });
   }
   items.push({ sep: true }, { label: t('dt_ext_manage'), icon: 'settings', run: () => void os.call('openPanel', `os://extensions/?profile=${id}`) });
-  openDrop(menu(items), anchor, 'end', 300);
+  const drop = menu(items);
+  drop.dataset.extMenu = 'true';
+  openDrop(drop, anchor, 'end', 300);
 }
 
 /** Меню ⋮ как в Chrome (BrowserMenu.kt): ряд круглых кнопок сверху, ниже группы пунктов через линию. */
@@ -923,7 +939,13 @@ function render(): void {
 
 let booted = false;
 os.on('state', (s) => {
-  st = s as WindowState;
+  const next = s as WindowState;
+  if (st?.profile?.id !== next.profile?.id || st?.incognito !== next.incognito) {
+    extCacheRevision++;
+    extCache = null;
+    if (layer.querySelector('[data-ext-menu]')) hideDrop();
+  }
+  st = next;
   // Состояние может прийти раньше переводов (boot) — тогда отрисуем после загрузки.
   if (booted) render();
 });
@@ -941,7 +963,12 @@ function toast(text: string, action?: string): void {
   toastTimer = window.setTimeout(() => el.remove(), action ? 4000 : 2600);
 }
 // Закрепили или открепили расширение (в этом или другом окне) — перечитать значки панели.
-os.on('extPins', () => { extCache = null; render(); });
+os.on('extPins', () => {
+  extCacheRevision++;
+  extCache = null;
+  if (layer.querySelector('[data-ext-menu]')) hideDrop();
+  render();
+});
 os.on('focusFind', () => {
   const el = document.getElementById('find') as HTMLInputElement | null;
   if (el) { el.focus(); el.select(); } else setTimeout(() => (document.getElementById('find') as HTMLInputElement | null)?.focus(), 50);

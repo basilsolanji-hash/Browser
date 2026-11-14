@@ -1,12 +1,14 @@
 import { dialog, type BrowserWindow } from 'electron';
-import { readFile, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { open, readFile, rename, rm } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import * as Passwords from './passwords';
 import * as TabSets from './tabsets';
 import * as Bookmarks from './bookmarks';
 import * as Notes from './notes';
 import * as Profiles from './profiles';
 import { backupPasswordOk } from '../shared/pwgen';
-import { type BackupAll, type BackupData, type BackupFile, decrypt, encrypt, isAll, merge } from './backupcrypto';
+import { type BackupAll, type BackupData, type BackupFile, decrypt, encrypt, isAll, merge, originOf } from './backupcrypto';
 import { profileCount } from './settings';
 
 /**
@@ -24,26 +26,38 @@ export function collect(profile: number): BackupData {
     v: 1,
     name: Profiles.customName(profile),
     desc: Profiles.description(profile),
-    passwords: Passwords.list(profile),
+    passwords: Passwords.listForBackup(profile),
     tabSets: TabSets.list(profile),
     favorites: Bookmarks.all().map((b) => ({ title: b.t, url: b.u, folder: b.f })),
     notes: Notes.all().map((n) => ({ text: n.text, url: n.source })),
   };
 }
 
+/** Проверить пароли до изменения каких-либо данных профиля. */
+function preflightPasswords(profile: number, data: BackupData): void {
+  Passwords.listForBackup(profile);
+  if (data.passwords.length && !Passwords.available()) throw new Error('Password encryption unavailable');
+  if (data.passwords.some((l) => !originOf(l.o) || !l.p)) throw new Error('Invalid backup login');
+}
+
 /** Добавить данные из копии в профиль; уже имеющееся не дублируется. */
 export function apply(profile: number, data: BackupData): Restored {
+  preflightPasswords(profile, data);
   const r = merge({
     name: Profiles.customName(profile),
     desc: Profiles.description(profile),
-    logins: Passwords.list(profile),
+    logins: Passwords.listForBackup(profile),
     tabSets: TabSets.list(profile),
     favoriteUrls: Bookmarks.all().map((b) => b.u),
     notes: Notes.all().map((n) => ({ text: n.text, url: n.source })),
   }, data);
   if (r.name) Profiles.rename(profile, r.name);
   if (r.desc) Profiles.setDescription(profile, r.desc);
-  const passwords = r.logins.filter((l) => Passwords.upsert(profile, l.o, l.u, l.p)).length;
+  let passwords = 0;
+  for (const l of r.logins) {
+    if (!Passwords.upsert(profile, l.o, l.u, l.p)) throw new Error('Password restore failed');
+    passwords++;
+  }
   r.tabSets.forEach((s) => TabSets.add(profile, s));
   for (const f of r.favorites) {
     if (f.folder) Bookmarks.addFolder(f.folder);
@@ -58,7 +72,14 @@ export const collectAll = (): BackupAll => ({ v: 2, profiles: Profiles.order().m
 
 /** v2 — в профили с теми же номерами (если такие есть), v1 — в [profile] (Backup.applyAny). */
 export function applyAny(profile: number, file: BackupFile): Restored {
-  if (!isAll(file)) return apply(profile, file);
+  if (!isAll(file)) {
+    preflightPasswords(profile, file);
+    return apply(profile, file);
+  }
+  for (const p of file.profiles) {
+    if (p.id < 1 || p.id > profileCount()) throw new Error('Backup profile unavailable');
+    preflightPasswords(p.id, p.data);
+  }
   const sum: Restored = { passwords: 0, tabSets: 0, favorites: 0, notes: 0 };
   for (const p of file.profiles) {
     if (p.id < 1 || p.id > profileCount()) continue;
@@ -69,6 +90,26 @@ export function applyAny(profile: number, file: BackupFile): Restored {
 }
 
 const stamp = () => new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+/** Записать копию рядом с выбранным файлом, заменяя его только после успешной записи. */
+async function writeBackup(path: string, content: string): Promise<void> {
+  const temporary = join(dirname(path), `.osbackup-${randomUUID()}.tmp`);
+  const file = await open(temporary, 'wx', 0o600);
+  let renamed = false;
+  try {
+    try {
+      await file.writeFile(content, 'utf8');
+      await file.sync();
+    } finally {
+      await file.close();
+    }
+    await rename(temporary, path);
+    renamed = true;
+  } finally {
+    // Удаляем только собственный временный файл; существующая копия не трогается.
+    if (!renamed) await rm(temporary, { force: true }).catch(() => {});
+  }
+}
 
 /** profile 0 — все профили. 'ok' | 'cancel' | 'short' | 'error'. */
 export async function exportTo(win: BrowserWindow, profile: number, password: string): Promise<string> {
@@ -85,7 +126,7 @@ export async function exportTo(win: BrowserWindow, profile: number, password: st
     path = res.filePath;
   }
   try {
-    await writeFile(path, encrypt(profile === 0 ? collectAll() : collect(profile), password), 'utf8');
+    await writeBackup(path, encrypt(profile === 0 ? collectAll() : collect(profile), password));
     return 'ok';
   } catch {
     return 'error';
@@ -105,7 +146,7 @@ export async function pick(win: BrowserWindow): Promise<boolean> {
 }
 
 /** Восстановить из выбранного файла (v1 — в [profile], v2 — во все профили); 'bad' — неверный пароль или повреждённый файл. */
-export async function importPicked(profile: number, password: string): Promise<Restored | 'bad' | 'cancel'> {
+export async function importPicked(profile: number, password: string): Promise<Restored | 'bad' | 'cancel' | 'error'> {
   if (!picked) return 'cancel';
   let text: string;
   try {
@@ -117,6 +158,11 @@ export async function importPicked(profile: number, password: string): Promise<R
   if (text.length > 50_000_000) return 'bad';
   const data = decrypt(text, password);
   if (!data) return 'bad';
-  picked = null;
-  return applyAny(profile, data);
+  try {
+    const restored = applyAny(profile, data);
+    picked = null;
+    return restored;
+  } catch {
+    return 'error';
+  }
 }

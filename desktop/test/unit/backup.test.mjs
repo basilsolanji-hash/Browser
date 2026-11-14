@@ -114,9 +114,9 @@ test('backup v2: all profiles in one file, Android-compatible', () => {
   assert.deepEqual(back, all);
   assert.ok(!isAll(decrypt(encrypt(sample(), 'secret-1'), 'secret-1')));
   assert.equal(decrypt(file, 'secret-2'), null);
-  // Битые записи профилей отбрасываются, остальные остаются.
+  // Повреждённая копия отклоняется целиком, чтобы не скрывать потерю данных.
   const odd = decrypt(encrypt({ v: 2, profiles: [{ id: 'x', data: {} }, { id: 2, data: sample() }, { id: 4 }] }, 'secret-1'), 'secret-1');
-  assert.deepEqual(odd.profiles.map((p) => p.id), [2]);
+  assert.equal(odd, null);
 });
 
 test('passwords: origin, subdomains, update by site and login', () => {

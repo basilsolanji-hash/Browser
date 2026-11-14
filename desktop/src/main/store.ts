@@ -12,6 +12,7 @@ export class JsonFile<T> {
   private data: T | null = null;
   private timer: NodeJS.Timeout | null = null;
   private dirty = false;
+  private writeFailed = false;
 
   // Файл читается при первом обращении: путь userData задаётся в main.ts уже после импорта модулей.
   constructor(private readonly name: string, private readonly fallback: () => T) {
@@ -51,25 +52,50 @@ export class JsonFile<T> {
     return !existsSync(this.path) && !this.dirty;
   }
 
-  private schedule(): void {
+  private schedule(delay = 300): void {
     if (this.timer) return;
-    this.timer = setTimeout(() => this.flush(), 300);
+    this.timer = setTimeout(() => {
+      try { this.flush(); } catch {
+        console.error('[store] Unable to save application data');
+        this.schedule(5000);
+      }
+    }, delay);
+  }
+
+  retry(): void {
+    if (this.dirty) this.schedule(5000);
+  }
+
+  hasWriteFailure(): boolean {
+    return this.writeFailed;
   }
 
   flush(): void {
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
     if (!this.dirty) return;
-    this.dirty = false;
-    mkdirSync(app.getPath('userData'), { recursive: true });
-    const tmp = this.path + '.tmp';
-    writeFileSync(tmp, JSON.stringify(this.get(), null, 1));
-    renameSync(tmp, this.path);
+    try {
+      mkdirSync(app.getPath('userData'), { recursive: true });
+      const tmp = this.path + '.tmp';
+      writeFileSync(tmp, JSON.stringify(this.get(), null, 1));
+      renameSync(tmp, this.path);
+      this.dirty = false;
+      this.writeFailed = false;
+    } catch (error) {
+      this.writeFailed = true;
+      throw error;
+    }
   }
 }
 
-export function flushAll(): void {
+export function flushAll(): boolean {
+  let ok = true;
   for (const f of files.values()) {
-    try { f.flush(); } catch (e) { console.error('[store] flush', f.path, e); }
+    try { f.flush(); } catch {
+      console.error('[store] Unable to save application data');
+      f.retry();
+      ok = false;
+    }
   }
+  return ok;
 }
