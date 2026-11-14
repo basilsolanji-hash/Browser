@@ -109,6 +109,7 @@ export function unzip(zip: Buffer): Map<string, Buffer> {
   let p = zip.readUInt32LE(eocd + 16);
   if (count > MAX_FILES || p >= zip.length) throw new CrxError('bad zip');
   const out = new Map<string, Buffer>();
+  const windowsNames = new Set<string>();
   let total = 0;
   for (let n = 0; n < count; n++) {
     if (p + 46 > zip.length || zip.readUInt32LE(p) !== 0x02014b50) throw new CrxError('bad zip');
@@ -123,6 +124,11 @@ export function unzip(zip: Buffer): Map<string, Buffer> {
     p += 46 + nameLen + extraLen + commentLen;
     if (name.endsWith('/')) continue;
     if (!safePath(name)) throw new CrxError('bad path');
+    // Windows обычно не различает регистр в именах файлов. Два таких пути
+    // не должны при распаковке незаметно заменять содержимое друг друга.
+    const windowsName = name.toLowerCase();
+    if (windowsNames.has(windowsName)) throw new CrxError('duplicate path');
+    windowsNames.add(windowsName);
     if (local + 30 > zip.length || zip.readUInt32LE(local) !== 0x04034b50) throw new CrxError('bad zip');
     const start = local + 30 + zip.readUInt16LE(local + 26) + zip.readUInt16LE(local + 28);
     if (start + csize > zip.length) throw new CrxError('bad zip');
@@ -140,7 +146,8 @@ export function unzip(zip: Buffer): Map<string, Buffer> {
 }
 
 export function safePath(name: string): boolean {
-  // На Windows двоеточие в любом компоненте может обозначать альтернативный поток файла.
-  return !!name && !name.startsWith('/') && !name.includes(':') && !name.includes('\0') &&
-    name.split('/').every((part) => part !== '..' && part !== '.' && part !== '');
+  // Отклоняем недопустимые и неоднозначные имена Windows, включая устройства и потоки.
+  return !!name && !name.startsWith('/') && !/[<>:"|?*\x00-\x1f]/.test(name) &&
+    name.split('/').every((part) => part !== '..' && part !== '.' && part !== '' &&
+      !/[. ]$/.test(part) && !/^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)/i.test(part));
 }
