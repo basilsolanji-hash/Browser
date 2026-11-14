@@ -383,7 +383,14 @@ export async function setEnabled(ses: Session, profile: number, id: string, on: 
     await ready(profile);
     return serializeSession(ses, async () => {
     const e = entry(profile, id);
-    if (!e) return false;
+    if (!e) {
+      // Запись может отсутствовать после прерванной установки, но код ещё загружен.
+      if (on || !hasRecoveryCopy(profile, id)) return false;
+      if (ses.extensions.getExtension(id)) ses.extensions.removeExtension(id);
+      if (ses.extensions.getExtension(id)) { errors.set(key, 'running'); return false; }
+      errors.delete(key);
+      return true;
+    }
     if (on) {
       if (!(await loadInSession(ses, profile, id))) {
         extensionsFile.update(() => { e.enabled = !!ses.extensions.getExtension(id); });
@@ -394,6 +401,10 @@ export async function setEnabled(ses: Session, profile: number, id: string, on: 
       try { extensionsFile.flush(); return true; } catch { extensionsFile.retry(); return false; }
     }
     if (ses.extensions.getExtension(id)) ses.extensions.removeExtension(id);
+    if (ses.extensions.getExtension(id)) {
+      errors.set(key, 'running');
+      return false;
+    }
     extensionsFile.update(() => { e.enabled = false; });
     errors.delete(key);
     try { extensionsFile.flush(); return true; } catch { extensionsFile.retry(); return false; }

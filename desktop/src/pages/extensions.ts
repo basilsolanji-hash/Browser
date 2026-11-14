@@ -68,6 +68,7 @@ function row(e: Ext): HTMLElement {
       e.stateSaveFailed ? h('div', { class: 'err' }, t('dt_storage_save_failed')) : null),
     h('div', { class: 'actions' },
       e.options && e.enabled && e.loaded && !e.recovery && e.error !== 'recover' && e.error !== 'running' ? h('button', { class: 'btn', 'data-k': 'options', onclick: () => void os.call('extOptions', profile, e.id) }, t('dt_ext_options')) : null,
+      e.recovery && e.loaded ? h('button', { class: 'btn', disabled: pending, onclick: () => void toggle(e, false) }, t('dt_ext_off')) : null,
       (e.recovery === 'blocked' || e.recovery === 'failed') ? h('button', { class: 'btn', disabled: pending, onclick: () => void prepareRecovery(e) }, t('dt_ext_recovery_prepare')) :
         e.recovery === 'ready' ? h('button', { class: 'btn', disabled: pending || busy, onclick: () => {
           const input = document.getElementById('ext-input');
