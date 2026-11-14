@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, lstatSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { mkdir, rename, rm, rmdir, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, normalize, sep } from 'node:path';
+import { applyEdits, modify, parseTree, type ParseError } from 'jsonc-parser';
 import { JsonFile } from './store';
 import { CrxError, unzip, verifyCrx } from './crx';
 import { profileCount } from './settings';
@@ -231,7 +232,10 @@ export async function installCrx(ses: Session, profile: number, crx: Buffer, exp
   const manifestRaw = files.get('manifest.json');
   if (!manifestRaw) return { ok: false, error: 'bad', detail: 'no manifest' };
   // Ключ в манифесте — чтобы ID распакованного расширения совпал с ID в магазине (как делает Chrome).
-  files.set('manifest.json', Buffer.from(withKey(manifestRaw.toString('utf8'), pkg.key.toString('base64'))));
+  try {
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(manifestRaw);
+    files.set('manifest.json', Buffer.from(withKey(text, pkg.key.toString('base64'))));
+  } catch { return { ok: false, error: 'bad' }; }
   const id = pkg.id;
   return serialize<InstallResult>(profile, id, async () => {
     await ready(profile);
@@ -366,15 +370,21 @@ export async function installCrx(ses: Session, profile: number, crx: Buffer, exp
 
 function withKey(text: string, key: string): string {
   const clean = text.replace(/^\uFEFF/, '');
-  try {
-    const m = JSON.parse(clean) as Record<string, unknown>;
-    m.key = key;
-    return JSON.stringify(m, null, 2);
-  } catch {
-    // В манифесте бывают комментарии (Chrome их допускает) — тогда вставляем ключ первым полем.
-    const i = clean.indexOf('{');
-    return i < 0 ? clean : `${clean.slice(0, i + 1)}"key":${JSON.stringify(key)},${clean.slice(i + 1)}`;
+  const errors: ParseError[] = [];
+  const tree = parseTree(clean, errors, { allowTrailingComma: true, disallowComments: false });
+  if (errors.length || tree?.type !== 'object') throw new Error('Invalid extension manifest');
+  // Повторные ключи неоднозначны; не оставляем возможность загрузить другой ID.
+  if ((tree.children ?? []).filter((p) => p.children?.[0]?.value === 'key').length > 1) {
+    throw new Error('Duplicate extension key');
   }
+  const output = applyEdits(clean, modify(clean, ['key'], key, {}));
+  const resultErrors: ParseError[] = [];
+  const result = parseTree(output, resultErrors, { allowTrailingComma: true, disallowComments: false });
+  const keys = (result?.children ?? []).filter((p) => p.children?.[0]?.value === 'key');
+  if (resultErrors.length || result?.type !== 'object' || keys.length !== 1 || keys[0].children?.[1]?.value !== key) {
+    throw new Error('Invalid extension key');
+  }
+  return output;
 }
 
 export async function setEnabled(ses: Session, profile: number, id: string, on: boolean): Promise<boolean> {
